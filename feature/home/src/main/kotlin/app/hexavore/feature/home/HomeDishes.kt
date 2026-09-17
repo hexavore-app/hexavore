@@ -31,7 +31,6 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import app.hexavore.core.designsystem.component.SourceBadge
-import app.hexavore.core.designsystem.component.SwipeToDelete
 import app.hexavore.core.designsystem.theme.NeonTheme
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.domain.diary.DishSummary
@@ -74,8 +73,9 @@ internal fun DishList(
  * pastille, le total et les apports inertes — c'est-à-dire la moitié de la surface
  * du plat, sans que rien ne dise pourquoi elle ne répond pas ([D48][decisions]).
  *
- * Le balayage de suppression continue de fonctionner : il est capté plus bas dans
- * l'arbre, et un tap n'est pas un glissement.
+ * **Plus aucun balayage ici.** Celui qui supprimait une ligne a été retiré, et
+ * l'horizontal appartient désormais à la journée entière : il change de jour
+ * ([D117][decisions]).
  *
  * [decisions]: docs/11-decisions.md
  */
@@ -132,14 +132,7 @@ private fun DishBlock(
         )
         DishHeader(summary, zone, timeFormatter)
         HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-        summary.entries.forEach { entry ->
-            SwipeToDelete(
-                label = stringResource(R.string.home_entry_delete),
-                onDelete = { actions.onDeleteEntry(summary.dish, entry.id) },
-            ) {
-                EntryRow(entry = entry)
-            }
-        }
+        summary.entries.forEach { entry -> EntryRow(entry = entry) }
         DishMacros(summary)
     }
 }

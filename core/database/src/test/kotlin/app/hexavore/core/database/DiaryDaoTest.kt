@@ -99,17 +99,6 @@ class DiaryDaoTest {
         assertEquals("la ligne aussi", INSTANT, plat.entries.single().createdAt)
     }
 
-    @Test
-    fun `supprimer une ligne laisse les autres et le plat`() = runBlocking {
-        database.diaryDao().saveDish(dish(), listOf(entry("Riz", id = "a"), entry("Poulet", id = "b")))
-
-        database.diaryDao().deleteEntry("a")
-
-        val plat = database.diaryDao().observeDay(JOUR).first().single()
-        assertEquals(1, plat.entries.size)
-        assertEquals("Poulet", plat.entries.single().displayName)
-    }
-
     // --- Decor ---------------------------------------------------------------
 
     private fun dish(updatedAt: Long = INSTANT) = DishEntity(

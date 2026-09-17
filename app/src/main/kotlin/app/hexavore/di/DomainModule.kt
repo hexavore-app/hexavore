@@ -9,7 +9,6 @@ import app.hexavore.domain.identity.IdGenerator
 import app.hexavore.domain.time.Clock
 import app.hexavore.domain.usecase.CreateDraft
 import app.hexavore.domain.usecase.DeleteDish
-import app.hexavore.domain.usecase.DeleteEntry
 import app.hexavore.domain.usecase.GetCalendar
 import app.hexavore.domain.usecase.GetDaySummary
 import app.hexavore.domain.usecase.GetDishDraft
@@ -77,9 +76,6 @@ object DomainModule {
 
     @Provides
     fun saveDraft(log: LogDish, update: UpdateDish): SaveDraft = SaveDraft(log, update)
-
-    @Provides
-    fun deleteEntry(diary: DiaryRepository): DeleteEntry = DeleteEntry(diary)
 
     @Provides
     fun deleteDish(diary: DiaryRepository): DeleteDish = DeleteDish(diary)

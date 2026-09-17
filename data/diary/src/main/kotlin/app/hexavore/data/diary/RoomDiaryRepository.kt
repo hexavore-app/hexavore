@@ -6,7 +6,6 @@ import app.hexavore.core.database.dao.FavoriteDishDao
 import app.hexavore.domain.diary.DiaryRepository
 import app.hexavore.domain.diary.Dish
 import app.hexavore.domain.diary.DishId
-import app.hexavore.domain.diary.EntryId
 import app.hexavore.domain.diary.FavoriteDishId
 import app.hexavore.domain.time.Clock
 import kotlinx.coroutines.flow.Flow
@@ -52,8 +51,6 @@ class RoomDiaryRepository @Inject constructor(
         val now = clock.now().toEpochMilli()
         dao.saveDish(dish.toEntity(now), dish.entries.map { it.toEntity(now) })
     }
-
-    override suspend fun deleteEntry(id: EntryId) = dao.deleteEntry(id.value)
 
     override suspend fun deleteDish(id: DishId) = dao.deleteDish(id.value)
 

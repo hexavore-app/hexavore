@@ -3,7 +3,6 @@ package app.hexavore.feature.home
 import androidx.compose.runtime.Immutable
 import app.hexavore.domain.diary.Dish
 import app.hexavore.domain.diary.DishId
-import app.hexavore.domain.diary.EntryId
 
 /**
  * Ce que l'accueil peut déclencher.
@@ -27,15 +26,15 @@ data class HomeActions(
     /**
      * Supprime le plat entier, ses *n* lignes avec lui.
      *
-     * Atteint par l'appui long, et **confirmé par un dialogue** : le balayage retire
-     * une ligne et se rattrape à la barre, celui-ci en retire plusieurs d'un coup et
-     * mérite d'être voulu ([D61][decisions]). La barre reste offerte ensuite — la
-     * confirmation évite l'accident, la barre rattrape le regret.
+     * Atteint par l'appui long, et **confirmé par un dialogue** : il emporte *n*
+     * lignes d'un coup et mérite d'être voulu ([D61][decisions]). La barre
+     * d'annulation reste offerte ensuite — la confirmation évite l'accident, la barre
+     * rattrape le regret. C'est désormais la seule suppression qui parte de l'accueil :
+     * une ligne se retire en ouvrant le plat ([D117][decisions]).
      *
      * [decisions]: docs/11-decisions.md
      */
     val onDeleteDish: (Dish) -> Unit,
-    val onDeleteEntry: (Dish, EntryId) -> Unit,
     /**
      * Met le plat en favori sous ce nom, ou l'en retire quand [name] est `null`.
      *
@@ -108,7 +107,6 @@ internal fun HomeRoutes.toActions(viewModel: HomeViewModel) = HomeActions(
     onPhotograph = onPhotograph,
     onEditDish = onEditDish,
     onDeleteDish = viewModel::onDeleteDish,
-    onDeleteEntry = viewModel::onDeleteEntry,
     onUndo = viewModel::onUndo,
     onUndoExpired = viewModel::onUndoExpired,
     onRetry = viewModel::retry,

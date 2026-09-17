@@ -48,10 +48,11 @@
          pas une avance. -->
     <string name="home_add_dish">Ajouter</string>
 
-    <!-- Aucune suppression n'est immédiatement définitive. -->
-    <string name="home_entry_delete">Supprimer</string>
-    <string name="home_entry_deleted">Ligne supprimée</string>
-    <string name="home_entry_undo">Annuler</string>
+    <!-- Aucune suppression n'est immédiatement définitive. La barre parle du plat :
+         c'est la seule chose que l'accueil supprime depuis que le balayage sert à
+         changer de jour, et son libellé annonçait une ligne même pour un plat entier. -->
+    <string name="home_dish_deleted">Plat supprimé</string>
+    <string name="home_dish_undo">Annuler</string>
 
     <!-- Une ligne est un seul nœud d'accessibilité : nom, quantité, calories, en
          une phrase plutôt qu'en trois arrêts. -->

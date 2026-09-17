@@ -6,7 +6,6 @@ import app.hexavore.domain.ai.AiCredentials
 import app.hexavore.domain.ai.activeConfiguration
 import app.hexavore.domain.concurrency.DispatcherProvider
 import app.hexavore.domain.diary.Dish
-import app.hexavore.domain.diary.EntryId
 import app.hexavore.domain.diary.SelectedDay
 import app.hexavore.domain.goal.AdjustmentSuggestion
 import app.hexavore.domain.usecase.AdjustmentResponse
@@ -212,22 +211,15 @@ class HomeViewModel @Inject constructor(
     /**
      * Supprime le plat entier.
      *
-     * Le plat part **immédiatement**, et c'est lui qui permet d'y revenir — même
-     * raisonnement que pour une ligne. La confirmation a déjà été demandée par
-     * l'écran ; la barre qui suit ne protège plus de l'accident mais du regret, et
+     * Le plat part **immédiatement**, et c'est lui qui permet d'y revenir : une
+     * suppression différée pendant les cinq secondes de la barre disparaîtrait avec un
+     * processus tué, et l'utilisateur retrouverait un plat qu'il croyait supprimé. La
+     * confirmation a déjà été demandée par l'écran ; la barre qui suit ne protège plus de l'accident mais du regret, et
      * elle ne coûte rien puisque `RestoreDish` remet le plat et ses lignes en place.
      */
     fun onDeleteDish(dish: Dish) {
         viewModelScope.launch {
             runCatching { gestures.deleteDish(dish.id) }
-                // Pas d'annulation a proposer sur un echec : rien n'a ete supprime.
-                .onSuccess { undoable.value = dish }
-        }
-    }
-
-    fun onDeleteEntry(dish: Dish, entryId: EntryId) {
-        viewModelScope.launch {
-            runCatching { gestures.deleteEntry(dish, entryId) }
                 // Pas d'annulation a proposer sur un echec : rien n'a ete supprime.
                 .onSuccess { undoable.value = dish }
         }

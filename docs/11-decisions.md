@@ -3698,6 +3698,42 @@ Le trait était en `outline`, soit **1,4:1** sur le fond sombre. Une bordure dé
 
 ---
 
+## D117 — Le balayage change de jour, il ne supprime plus · ✓ validée
+
+**Contexte.** Rapporté à l'usage : « la suppression d'un aliment par balayage n'est au final pas pratique ». Le geste était là depuis la tranche 1, documenté, testé, et il servait peu — là où se promener dans l'historique demandait de viser une pastille de sept millimètres.
+
+### Ce que le balayage fait maintenant
+
+**Vers la gauche le lendemain, vers la droite la veille**, le contenu suivant le doigt. C'est le sens d'une page qu'on tourne, et celui du calendrier posé au-dessus, où le temps va vers la droite.
+
+**Deux bornes, deux raisons.** Vers le futur, rien : le calendrier refuse déjà d'ouvrir un jour à venir, et noter un repas qu'on n'a pas pris n'a pas de sens. Vers le passé, la borne est celle que le calendrier sait montrer — vingt-quatre mois. Au-delà, on se promènerait dans des journées qu'aucune pastille ne désigne, sans moyen visible de revenir.
+
+**Un glissement refusé résiste au lieu de ne rien faire.** Vers demain, la page se décale du tiers et revient : c'est la réponse d'une butée, et elle apprend la règle sans une phrase. Un geste qui ne produit rien du tout se lit comme un geste non reconnu, et on le refait.
+
+**Deux façons d'emporter la journée, et il faut les deux.** La distance — un quart de la largeur — sert le geste appuyé ; la vitesse sert le geste vif, sans quoi remonter cinq jours demanderait de traîner la page cinq fois sur un quart d'écran. La vitesse ne compte que **dans le sens du déplacement** : un doigt qui repart en arrière au dernier moment annule, il ne confirme pas.
+
+**Le calendrier suit.** Le bandeau couvre désormais la même période que le mois déplié et défile jusqu'à la semaine affichée ; sinon le cerne du jour regardé sortait du champ au troisième glissement, et on ne savait plus où l'on était.
+
+### Ce qui part avec le geste
+
+`SwipeToDelete` disparaît du design system. `DeleteEntry` disparaît du domaine, et avec lui `DiaryRepository.deleteEntry`, son implémentation Room, celle en mémoire et la requête du DAO : **plus rien ne les appelait**. Un port garde une capacité tant qu'un cas d'usage la demande ; celle-ci n'existait que pour un geste retiré, et la conserver « au cas où » aurait laissé une méthode que personne n'exerce plus — c'est-à-dire une promesse qu'aucun test ne défend vraiment.
+
+Retirer une ligne reste possible, par le chemin que [02](02-parcours-et-ecrans.md) rendait déjà obligatoire : ouvrir le plat, et la corbeille de la ligne. `UpdateDish` réécrit alors le plat sans elle, et supprime le plat vidé de sa dernière ligne ([D61](#d61--un-plat-vidé-se-supprime-et-lappui-long-ouvre-ses-actions---validée)). La règle vit donc à **un** endroit au lieu de deux.
+
+**La barre d'annulation reste**, pour la suppression d'un plat entier — et elle dit enfin la vérité : elle annonçait « Ligne supprimée » y compris quand un plat de six lignes venait de partir.
+
+### Ce que ça coûte
+
+Le geste qui supprimait était **immédiat** ; celui qui le remplace demande deux gestes de plus — ouvrir le plat, viser la corbeille. C'est assumé : la suppression d'une ligne isolée est rare, la promenade dans l'historique est quotidienne, et un écran n'a qu'un balayage horizontal à distribuer.
+
+**Campagne de défaite : huit sabotages, huit cas tombés.** Les deux règles sont séparées — où va-t-on, et le geste emporte-t-il — précisément pour que la butée du futur ne dépende pas de la force du geste. Un seul calcul aurait rendu ce piège invisible.
+
+**Ce que le vert ne prouve pas.** **Que le geste ne se déclenche pas par accident.** Les cas jugent une distance et une vitesse ; ils ne disent pas qu'un défilement vertical un peu oblique, sur une journée chargée, ne parte pas de travers. C'est le reproche exact qui avait été fait au balayage de suppression, et il se vérifie avec un pouce, pas avec un test.
+
+Rien ne dit non plus que **vingt-quatre mois** soient la bonne borne : c'est celle du calendrier, retenue pour qu'il n'y ait pas deux limites différentes, pas parce que quelqu'un a voulu remonter jusque-là.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

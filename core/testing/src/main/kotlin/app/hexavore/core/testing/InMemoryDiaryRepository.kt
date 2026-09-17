@@ -3,7 +3,6 @@ package app.hexavore.core.testing
 import app.hexavore.domain.diary.DiaryRepository
 import app.hexavore.domain.diary.Dish
 import app.hexavore.domain.diary.DishId
-import app.hexavore.domain.diary.EntryId
 import app.hexavore.domain.diary.FavoriteDishId
 import app.hexavore.domain.food.FoodCitations
 import app.hexavore.domain.food.FoodId
@@ -93,13 +92,6 @@ class InMemoryDiaryRepository(initial: List<Dish> = emptyList()) :
     override suspend fun save(dish: Dish) {
         failure?.let { throw it }
         state.update { dishes -> dishes.filterNot { it.id == dish.id } + dish }
-    }
-
-    override suspend fun deleteEntry(id: EntryId) {
-        failure?.let { throw it }
-        state.update { dishes ->
-            dishes.map { dish -> dish.copy(entries = dish.entries.filterNot { it.id == id }) }
-        }
     }
 
     override suspend fun deleteDish(id: DishId) {

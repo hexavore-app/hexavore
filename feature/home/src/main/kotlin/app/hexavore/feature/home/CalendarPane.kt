@@ -122,11 +122,21 @@ private fun WeekStrip(
 ) {
     val firstDayOfWeek = WeekFields.of(Locale.getDefault()).firstDayOfWeek
     val weeks = rememberWeekCalendarState(
-        startDate = state.today.minusWeeks(WEEKS_BACK),
+        // La meme periode que le mois deplie, et non quelques semaines : depuis que
+        // le glissement change de jour, on peut arriver ici sur une semaine d'il y a
+        // six mois, et un bandeau qui ne sait pas la montrer laisserait le jour
+        // affiche sans pastille.
+        startDate = state.today.minusMonths(MONTHS_BACK),
         endDate = state.today.plusWeeks(1),
         firstVisibleWeekDate = state.today,
         firstDayOfWeek = firstDayOfWeek,
     )
+
+    // Le bandeau suit le jour affiche. Sans cela, changer de jour au glissement
+    // laisserait le cerne hors champ : on ne saurait plus ou l'on est.
+    LaunchedEffect(selected) {
+        weeks.animateScrollToWeek(selected ?: state.today)
+    }
 
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         val place = cellFootprint(maxWidth)
@@ -165,6 +175,12 @@ private fun MonthPager(
             .filterNotNull()
             .distinctUntilChanged()
             .collect(onVisibleMonth)
+    }
+
+    // Meme raison que pour le bandeau : le jour affiche doit rester visible quand il
+    // change sans qu'on ait touche le calendrier.
+    LaunchedEffect(selected) {
+        months.animateScrollToMonth(YearMonth.from(selected ?: state.today))
     }
 
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
@@ -311,8 +327,14 @@ private const val HALF_TURN = 180f
 private const val DRAG_THRESHOLD = 8f
 
 private const val DAYS_PER_WEEK = 7
-private const val WEEKS_BACK = 4L
-private const val MONTHS_BACK = 24L
+
+/**
+ * Jusqu'où le calendrier — et donc le glissement — remonte.
+ *
+ * Partagée avec l'accueil : se promener dans des journées que le calendrier ne sait
+ * pas montrer laisserait quelqu'un loin en arrière sans pastille pour revenir.
+ */
+internal const val MONTHS_BACK = 24L
 
 /** Le mois et l'annee, dans la langue de l'appareil. */
 internal fun YearMonth.monthLabel(): String =

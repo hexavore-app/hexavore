@@ -18,7 +18,6 @@ import app.hexavore.domain.concurrency.DispatcherProvider
 import app.hexavore.domain.diary.EntrySource
 import app.hexavore.domain.nutrition.Macro
 import app.hexavore.domain.usecase.DeleteDish
-import app.hexavore.domain.usecase.DeleteEntry
 import app.hexavore.domain.usecase.GetDaySummary
 import app.hexavore.domain.usecase.GetDishDraft
 import app.hexavore.domain.usecase.RemoveFavoriteDish
@@ -151,29 +150,13 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `supprimer une ligne la retire des totaux`() = runTest(dispatcher) {
-        val diary = InMemoryDiaryRepository(SampleDiary.day(jour))
-        val viewModel = viewModel(diary, FixedClock.atNoon(jour))
-        val avant = viewModel.uiState.filterIsInstance<HomeUiState.Content>().first().summary
-        val plat = avant.dishes.first().dish
-
-        viewModel.onDeleteEntry(plat, plat.entries.first().id)
-
-        val apres = viewModel.uiState.filterIsInstance<HomeUiState.Content>().first().summary
-        assertTrue(
-            apres.totals[Macro.CALORIES].value < avant.totals[Macro.CALORIES].value,
-            "les totaux doivent suivre immediatement",
-        )
-    }
-
-    @Test
     fun `annuler une suppression remet la journee comme avant`() = runTest(dispatcher) {
         val diary = InMemoryDiaryRepository(SampleDiary.day(jour))
         val viewModel = viewModel(diary, FixedClock.atNoon(jour))
         val avant = viewModel.uiState.filterIsInstance<HomeUiState.Content>().first().summary
         val plat = avant.dishes.first().dish
 
-        viewModel.onDeleteEntry(plat, plat.entries.first().id)
+        viewModel.onDeleteDish(plat)
         viewModel.onUndo()
 
         val apres = viewModel.uiState.filterIsInstance<HomeUiState.Content>().first().summary
@@ -189,7 +172,7 @@ class HomeViewModelTest {
         val plat = viewModel.uiState.filterIsInstance<HomeUiState.Content>().first().summary.dishes.first().dish
         diary.failure = IllegalStateException("base illisible")
 
-        viewModel.onDeleteEntry(plat, plat.entries.first().id)
+        viewModel.onDeleteDish(plat)
 
         assertNull(viewModel.pendingUndo.value)
     }
@@ -270,7 +253,6 @@ class HomeViewModelTest {
             clock = clock,
         ),
         gestures = DishGestures(
-            deleteEntry = DeleteEntry(diary),
             deleteDish = DeleteDish(diary),
             restoreDish = RestoreDish(diary),
             toggleFavorite = ToggleDishFavorite(

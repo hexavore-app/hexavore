@@ -78,7 +78,9 @@ fun HomeRoute(routes: HomeRoutes) {
         suggestion = suggestion,
         onAdjustment = viewModel::onAdjustment,
         day = day,
+        today = calendar.today,
         onBackToToday = { viewModel.onSelectDay(null) },
+        onSelectDay = viewModel::onSelectDay,
         notices = notices,
         calendar = { expanded, onExpandedChange ->
             CalendarPane(
@@ -103,7 +105,6 @@ fun HomeRoute(routes: HomeRoutes) {
                 onPhotograph = routes.onPhotograph,
                 onEditDish = routes.onEditDish,
                 onDeleteDish = viewModel::onDeleteDish,
-                onDeleteEntry = viewModel::onDeleteEntry,
                 onUndo = viewModel::onUndo,
                 onUndoExpired = viewModel::onUndoExpired,
                 onRetry = viewModel::retry,
@@ -154,7 +155,18 @@ fun HomeScreen(
      * compteurs et la liste des plats, et c'est sur elle que le bouton d'ajout ecrit.
      */
     day: LocalDate? = null,
+    /**
+     * La date du jour, telle que l'horloge la voit.
+     *
+     * Elle vient du calendrier, qui la connaît déjà, plutôt que d'une seconde lecture :
+     * deux sources pour « aujourd'hui », c'est une application qui change de jour à
+     * deux moments différents. Elle sert à borner le glissement — le journal ne va pas
+     * dans le futur.
+     */
+    today: LocalDate,
     onBackToToday: () -> Unit = {},
+    /** Change le jour affiché. Le port range « aujourd'hui » comme `null` lui-même. */
+    onSelectDay: (LocalDate) -> Unit = {},
     /** Ce qui merite une pastille. Vide dans les apercus, qui n'ont rien a signaler. */
     notices: Set<Notice> = emptySet(),
     /**
@@ -177,24 +189,7 @@ fun HomeScreen(
     BackHandler(enabled = day != null) { onBackToToday() }
 
     val collapseOnScroll = rememberCalendarScroll(calendarExpanded) { calendarExpanded = it }
-    val snackbarHostState = remember { SnackbarHostState() }
-    val deleted = stringResource(R.string.home_entry_deleted)
-    val undo = stringResource(R.string.home_entry_undo)
-
-    // La barre reste affichee cinq secondes, ni quatre ni dix : SnackbarDuration
-    // n'offre que ces deux-la, donc la fenetre est tenue par le delai et la barre
-    // par un affichage indefini. Voir Timing dans :core:designsystem.
-    LaunchedEffect(pendingUndo) {
-        if (pendingUndo == null) return@LaunchedEffect
-        val result = withTimeoutOrNull(Timing.UNDO_WINDOW_MILLIS) {
-            snackbarHostState.showSnackbar(
-                message = deleted,
-                actionLabel = undo,
-                duration = SnackbarDuration.Indefinite,
-            )
-        }
-        if (result == SnackbarResult.ActionPerformed) actions.onUndo() else actions.onUndoExpired()
-    }
+    val snackbarHostState = rememberUndoBar(pendingUndo, actions.onUndo, actions.onUndoExpired)
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -215,30 +210,70 @@ fun HomeScreen(
             DayHeader(actions, day, onBackToToday, notices)
             calendar(calendarExpanded) { calendarExpanded = it }
 
-            DayScroll(collapseOnScroll) {
-                suggestion?.let {
-                    AdjustmentCard(
-                        suggestion = it,
-                        onAccept = { onAdjustment(AdjustmentResponse.ACCEPT) },
-                        onIgnore = { onAdjustment(AdjustmentResponse.IGNORE) },
-                        onStop = { onAdjustment(AdjustmentResponse.STOP) },
-                    )
-                }
+            // Le glissement porte sur ce qui defile, jamais sur le calendrier : celui-ci
+            // a son propre defilement horizontal, de semaine en semaine, et les deux
+            // gestes se disputeraient le meme doigt au meme endroit.
+            SwipingDay(
+                shown = day ?: today,
+                today = today,
+                earliest = today.minusMonths(MONTHS_BACK),
+                onDay = onSelectDay,
+                modifier = Modifier.weight(1f),
+            ) {
+                DayScroll(collapseOnScroll) {
+                    suggestion?.let {
+                        AdjustmentCard(
+                            suggestion = it,
+                            onAccept = { onAdjustment(AdjustmentResponse.ACCEPT) },
+                            onIgnore = { onAdjustment(AdjustmentResponse.IGNORE) },
+                            onStop = { onAdjustment(AdjustmentResponse.STOP) },
+                        )
+                    }
 
-                when (state) {
-                    HomeUiState.Loading -> Unit
-                    is HomeUiState.Content -> DayContent(
-                        summary = state.summary,
-                        actions = actions,
-                        favoriteNameTaken = favoriteNameTaken,
-                        onDismissFavoriteError = onDismissFavoriteError,
-                    )
+                    when (state) {
+                        HomeUiState.Loading -> Unit
+                        is HomeUiState.Content -> DayContent(
+                            summary = state.summary,
+                            actions = actions,
+                            favoriteNameTaken = favoriteNameTaken,
+                            onDismissFavoriteError = onDismissFavoriteError,
+                        )
 
-                    HomeUiState.Error -> UnreadableDay(actions.onRetry)
+                        HomeUiState.Error -> UnreadableDay(actions.onRetry)
+                    }
                 }
             }
         }
     }
+}
+
+/**
+ * La barre qui rattrape un plat supprimé.
+ *
+ * **Elle reste affichée cinq secondes, ni quatre ni dix** : `SnackbarDuration` n'offre
+ * que ces deux-là, donc la fenêtre est tenue par le délai et la barre par un affichage
+ * indéfini. Voir `Timing` dans `:core:designsystem`, et la raison pour laquelle ce
+ * délai-là ne suit pas le réglage d'animations réduites.
+ *
+ * Sortie de l'écran quand celui-ci a atteint le seuil de longueur, et le découpage
+ * suit ce que les choses sont : une barre d'annulation est un dispositif à elle seule
+ * — un état, un délai, deux issues.
+ */
+@Composable
+private fun rememberUndoBar(pendingUndo: Dish?, onUndo: () -> Unit, onExpired: () -> Unit): SnackbarHostState {
+    val host = remember { SnackbarHostState() }
+    val deleted = stringResource(R.string.home_dish_deleted)
+    val undo = stringResource(R.string.home_dish_undo)
+
+    LaunchedEffect(pendingUndo) {
+        if (pendingUndo == null) return@LaunchedEffect
+        val result = withTimeoutOrNull(Timing.UNDO_WINDOW_MILLIS) {
+            host.showSnackbar(message = deleted, actionLabel = undo, duration = SnackbarDuration.Indefinite)
+        }
+        if (result == SnackbarResult.ActionPerformed) onUndo() else onExpired()
+    }
+
+    return host
 }
 
 /**
@@ -296,14 +331,12 @@ private fun rememberCalendarScroll(expanded: Boolean, onExpandedChange: (Boolean
  * défiler. La portée du geste est une affaire de disposition, pas de condition.
  */
 @Composable
-private fun ColumnScope.DayScroll(
-    collapseOnScroll: NestedScrollConnection,
-    content: @Composable ColumnScope.() -> Unit,
-) {
+private fun DayScroll(collapseOnScroll: NestedScrollConnection, content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .weight(1f)
+            // Toute la place que le glissement lui donne : c'est lui qui porte
+            // desormais le poids dans la colonne de l'ecran.
+            .fillMaxSize()
             .nestedScroll(collapseOnScroll)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(Spacing.xl),

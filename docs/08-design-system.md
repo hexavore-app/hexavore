@@ -233,7 +233,7 @@ Pastille du bandeau calendrier. 44 dp, `MacroRing` segmenté en couronne, jour d
 
 ### `EntryRow`
 
-Ligne d'aliment dans un plat. Nom, quantité, calories. Balayage vers la gauche pour supprimer, avec un fond magenta qui se révèle progressivement.
+Ligne d'aliment dans un plat. Nom, quantité, calories. ~~Balayage vers la gauche pour supprimer, avec un fond magenta qui se révèle progressivement.~~ **Plus aucun balayage** ([D117](11-decisions.md)) : l'horizontal appartient à la journée entière, qui change de jour. `SwipeToDelete` a disparu du design system — il n'avait plus qu'un appelant, et il n'en a plus.
 
 **Aucune pastille de source ici** : elle appartient au plat et se pose une fois en tête ([D32](11-decisions.md)). Cinq pastilles voisines ne distinguaient plus rien.
 
