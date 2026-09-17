@@ -1,9 +1,11 @@
 package app.hexavore.feature.home
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -17,16 +19,21 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -213,21 +220,34 @@ internal fun ringDiameter(footprint: Dp): Dp =
  */
 internal val CellPadding: Dp = Spacing.xs
 
-/** Ce qui sépare le geste d'ouverture du défilement du mois. */
+/**
+ * Ce qui sépare le geste d'ouverture du défilement du mois — et **ce qui dit qu'il
+ * existe**.
+ *
+ * Trois défauts rapportés ensemble, sous une seule phrase : « peu de personnes
+ * comprennent que le calendrier est développable et cliquable ».
+ *
+ * - **Elle ne se voyait pas.** Le trait était en `outline`, qui tient 1,4:1 sur le fond
+ *   sombre — très en dessous des 3:1 qu'un élément d'interface doit tenir. En
+ *   `onSurfaceVariant`, il en tient 7.
+ * - **Elle ne disait pas ce qu'elle fait.** Un trait est une poignée pour qui en a
+ *   déjà vu une ; le chevron dit dans quel sens, et se retourne une fois ouvert.
+ * - **Elle ne répondait pas au doigt.** `semantics { onClick }` déclare une action au
+ *   lecteur d'écran sans en installer aucune : toucher la poignée ne faisait
+ *   strictement rien, et seul le glissement ouvrait le mois. C'est `clickable` qui
+ *   pose les deux à la fois.
+ */
 @Composable
 private fun ExpandHandle(expanded: Boolean, onToggle: () -> Unit) {
     val label = stringResource(if (expanded) R.string.calendar_collapse else R.string.calendar_expand)
+    val turn by animateFloatAsState(if (expanded) HALF_TURN else 0f, label = "chevron du calendrier")
+    val ink = MaterialTheme.colorScheme.onSurfaceVariant
 
-    Box(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .semantics(mergeDescendants = true) {
-                contentDescription = label
-                onClick(label = label) {
-                    onToggle()
-                    true
-                }
-            }
+            .semantics(mergeDescendants = true) { contentDescription = label }
+            .clickable(onClickLabel = label, role = Role.Button, onClick = onToggle)
             .draggable(
                 orientation = Orientation.Vertical,
                 state = rememberDraggableState { delta ->
@@ -238,12 +258,23 @@ private fun ExpandHandle(expanded: Boolean, onToggle: () -> Unit) {
                 },
             )
             .padding(vertical = Spacing.sm),
-        contentAlignment = Alignment.Center,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.sm, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
             modifier = Modifier
                 .size(width = HandleWidth, height = HandleHeight)
-                .background(MaterialTheme.colorScheme.outline, RoundedCornerShape(HandleHeight / 2)),
+                .background(ink, RoundedCornerShape(HandleHeight / 2)),
+        )
+        Icon(
+            imageVector = Icons.Filled.KeyboardArrowDown,
+            // Rien a annoncer : la ligne entiere porte deja son libelle, et le
+            // chevron n'ajoute rien qui se dise.
+            contentDescription = null,
+            tint = ink,
+            modifier = Modifier
+                .size(ChevronSize)
+                .graphicsLayer { rotationZ = turn },
         )
     }
 }
@@ -271,6 +302,10 @@ internal val MinCellDiameter: Dp = 28.dp
 internal val MaxCellDiameter: Dp = 48.dp
 private val HandleWidth: Dp = 32.dp
 private val HandleHeight: Dp = 4.dp
+private val ChevronSize: Dp = 18.dp
+
+/** Le chevron pointe vers le bas quand tirer ouvre, vers le haut quand il referme. */
+private const val HALF_TURN = 180f
 
 /** En deçà, c'est un tremblement du doigt et non une intention. */
 private const val DRAG_THRESHOLD = 8f

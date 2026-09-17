@@ -71,6 +71,8 @@ Le jour de départ d'un objectif porte un liseré : on voit où une nouvelle pha
 
 **Tap sur une pastille : l'accueil change de date, sur place** ([D101](11-decisions.md#d101--laccueil-porte-une-date-et-lécran-journée-disparaît---validée)). Le calendrier ne bouge pas — c'est ce qui permet de se promener dans l'historique sans le perdre — et le bouton d'ajout écrit sur le jour affiché, pour rattraper un oubli. Une poignée déplie le mois ; un glissement vers le haut le replie et la page suit.
 
+**Trois gestes ouvrent le mois, et c'est le nombre qu'il fallait** ([D116](11-decisions.md)) : tirer la poignée, **la toucher** — elle ne répondait pas au doigt, seule l'action d'accessibilité était déclarée — et **tirer la page vers le bas quand elle est déjà en haut**, d'environ un centimètre. Ce dernier est celui que tout le monde connaît sans l'avoir appris ; les deux autres sont pour qui vise la poignée. Un défilement **lancé** qui bute en haut n'ouvre rien : un élan est un arrêt, pas une intention. La poignée elle-même porte un chevron et passe en encre claire — en `outline`, elle tenait 1,4:1 sur le fond sombre, là où un élément d'interface en demande 3.
+
 ### Bloc « Reste aujourd'hui »
 
 Le cœur de l'écran, et la figure qui donne son nom à l'application : l'**hexagone des macros**. Six quartiers, un par compteur, remplis depuis le centre, le contour marquant l'objectif du jour ([08](08-design-system.md#macrohexagon)). Il répond à une seule question — comment va ma journée.

@@ -3668,6 +3668,36 @@ Et **l'onboarding n'a pas été touché** : sa première impression reste métri
 
 ---
 
+## D116 — Le calendrier s'ouvre à la traction, et sa poignée se voit · ✓ validée
+
+**Contexte.** Rapporté à l'usage : « peu de personnes comprennent que le calendrier est développable et cliquable ». Trois causes distinctes sous une seule phrase, et il a fallu les séparer pour les corriger.
+
+### La poignée ne répondait pas au doigt
+
+`semantics { onClick(label) { … } }` **déclare** une action au lecteur d'écran ; elle n'en installe aucune. Toucher la poignée ne faisait donc rien du tout, et seul le glissement ouvrait le mois — ce qui explique l'essentiel du reproche. `clickable` pose les deux à la fois, l'action réelle et son annonce.
+
+C'est la seconde fois que ce projet paie la même confusion sous une autre forme : une règle affirmée à un seul endroit n'est pas une règle tenue ([D111](#d111--une-règle-se-vérifie-aux-portes-pas-seulement-à-la-fabrique---validée)). Ici, l'affirmation était l'annonce, et personne ne vérifiait qu'elle correspondait à quelque chose.
+
+### Elle ne se voyait pas
+
+Le trait était en `outline`, soit **1,4:1** sur le fond sombre. Une bordure décorative peut vivre à ce contraste ; un élément d'interface qu'on doit trouver, non — le seuil est 3:1. En `onSurfaceVariant`, il tient 7:1 dans les deux thèmes. Un chevron l'accompagne, et se retourne une fois le mois ouvert : un trait dit « on peut me tirer » à qui en a déjà vu un, le chevron dit dans quel sens.
+
+### Le geste que tout le monde connaît manquait
+
+**Tirer la page vers le bas quand elle est déjà en haut** ouvre le mois, après environ un centimètre. C'est le geste du rafraîchissement, connu sans avoir été appris, et il ne demande de viser rien du tout.
+
+**Ce qui arrive à la règle est ce que le défilement n'a pas pu consommer.** « Être en haut » n'est donc ni une condition à écrire, ni un état à lire dans le `ScrollState` : c'est exactement ce que dit un delta qui revient intact d'`onPostScroll`. La règle tient en une ligne et se lit sans connaître Compose.
+
+**Un défilement lancé n'ouvre rien.** Un élan qui bute en haut rend le même delta qu'une traction, à ceci près que sa source est `SideEffect` et non `UserInput`. Sans cette distinction, toute lecture rapide finirait par déplier le mois — et ce serait rapporté comme un défaut, à juste titre.
+
+**Campagne de défaite : quatre sabotages, quatre cas tombés.** Le plus instructif est le quatrième : remplacer l'accumulation par le dernier delta laisse un geste *rapide* ouvrir le mois et un geste *lent* ne rien faire, ce qu'aucun cas n'aurait vu sans un cas qui tire deux fois.
+
+**Conséquences.** `pulledBy` rejoint `collapsingDelta` dans le fichier des règles du calendrier : ouvrir et fermer sont deux règles, pas une avec un signe. L'accumulateur vit dans l'écran, là où le geste arrive, comme l'état de repli lui-même.
+
+**Ce que le vert ne prouve pas.** **Que le seuil soit le bon.** Quarante-huit dp est un centimètre de doigt, choisi parce que c'est la distance d'un rafraîchissement ailleurs ; aucun cas ne dit qu'il ne s'ouvre pas trop tôt sur une journée vide, où la page ne défile pas du tout et où **chaque** geste vers le bas est une traction. Cela se règle en tirant, pas en lisant.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.
