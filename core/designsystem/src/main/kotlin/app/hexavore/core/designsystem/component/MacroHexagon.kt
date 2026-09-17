@@ -34,7 +34,6 @@ import app.hexavore.core.designsystem.theme.Motion
 import app.hexavore.core.designsystem.theme.NeonTheme
 import app.hexavore.core.designsystem.theme.saturate
 import app.hexavore.domain.nutrition.Macro
-import kotlin.math.min
 
 /**
  * L'hexagone des macros : six compteurs, six quartiers.
@@ -94,51 +93,76 @@ fun MacroHexagon(quarters: Map<Macro, MacroQuarter>, modifier: Modifier = Modifi
         Canvas(Modifier.fillMaxWidth().aspectRatio(HEXAGON_ASPECT)) {
             val centre = Offset(size.width / 2f, size.height / 2f)
 
-            // Ce qu'il faut reserver hors de l'hexagone cible : la lueur, un
-            // intervalle, puis la lettre. Sans cette reserve, la lueur du quartier
-            // le plus rempli sortait de la zone et se faisait rogner net -- un neon
-            // coupe au couteau, ce qu'aucun neon ne fait.
+            // Ce qu'une lettre occupe autour de son centre. La plus grande des deux
+            // dimensions : elle est posee par son centre, et on ignore de quel cote
+            // elle debordera.
             val labelExtent = measurer.measure(Macro.CALORIES.initial, initialStyle).size.let {
                 maxOf(it.width, it.height) / 2f
             }
-            val labelRadius0 = GlowRoom.toPx() + LabelGap.toPx() + labelExtent
-            val radius = min(size.width / 2f, size.height / SQRT_THREE) - labelRadius0 - labelExtent
+            // La lueur, l'intervalle et les lettres sont reserves ici, une fois. Sans
+            // cette reserve, la lueur du quartier le plus rempli sortait de la zone et
+            // se faisait rogner net -- un neon coupe au couteau, ce qu'aucun neon ne
+            // fait -- et la lettre du haut avec elle.
+            val place = hexagonFit(
+                width = size.width,
+                height = size.height,
+                labelExtent = labelExtent,
+                glow = GlowRoom.toPx(),
+                gap = LabelGap.toPx(),
+            )
+            val radius = place.radius
             val target = radius * fit
 
-            // Deux passes, et l'ordre compte. Les quartiers d'abord, tous ; les
-            // lueurs ensuite, par-dessus. Dessinee quartier par quartier, la lueur
-            // d'une arete laterale se faisait recouvrir par le remplissage du
-            // quartier voisin, et il ne restait de neon que sur l'arete exterieure.
-            Macro.entries.forEach { macro ->
-                drawQuarter(
-                    centre = centre,
-                    radius = target * ratios.getValue(macro),
-                    axis = macro.axisDegrees,
-                    palette = palettes.getValue(macro),
-                    ratio = ratios.getValue(macro),
-                    complete = quarters[macro]?.complete ?: true,
-                )
-            }
-
-            Macro.entries.forEach { macro ->
-                val ratio = ratios.getValue(macro)
-                if (ratio <= 0f) return@forEach
-                drawQuarterGlow(
-                    centre = centre,
-                    radius = target * ratio,
-                    axis = macro.axisDegrees,
-                    palette = palettes.getValue(macro),
-                    intensity = ratio.coerceAtMost(1f),
-                    complete = quarters[macro]?.complete ?: true,
-                )
-            }
+            drawQuarters(centre, target, ratios, quarters, palettes)
 
             // Le contour par-dessus les quartiers : c'est la reference a laquelle
             // tout se compare, elle ne doit jamais etre masquee.
             drawPath(hexagonPath(centre, target), outline, style = Stroke(width = OutlineWidth.toPx()))
 
-            drawInitials(centre, radius + labelRadius0, measurer, initialStyle, palettes)
+            drawInitials(centre, place.labelRadius, measurer, initialStyle, palettes)
         }
+    }
+}
+
+/**
+ * Les six quartiers, puis les six lueurs. **Deux passes, et l'ordre compte.**
+ *
+ * Dessinée quartier par quartier, la lueur d'une arête latérale se fait recouvrir par
+ * le remplissage du quartier voisin, et il ne reste de néon que sur l'arête extérieure.
+ *
+ * Sortie de la composable, qui atteignait le seuil de longueur : ce qu'elle garde est
+ * l'animation et la place de la figure, ce qui part est le tracé. Deux sujets, deux
+ * fonctions.
+ */
+private fun DrawScope.drawQuarters(
+    centre: Offset,
+    radius: Float,
+    ratios: Map<Macro, Float>,
+    quarters: Map<Macro, MacroQuarter>,
+    palettes: Map<Macro, MacroPalette>,
+) {
+    Macro.entries.forEach { macro ->
+        drawQuarter(
+            centre = centre,
+            radius = radius * ratios.getValue(macro),
+            axis = macro.axisDegrees,
+            palette = palettes.getValue(macro),
+            ratio = ratios.getValue(macro),
+            complete = quarters[macro]?.complete ?: true,
+        )
+    }
+
+    Macro.entries.forEach { macro ->
+        val ratio = ratios.getValue(macro)
+        if (ratio <= 0f) return@forEach
+        drawQuarterGlow(
+            centre = centre,
+            radius = radius * ratio,
+            axis = macro.axisDegrees,
+            palette = palettes.getValue(macro),
+            intensity = ratio.coerceAtMost(1f),
+            complete = quarters[macro]?.complete ?: true,
+        )
     }
 }
 
@@ -303,7 +327,9 @@ private fun DrawScope.drawTruncation(centre: Offset, radius: Float, axis: Float,
  * quand l'hexagone cible rétrécit sous l'effet d'un dépassement. Six repères qui se
  * déplaceraient à chaque saisie ne seraient plus des repères.
  *
- * @param radius le rayon auquel poser le centre des lettres, lueur déjà déduite.
+ * @param radius le rayon auquel poser le centre des lettres, tel que [hexagonFit] le
+ *   calcule : mesuré depuis l'arête, qu'une lettre regarde en face, et non depuis le
+ *   sommet, qui est plus loin d'un huitième.
  */
 private fun DrawScope.drawInitials(
     centre: Offset,

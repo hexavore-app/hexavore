@@ -159,7 +159,9 @@ Rcible       = Rzone × ajustement
 
 Quand rien ne dépasse, l'hexagone cible remplit la zone. Au plafond, la cible garde les deux tiers de sa taille et le quartier débordant touche le bord. **Le rétrécissement de l'hexagone cible est lui-même le signal** : on voit qu'on a débordé avant même d'avoir lu quelle macro.
 
-`Rzone = min(largeur / 2, hauteur / √3) − réserve` — un hexagone à sommet plat de circumrayon R mesure 2R de large et √3·R de haut. La **réserve** est ce qui vit hors de la zone : la lueur, un intervalle, puis la lettre. Elle est déduite du rayon plutôt qu'ajoutée à la boîte, faute de quoi la lueur du quartier le plus rempli se ferait rogner par le bord du dessin.
+Le rayon est **ce que trois contraintes laissent**, la plus serrée gagnant : la lettre du haut et celle du bas doivent tenir entières dans la hauteur, la lueur des deux sommets latéraux dans la largeur, et les quatre lettres obliques aussi — leur abscisse vaut `√3/2` fois leur rayon. La **réserve** entre le contour et une lettre est la lueur, un intervalle, puis la demi-lettre ; elle est déduite du rayon plutôt qu'ajoutée à la boîte, faute de quoi la lueur du quartier le plus rempli se ferait rogner par le bord du dessin.
+
+**Elle se compte depuis l'arête, pas depuis le sommet** ([D115](11-decisions.md)). Une lettre est posée sur l'**axe** d'un quartier, donc face au milieu d'une arête, qui est plus près du centre que les sommets d'un facteur `√3/2`. Comptée depuis le cercle des sommets, la réserve éloignait les six lettres d'un huitième du rayon et faisait sortir celle du haut de la zone — donc de l'écran, rognée net par le défilement qui encadre la figure.
 
 **Plafond à 150 %.** Au-delà, le quartier s'arrête là et son arête extérieure est tracée **en dents de scie**, la convention de rupture d'échelle des graphiques. Sans ce plafond, une saisie erronée à 2 000 % réduirait l'hexagone cible à un point et rendrait toute la figure illisible pour corriger l'erreur — c'est-à-dire au pire moment. À 200 %, la cible tombait à la moitié de sa taille et les six lettres se retrouvaient loin d'une figure devenue petite ; un dépassement de moitié se voit déjà largement.
 
@@ -177,7 +179,7 @@ L'initiale de chaque macro est posée **à l'extérieur** de la zone, sur l'axe 
 
 **Elles sont écrites en `title`, en gras.** Ce n'est pas un choix esthétique : un second canal qu'il faut chercher des yeux n'en est pas un. En taille de légende, ces lettres se lisaient à peine sur le fond, et la règle de daltonisme reposait alors sur la seule position.
 
-Leur rayon est celui de la **zone** et non du contour : elles ne bougent pas quand l'hexagone cible rétrécit sous l'effet d'un dépassement. Six repères qui se déplaceraient à chaque saisie ne seraient plus des repères.
+Leur rayon est celui de la **zone** et non du contour : elles ne bougent pas quand l'hexagone cible rétrécit sous l'effet d'un dépassement. Six repères qui se déplaceraient à chaque saisie ne seraient plus des repères. Il se mesure depuis l'arête de la zone, augmentée de la lueur et d'un intervalle : c'est là que la lettre regarde.
 
 #### Accessibilité
 

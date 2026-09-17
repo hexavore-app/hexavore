@@ -63,6 +63,50 @@ internal val Macro.axisDegrees: Float
 internal fun cappedRatio(quarter: MacroQuarter?): Float = (quarter?.ratio ?: 0f).coerceIn(0f, RATIO_CAP)
 
 /**
+ * La place de la figure dans sa zone : le rayon du contour, et celui des lettres.
+ *
+ * Deux rayons parce que ce sont deux cercles : les sommets de l'hexagone sont à
+ * [radius], les lettres à [labelRadius] — et la seconde n'est pas la première
+ * augmentée d'une marge, puisqu'une lettre se pose sur l'**axe** d'un quartier,
+ * c'est-à-dire face au milieu d'une arête.
+ */
+internal data class HexagonFit(val radius: Float, val labelRadius: Float)
+
+/**
+ * Ce qui tient dans une zone, **lueur et lettres comprises**.
+ *
+ * Le calcul précédent mesurait la marge des lettres depuis le cercle des **sommets**,
+ * alors qu'elles se posent face aux **arêtes**, qui sont plus près du centre d'un
+ * facteur `√3/2`. Deux conséquences, et les deux se voyaient à l'écran : les lettres
+ * flottaient loin du contour — un huitième du rayon de trop —, et le « C » du haut
+ * sortait de la zone par le bas du calcul, donc de l'écran par le haut, rogné net par
+ * le défilement qui l'encadre.
+ *
+ * Trois contraintes, et la plus serrée gagne :
+ *
+ * - **en hauteur**, la lettre du haut et celle du bas doivent tenir entières — d'où la
+ *   marge comptée deux fois, une pour aller de l'arête au centre de la lettre, une
+ *   pour la lettre elle-même ;
+ * - **en largeur**, les deux sommets latéraux et leur lueur ;
+ * - **en largeur encore**, les quatre lettres obliques, dont l'abscisse vaut `√3/2`
+ *   fois leur rayon.
+ *
+ * @param labelExtent demi-encombrement d'une lettre, hauteur ou largeur selon la plus
+ *   grande : une lettre se pose par son centre, et on ignore de quel côté elle déborde.
+ */
+internal fun hexagonFit(width: Float, height: Float, labelExtent: Float, glow: Float, gap: Float): HexagonFit {
+    // De l'arete au centre d'une lettre : la lueur deborde, un intervalle l'empeche
+    // de baigner dedans, et la lettre est posee par son centre.
+    val margin = glow + gap + labelExtent
+    val fromHeight = (height / 2f - margin - labelExtent) / APOTHEM_RATIO
+    val fromWidth = width / 2f - glow
+    val fromSideLabels = ((width / 2f - labelExtent) / APOTHEM_RATIO - margin) / APOTHEM_RATIO
+    val radius = minOf(fromHeight, fromWidth, fromSideLabels).coerceAtLeast(0f)
+
+    return HexagonFit(radius = radius, labelRadius = radius * APOTHEM_RATIO + margin)
+}
+
+/**
  * Un point du plan, à un angle et un rayon donnés.
  *
  * L'ordonnée descend à l'écran : le sinus est donc soustrait, faute de quoi

@@ -3650,6 +3650,24 @@ Et **l'onboarding n'a pas été touché** : sa première impression reste métri
 
 ---
 
+## D115 — Une lettre de l'hexagone se mesure depuis l'arête · ✓ validée
+
+**Contexte.** Rapporté à l'usage : « le C de calories est hors écran, et les lettres sont assez éloignées de l'hexagone ». Deux symptômes, une seule cause.
+
+**La cause.** La réserve des six lettres — lueur, intervalle, demi-lettre — était retranchée du **circumrayon**, celui des sommets, puis les lettres étaient posées à cette même distance sur les **axes** des quartiers. Or un axe traverse le milieu d'une arête, qui n'est qu'à `√3/2` du sommet : la lettre se retrouvait à un huitième du rayon trop loin du contour, et la lettre du haut sortait de la zone par le haut. Le dessin, lui, ne se plaint pas — c'est le défilement qui encadre la figure qui rognait le « C » net.
+
+**Choix.** Une fonction pure, `hexagonFit`, rend deux rayons : celui du contour et celui des lettres. Trois contraintes, la plus serrée gagne — la lettre du haut et celle du bas dans la hauteur, la lueur des sommets latéraux dans la largeur, les quatre lettres obliques dans la largeur aussi. Le rayon des lettres se compte alors **depuis l'arête** : `R·√3/2 + lueur + intervalle + demi-lettre`.
+
+**Ce que ça coûte.** La figure perd environ 6 % de son rayon dans la zone qu'elle occupe aujourd'hui, parce qu'elle réserve enfin la place qu'elle prenait en dépassant. Elle la regagne en lisibilité : les six lettres sont deux fois plus près du contour, et l'intervalle qu'il avait fallu ajouter sous la figure pour que le « G » cesse de buter contre le grand chiffre n'a plus lieu d'être.
+
+**Pourquoi une fonction et pas trois lignes dans le `Canvas`.** Une géométrie se raisonne au crayon, et celle-ci s'était trompée sans que rien ne le dise : un dessin qui déborde n'échoue pas, il se fait rogner. Sortie du tracé, la règle s'éprouve — une lettre tient dans la zone, ou elle n'y tient pas.
+
+**Campagne de défaite : cinq sabotages, cinq cas tombés.** Les trois contraintes sont bien trois : supprimer celle des lettres obliques ne se voit que sur une zone haute et étroite, et supprimer celle de la lueur que sur une zone haute. Sans ces deux cas-là, deux tiers de la règle n'auraient été gardés par rien.
+
+**Ce que le vert ne prouve pas.** Que la figure soit **belle** à sa nouvelle taille, ni que l'intervalle retenu entre l'arête et la lettre — la lueur, puis 6 dp — soit le bon à l'œil. Les cas disent que rien ne déborde et que la lettre part de l'arête ; ils ne disent pas où l'œil voudrait la voir. Cela se regarde sur un téléphone, pas dans un test.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.
