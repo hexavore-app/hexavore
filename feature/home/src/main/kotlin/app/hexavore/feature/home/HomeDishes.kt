@@ -30,7 +30,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import app.hexavore.core.designsystem.component.SourceBadge
+import app.hexavore.core.designsystem.component.dishTitleText
 import app.hexavore.core.designsystem.theme.NeonTheme
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.domain.diary.DishSummary
@@ -159,7 +161,11 @@ private fun DishDialogs(
 
     if (naming) {
         FavoriteNameDialog(
-            proposal = summary.entries.take(PROPOSED_NAME_PARTS).joinToString(", ") { it.displayName },
+            // Le titre du plat, et non ses trois premiers aliments : c'est le nom que
+            // l'utilisateur a sous les yeux, et celui qu'il reconnaitra dans sa liste
+            // de modeles. Les libelles de l'ANSES faisaient des titres de cinquante
+            // caracteres qu'on efface au lieu de les corriger.
+            proposal = dishTitleText(summary.title),
             nameTaken = favoriteNameTaken,
             onConfirm = { actions.onToggleFavorite(summary.dish, it) },
             onDismiss = {
@@ -185,7 +191,15 @@ private fun DishDialogs(
     }
 }
 
-/** La pastille de source, l'heure, et le total du plat. */
+/**
+ * Le titre du plat, sa pastille de source, son heure et son total.
+ *
+ * **Le titre est ce qui a manqué le plus longtemps.** Un plat se lisait par ses
+ * aliments, ce qui oblige à tous les lire pour savoir de quel repas il s'agit ; il
+ * porte désormais un nom, déduit de son moment ou écrit à la main ([D118][decisions]).
+ *
+ * [decisions]: docs/11-decisions.md
+ */
 @Composable
 private fun DishHeader(summary: DishSummary, zone: ZoneId, timeFormatter: DateTimeFormatter) {
     Row(
@@ -195,10 +209,17 @@ private fun DishHeader(summary: DishSummary, zone: ZoneId, timeFormatter: DateTi
     ) {
         SourceBadge(source = summary.dish.source)
         Text(
+            text = dishTitleText(summary.title),
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
             text = timeFormatter.format(summary.dish.loggedAt.atZone(zone)),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(1f),
         )
         Text(
             text = stringResource(R.string.home_dish_kcal, summary.totals[Macro.CALORIES].value.roundToInt()),
@@ -375,9 +396,6 @@ private fun EntryRow(entry: FoodEntry) {
         )
     }
 }
-
-/** Les cinq macros affichées par plat. Les calories ont déjà leur chiffre en tête. */
-private const val PROPOSED_NAME_PARTS = 3
 
 private val CHIP_MACROS = listOf(Macro.PROTEIN, Macro.CARBS, Macro.SUGARS, Macro.FAT, Macro.FIBER)
 

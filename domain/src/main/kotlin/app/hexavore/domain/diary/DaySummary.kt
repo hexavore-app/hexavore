@@ -14,7 +14,18 @@ import java.time.ZoneId
  * protéines ou du sucre, et c'est justement la question qu'on se pose en relisant
  * sa journée.
  */
-data class DishSummary(val dish: Dish, val totals: MacroTotals)
+data class DishSummary(
+    val dish: Dish,
+    val totals: MacroTotals,
+    /**
+     * Le nom sous lequel ce plat s'affiche.
+     *
+     * Calculé pour la journée entière et porté ici, parce qu'il dépend du
+     * **voisinage** : un plat ne sait pas seul qu'il est le deuxième déjeuner du jour
+     * ([titles]).
+     */
+    val title: DishTitle,
+)
 
 /**
  * Ce qu'affiche l'accueil pour une journée.

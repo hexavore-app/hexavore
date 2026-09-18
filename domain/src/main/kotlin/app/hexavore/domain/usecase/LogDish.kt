@@ -69,6 +69,11 @@ class LogDish(
                 loggedAt = now,
                 entries = draft.toEntries(id, ids, placed),
                 favoriteId = draft.favoriteId,
+                // Le titre n'est ecrit que s'il a ete ecrit : un plat sans titre
+                // s'appelle du nom de son moment, et le figer en mots ici rendrait
+                // l'application impossible a traduire pour rien.
+                title = draft.title?.trim()?.takeIf { it.isNotEmpty() },
+                moment = draft.moment,
             ),
         )
         return id

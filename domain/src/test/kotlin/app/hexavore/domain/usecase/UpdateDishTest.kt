@@ -5,9 +5,12 @@ import app.hexavore.core.testing.InMemoryDiaryRepository
 import app.hexavore.core.testing.InMemoryFavoriteDishes
 import app.hexavore.core.testing.InMemoryFoodCatalog
 import app.hexavore.core.testing.SequentialIdGenerator
+import app.hexavore.domain.diary.Dish
+import app.hexavore.domain.diary.DishId
 import app.hexavore.domain.diary.EntryDraft
 import app.hexavore.domain.diary.EntrySource
 import app.hexavore.domain.diary.JOUR
+import app.hexavore.domain.diary.MealMoment
 import app.hexavore.domain.diary.brouillon
 import app.hexavore.domain.diary.ligne
 import kotlinx.coroutines.test.runTest
@@ -26,7 +29,7 @@ class UpdateDishTest {
     private val ids = SequentialIdGenerator()
 
     private val logDish = LogDish(diary, catalogue, favoris, clock, ids)
-    private val getDishDraft = GetDishDraft(diary, ids)
+    private val getDishDraft = GetDishDraft(diary, ids, clock)
     private val updateDish = UpdateDish(diary, ids)
 
     @Test
@@ -53,6 +56,50 @@ class UpdateDishTest {
         updateDish(getDishDraft(id)!!.let { it.copy(lines = listOf(it.lines.single().copy(name = "Riz complet"))) })
 
         assertEquals(heure, diary.dishes.single().loggedAt)
+    }
+
+    @Test
+    fun `le titre et le moment se corrigent, eux`() = runTest {
+        // L'en-tete est justement ce qu'on vient corriger, a la difference de la
+        // source et de l'heure : renommer un plat est une correction, pas une
+        // reecriture de son origine.
+        val id = logDish(brouillon(ligne("a"), moment = MealMoment.LUNCH))
+        val relu = getDishDraft(id)!!
+
+        updateDish(relu.copy(title = "Poke bowl", moment = MealMoment.DINNER))
+
+        val plat = diary.dishes.single()
+        assertEquals("Poke bowl", plat.title)
+        assertEquals(MealMoment.DINNER, plat.moment)
+    }
+
+    @Test
+    fun `un plat relu rend le titre et le moment qui ont ete ecrits`() = runTest {
+        // Sans cela, rouvrir un plat nomme « Poke bowl » proposerait « Dejeuner »
+        // dans son champ, et le simple fait d'enregistrer effacerait le nom.
+        val id = logDish(brouillon(ligne("a"), title = "Poke bowl", moment = MealMoment.DINNER))
+
+        val relu = getDishDraft(id)!!
+
+        assertEquals("Poke bowl", relu.title)
+        assertEquals(MealMoment.DINNER, relu.moment)
+    }
+
+    @Test
+    fun `un plat sans moment enregistre rend celui de son heure`() = runTest {
+        // Les plats d'avant les moments : leur heure decide, et le champ de l'ecran
+        // montre alors le meme nom que l'accueil.
+        diary.save(
+            Dish(
+                id = DishId("ancien"),
+                date = JOUR,
+                source = EntrySource.MANUAL,
+                loggedAt = clock.now(),
+                entries = emptyList(),
+            ),
+        )
+
+        assertEquals(MealMoment.LUNCH, getDishDraft(DishId("ancien"))!!.moment)
     }
 
     @Test

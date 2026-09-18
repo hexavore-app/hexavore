@@ -8,7 +8,6 @@ import app.hexavore.core.testing.InMemorySelectedDay
 import app.hexavore.core.testing.SequentialIdGenerator
 import app.hexavore.domain.diary.EntrySource
 import app.hexavore.domain.diary.FavoriteDishId
-import app.hexavore.domain.diary.FavoriteNumbering
 import app.hexavore.domain.diary.JOUR
 import app.hexavore.domain.diary.brouillon
 import app.hexavore.domain.diary.ligne
@@ -145,27 +144,43 @@ class FavoriteDishTest {
     }
 
     @Test
-    fun `le numero propose ne redescend jamais`() = runTest {
-        // Supprimer « Plat 1 » ne doit pas faire reapparaitre ce nom au favori
-        // suivant : le compteur avance, il ne compte pas les favoris existants.
-        val numbering = InMemoryFavoriteNumbering()
-        val proposer = NextFavoriteNumber(numbering, favoris)
+    fun `un favori rejoue donne son nom au plat`() = runTest {
+        // « Flocons du matin » est deja le nom que l'utilisateur a choisi pour ce
+        // contenu : le rejouer sous « Petit-dejeuner » perdrait ce qu'il a ecrit, et
+        // la liste des plats ne dirait plus lequel de ses modeles il a rejoue.
+        val id = (saveFavorite(brouillon(ligne("a")), "Flocons du matin") as FavoriteOutcome.Saved).id
 
-        val premier = proposer { "Plat $it" }
-        val second = proposer { "Plat $it" }
-
-        assertEquals(1, premier)
-        assertEquals(2, second)
+        assertEquals("Flocons du matin", getFavoriteDraft(id)!!.title)
     }
 
     @Test
-    fun `un nom deja pris a la main est enjambe`() = runTest {
-        // Les deux regles se completent : le compteur evite qu'un numero reapparaisse,
-        // la verification qu'il heurte un favori nomme « Plat 2 » a la main.
-        saveFavorite(brouillon(ligne("a")), "Plat 1")
-        val proposer = NextFavoriteNumber(InMemoryFavoriteNumbering(), favoris)
+    fun `le titre du plat se propose tel quel`() = runTest {
+        // C'est le nom que l'utilisateur a sous les yeux depuis l'accueil, et celui
+        // qu'il reconnaitra dans sa liste de modeles.
+        assertEquals("Déjeuner", proposer("Déjeuner"))
+    }
 
-        assertEquals(2, proposer { "Plat $it" })
+    @Test
+    fun `un titre deja pris passe au rang suivant`() = runTest {
+        // Deux favoris ne peuvent pas porter le meme nom : choisir deviendrait un pari.
+        saveFavorite(brouillon(ligne("a")), "Déjeuner")
+
+        assertEquals("Déjeuner 2", proposer("Déjeuner"))
+    }
+
+    @Test
+    fun `le rang avance jusqu au premier libre`() = runTest {
+        saveFavorite(brouillon(ligne("a")), "Déjeuner")
+        saveFavorite(brouillon(ligne("b")), "Déjeuner 2")
+
+        assertEquals("Déjeuner 3", proposer("Déjeuner"))
+    }
+
+    @Test
+    fun `un titre vide ne propose rien`() = runTest {
+        // Un plat sans titre n'existe pas -- il porterait le nom de son moment -- mais
+        // proposer « 2 » tout court serait pire que de ne rien proposer.
+        assertEquals("", proposer("   "))
     }
 
     @Test
@@ -263,6 +278,10 @@ class FavoriteDishTest {
     private val ids = SequentialIdGenerator("fav")
 
     private val saveFavorite = SaveFavoriteDish(favoris, ids)
+
+    /** « Dejeuner 2 » : le mot vient de l'ecran, le rang du cas d'usage. */
+    private suspend fun proposer(base: String): String =
+        ProposeFavoriteName(favoris)(base) { nom, rang -> "$nom $rang" }
     private val getFavoriteDraft =
         GetFavoriteDraft(favoris, catalogue, CreateDraft(clock, ids, InMemorySelectedDay(clock.today())), ids)
 
@@ -280,17 +299,4 @@ class FavoriteDishTest {
             per100g = NutrientValues(kcal = 363.0, protein = 13.5, carbs = 60.0, sugars = 1.0, fat = 7.0, fiber = 10.0),
         )
     }
-}
-
-/**
- * Le compteur, en mémoire.
- *
- * Il **avance vraiment**, comme celui qui écrit dans les préférences : un faux qui
- * rendrait toujours 1 laisserait passer exactement la régression que ce port existe
- * pour empêcher.
- */
-private class InMemoryFavoriteNumbering : FavoriteNumbering {
-    private var next = 1
-
-    override suspend fun next(): Int = next++
 }

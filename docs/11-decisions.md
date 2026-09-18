@@ -400,6 +400,8 @@ glucides = (kcal − 4 × protéines − 9 × lipides − 2 × fibres) / 4
 
 **Conséquences.** La table `meal` devient `dish` et perd `type`, `custom_name` et `sort_index` ; elle gagne `logged_at`. Le champ « repas de destination » disparaît de l'écran de validation, ce qui lui retire une décision. Le réglage « renommer et ajouter des repas » disparaît des préférences.
 
+> **Un plat porte de nouveau un nom, et cette décision tient quand même** ([D118](#d118--un-plat-porte-un-titre-et-cest-le-nom-que-le-favori-propose---validée)). Ce que D31 a écarté est la **case à choisir avant d'enregistrer** ; le titre, lui, se déduit de l'heure, ne coûte aucun geste, et ne range le plat nulle part — les plats restent une liste chronologique. Ce qui revient est un **nom**, pas une catégorie.
+
 ---
 
 ## D32 — La source appartient au plat, et ne change jamais · ✓ validée
@@ -3731,6 +3733,54 @@ Le geste qui supprimait était **immédiat** ; celui qui le remplace demande deu
 **Ce que le vert ne prouve pas.** **Que le geste ne se déclenche pas par accident.** Les cas jugent une distance et une vitesse ; ils ne disent pas qu'un défilement vertical un peu oblique, sur une journée chargée, ne parte pas de travers. C'est le reproche exact qui avait été fait au balayage de suppression, et il se vérifie avec un pouce, pas avec un test.
 
 Rien ne dit non plus que **vingt-quatre mois** soient la bonne borne : c'est celle du calendrier, retenue pour qu'il n'y ait pas deux limites différentes, pas parce que quelqu'un a voulu remonter jusque-là.
+
+---
+
+## D118 — Un plat porte un titre, et c'est le nom que le favori propose · ✓ validée
+
+**Contexte.** L'affichage simplifié demandé pour l'accueil a besoin d'une chose que le modèle n'avait pas : de quoi désigner un plat sans citer ses aliments. Un plat se lisait par son contenu — il fallait tout lire pour savoir de quel repas il s'agissait.
+
+### Ce n'est pas le retour de D06
+
+[D31](#d31--un-plat-pas-un-repas-nommé---validée) a écarté les repas nommés, et cette décision tient. Ce qu'elle a écarté est la **case à choisir avant d'enregistrer**, pour répondre à une question que personne ne se pose. Ici, personne ne choisit rien : le moment se déduit de l'heure, ne coûte aucun geste, et ne range le plat nulle part — les plats restent une liste chronologique. Ce qui revient est un **nom**, pas une catégorie.
+
+### Deux colonnes, et ni l'une ni l'autre n'est un libellé
+
+`title` porte ce que l'utilisateur a **écrit**, `moment` le repas retenu **à la saisie**. À `NULL`, le titre ne veut pas dire « sans titre » : le plat s'appelle du nom de son moment, composé à l'affichage.
+
+**Écrire ce nom dans la base aurait figé des mots français** dans chaque ligne, pour un plat que personne n'a nommé, et rendu l'application intraduisible sur son contenu le plus courant. Le domaine rend un moment et un rang ; les mots vivent dans le design system, où trois surfaces les partagent — la liste des plats, l'écran de validation, la boîte qui propose un nom de favori.
+
+**`moment` est une colonne et non un calcul**, et c'est le cas du dîner d'hier noté ce matin qui l'exige : l'heure d'un plat est celle de sa **saisie**. Sans mémoire du moment choisi, les quatre pastilles de correction n'auraient rien où écrire.
+
+### Le rang se calcule sur la journée, pas sur le plat
+
+Deux plats du même moment — le déjeuner, puis le dessert noté à part — porteraient le même nom dans une liste dont c'est justement le seul repère en affichage simplifié. Le second devient « Déjeuner 2 ».
+
+**Un plat nommé à la main ne consomme aucun rang.** Ce que l'utilisateur a écrit lui appartient : deux « Poke bowl » sont deux « Poke bowl », et un titre ajouté ne doit pas renuméroter le reste de la journée.
+
+C'est une propriété du **voisinage**, donc elle se calcule là où la journée est connue — dans `GetDaySummary`, avec les totaux — et non plat par plat.
+
+### La fusion avec les favoris va dans les deux sens
+
+**Mettre en favori propose le titre du plat.** C'est le nom qu'on a sous les yeux, donc celui qu'on reconnaîtra dans une liste de modèles. Les deux propositions précédentes disparaissent : la liste des trois premiers aliments donnait des titres de cinquante caractères qu'on efface au lieu de les corriger, et « Plat 3 » ne disait rien de rien. `FavoriteNumbering`, son fichier de préférences et `NextFavoriteNumber` partent avec elle.
+
+Le nom d'un favori est unique, et « Déjeuner » a de bonnes chances d'être pris : le rang suit alors le même principe qu'avant — on avance jusqu'au premier libre, et c'est l'écran qui écrit « Déjeuner 2 ».
+
+**Rejouer un favori donne son nom au plat.** « Flocons du matin » est déjà le nom choisi pour ce contenu ; le rejouer sous « Petit-déjeuner » perdrait ce que l'utilisateur avait écrit, et la liste ne dirait plus lequel de ses modèles il a rejoué.
+
+### Deux défauts que la campagne a trouvés
+
+**Le nom proposé ne recalculait pas l'écran.** Il vivait à côté du `combine` et n'était lu qu'à la faveur d'une autre émission : la boîte de nommage s'ouvrait par accident. Le nom proposé et le drapeau « nom déjà pris » répondent à la même question, ils entrent donc dans le même flux — et un cas qui **garde l'écran observé** pendant le geste le prouve, là où une seconde collecte relance le flux et masque exactement ce défaut.
+
+**Un moment illisible retombait sur le petit-déjeuner.** Le repli du mappeur doit rendre `NULL` — l'heure du plat reprend alors la main — et non choisir un repas. C'est l'asymétrie avec `source`, qui retombe sur `MANUAL` : « à la main » n'invente aucune provenance, là où « petit-déjeuner » affirmerait un repas avec l'aplomb d'une valeur choisie.
+
+**Campagne de défaite : vingt et un sabotages, vingt et un cas tombés.** Un vingt-deuxième a été retiré plutôt que gardé : il portait sur l'instant où la boîte s'ouvre — un tour de boucle — et non sur une règle. Le code a été simplifié à sa place : un seul écrivain pour le nom proposé.
+
+**Conséquences.** Base en version 7, deux colonnes ajoutées sans recopie de table. La sauvegarde porte les deux champs, **facultatifs**, donc le format ne change pas de version. `EntryDraft` gagne un titre et un moment ; `GetDishDraft` prend une horloge, pour lire l'heure d'un plat dans le bon fuseau.
+
+**Ce que le vert ne prouve pas.** **Que les bornes soient les bonnes.** 5 h, 11 h, 15 h, 18 h sont des milieux entre deux repas, pas des heures de repas ; rien ne dit qu'un goûter de 14 h 30 ne s'appellera pas « Déjeuner » chez quelqu'un qui déjeune à midi pile. Cela se règle en vivant avec, et le titre se corrige.
+
+Rien ne dit non plus que **le champ de titre ne gêne pas** : c'est un champ de plus en tête d'un écran qui en porte déjà beaucoup, et la seule façon de le savoir est de noter trois repas d'affilée.
 
 ---
 

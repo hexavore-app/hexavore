@@ -45,10 +45,16 @@ internal fun brouillon(
     source: EntrySource = EntrySource.MANUAL,
     date: LocalDate = JOUR,
     favoriteId: FavoriteDishId? = null,
+    title: String? = null,
+    // Midi comme heure de decor : c'est celle de `FixedClock.atNoon`, que la moitie
+    // des cas d'usage utilise, donc les deux racontent la meme journee.
+    moment: MealMoment = MealMoment.LUNCH,
 ) = EntryDraft(
     dishId = dishId,
     date = date,
     source = source,
     lines = lignes.toList(),
     favoriteId = favoriteId,
+    title = title,
+    moment = moment,
 )

@@ -318,6 +318,25 @@ data class EntryDraft(
      * [decisions]: docs/11-decisions.md
      */
     val favoriteId: FavoriteDishId? = null,
+    /**
+     * Le titre écrit à la main, ou `null` tant que personne n'y a touché.
+     *
+     * **`null` et non le libellé du moment**, alors même que l'écran l'affiche déjà
+     * dans son champ : ce que le champ montre est une proposition, et l'enregistrer
+     * comme une saisie figerait des mots que l'utilisateur n'a pas écrits. C'est la
+     * même distinction qu'entre une valeur estimée et une valeur corrigée à la main,
+     * appliquée à un nom.
+     */
+    val title: String? = null,
+    /**
+     * Le moment auquel ce plat se rattachera.
+     *
+     * Posé par [CreateDraft][app.hexavore.domain.usecase.CreateDraft] depuis l'heure
+     * qu'il est, ou relu du plat qu'on rouvre. Les quatre pastilles de l'écran le
+     * changent — c'est le seul moyen de rattraper un repas noté le lendemain, dont
+     * l'heure de saisie ne dit rien du repas.
+     */
+    val moment: MealMoment,
 ) {
     /** Le même brouillon, détaché de son favori. Tout geste sur les lignes y passe. */
     fun unlinked(): EntryDraft = if (favoriteId == null) this else copy(favoriteId = null)

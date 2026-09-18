@@ -16,11 +16,14 @@ value class DishId(val value: String)
 /**
  * Un plat : plusieurs aliments, entrés en une fois.
  *
- * C'est l'unité de saisie de l'application. Pas de petit-déjeuner, de déjeuner ni
- * de dîner : ces catégories obligeraient à ranger chaque saisie dans une case avant
- * de l'enregistrer, alors que la question qui compte est « qu'est-ce que j'ai mangé
- * aujourd'hui », pas « à quel repas ». Le classement chronologique le dit déjà, et
- * gratuitement ([D31][decisions]).
+ * C'est l'unité de saisie de l'application. Pas de case à choisir avant
+ * d'enregistrer : la question qui compte est « qu'est-ce que j'ai mangé aujourd'hui »,
+ * pas « à quel repas », et le classement chronologique y répond gratuitement
+ * ([D31][decisions]).
+ *
+ * Un plat porte quand même un **nom** depuis [D118][decisions], et ce n'est pas la même
+ * chose : il se déduit de l'heure, ne coûte aucun geste, ne range le plat nulle part,
+ * et sert à écrire une liste sans citer tous ses aliments. Voir [title] et [moment].
  *
  * Un plat porte **une** [source], celle par laquelle il est entré. Elle ne change
  * jamais, même après vingt corrections à la main.
@@ -49,4 +52,23 @@ data class Dish(
      * [decisions]: docs/11-decisions.md
      */
     val favoriteId: FavoriteDishId? = null,
+    /**
+     * Le titre écrit à la main, ou `null` — ce qui est le cas courant.
+     *
+     * `null` ne veut pas dire « sans titre » : le plat s'appelle alors du nom de son
+     * [moment], et c'est [titles] qui le compose. Écrire ce nom ici à la place aurait
+     * figé des mots français dans la base, là où l'utilisateur n'a rien dit.
+     */
+    val title: String? = null,
+    /**
+     * Le moment retenu **à la saisie**.
+     *
+     * Il vient de l'heure qu'il était, et l'écran de validation permet de le corriger :
+     * l'heure d'un plat est celle où on le note, donc un dîner rattrapé le lendemain
+     * matin s'appellerait sinon « Petit-déjeuner ».
+     *
+     * `null` pour les plats écrits avant que les moments existent. Leur heure le dit
+     * alors, ce qui est exact dans le cas courant — un repas se note en le mangeant.
+     */
+    val moment: MealMoment? = null,
 )

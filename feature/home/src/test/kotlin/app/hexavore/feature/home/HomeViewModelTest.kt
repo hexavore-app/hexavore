@@ -256,7 +256,7 @@ class HomeViewModelTest {
             deleteDish = DeleteDish(diary),
             restoreDish = RestoreDish(diary),
             toggleFavorite = ToggleDishFavorite(
-                drafts = GetDishDraft(diary, SequentialIdGenerator("ligne")),
+                drafts = GetDishDraft(diary, SequentialIdGenerator("ligne"), clock),
                 update = UpdateDish(diary, SequentialIdGenerator("ligne")),
                 save = SaveFavoriteDish(favoris, SequentialIdGenerator("fav")),
                 remove = RemoveFavoriteDish(favoris),

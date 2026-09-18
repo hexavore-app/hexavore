@@ -7,6 +7,7 @@ import app.hexavore.domain.diary.DishId
 import app.hexavore.domain.diary.EntryId
 import app.hexavore.domain.diary.EntrySource
 import app.hexavore.domain.diary.FoodEntry
+import app.hexavore.domain.diary.MealMoment
 import app.hexavore.domain.food.FoodCitations
 import app.hexavore.domain.food.FoodId
 import app.hexavore.domain.nutrition.Macros
@@ -162,6 +163,31 @@ abstract class DiaryContract {
         diary.save(petitDejeuner(LUNDI).let { it.copy(entries = it.entries.take(1)) })
 
         assertEquals(DEUX_LIGNES, diary.dish(AUTRE_PLAT)!!.entries.size)
+    }
+
+    @Test
+    fun `le titre et le moment d un plat se relisent tels quels`() = runBlocking {
+        val diary = journal()
+
+        diary.save(petitDejeuner(LUNDI, title = "Poke bowl", moment = MealMoment.DINNER))
+
+        val relu = diary.dish(PLAT)!!
+        assertEquals("Poke bowl", relu.title)
+        assertEquals(MealMoment.DINNER, relu.moment)
+    }
+
+    @Test
+    fun `un plat sans titre ni moment les relit nuls`() = runBlocking {
+        // L'etat de tous les plats ecrits avant que les moments existent. Un defaut
+        // pose ici -- une chaine vide, un moment de repli -- affirmerait un choix que
+        // personne n'a fait, et l'heure du plat ne pourrait plus le corriger.
+        val diary = journal()
+
+        diary.save(petitDejeuner(LUNDI))
+
+        val relu = diary.dish(PLAT)!!
+        assertNull(relu.title)
+        assertNull(relu.moment)
     }
 
     @Test
@@ -364,11 +390,15 @@ abstract class DiaryContract {
         plat: DishId = PLAT,
         loggedAt: Instant = MATIN,
         source: EntrySource = EntrySource.MANUAL,
+        title: String? = null,
+        moment: MealMoment? = null,
     ) = Dish(
         id = plat,
         date = date,
         source = source,
         loggedAt = loggedAt,
+        title = title,
+        moment = moment,
         entries = listOf(
             FoodEntry(
                 id = EntryId("${plat.value}$PAIN"),

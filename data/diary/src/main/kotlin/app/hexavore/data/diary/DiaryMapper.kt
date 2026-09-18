@@ -9,6 +9,7 @@ import app.hexavore.domain.diary.EntryId
 import app.hexavore.domain.diary.EntrySource
 import app.hexavore.domain.diary.FavoriteDishId
 import app.hexavore.domain.diary.FoodEntry
+import app.hexavore.domain.diary.MealMoment
 import app.hexavore.domain.food.FoodId
 import app.hexavore.domain.nutrition.Macros
 import java.time.Instant
@@ -33,6 +34,8 @@ fun DishWithEntries.toDomain(): Dish {
         loggedAt = Instant.ofEpochMilli(dish.loggedAt),
         entries = entries.map { it.toDomain(id) },
         favoriteId = dish.favoriteId?.let(::FavoriteDishId),
+        title = dish.title,
+        moment = dish.moment?.toMealMoment(),
     )
 }
 
@@ -69,6 +72,16 @@ private fun String.toEntrySource(): EntrySource =
     EntrySource.entries.firstOrNull { it.name == this } ?: EntrySource.MANUAL
 
 /**
+ * Le moment d'un plat, tel qu'il est stocké.
+ *
+ * Une valeur inconnue rend `null` plutôt que de choisir un moment : l'heure du plat
+ * prend alors le relais, ce qui est exactement ce qui se passe pour les plats écrits
+ * avant que les moments existent. Retomber sur `BREAKFAST` aurait affiché « Petit-
+ * déjeuner » sur un dîner, avec l'aplomb d'une valeur choisie.
+ */
+private fun String.toMealMoment(): MealMoment? = MealMoment.entries.firstOrNull { it.name == this }
+
+/**
  * Le chemin inverse : du domaine vers les tables.
  *
  * [now] sert de date de création **et** de modification. Le DAO écrase la première
@@ -81,6 +94,8 @@ fun Dish.toEntity(now: Long) = DishEntity(
     source = source.name,
     loggedAt = loggedAt.toEpochMilli(),
     favoriteId = favoriteId?.value,
+    title = title,
+    moment = moment?.name,
     createdAt = now,
     updatedAt = now,
 )

@@ -6,8 +6,10 @@ import app.hexavore.domain.diary.DraftLine
 import app.hexavore.domain.diary.DraftLineId
 import app.hexavore.domain.diary.EntryDraft
 import app.hexavore.domain.diary.QuantityUnit
+import app.hexavore.domain.diary.momentIn
 import app.hexavore.domain.identity.IdGenerator
 import app.hexavore.domain.nutrition.NutrientValues
+import app.hexavore.domain.time.Clock
 
 /**
  * Rouvre un plat enregistré sous la forme que l'écran de validation manipule.
@@ -24,7 +26,7 @@ import app.hexavore.domain.nutrition.NutrientValues
  *
  * [decisions]: docs/11-decisions.md
  */
-class GetDishDraft(private val diary: DiaryRepository, private val ids: IdGenerator) {
+class GetDishDraft(private val diary: DiaryRepository, private val ids: IdGenerator, private val clock: Clock) {
     /** @return `null` si le plat n'existe plus. */
     suspend operator fun invoke(dishId: DishId): EntryDraft? {
         val dish = diary.dish(dishId) ?: return null
@@ -32,6 +34,11 @@ class GetDishDraft(private val diary: DiaryRepository, private val ids: IdGenera
             dishId = dish.id,
             date = dish.date,
             source = dish.source,
+            title = dish.title,
+            // Le moment retenu a la saisie, ou celui que dit l'heure du plat pour ceux
+            // d'avant. Le champ de l'ecran montre ainsi le nom que l'accueil affichait,
+            // et non un nom calcule sur l'heure qu'il est maintenant.
+            moment = dish.momentIn(clock.zone()),
             // C'est lui qui rallume l'etoile. Il tombera a la premiere ligne touchee.
             favoriteId = dish.favoriteId,
             lines = dish.entries.map { entry ->

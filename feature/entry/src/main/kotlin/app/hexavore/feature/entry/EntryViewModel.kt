@@ -8,11 +8,11 @@ import app.hexavore.domain.diary.DishId
 import app.hexavore.domain.diary.DraftLineId
 import app.hexavore.domain.diary.EntryDraft
 import app.hexavore.domain.diary.FavoriteDishId
+import app.hexavore.domain.diary.MealMoment
 import app.hexavore.domain.diary.impactOf
 import app.hexavore.domain.food.FoodId
 import app.hexavore.domain.time.Clock
 import app.hexavore.domain.usecase.DraftOrigin
-import app.hexavore.domain.usecase.FavoriteOutcome
 import app.hexavore.domain.usecase.GetDaySummary
 import app.hexavore.domain.usecase.SaveDraft
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -64,17 +64,14 @@ internal class EntryViewModel @Inject constructor(
     private val form = MutableStateFlow<EntryForm?>(null)
     private val status = MutableStateFlow(Status.LOADING)
 
-    /** `true` quand le dernier nom proposé était déjà pris. */
-    private val favoriteError = MutableStateFlow(false)
-
     /**
-     * Le numéro à proposer au prochain favori.
+     * L'étoile et sa boîte de nom, avec leur état.
      *
-     * Calculé à l'ouverture de la boîte plutôt qu'en continu : c'est le seul moment
-     * où il sert, et un favori créé ailleurs entre-temps n'a pas à faire clignoter un
-     * champ qu'on ne regarde pas.
+     * Elles vivent à part parce qu'elles sont à part : ce `ViewModel` porte la saisie
+     * d'un repas, [DraftNaming] porte le modèle qu'on en tire. Elle écrit dans le même
+     * formulaire — c'est elle qui sait qu'un favori enregistré le rattache.
      */
-    private val favoriteNumber = MutableStateFlow(1)
+    val favorite = DraftNaming(favorites, viewModelScope, form)
 
     /**
      * La journée visée, relue une seule fois.
@@ -102,7 +99,7 @@ internal class EntryViewModel @Inject constructor(
             }
 
     val uiState: StateFlow<EntryUiState> =
-        combine(form, status, day, favoriteError, composition.units()) { form, status, day, nameTaken, units ->
+        combine(form, status, day, favorite.naming, composition.units()) { form, status, day, naming, units ->
             when {
                 status == Status.UNAVAILABLE -> EntryUiState.Unavailable
                 status == Status.SAVED -> EntryUiState.Saved
@@ -113,8 +110,8 @@ internal class EntryViewModel @Inject constructor(
                     units = units,
                     impact = day?.impactOf(form.toDraft()),
                     saving = status == Status.SAVING,
-                    favoriteNameTaken = nameTaken,
-                    favoriteNumber = favoriteNumber.value,
+                    favoriteNameTaken = naming.taken,
+                    favoriteProposal = naming.proposal,
                     editingFavorite = editingFavorite,
                     today = clock.today(),
                 )
@@ -171,48 +168,27 @@ internal class EntryViewModel @Inject constructor(
     }
 
     /**
-     * Met le plat en favori sous ce nom, ou le retire de la liste.
+     * Le titre du plat, tel qu'on vient de l'écrire.
      *
-     * **Éteindre l'étoile supprime le favori**, et c'est le seul chemin pour retirer
-     * un plat de sa liste : la liste des favoris ne sert qu'à en choisir un, et lui
-     * ajouter un geste de suppression aurait fait deux endroits pour la même décision.
+     * Aucune retenue sur le lien au favori, contrairement aux gestes sur les lignes :
+     * renommer un plat ne change pas ce qu'il contient, donc il reste celui que le
+     * favori décrit ([D62][decisions]).
      *
-     * Un nom déjà pris est une **réponse**, pas une panne : l'écran la dit et laisse
-     * le champ ouvert.
+     * [decisions]: docs/11-decisions.md
      */
+    fun onTitle(text: String) {
+        form.update { it?.copy(title = text.trim().takeIf(String::isNotEmpty)) }
+    }
+
     /**
-     * La boîte de nom s'ouvre : on cherche le premier numéro libre.
+     * Une pastille de moment a été touchée.
      *
-     * [label] vient de l'écran parce que le mot « Plat » est une ressource, et que le
-     * domaine n'écrit pas d'interface. Lui, il compte.
+     * **Elle efface le titre écrit**, sans quoi le nom affiché ne changerait pas et la
+     * pastille semblerait sans effet. C'est le geste de quelqu'un qui dit « c'était le
+     * dîner » : ce qu'il veut est le nom du dîner.
      */
-    fun onNaming(label: (Int) -> String) {
-        viewModelScope.launch { favoriteNumber.value = runCatching { favorites.nextNumber(label) }.getOrDefault(1) }
-    }
-
-    fun onFavorite(name: String) {
-        val current = form.value ?: return
-        favoriteError.value = false
-
-        viewModelScope.launch {
-            val outcome = runCatching { favorites.save(current.toDraft(), name, current.favoriteId) }
-            when (val result = outcome.getOrNull()) {
-                is FavoriteOutcome.Saved -> form.update { it?.copy(favoriteId = result.id) }
-                FavoriteOutcome.NameTaken -> favoriteError.value = true
-                null -> Unit
-            }
-        }
-    }
-
-    fun onUnfavorite() {
-        val id = form.value?.favoriteId ?: return
-        form.update { it?.copy(favoriteId = null) }
-        viewModelScope.launch { runCatching { favorites.remove(id) } }
-    }
-
-    /** L'utilisateur corrige le nom refusé : le message cesse de s'appliquer. */
-    fun onDismissFavoriteError() {
-        favoriteError.value = false
+    fun onMoment(moment: MealMoment) {
+        form.update { it?.copy(moment = moment, title = null) }
     }
 
     /** Après un échec d'écriture : le brouillon n'a pas bougé, il n'y a qu'à réessayer. */

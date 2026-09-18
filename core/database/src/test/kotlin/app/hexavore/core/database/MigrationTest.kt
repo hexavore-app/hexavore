@@ -157,6 +157,40 @@ class MigrationTest {
         }
     }
 
+    // --- Version 6 -> 7 : un plat porte un nom ---------------------------------
+
+    @Test
+    fun `un plat ecrit avant les titres n en recoit aucun`() {
+        // Personne n'a nomme ces plats ni choisi leur moment : l'application ne le
+        // demandait pas. Les remplir ici affirmerait un choix que personne n'a fait,
+        // et le ferait pour des mois de journal d'un coup. Leur moment se deduit de
+        // leur heure a l'affichage, ce qui est la bonne lecture dans le cas courant.
+        helper.createDatabase(TEST_DATABASE, 1).use { it.seedVersionOne() }
+
+        migrate().use { database ->
+            database.query("SELECT title, moment FROM dish WHERE id = 'd1'").use { row ->
+                assertTrue("le plat a disparu", row.moveToFirst())
+                assertTrue("un titre a ete invente", row.isNull(0))
+                assertTrue("un moment a ete invente", row.isNull(1))
+            }
+        }
+    }
+
+    @Test
+    fun `la migration des titres garde les lignes du plat`() {
+        // `ALTER TABLE ADD COLUMN` ne recopie pas la table, donc rien ne se perd --
+        // mais c'est la propriete qui compte, pas le moyen, et la prochaine migration
+        // de cette table pourrait, elle, recopier.
+        helper.createDatabase(TEST_DATABASE, 1).use { it.seedVersionOne() }
+
+        migrate().use { database ->
+            database.query("SELECT display_name FROM food_entry WHERE id = 'e1'").use { row ->
+                assertTrue("la ligne de journal a disparu", row.moveToFirst())
+                assertEquals("Riz basmati cuit", row.getString(0))
+            }
+        }
+    }
+
     // --- Version 2 -> 3 : profil, poids, objectifs versionnes ------------------
 
     @Test

@@ -7,6 +7,7 @@ import app.hexavore.core.testing.InMemoryFoodCatalog
 import app.hexavore.core.testing.SequentialIdGenerator
 import app.hexavore.domain.diary.EntrySource
 import app.hexavore.domain.diary.JOUR
+import app.hexavore.domain.diary.MealMoment
 import app.hexavore.domain.diary.brouillon
 import app.hexavore.domain.diary.ligne
 import app.hexavore.domain.food.Food
@@ -36,6 +37,34 @@ class LogDishTest {
         val plat = diary.dishes.single()
         assertEquals(JOUR, plat.date)
         assertEquals(listOf("Riz", "Poulet"), plat.entries.map { it.displayName })
+    }
+
+    @Test
+    fun `le titre ecrit a la main s enregistre, le moment avec`() = runTest {
+        logDish(brouillon(ligne("a"), title = "Poke bowl", moment = MealMoment.DINNER))
+
+        val plat = diary.dishes.single()
+        assertEquals("Poke bowl", plat.title)
+        assertEquals(MealMoment.DINNER, plat.moment)
+    }
+
+    @Test
+    fun `un titre non ecrit ne s enregistre pas, le moment si`() = runTest {
+        // L'ecran montre pourtant « Dejeuner » dans son champ : ce qui est propose
+        // n'est pas ce qui est saisi. L'ecrire ici figerait des mots francais dans la
+        // base pour un plat que personne n'a nomme.
+        logDish(brouillon(ligne("a"), moment = MealMoment.LUNCH))
+
+        val plat = diary.dishes.single()
+        assertNull(plat.title)
+        assertEquals(MealMoment.LUNCH, plat.moment)
+    }
+
+    @Test
+    fun `un titre reduit a des blancs ne s enregistre pas`() = runTest {
+        logDish(brouillon(ligne("a"), title = "   "))
+
+        assertNull(diary.dishes.single().title)
     }
 
     @Test

@@ -56,7 +56,8 @@ object DomainModule {
     fun getCalendar(diary: DiaryRepository, goals: Goals): GetCalendar = GetCalendar(diary, goals)
 
     @Provides
-    fun getDishDraft(diary: DiaryRepository, ids: IdGenerator): GetDishDraft = GetDishDraft(diary, ids)
+    fun getDishDraft(diary: DiaryRepository, ids: IdGenerator, clock: Clock): GetDishDraft =
+        GetDishDraft(diary, ids, clock)
 
     @Provides
     fun createDraft(clock: Clock, ids: IdGenerator, selected: SelectedDay): CreateDraft =

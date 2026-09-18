@@ -6,7 +6,6 @@ import app.hexavore.domain.diary.FavoriteComponent
 import app.hexavore.domain.diary.FavoriteDish
 import app.hexavore.domain.diary.FavoriteDishId
 import app.hexavore.domain.diary.FavoriteDishes
-import app.hexavore.domain.diary.FavoriteNumbering
 import app.hexavore.domain.identity.IdGenerator
 
 /**
@@ -129,39 +128,39 @@ class UpdateFavoriteDish(private val favorites: FavoriteDishes, private val diar
 }
 
 /**
- * Le premier numéro libre pour nommer un plat favori.
+ * Le nom à proposer pour un favori, à partir du titre du plat.
  *
- * **Un numéro et non une phrase** : « Plat » est un mot d'interface, et le domaine
- * n'en écrit pas. Ce qu'il sait, lui, c'est lesquels sont déjà pris.
+ * **Le titre du plat est déjà le nom qu'on cherche.** L'utilisateur l'a sous les yeux
+ * depuis l'accueil — « Déjeuner », « Poke bowl » —, et c'est celui qu'il reconnaîtra
+ * dans une liste de modèles. Les deux propositions précédentes ne valaient rien à
+ * côté : la liste des aliments du plat donnait des titres de cinquante caractères
+ * qu'on efface au lieu de les corriger, et « Plat 3 » ne disait rien de rien.
  *
- * La proposition précédente était la liste des aliments du plat — « Riz blanc cuit,
- * Blanc de poulet sans peau, Haricots verts appertisés égouttés ». Les libellés de
- * l'ANSES sont à rallonge, et trois d'entre eux font un titre de cinquante caractères
- * qu'on efface au lieu de le corriger. Un numéro se garde ou se remplace, mais il ne
- * se subit pas.
+ * **Le nom d'un favori est unique** ([SaveFavoriteDish]), et « Déjeuner » a de bonnes
+ * chances d'être déjà pris. Le rang suit donc le même principe que l'ancien numéro :
+ * on avance jusqu'au premier libre, et c'est l'appelant qui écrit « Déjeuner 2 » —
+ * l'espace, la forme du nombre et la langue sont des questions d'interface.
+ *
+ * @param numbered comment l'écran écrit le n-ième plat d'un même nom.
  */
-class NextFavoriteNumber(private val numbering: FavoriteNumbering, private val favorites: FavoriteDishes) {
-    /**
-     * @param taken dit si un nom est déjà pris, tel que l'écran l'écrirait.
-     *
-     * **Le compteur avance, et le nom pris est enjambé.** Les deux règles se
-     * complètent : le compteur garantit qu'un numéro ne réapparaît pas après une
-     * suppression, la vérification qu'il ne heurte pas un favori nommé « Plat 4 » à la
-     * main. Une lambda plutôt qu'un patron de chaîne, parce que c'est l'appelant qui
-     * connaît le mot.
-     *
-     * La borne évite une boucle sans fin si quelque chose répondait « pris » à tout.
-     */
-    suspend operator fun invoke(taken: (Int) -> String): Int {
-        var number = numbering.next()
-        var attempts = 0
-        while (attempts < MAX_ATTEMPTS && favorites.nameTaken(taken(number))) {
-            number = numbering.next()
-            attempts++
+class ProposeFavoriteName(private val favorites: FavoriteDishes) {
+    /** @return un nom libre, ou [base] tel quel si la lecture des favoris échoue. */
+    suspend operator fun invoke(base: String, numbered: (base: String, rank: Int) -> String): String {
+        val trimmed = base.trim()
+        if (trimmed.isEmpty() || !favorites.nameTaken(trimmed)) return trimmed
+
+        var rank = SECOND
+        // La borne evite une boucle sans fin si quelque chose repondait « pris » a
+        // tout ; au-dela de cent, le nom propose n'est de toute facon plus le sujet.
+        while (rank < MAX_ATTEMPTS && favorites.nameTaken(numbered(trimmed, rank))) {
+            rank++
         }
-        return number
+        return numbered(trimmed, rank)
     }
 }
+
+/** Le premier rang qui s'écrit : le plat sans numéro est le premier. */
+private const val SECOND = 2
 
 /** Cent noms déjà pris d'affilée : au-delà, le nom proposé n'est plus le sujet. */
 private const val MAX_ATTEMPTS = 100

@@ -38,6 +38,8 @@ Un JSON unique, compressé en gzip. Lisible, inspectable, réparable à la main 
 }
 ```
 
+**Un plat porte son titre et son moment** quand il en a ([D118](11-decisions.md)) : la sauvegarde porte ce que la base tient. Les deux champs sont **facultatifs**, donc le format ne change pas de version — un fichier écrit avant eux se relit sans eux, et ses plats retrouvent le nom que leur heure leur donne, exactement comme les lignes d'avant dans la base.
+
 ~~`deviceId`~~ et ~~`preferences`~~ ne sont pas écrits ([D96](11-decisions.md#d96--la-sauvegarde-emprunte-les-mappeurs-et-le-format-ne-porte-que-ce-que-la-base-tient---validée)). Rien ne lit le premier, et un fichier que l'utilisateur peut envoyer par courriel n'a pas besoin de porter de quoi relier deux exports au même téléphone. ~~Le second n'a pas encore de contenu : les préférences d'affichage naîtront avec la section « Apparence ».~~ **La section existe, et le champ reste vide** ([D113](11-decisions.md#d113--apparence-existe-et-suivre-le-système-est-un-choix---validée)) : le thème est une préférence d'appareil, et cette page vient de poser que le format ne porte que ce que la base tient. Le système d'unités, lui, voyage déjà — il est une colonne du profil.
 
 `adjustment` porte l'état de l'adaptation hebdomadaire. C'est une décision de l'utilisateur et non un réglage d'appareil : qui vient de répondre « ne plus proposer » ne doit pas revoir la carte parce qu'il a changé de téléphone.

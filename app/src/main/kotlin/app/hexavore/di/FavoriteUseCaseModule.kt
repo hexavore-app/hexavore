@@ -4,7 +4,6 @@ import app.hexavore.domain.ai.NutritionEstimator
 import app.hexavore.domain.ai.PendingRecognition
 import app.hexavore.domain.diary.DiaryRepository
 import app.hexavore.domain.diary.FavoriteDishes
-import app.hexavore.domain.diary.FavoriteNumbering
 import app.hexavore.domain.food.FoodLookup
 import app.hexavore.domain.food.FoodSearch
 import app.hexavore.domain.identity.IdGenerator
@@ -12,8 +11,8 @@ import app.hexavore.domain.usecase.AddFoodLine
 import app.hexavore.domain.usecase.CreateDraft
 import app.hexavore.domain.usecase.GetDishDraft
 import app.hexavore.domain.usecase.GetFavoriteDraft
-import app.hexavore.domain.usecase.NextFavoriteNumber
 import app.hexavore.domain.usecase.OpenDraft
+import app.hexavore.domain.usecase.ProposeFavoriteName
 import app.hexavore.domain.usecase.RemoveFavoriteDish
 import app.hexavore.domain.usecase.ResolveFoodLabel
 import app.hexavore.domain.usecase.ResolveRecognition
@@ -76,10 +75,9 @@ object FavoriteUseCaseModule {
     fun saveFavoriteDish(favorites: FavoriteDishes, ids: IdGenerator): SaveFavoriteDish =
         SaveFavoriteDish(favorites, ids)
 
-    /** Le premier numéro libre, pour proposer « Plat 3 » plutôt qu'une liste d'aliments. */
+    /** Le titre du plat, et le premier rang libre s'il est déjà pris : « Déjeuner 2 ». */
     @Provides
-    fun nextFavoriteNumber(numbering: FavoriteNumbering, favorites: FavoriteDishes): NextFavoriteNumber =
-        NextFavoriteNumber(numbering, favorites)
+    fun proposeFavoriteName(favorites: FavoriteDishes): ProposeFavoriteName = ProposeFavoriteName(favorites)
 
     /**
      * La modification d'un favori, qui touche aux deux : le modèle et la provenance

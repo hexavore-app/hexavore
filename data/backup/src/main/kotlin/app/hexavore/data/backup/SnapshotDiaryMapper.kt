@@ -6,6 +6,7 @@ import app.hexavore.domain.diary.EntryId
 import app.hexavore.domain.diary.EntrySource
 import app.hexavore.domain.diary.FavoriteDishId
 import app.hexavore.domain.diary.FoodEntry
+import app.hexavore.domain.diary.MealMoment
 import app.hexavore.domain.food.FoodId
 import app.hexavore.domain.nutrition.Macros
 import java.time.LocalDate
@@ -17,6 +18,8 @@ internal fun Dish.toDto() = DishDto(
     source = source.name,
     loggedAt = loggedAt.toString(),
     favoriteId = favoriteId?.value,
+    title = title,
+    moment = moment?.name,
 )
 
 internal fun DishDto.toDomain(entries: List<EntryDto>) = Dish(
@@ -26,6 +29,10 @@ internal fun DishDto.toDomain(entries: List<EntryDto>) = Dish(
     loggedAt = loggedAt.toInstantOrEpoch(),
     entries = entries.map { it.toDomain() },
     favoriteId = favoriteId?.let(::FavoriteDishId),
+    title = title,
+    // Un moment inconnu -- fichier plus recent, valeur abimee -- laisse l'heure du
+    // plat decider, comme pour un plat d'avant les moments.
+    moment = MealMoment.entries.firstOrNull { it.name == moment },
 )
 
 internal fun FoodEntry.toDto() = EntryDto(

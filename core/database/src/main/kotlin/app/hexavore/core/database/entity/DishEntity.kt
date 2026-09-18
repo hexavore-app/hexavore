@@ -57,6 +57,24 @@ data class DishEntity(
      */
     @ColumnInfo(name = "favorite_id")
     val favoriteId: String? = null,
+    /**
+     * Le titre écrit à la main, ou `NULL` — ce qui est le cas courant.
+     *
+     * `NULL` ne veut pas dire « sans titre » : le plat s'appelle alors du nom de son
+     * [moment]. Y écrire ce nom aurait figé des mots français dans la base, là où
+     * l'utilisateur n'a rien dit.
+     */
+    @ColumnInfo(name = "title")
+    val title: String? = null,
+    /**
+     * Le moment retenu à la saisie, ou `NULL` pour les plats d'avant les moments.
+     *
+     * Leur heure le dit alors, ce qui est exact dans le cas courant — un repas se note
+     * en le mangeant. Le remplir à la migration aurait affirmé de trois mois de
+     * journal un moment que personne n'a choisi.
+     */
+    @ColumnInfo(name = "moment")
+    val moment: String? = null,
     @ColumnInfo(name = "created_at")
     val createdAt: Long,
     @ColumnInfo(name = "updated_at")
