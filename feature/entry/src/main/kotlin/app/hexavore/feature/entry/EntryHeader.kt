@@ -2,6 +2,8 @@ package app.hexavore.feature.entry
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
@@ -115,6 +117,7 @@ internal fun DraftHeader(state: EntryUiState.Content, actions: EntryActions, dat
  *
  * [decisions]: docs/11-decisions.md
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DishTitleField(state: EntryUiState.Content, actions: EntryActions, moment: String) {
     var generation by remember { mutableIntStateOf(0) }
@@ -130,7 +133,14 @@ private fun DishTitleField(state: EntryUiState.Content, actions: EntryActions, m
             )
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+        // `FlowRow` et non `Row` : les quatre libelles mis bout a bout font 329 dp, et
+        // un ecran de 360 dp n'en offre que 328 une fois ses marges prises. La
+        // difference tient dans un cheveu, donc elle basculerait d'un telephone a
+        // l'autre -- et ce qui deborde d'une rangee ne se voit pas, il se fait rogner.
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
+            verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+        ) {
             MealMoment.entries.forEach { moment ->
                 NeonChip(
                     label = momentLabel(moment),

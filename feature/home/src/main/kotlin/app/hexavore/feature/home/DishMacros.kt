@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -95,7 +97,16 @@ private fun MacroChip(macro: Macro, total: MacroTotal) {
  */
 @Composable
 internal fun Shared(macro: Macro, share: Float?, value: @Composable () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+    Column(
+        // **`IntrinsicSize.Max` et non rien du tout.** Le `fillMaxWidth` de la barre
+        // prendrait sinon toute la largeur que le parent lui offre -- la ligne entiere
+        // dans une rangee, la place restante dans l'en-tete d'un plat -- et la colonne
+        // s'etirerait avec elle. Ici, la largeur est celle du texte qu'elle souligne,
+        // qui est le seul enfant a avoir une largeur naturelle.
+        modifier = Modifier.width(IntrinsicSize.Max),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+    ) {
         value()
         share?.let { MacroShareBar(macro = macro, share = it) }
     }

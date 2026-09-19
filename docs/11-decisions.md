@@ -3690,11 +3690,13 @@ Le trait était en `outline`, soit **1,4:1** sur le fond sombre. Une bordure dé
 
 **Tirer la page vers le bas quand elle est déjà en haut** ouvre le mois, après environ un centimètre. C'est le geste du rafraîchissement, connu sans avoir été appris, et il ne demande de viser rien du tout.
 
-**Ce qui arrive à la règle est ce que le défilement n'a pas pu consommer.** « Être en haut » n'est donc ni une condition à écrire, ni un état à lire dans le `ScrollState` : c'est exactement ce que dit un delta qui revient intact d'`onPostScroll`. La règle tient en une ligne et se lit sans connaître Compose.
+**La règle demande « est-on en haut », elle ne le déduit pas** — et la première version faisait l'inverse. Elle lisait ce que le défilement n'avait pas pu consommer, ce qui dit « on est en haut » sans avoir à le demander : plus court, plus joli, et faux. L'effet d'étirement d'Android consomme précisément ce reste pour dessiner son rebond, donc la traction n'accumulait jamais rien. **Le vert ne l'a pas vu ; le téléphone l'a vu en un geste.** La condition est maintenant explicite — la position du défilement — et elle se décide avant l'enfant plutôt qu'après lui.
 
 **Un défilement lancé n'ouvre rien.** Un élan qui bute en haut rend le même delta qu'une traction, à ceci près que sa source est `SideEffect` et non `UserInput`. Sans cette distinction, toute lecture rapide finirait par déplier le mois — et ce serait rapporté comme un défaut, à juste titre.
 
 **Campagne de défaite : quatre sabotages, quatre cas tombés.** Le plus instructif est le quatrième : remplacer l'accumulation par le dernier delta laisse un geste *rapide* ouvrir le mois et un geste *lent* ne rien faire, ce qu'aucun cas n'aurait vu sans un cas qui tire deux fois.
+
+**Aucun de ces cas n'aurait pu voir le défaut de la première version**, et c'est la leçon à retenir : ils éprouvent la règle, pas son branchement. Quatre sabotages tombés sur une règle qui n'était jamais appelée, c'est un vert parfaitement sincère et parfaitement inutile.
 
 **Conséquences.** `pulledBy` rejoint `collapsingDelta` dans le fichier des règles du calendrier : ouvrir et fermer sont deux règles, pas une avec un signe. L'accumulateur vit dans l'écran, là où le geste arrive, comme l'état de repli lui-même.
 

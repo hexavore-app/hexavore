@@ -31,28 +31,38 @@ internal fun collapsingDelta(expanded: Boolean, available: Offset): Offset =
     if (expanded && available.y < 0f) available else Offset.Zero
 
 /**
- * Ce qu'une traction accumule quand la page ne peut plus défiler.
+ * Ce qu'une traction accumule quand la page est déjà en haut.
  *
  * **Le geste d'ouverture manquait.** La poignée seule ne se trouvait pas — « peu de
  * personnes comprennent que le calendrier est développable » —, alors que le geste
  * naturel est déjà connu de tous : tirer vers le bas quand on est en haut.
  *
- * Ce qui arrive ici est ce que le défilement **n'a pas pu consommer**, donc ce qui
- * reste quand la page est déjà à son début. « Être en haut » n'a pas à être une
- * condition à écrire ni un état à lire : c'est exactement ce que dit un delta qui
- * revient intact.
+ * **[atTop] est demandé, et non déduit.** La première version lisait ce que le
+ * défilement n'avait pas pu consommer, ce qui disait « on est en haut » sans avoir à le
+ * demander. C'était plus joli, et ça ne marchait pas : l'effet d'étirement d'Android
+ * consomme précisément ce reste pour dessiner son rebond, et la traction n'accumulait
+ * jamais rien. Constaté sur appareil, pas déduit.
  *
- * Trois cas remettent le compteur à zéro, et chacun pour sa raison :
+ * Quatre cas remettent le compteur à zéro, et chacun pour sa raison :
  *
  * - **le calendrier est déjà déplié** — il n'y a plus rien à ouvrir ;
+ * - **la page n'est pas en haut** — on remonte dans la journée, on ne demande rien ;
  * - **le geste n'est pas un doigt** — un défilement lancé qui bute en haut est un
  *   arrêt, pas une intention ; sans cela, toute lecture rapide finirait par déplier
  *   le mois ;
  * - **le doigt ne descend pas** — on défile la page, et l'accumulation d'un geste
  *   précédent n'a plus à traîner.
  */
-internal fun pulledBy(previous: Float, expanded: Boolean, available: Offset, byUser: Boolean): Float =
-    if (expanded || !byUser || available.y <= 0f) 0f else previous + available.y
+internal fun pulledBy(previous: Float, expanded: Boolean, atTop: Boolean, available: Offset, byUser: Boolean): Float {
+    // Deux moitiés nommées plutôt qu'une condition de quatre termes : l'une dit ce que
+    // **le geste** est, l'autre ce que **l'écran** permet. C'est aussi le seuil de
+    // complexité de detekt, et la réponse du projet est de séparer selon ce que les
+    // choses sont.
+    val tire = byUser && available.y > 0f
+    val ouvrable = !expanded && atTop
+
+    return if (tire && ouvrable) previous + available.y else 0f
+}
 
 /**
  * La distance au-delà de laquelle une traction est une intention.

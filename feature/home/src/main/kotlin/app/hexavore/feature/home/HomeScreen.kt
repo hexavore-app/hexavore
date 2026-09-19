@@ -1,6 +1,7 @@
 package app.hexavore.feature.home
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -197,7 +198,10 @@ fun HomeScreen(
     // plus rien, et le geste n'aurait sinon aucune cible.
     BackHandler(enabled = day != null) { onBackToToday() }
 
-    val collapseOnScroll = rememberCalendarScroll(calendarExpanded) { calendarExpanded = it }
+    // Le defilement de la page vit ici : la connexion a besoin de savoir s'il est en
+    // haut, et la colonne a besoin de defiler. Un seul etat, deux lecteurs.
+    val dayScroll = rememberScrollState()
+    val collapseOnScroll = rememberCalendarScroll(calendarExpanded, dayScroll) { calendarExpanded = it }
     val snackbarHostState = rememberUndoBar(pendingUndo, actions.onUndo, actions.onUndoExpired)
 
     Scaffold(
@@ -229,7 +233,7 @@ fun HomeScreen(
                 onDay = onSelectDay,
                 modifier = Modifier.weight(1f),
             ) {
-                DayScroll(collapseOnScroll) {
+                DayScroll(collapseOnScroll, dayScroll) {
                     suggestion?.let {
                         AdjustmentCard(
                             suggestion = it,
@@ -300,32 +304,46 @@ private fun rememberUndoBar(pendingUndo: Dish?, onUndo: () -> Unit, onExpired: (
  * [decisions]: docs/11-decisions.md
  */
 @Composable
-private fun rememberCalendarScroll(expanded: Boolean, onExpandedChange: (Boolean) -> Unit): NestedScrollConnection {
+private fun rememberCalendarScroll(
+    expanded: Boolean,
+    scroll: ScrollState,
+    onExpandedChange: (Boolean) -> Unit,
+): NestedScrollConnection {
     // Lues a chaque geste et non capturees une fois : la connexion survit aux
     // recompositions, l'etat du calendrier non.
     val deplie by rememberUpdatedState(expanded)
     val change by rememberUpdatedState(onExpandedChange)
     val pullToExpand = with(LocalDensity.current) { ExpandPull.toPx() }
 
-    // Ce que la page n'a pas pu defiler, accumule : c'est la traction vers le bas
-    // quand on est deja en haut. Remis a zero par `pulledBy` des que le geste cesse
-    // d'en etre une.
+    // La traction vers le bas quand la page est deja en haut, accumulee. Remise a zero
+    // par `pulledBy` des que le geste cesse d'en etre une.
     var pulled by remember { mutableFloatStateOf(0f) }
 
-    return remember(pullToExpand) {
+    return remember(pullToExpand, scroll) {
         object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset =
-                collapsingDelta(deplie, available).also { if (it != Offset.Zero) change(false) }
+            // **Tout se decide avant l'enfant.** Ce qu'il n'a pas pu consommer n'arrive
+            // pas jusqu'ici : l'effet d'etirement d'Android le prend pour dessiner son
+            // rebond. C'est donc la position du defilement qui dit qu'on est en haut.
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                val replie = collapsingDelta(deplie, available)
+                if (replie != Offset.Zero) {
+                    change(false)
+                    return replie
+                }
 
-            // `onPostScroll` et non `onPreScroll` : ce qui nous interesse est ce que
-            // l'enfant n'a **pas** consomme, et lui seul sait s'il lui restait de la
-            // course. Aucun delta n'est repris ici -- la page a deja fini son geste.
-            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
-                pulled = pulledBy(pulled, deplie, available, source == NestedScrollSource.UserInput)
+                pulled = pulledBy(
+                    previous = pulled,
+                    expanded = deplie,
+                    atTop = scroll.value == 0,
+                    available = available,
+                    byUser = source == NestedScrollSource.UserInput,
+                )
                 if (pulled >= pullToExpand) {
                     change(true)
                     pulled = 0f
                 }
+                // Rien n'est repris : la page reste libre de ne pas bouger, ce qu'elle
+                // fait deja puisqu'elle est en haut.
                 return Offset.Zero
             }
         }
@@ -341,14 +359,18 @@ private fun rememberCalendarScroll(expanded: Boolean, onExpandedChange: (Boolean
  * défiler. La portée du geste est une affaire de disposition, pas de condition.
  */
 @Composable
-private fun DayScroll(collapseOnScroll: NestedScrollConnection, content: @Composable ColumnScope.() -> Unit) {
+private fun DayScroll(
+    collapseOnScroll: NestedScrollConnection,
+    scroll: ScrollState,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     Column(
         modifier = Modifier
             // Toute la place que le glissement lui donne : c'est lui qui porte
             // desormais le poids dans la colonne de l'ecran.
             .fillMaxSize()
             .nestedScroll(collapseOnScroll)
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(scroll),
         verticalArrangement = Arrangement.spacedBy(Spacing.xl),
         content = content,
     )

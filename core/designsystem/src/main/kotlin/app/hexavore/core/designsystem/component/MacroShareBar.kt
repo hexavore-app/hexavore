@@ -58,7 +58,14 @@ fun MacroShareBar(macro: Macro, share: Float, modifier: Modifier = Modifier) {
                 // les contraintes recues, et un arrondi de pixel ferait disparaitre une
                 // part tres faible au lieu de la montrer minuscule.
                 .layout { measurable, constraints ->
-                    val largeur = (constraints.maxWidth * share).roundToInt().coerceAtLeast(0)
+                    // **Zero quand la largeur n'est pas bornee**, et ce n'est pas une
+                    // precaution : le parent mesure ses intrinseques pour se dimensionner
+                    // sur le chiffre qu'il souligne, et une largeur infinie multipliee par
+                    // une part donne un nombre que `Constraints` refuse de porter --
+                    // l'application s'arretait la. Une barre n'a de toute facon aucune
+                    // largeur naturelle : elle prend celle qu'on lui donne.
+                    val offerte = if (constraints.hasBoundedWidth) constraints.maxWidth else 0
+                    val largeur = (offerte * share).roundToInt().coerceIn(0, offerte)
                     val placeable = measurable.measure(constraints.copy(minWidth = largeur, maxWidth = largeur))
                     layout(placeable.width, placeable.height) { placeable.place(0, 0) }
                 }
