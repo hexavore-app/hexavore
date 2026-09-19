@@ -3,7 +3,6 @@ package app.hexavore.feature.home
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -25,7 +24,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import app.hexavore.core.designsystem.component.BarcodeGlyph
-import app.hexavore.core.designsystem.component.CameraGlyph
+import app.hexavore.core.designsystem.component.SparkleGlyph
 import app.hexavore.core.designsystem.theme.Spacing
 
 /**
@@ -44,14 +43,16 @@ import app.hexavore.core.designsystem.theme.Spacing
  * la saisie manuelle, puisqu'un aliment tapé à la main devient une fiche. « Ajouter »
  * reste le geste principal : c'est le seul qui porte un libellé.
  *
- * **Les quatre modes de saisie y sont enfin**, et c'est [docs/02][parcours] au complet
- * à une forme près : une colonne plutôt qu'un arc déployé par un bouton unique. L'arc
- * viendra quand il aura quelque chose à replier — quatre boutons empilés se visent
- * aussi bien, et se codent sans animation.
+ * **Un seul bouton d'IA** ([D120][decisions]), là où il y en avait deux. « Décrire » et
+ * « Photographier » menaient à deux écrans qui ne différaient que par ce qu'ils
+ * envoyaient ; ils n'en font plus qu'un, et la colonne y gagne une place — celle qui
+ * manquait le plus, puisque quatre boutons empilés laissaient peu de vide au-dessus du
+ * pouce.
  *
- * Les deux modes d'IA sont **grisés ensemble** : c'est la même clé qui leur manque.
+ * Le bouton d'IA reste **grisé sans clé** : caché, il ne s'apprendrait jamais ; inerte,
+ * il n'apprendrait rien non plus, donc l'appui ouvre l'explication ([D73][decisions]).
  *
- * [parcours]: docs/02-parcours-et-ecrans.md
+ * [decisions]: docs/11-decisions.md
  */
 @Composable
 internal fun DayActions(actions: HomeActions, aiConfigured: Boolean) {
@@ -69,17 +70,11 @@ internal fun DayActions(actions: HomeActions, aiConfigured: Boolean) {
 
     Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
         AiButton(
-            label = stringResource(R.string.home_photograph),
+            label = stringResource(R.string.home_analyse),
             configured = aiConfigured,
-            onClick = actions.onPhotograph,
+            onClick = actions.onAnalyse,
             onExplain = { explaining = true },
-        ) { label -> CameraGlyph(contentDescription = label) }
-        AiButton(
-            label = stringResource(R.string.home_describe),
-            configured = aiConfigured,
-            onClick = actions.onDescribe,
-            onExplain = { explaining = true },
-        ) { label -> Icon(imageVector = Icons.Filled.Edit, contentDescription = label) }
+        ) { label -> SparkleGlyph(contentDescription = label) }
         SmallFloatingActionButton(onClick = actions.onScan) {
             BarcodeGlyph(contentDescription = stringResource(R.string.home_scan))
         }
@@ -114,7 +109,7 @@ private fun AiButton(
     onExplain: () -> Unit,
     icon: @Composable (String) -> Unit,
 ) {
-    val unavailable = stringResource(R.string.home_describe_unavailable)
+    val unavailable = stringResource(R.string.home_analyse_unavailable)
 
     SmallFloatingActionButton(
         // **Sans cle, le bouton explique avant d'emmener.** Y aller directement

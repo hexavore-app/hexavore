@@ -354,7 +354,7 @@ glucides = (kcal − 4 × protéines − 9 × lipides − 2 × fibres) / 4
 
 **Choix.** `NeonButton` distingue désormais trois disponibilités au lieu d'un booléen : **disponible**, **indisponible**, **désactivé**. Un bouton *indisponible* est grisé et sans lueur au repos, mais il réagit à l'appui — réduction d'échelle, lueur brève — puis appelle son action, à qui il revient d'expliquer ce qui manque.
 
-**Raison.** Le cas existait déjà dans la spécification sans avoir de support : [02](02-parcours-et-ecrans.md#modale--photo) demande que les modes IA sans clé restent « visibles mais grisés ; un tap ouvre une explication courte ». Un booléen `enabled` ne pouvait pas exprimer ça.
+**Raison.** Le cas existait déjà dans la spécification sans avoir de support : [02](02-parcours-et-ecrans.md#écran-dia) demande que les modes IA sans clé restent « visibles mais grisés ; un tap ouvre une explication courte ». Un booléen `enabled` ne pouvait pas exprimer ça.
 
 **Écarté.** *Masquer le bouton* : laisse croire que la fonctionnalité n'existe pas — le document l'excluait déjà. *Garder un seul état éteint* : il faut bien pouvoir rendre un bouton réellement inerte pendant qu'une action est en cours, et l'annoncer comme tel au lecteur d'écran.
 
@@ -1462,7 +1462,7 @@ Deux signaux qui diraient la même chose — l'état de l'écran et la confirmat
 
 **Une rotation d'écran perd la trame et rallume l'aperçu.** L'activité est recréée, la composable avec elle, tandis que l'état de recherche survit dans le `ViewModel` : on se retrouve avec une caméra vivante derrière un « Produit inconnu ». L'écran reste utilisable et « Scanner à nouveau » repart normalement. Le corriger demanderait soit de faire survivre le `Bitmap`, soit de donner à la caméra un second maître — les deux choses que cette décision refuse. C'est un geste rare sur un écran qu'on tient contre un emballage.
 
-**Conséquences.** La trame est réduite à 720 px sur le côté long, ce qui la plafonne à un mégaoctet et demi ; c'est un budget de pixels et non une valeur de style, il vit donc dans le module et non dans `:core:designsystem`, comme les 1024 px de l'image envoyée à un modèle vivent dans [02](02-parcours-et-ecrans.md#modale--photo). L'écouteur de ML Kit s'exécute sur le fil principal faute d'exécuteur donné, et c'est ce qui rend légal d'y délier la caméra. `BarcodeAnalyzer` gagne un `close()` : le client natif est maintenant retenu pour toute la vie de l'écran, le refermer est la contrepartie. **Une règle nouvelle s'éprouve sur la JVM** — la réduction, dans `frameScale` — et un quatrième cas a été **retiré** : « une trame exactement à la borne » ne bougeait sous aucune des deux règles défaites, parce que 720 ⁄ 720 vaut 1 avec ou sans la garde. Un test qui ne tombe jamais n'est pas une sécurité.
+**Conséquences.** La trame est réduite à 720 px sur le côté long, ce qui la plafonne à un mégaoctet et demi ; c'est un budget de pixels et non une valeur de style, il vit donc dans le module et non dans `:core:designsystem`, comme les 1024 px de l'image envoyée à un modèle vivent dans [02](02-parcours-et-ecrans.md#écran-dia). L'écouteur de ML Kit s'exécute sur le fil principal faute d'exécuteur donné, et c'est ce qui rend légal d'y délier la caméra. `BarcodeAnalyzer` gagne un `close()` : le client natif est maintenant retenu pour toute la vie de l'écran, le refermer est la contrepartie. **Une règle nouvelle s'éprouve sur la JVM** — la réduction, dans `frameScale` — et un quatrième cas a été **retiré** : « une trame exactement à la borne » ne bougeait sous aucune des deux règles défaites, parce que 720 ⁄ 720 vaut 1 avec ou sans la garde. Un test qui ne tombe jamais n'est pas une sécurité.
 
 ---
 
@@ -1605,7 +1605,7 @@ La densité est donc un **paramètre** de la conversion, nul partout aujourd'hui
 
 **Conséquences.** `app.hexavore.domain.resolution` naît avec la conversion et rien d'autre ; la recherche de candidats et le repli IA suivront. Onze règles ont été défaites, quatorze cas, **tous tombent** — dont celui du bol, qui ne tient que parce que le forfait a cessé d'être une règle. Deux seuils de detekt ont forcé un découpage : le `when` des neuf unités passait la complexité cyclomatique tant que cinq branches portaient leur propre `?:`, et le type de retour a pris son fichier.
 
-**Trois arbitrages pour la suite de la tranche, tranchés et notés ici pour ne pas être rejoués** : les deux boutons IA restent **visibles et grisés** sans clé, comme [02](02-parcours-et-ecrans.md#modale--photo) et la décision par défaut n° 19 le demandent — `NeonButtonAvailability.UNAVAILABLE` n'existe que pour ce cas ; le modèle par défaut est **`claude-opus-5`** ; et les appels passent par **Retrofit**, comme Open Food Facts, pour que les six fournisseurs partagent une seule pile et un seul intercepteur de redaction.
+**Trois arbitrages pour la suite de la tranche, tranchés et notés ici pour ne pas être rejoués** : les deux boutons IA restent **visibles et grisés** sans clé, comme [02](02-parcours-et-ecrans.md#écran-dia) et la décision par défaut n° 19 le demandent — `NeonButtonAvailability.UNAVAILABLE` n'existe que pour ce cas ; le modèle par défaut est **`claude-opus-5`** ; et les appels passent par **Retrofit**, comme Open Food Facts, pour que les six fournisseurs partagent une seule pile et un seul intercepteur de redaction.
 
 ---
 
@@ -1885,7 +1885,7 @@ L'accueil gagne un bouton, pas deux. Les deux modes d'IA partagent tout sauf leu
 
 Le bouton est **visible et grisé** sans clé ([D73](#d73--la-portion-de-la-fiche-lemporte-sur-le-forfait-et-la-densité-attend-son-auteur---validée)), et **tapable dans les deux cas** : caché, il ne s'apprendrait jamais — personne ne cherche dans les réglages une fonctionnalité dont rien n'indique l'existence — et inerte, il n'apprendrait rien non plus. L'appui ouvre une explication courte, avec le chemin vers les réglages.
 
-Les huit messages d'erreur descendent dans `:core:designsystem` au passage. [02](02-parcours-et-ecrans.md#modale--texte-libre) veut *« mêmes erreurs, mêmes messages »* entre la photo et la description, et le bouton « Tester » pose exactement la même question au même port : trois écrans qui rédigent chacun leur version d'« il n'y a pas de réseau » finissent par en avoir trois, dont deux qui vieillissent mal. C'est le raisonnement de `SourceBadge`, qui traduit déjà une énumération du domaine au même endroit.
+Les huit messages d'erreur descendent dans `:core:designsystem` au passage. [02](02-parcours-et-ecrans.md#écran-dia) veut *« mêmes erreurs, mêmes messages »* entre la photo et la description, et le bouton « Tester » pose exactement la même question au même port : trois écrans qui rédigent chacun leur version d'« il n'y a pas de réseau » finissent par en avoir trois, dont deux qui vieillissent mal. C'est le raisonnement de `SourceBadge`, qui traduit déjà une énumération du domaine au même endroit.
 
 ### Campagne de défaite : seize sabotages, trois survivants au premier tour
 
@@ -1951,7 +1951,7 @@ Le cas de routage énumère donc les six entrées et **affirme d'abord que la ta
 
 ### L'appareil photo du système plutôt qu'un aperçu à nous
 
-[02](02-parcours-et-ecrans.md#modale--photo) décrit un aperçu CameraX avec déclencheur et bascule galerie. **Il n'est pas là**, et c'est le seul écart de forme de cette livraison.
+[02](02-parcours-et-ecrans.md#écran-dia) décrit un aperçu CameraX avec déclencheur et bascule galerie. **Il n'est pas là**, et c'est le seul écart de forme de cette livraison.
 
 Un aperçu intégré demanderait une **seconde** implémentation de CameraX — la première sert le scan, qui analyse un flux en continu et n'a rien à partager avec une prise unique — pour un écran dont le seul travail est de remettre un JPEG. Elle serait entièrement invérifiable ici : il n'y a pas d'émulateur, et le liage, la rotation et la capture ne s'éprouvent qu'en tenant le téléphone. L'appareil photo du système, lui, apporte la mise au point, le flash et le zoom de l'appareil, écrit directement dans notre cache, et **le sélecteur de médias donne la bascule galerie sans une ligne**.
 
@@ -1979,7 +1979,7 @@ Il est rangé **dans le même fichier que les clés**, non chiffré. Ce n'est pa
 
 ### Ce qui protège l'argent et le repas
 
-**Annuler coupe vraiment**, comme [02](02-parcours-et-ecrans.md#modale--photo) l'écrit : une requête abandonnée qu'on laisse courir se paie quand même.
+**Annuler coupe vraiment**, comme [02](02-parcours-et-ecrans.md#écran-dia) l'écrit : une requête abandonnée qu'on laisse courir se paie quand même.
 
 **La photo survit à l'échec.** Une clé refusée ou un réseau absent ne doit jamais obliger à ressortir le téléphone au-dessus d'une assiette qu'on est peut-être en train de manger. Et l'échec offre la **saisie manuelle** : un fournisseur en panne ne doit pas empêcher de noter son repas.
 
@@ -3832,6 +3832,46 @@ Rien ne dit non plus qu'un **trait de 3 dp se voie** sur un téléphone, ni que 
 
 ---
 
+## D120 — Un seul bouton d'IA, un seul écran · ✓ validée
+
+**Contexte.** Demandé : « les boutons IA seront groupés dans un seul bouton *IA* ; à l'appui on retrouve un menu similaire à celui de l'ajout par photo, mais on peut aussi envoyer sans image ». Et, sur cet écran : « le menu est moche de base pour prendre les photos, très peu moderne, revois l'ensemble ».
+
+### Deux modales qui n'en étaient qu'une
+
+« Photographier » et « Décrire » partageaient le pipeline de reconnaissance, le dépôt des propositions, les messages d'erreur et l'écran de sortie. Ce qui les distinguait tenait en une ligne : quelle variante de `RecognitionInput` partait. Deux `ViewModel`, deux états, deux écrans, deux destinations et deux suites de cas pour cette ligne-là.
+
+**Le nouvel écran porte les deux entrées**, et `analysable` dit quand il y a de quoi analyser : une photo **ou** une phrase. Avec les deux, la photo part et la phrase devient sa précision — *« l'assiette fait 24 cm »* —, ce qui était déjà le rôle du champ de la modale photo.
+
+### L'avertissement ne suit pas l'IA, il suit la photo
+
+**Une phrase part sans avertissement.** Celui qui l'écrit sait exactement ce qu'il envoie ; une image emporte aussi ce qui entoure l'assiette — la table, la pièce, les gens. La règle de [05](05-ia.md) porte sur la photo, et la fusion ne l'étend pas au texte : l'étendre aurait transformé un avertissement utile en formalité qu'on accepte sans lire.
+
+### Ce que l'écran est devenu
+
+Trois zones, de haut en bas : **le cadre de l'image avec deux boutons ronds dedans**, **le champ de texte**, **le bouton d'analyse**.
+
+**Les boutons vivent dans le cadre** plutôt qu'en rangée sous lui : ce qu'on regarde et ce qui le change sont alors au même endroit, et les mêmes boutons remplacent l'image sans qu'on ait à chercher ailleurs. **Une croix retire la photo**, ce qui permet de basculer vers le texte sans quitter l'écran — une photo prise par erreur obligeait sinon à tout refermer.
+
+**Le cadre a une hauteur fixe.** Un cadre qui prendrait la place restante sauterait de taille à chaque ligne tapée ; un cadre au rapport de la photo changerait de hauteur selon qu'elle est prise en portrait ou en paysage. La photo y est rognée plutôt que mise en boîte : ce qu'on juge est le cadrage — l'assiette est-elle entière — et un bord rogné ne le change pas.
+
+**Le champ de texte change de libellé, pas de place.** Sans photo il décrit, avec photo il précise. Deux champs auraient posé la question de savoir lequel remplir.
+
+### Un cinquième glyphe tracé à la main
+
+`material-icons-core` n'a ni étincelles ni image, et `material-icons-extended` embarque plusieurs milliers d'icônes pour en utiliser deux. Après `StarBorder` ([D62](#d62--un-favori-est-un-modèle-vivant-et-létoile-est-son-seul-interrupteur---validée)), le code-barres et l'appareil photo, la réponse ne change pas : vingt lignes de tracé.
+
+**Deux étincelles et non une étoile** : l'étoile à cinq branches est prise par les favoris, et une étincelle seule se lit comme une décoration. Deux, de tailles différentes, sont devenues le signe usuel de ce qu'une machine a produit.
+
+**Campagne de défaite : dix sabotages, dix cas tombés.** Les deux qui comptent le plus sont ceux que la fusion rendait possibles : envoyer une phrase comme une photo, et demander l'accord pour une phrase.
+
+**Conséquences.** Cinq fichiers disparaissent, deux naissent. La colonne de boutons flottants passe de cinq à quatre, et gagne la place qui manquait le plus — celle juste au-dessus du pouce. `HomeActions` perd un rappel, `HomeRoutes` aussi, le graphe de navigation une destination.
+
+**Ce que le vert ne prouve pas.** **Que l'écran soit beau**, ce qui était la demande. Les cas affirment ce qui part et ce qui est demandé avant ; aucun ne dit qu'un cadre de 260 dp avec deux boutons ronds posés dessus se regarde bien sur un téléphone, ni que le texte sous une photo se lit sans que le clavier le cache. Cela se juge avec le pouce, et c'est le seul retour qui compte ici.
+
+Rien ne dit non plus que **le glyphe d'étincelles se reconnaisse** : il est dessiné à la main, à vingt-quatre points, et son sens dépend d'une convention récente.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.
@@ -3851,7 +3891,7 @@ Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la sp
 | 14 | Quantité par défaut au scan | Portion de l'emballage, sinon 100 g | [02](02-parcours-et-ecrans.md) |
 | 15 | Fournisseurs d'IA | Gemini, OpenAI, Anthropic, DeepSeek, Mistral + compatible | [05](05-ia.md#fournisseurs) |
 | 17 | Compteur de coût | Oui, estimation locale datée | [05](05-ia.md#coût) |
-| 19 | Sans clé API | Modes IA visibles mais grisés, avec explication | [02](02-parcours-et-ecrans.md#modale--photo) |
+| 19 | Sans clé API | Modes IA visibles mais grisés, avec explication | [02](02-parcours-et-ecrans.md#écran-dia) |
 | 21 | Sauvegarde Drive | Quotidienne en Wi-Fi, chiffrement optionnel désactivé par défaut | [09](09-donnees-et-sauvegarde.md) |
 | 22 | Export local | JSON complet réimportable + CSV du journal | [09](09-donnees-et-sauvegarde.md#export-et-import-de-fichier) |
 | 23 | Versions de sauvegarde | 5, en rotation | [09](09-donnees-et-sauvegarde.md#rotation) |

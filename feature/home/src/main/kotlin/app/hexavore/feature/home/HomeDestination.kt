@@ -26,8 +26,7 @@ data object HomeDestination
 data class HomeRoutes(
     val onAddDish: () -> Unit,
     val onScan: () -> Unit,
-    val onDescribe: () -> Unit,
-    val onPhotograph: () -> Unit,
+    val onAnalyse: () -> Unit,
     val onEditDish: (DishId) -> Unit,
     val onSetUpGoal: () -> Unit,
     val onOpenSettings: () -> Unit,

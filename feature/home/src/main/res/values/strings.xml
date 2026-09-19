@@ -75,11 +75,11 @@
     <string name="home_open_favorites">Vos plats favoris</string>
     <string name="home_scan">Scanner un code-barres</string>
 
-    <!-- Le bouton d'IA reste visible sans cle, et grise : cache, il ne s'apprend
-         jamais ; inerte, il n'apprend rien non plus. L'appui ouvre l'explication. -->
-    <string name="home_describe">Décrire un repas</string>
-    <string name="home_photograph">Photographier un repas</string>
-    <string name="home_describe_unavailable">indisponible, aucune clé d\'IA</string>
+    <!-- Un seul bouton d'IA depuis D120 : les deux ecrans n'en font plus qu'un. Il
+         reste visible sans cle, et grise : cache, il ne s'apprend jamais ; inerte, il
+         n'apprend rien non plus. L'appui ouvre l'explication. -->
+    <string name="home_analyse">Analyser un repas avec l\'IA</string>
+    <string name="home_analyse_unavailable">indisponible, aucune clé d\'IA</string>
 
     <!-- Ce qui manque, ce que ça coûte, et où aller. Le bouton ouvre la section d'IA
          et non le hub : qui vient d'appuyer sur l'appareil photo cherche l'endroit où

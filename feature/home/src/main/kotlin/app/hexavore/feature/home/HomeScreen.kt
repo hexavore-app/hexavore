@@ -104,8 +104,7 @@ fun HomeRoute(routes: HomeRoutes) {
             HomeActions(
                 onAddDish = routes.onAddDish,
                 onScan = routes.onScan,
-                onDescribe = routes.onDescribe,
-                onPhotograph = routes.onPhotograph,
+                onAnalyse = routes.onAnalyse,
                 onEditDish = routes.onEditDish,
                 onDeleteDish = viewModel::onDeleteDish,
                 onUndo = viewModel::onUndo,

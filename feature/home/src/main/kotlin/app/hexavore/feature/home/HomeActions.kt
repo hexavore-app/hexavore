@@ -44,18 +44,19 @@ data class HomeActions(
      */
     val onToggleFavorite: (Dish, name: String?) -> Unit,
     /**
-     * Ouvre la modale « Décrire ».
+     * Ouvre l'écran d'IA — une photo, une phrase, ou les deux.
      *
      * **Appelée seulement quand une clé existe.** Sans clé, le bouton reste visible et
-     * grisé, et l'appui ouvre l'explication plutôt que la modale ([D73][decisions]) :
-     * un mode d'IA caché ne s'apprend jamais, un mode d'IA qui échoue sans dire
-     * pourquoi ne s'utilise qu'une fois.
+     * grisé, et l'appui ouvre l'explication plutôt que l'écran ([D73][decisions]) : un
+     * mode d'IA caché ne s'apprend jamais, un mode d'IA qui échoue sans dire pourquoi
+     * ne s'utilise qu'une fois.
+     *
+     * Un seul rappel là où il y en avait deux ([D120][decisions]) : les deux écrans
+     * n'en font plus qu'un.
      *
      * [decisions]: docs/11-decisions.md
      */
-    val onDescribe: () -> Unit,
-    /** Ouvre la modale « Photographier ». Mêmes règles que [onDescribe]. */
-    val onPhotograph: () -> Unit,
+    val onAnalyse: () -> Unit,
     /** Ouvre la liste des plats favoris, pour en rejouer un. */
     val onOpenFavorites: () -> Unit,
     val onUndo: () -> Unit,
@@ -103,8 +104,7 @@ data class HomeActions(
 internal fun HomeRoutes.toActions(viewModel: HomeViewModel) = HomeActions(
     onAddDish = onAddDish,
     onScan = onScan,
-    onDescribe = onDescribe,
-    onPhotograph = onPhotograph,
+    onAnalyse = onAnalyse,
     onEditDish = onEditDish,
     onDeleteDish = viewModel::onDeleteDish,
     onUndo = viewModel::onUndo,

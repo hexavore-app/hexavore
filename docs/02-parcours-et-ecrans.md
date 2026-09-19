@@ -109,16 +109,18 @@ Chaque ligne d'aliment — en détaillé — montre nom, quantité, calories. **
 
 ### Bouton d'ajout
 
-Bouton d'action flottant en bas à droite. Un tap déploie quatre actions étiquetées, en arc :
+Une colonne de boutons flottants en bas à droite. ~~Un tap déploie quatre actions étiquetées, en arc.~~
 
 | | Action | Ouvre |
 |---|---|---|
+| ✨ | IA | Écran d'IA — une photo, une phrase, ou les deux |
 | ⌗ | Scanner | Modale code-barres |
-| ⛶ | Photographier | Modale photo |
-| ⌕ | Rechercher | Modale recherche |
-| ✎ | Décrire | Modale texte |
+| ★ | Favoris | Liste des plats enregistrés |
+| — | **Ajouter** | Modale recherche, qui porte aussi la saisie manuelle |
 
-L'ordre est fixe. Un ordre adaptatif « selon vos habitudes » ferait bouger les cibles sous le doigt et détruirait la mémoire musculaire — c'est exactement le contraire du but.
+**Un seul bouton d'IA** ([D120](11-decisions.md)), là où « Photographier » et « Décrire » en occupaient deux : les deux modales ne différaient que par ce qu'elles envoyaient. La colonne y gagne la place qui manquait le plus, juste au-dessus du pouce.
+
+L'ordre est fixe. Un ordre adaptatif « selon vos habitudes » ferait bouger les cibles sous le doigt et détruirait la mémoire musculaire — c'est exactement le contraire du but. « Ajouter » reste le seul à porter un libellé : c'est le geste principal.
 
 ---
 
@@ -152,18 +154,25 @@ La permission est demandée **à l'ouverture**, sans écran d'explication devant
 
 ---
 
-## Modale : photo
+## Écran d'IA
 
-1. **Prise de vue.** Aperçu CameraX, déclencheur, bascule galerie. Conseil discret en surimpression : *« Cadrez l'assiette entière, de préférence vue de dessus. »*
-2. **Contexte facultatif.** Un champ d'une ligne : « Un détail à préciser ? (facultatif) » — par exemple *« l'assiette fait 24 cm »* ou *« la sauce est allégée »*. Ce texte est joint au prompt. C'est le levier de précision le moins coûteux qui existe.
-3. **Analyse.** L'image est réduite (1024 px sur le côté long, JPEG qualité 80) puis envoyée au fournisseur configuré. Écran d'attente avec animation néon et bouton **Annuler** qui coupe réellement la requête.
-4. **Validation.** Écran de validation multi-lignes.
+**Un seul écran pour la photo et pour le texte** ([D120](11-decisions.md)). Il remplace ~~la modale photo~~ et ~~la modale texte libre~~, qui suivaient le même pipeline, déposaient au même endroit, traduisaient les mêmes erreurs et sortaient au même écran : ce qui les distinguait tenait en une ligne de code.
 
-Le fichier temporaire vit dans le cache de l'application et est supprimé dans un bloc `finally`, que l'appel réussisse, échoue ou soit annulé. Il n'entre jamais dans la galerie du téléphone.
+Trois zones, de haut en bas :
 
-**Aucune clé API configurée.** L'entrée « Photographier » reste visible mais grisée ; un tap ouvre une explication courte et un raccourci vers les réglages. La masquer laisserait croire que la fonctionnalité n'existe pas.
+1. **Le cadre de l'image**, et **dedans deux boutons ronds** — prendre une photo, choisir une image. Ce qu'on regarde et ce qui le change sont au même endroit. Vide, le cadre dit ce qu'on attend de lui : *« Photographiez l'assiette entière, de préférence vue de dessus — ou décrivez votre repas en dessous. »* C'est le conseil de cadrage que cette page voulait en surimpression d'un aperçu caméra, et il se lit mieux **avant** d'appuyer. Une croix retire la photo, ce qui permet de basculer vers le texte sans quitter l'écran.
+2. **Le champ de texte**, qui change de rôle selon le cadre : sans photo il **décrit** le repas, avec photo il le **précise** — *« l'assiette fait 24 cm »*, *« la sauce est allégée »*, le levier de justesse le moins coûteux qui existe. Son libellé le dit ; un champ qui demanderait « décrivez votre repas » sous une photo ferait tout retaper.
+3. **Le bouton « Analyser »**, en bas, actif dès qu'il y a **une photo ou une phrase**.
 
-**Échec.** Les erreurs sont traduites en langage humain, jamais en code HTTP : clé invalide → « Votre clé pour *Gemini* a été refusée. Vérifiez-la dans les réglages. » ; quota → « Votre fournisseur a refusé la requête : quota atteint. » ; réseau → « Pas de connexion. » Dans tous les cas, la photo est conservée en mémoire le temps de proposer **Réessayer**, et une porte de sortie vers la saisie manuelle est offerte.
+**La prise de vue reste celle du système.** Un aperçu CameraX demanderait une seconde implémentation — la première sert le scan, qui analyse un flux en continu — pour un écran dont le seul travail est de remettre un JPEG. L'appareil du système apporte sa mise au point, son flash et son zoom, et il écrit directement dans notre cache. Le fichier temporaire est supprimé dans un bloc `finally`, que l'appel réussisse, échoue ou soit annulé ; il n'entre jamais dans la galerie.
+
+L'image est réduite (1024 px sur le côté long, JPEG qualité 80) avant l'envoi. **Annuler coupe réellement la requête** : ce qui n'est pas parti n'est pas facturé.
+
+**L'avertissement ne concerne que la photo.** Elle envoie une image de votre repas — et de ce qui l'entoure — à un tiers, et cela se dit une fois avant le premier envoi ([05](05-ia.md)). Une phrase tapée part sans avertissement : celui qui l'écrit sait exactement ce qu'il envoie.
+
+**Aucune clé API configurée.** Le bouton d'IA reste visible mais grisé ; un tap ouvre une explication courte et un raccourci vers la section d'IA des réglages. Le masquer laisserait croire que la fonctionnalité n'existe pas.
+
+**Échec.** Les erreurs sont traduites en langage humain, jamais en code HTTP : clé invalide → « Votre clé pour *Gemini* a été refusée. Vérifiez-la dans les réglages. » ; quota → « Votre fournisseur a refusé la requête : quota atteint. » ; réseau → « Pas de connexion. » Dans tous les cas, **la photo et la phrase sont conservées** le temps de proposer de réessayer, et une porte de sortie vers la saisie manuelle est offerte.
 
 ---
 
@@ -193,18 +202,6 @@ Tap → écran de validation avec la quantité par défaut de l'aliment (voir [0
 **La saisie manuelle est ici, en permanence.** C'est le seul point d'entrée d'une saisie, et taper un aliment à la main y **crée une fiche** : elle revient ensuite dans cette liste, se reprend en un tap, et sa quantité recalcule ses valeurs comme celle de n'importe quel autre. Le bouton passe en plein quand la recherche ne rend rien, avec le nom déjà tapé.
 
 **Ce que l'utilisateur a saisi lui-même se voit**, et lui seul porte une corbeille — une ligne de la table est une référence publiée. La suppression demande confirmation et dit ce qu'elle coûte : les entrées de journal qui citaient la fiche sont conservées telles quelles, avec leurs valeurs figées ([D51](11-decisions.md)).
-
----
-
-## Modale : texte libre
-
-Une zone de texte, un exemple en placeholder, un bouton « Analyser ».
-
-> *deux œufs brouillés, une tranche de pain complet, un verre de jus d'orange*
-
-L'analyse suit exactement le même pipeline que la photo — le contrat d'entrée du modèle accepte une image ou un texte, rien d'autre ne change ([05](05-ia.md)). Mêmes erreurs, mêmes messages, même écran de sortie.
-
-La dernière saisie est conservée tant que la modale n'a pas abouti, pour qu'un échec réseau ne fasse jamais retaper une phrase.
 
 ---
 

@@ -264,7 +264,7 @@ Fond transparent, bordure 1,5 dp en `base`, texte en `base`, lueur externe au re
 | | Au repos | À l'appui | Pour quoi |
 |---|---|---|---|
 | **Disponible** | teinte pleine, lueur | échelle 0,97, lueur intensifiée | le cas courant |
-| **Indisponible** | grisé, sans lueur | **réagit quand même**, puis explique | mode IA sans clé ([02](02-parcours-et-ecrans.md#modale--photo)) |
+| **Indisponible** | grisé, sans lueur | **réagit quand même**, puis explique | mode IA sans clé ([02](02-parcours-et-ecrans.md#écran-dia)) |
 | **Désactivé** | grisé, sans lueur | rien, et TalkBack l'annonce désactivé | action déjà en cours |
 
 Masquer un bouton indisponible laisserait croire que la fonctionnalité n'existe pas ; le rendre inerte laisse croire que l'appareil ne répond plus. Il reste donc visible, grisé, et répond à l'appui pour dire ce qui manque.
