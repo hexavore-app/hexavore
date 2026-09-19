@@ -3,9 +3,11 @@ package app.hexavore.feature.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.hexavore.domain.appearance.AppearanceSettings
+import app.hexavore.domain.appearance.DishDisplayStyle
 import app.hexavore.domain.appearance.ThemeMode
 import app.hexavore.domain.profile.UnitSystem
 import app.hexavore.domain.usecase.ChooseUnitSystem
+import app.hexavore.domain.usecase.ObserveDishStyle
 import app.hexavore.domain.usecase.ObserveUnitSystem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,12 +22,14 @@ import javax.inject.Inject
 internal data class AppearanceUiState(
     val theme: ThemeMode = ThemeMode.SYSTEM,
     val units: UnitSystem = UnitSystem.METRIC,
+    val dishStyle: DishDisplayStyle = DishDisplayStyle.SIMPLE,
 )
 
 /**
- * Les deux réglages de l'apparence, qui ne vivent pourtant pas au même endroit.
+ * Les trois réglages de l'apparence, qui ne vivent pourtant pas au même endroit.
  *
- * **Le thème est une préférence d'appareil, les unités une propriété du profil.** L'écran
+ * **Le thème et le style d'affichage sont des préférences d'appareil, les unités une
+ * propriété du profil.** L'écran
  * les montre côte à côte parce que c'est là qu'on les cherche ; le modèle, lui, va les
  * chercher chacun chez soi. Les réunir dans un magasin commun aurait fait voyager le
  * thème dans la sauvegarde, ou empêché les unités d'y voyager.
@@ -39,12 +43,14 @@ internal class AppearanceViewModel @Inject constructor(
     private val settings: AppearanceSettings,
     private val chooseUnits: ChooseUnitSystem,
     observeUnits: ObserveUnitSystem,
+    observeDishStyle: ObserveDishStyle,
 ) : ViewModel() {
-    val uiState: StateFlow<AppearanceUiState> = combine(settings.observe(), observeUnits()) { theme, units ->
-        AppearanceUiState(theme = theme, units = units)
-    }
-        .catch { emit(AppearanceUiState()) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, AppearanceUiState())
+    val uiState: StateFlow<AppearanceUiState> =
+        combine(settings.observeTheme(), observeUnits(), observeDishStyle()) { theme, units, style ->
+            AppearanceUiState(theme = theme, units = units, dishStyle = style)
+        }
+            .catch { emit(AppearanceUiState()) }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, AppearanceUiState())
 
     fun onTheme(mode: ThemeMode) {
         viewModelScope.launch { settings.setThemeMode(mode) }
@@ -59,5 +65,9 @@ internal class AppearanceViewModel @Inject constructor(
      */
     fun onUnits(system: UnitSystem) {
         viewModelScope.launch { chooseUnits(system) }
+    }
+
+    fun onDishStyle(style: DishDisplayStyle) {
+        viewModelScope.launch { settings.setDishStyle(style) }
     }
 }

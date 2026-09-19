@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.hexavore.domain.ai.AiCredentials
 import app.hexavore.domain.ai.activeConfiguration
+import app.hexavore.domain.appearance.DishDisplayStyle
 import app.hexavore.domain.concurrency.DispatcherProvider
 import app.hexavore.domain.diary.Dish
 import app.hexavore.domain.diary.SelectedDay
@@ -11,8 +12,7 @@ import app.hexavore.domain.goal.AdjustmentSuggestion
 import app.hexavore.domain.usecase.AdjustmentResponse
 import app.hexavore.domain.usecase.FavoriteOutcome
 import app.hexavore.domain.usecase.GetDaySummary
-import app.hexavore.domain.usecase.RespondToAdjustment
-import app.hexavore.domain.usecase.SuggestGoalAdjustment
+import app.hexavore.domain.usecase.ObserveDishStyle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,8 +49,8 @@ class HomeViewModel @Inject constructor(
     getDaySummary: GetDaySummary,
     dispatchers: DispatcherProvider,
     credentials: AiCredentials,
-    suggestGoalAdjustment: SuggestGoalAdjustment,
-    private val respondToAdjustment: RespondToAdjustment,
+    observeDishStyle: ObserveDishStyle,
+    private val adjustment: DayAdjustment,
     private val gestures: DishGestures,
     private val selected: SelectedDay,
 ) : ViewModel() {
@@ -105,6 +105,17 @@ class HomeViewModel @Inject constructor(
         )
 
     /**
+     * Le style d'affichage des plats.
+     *
+     * **`Eagerly`**, comme le thème : le style décide de ce que la liste dessine, et
+     * une valeur en retard ferait apparaître la liste dans un style puis basculer dans
+     * l'autre sous les yeux. Le réglage est local et immédiat ; rien ne justifie de le
+     * lire paresseusement.
+     */
+    val dishStyle: StateFlow<DishDisplayStyle> = observeDishStyle()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, DishDisplayStyle.SIMPLE)
+
+    /**
      * La correction que l'adaptation hebdomadaire propose, s'il y en a une.
      *
      * **Hors de [uiState]**, comme [aiConfigured] et pour la même raison : le journal
@@ -118,7 +129,7 @@ class HomeViewModel @Inject constructor(
      *
      * [calculs]: docs/03-nutrition-calculs.md
      */
-    val suggestion: StateFlow<AdjustmentSuggestion?> = suggestGoalAdjustment()
+    val suggestion: StateFlow<AdjustmentSuggestion?> = adjustment.suggestion()
         // Une lecture qui echoue ne fabrique pas de conseil : le silence est deja
         // le cas normal, et c'est le bon repli.
         .catch { emit(null) }
@@ -179,7 +190,7 @@ class HomeViewModel @Inject constructor(
      */
     fun onAdjustment(response: AdjustmentResponse) {
         val shown = suggestion.value ?: return
-        viewModelScope.launch { respondToAdjustment(response, shown) }
+        viewModelScope.launch { adjustment.respond(response, shown) }
     }
 
     /**

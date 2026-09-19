@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import app.hexavore.data.settings.StoredAppearanceSettings
 import app.hexavore.domain.appearance.AppearanceSettings
 import app.hexavore.domain.concurrency.DispatcherProvider
+import app.hexavore.domain.usecase.ObserveDishStyle
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -40,6 +41,18 @@ internal object AppearanceSettingsModule {
         @Named(APPEARANCE_PREFERENCES) preferences: SharedPreferences,
         dispatchers: DispatcherProvider,
     ): AppearanceSettings = StoredAppearanceSettings(preferences, dispatchers)
+
+    /**
+     * Le style d'affichage des plats, lu par deux écrans.
+     *
+     * Un cas d'usage et non deux lectures du port : l'accueil dessine ses plats,
+     * les réglages cochent la case, et chacun aurait décidé pour son compte ce que
+     * vaut un fichier illisible ([D111][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    @Provides
+    fun observeDishStyle(settings: AppearanceSettings): ObserveDishStyle = ObserveDishStyle(settings)
 }
 
 private const val APPEARANCE_PREFERENCES_FILE = "appearance_settings"

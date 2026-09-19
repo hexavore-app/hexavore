@@ -67,7 +67,7 @@ internal fun MacroTotalsOnly(summary: DaySummary) {
             val total = summary.totals[macro]
             Text(
                 text = stringResource(
-                    if (total.complete) R.string.home_total_line else R.string.home_total_line_partial,
+                    R.string.home_total_line,
                     stringResource(macro.labelRes),
                     total.value.roundToInt(),
                 ),

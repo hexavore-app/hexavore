@@ -79,7 +79,7 @@ Le cœur de l'écran, et la figure qui donne son nom à l'application : l'**hexa
 
 Sous l'hexagone, le **restant en calories** en grand chiffre. Le restant et non le consommé : c'est l'information dont on a besoin au moment de décider quoi manger. Le consommé et l'objectif sont écrits en dessous, plus petits. En cas de dépassement, le chiffre devient négatif. Aucun message moralisateur, aucun rouge d'alerte : c'est une donnée, pas un jugement.
 
-Puis les **six barres**, dans le même ordre angulaire que les quartiers. Elles répondent à l'autre question : combien exactement. L'hexagone ne peut dire ni « 87 / 144 g », ni le `max` d'une limite, ni le `≥` d'un total minoré ; les barres ne peuvent pas montrer une journée d'un coup d'œil. Les deux ne se concurrencent pas.
+Puis les **six barres**, dans le même ordre angulaire que les quartiers. Elles répondent à l'autre question : combien exactement. L'hexagone ne peut dire ni « 87 / 144 g » ni le `max` d'une limite ; les barres ne peuvent pas montrer une journée d'un coup d'œil. Les deux ne se concurrencent pas.
 
 Ce bloc est le même sur l'accueil et sur l'écran **Journée** d'un jour passé : c'est le même récapitulatif, seule la date change.
 
@@ -95,7 +95,13 @@ Pas de case à choisir avant d'enregistrer : ce qui compte est ce qu'on a mangé
 
 **En pied de plat** : ses cinq autres apports. Un plat qui ne se lit que par son énergie ne dit pas d'où viennent les protéines ni ce qui a fait grimper les sucres — or c'est exactement la question qu'on se pose en relisant sa journée.
 
-Chaque ligne d'aliment montre nom, quantité, calories. **Pas de pastille par ligne** : la source appartient au plat ([D32](11-decisions.md)).
+**Sous chaque chiffre, un trait de 3 dp** : la part que ce plat a prise sur l'objectif du jour ([D119](11-decisions.md)). Il répond à une question qu'aucun chiffre ne posait — *ce plat, c'était combien de ma journée ?* — et il disparaît quand la journée n'a pas d'objectif, faute de cible à laquelle se rapporter.
+
+**Deux styles d'affichage**, réglés dans Apparence : le **simplifié** — titre, heure, calories, apports — et le **détaillé**, qui y ajoute la liste des aliments. Le simplifié est le défaut, parce que citer chaque aliment de chaque plat fait beaucoup de texte dès qu'une journée est chargée. Le geste ne change pas d'un style à l'autre : le tap ouvre la modification, l'appui long ouvre le menu.
+
+Chaque ligne d'aliment — en détaillé — montre nom, quantité, calories. **Pas de pastille par ligne** : la source appartient au plat ([D32](11-decisions.md)).
+
+**L'accueil ne signale plus les totaux minorés** ([D119](11-decisions.md)) : plus de « ≥ » sur les apports, plus de phrase sous les barres, plus de quartier estompé. Une valeur non renseignée s'y lit comme zéro. Ce que la base sait reste ce qu'elle sait — la distinction entre inconnu et zéro vit toujours dans les données, et l'écran de validation continue de désigner le champ qui manque.
 
 - **Tap** → ouvre l'écran de validation du plat, en édition. La cible tactile est le plat **entier** — pastille, heure, total et apports compris, pas seulement ses lignes d'aliment ([D48](11-decisions.md)). Sans coins arrondis : ils tronquaient la pastille et le total ([D52](11-decisions.md)).
 - ~~**Balayage vers la gauche** → supprimer une ligne.~~ **Le balayage change de jour** ([D117](11-decisions.md)) : vers la gauche le lendemain, vers la droite la veille, le contenu suivant le doigt et s'arrêtant à aujourd'hui. Supprimer une ligne se fait en ouvrant le plat, où chaque ligne porte sa corbeille ; l'accueil ne supprime plus qu'un plat entier, par l'appui long, et la barre d'annulation reste offerte (5 s). Aucune suppression n'est immédiatement définitive.
@@ -316,6 +322,8 @@ Le réglage vit dans **son propre fichier** — effacer ses clés d'IA n'a aucun
 **Unités** — métrique ou impérial ([D114](11-decisions.md#d114--lonce-est-une-unité-de-saisie-la-livre-un-affichage---validée)). Le réglage **ne convertit rien** : les lignes du journal gardent l'unité dans laquelle elles ont été saisies, la base garde ses kilogrammes et ses centimètres, et l'on peut basculer, regarder, puis revenir sans qu'un chiffre ait bougé.
 
 En impérial, une ligne se saisit en **oz** ou **fl oz** — une unité de plus dans la liste, comme « 1 tranche » —, le corps s'affiche et se saisit en **livres** et en **pieds et pouces**, et la taille prend alors deux champs plutôt qu'un : personne n'énonce sa taille en pouces. Les **macros restent en grammes**, comme sur les étiquettes américaines.
+
+**Affichage des plats** — simplifié ou détaillé ([D119](11-decisions.md)). Le simplifié donne le titre du plat, son heure, ses calories et ses apports ; le détaillé y ajoute la liste de ses aliments. Deux styles et non une échelle de densité : ce qui les distingue n'est pas une hauteur de ligne, c'est ce qu'on lit — *qu'est-ce que j'ai mangé et combien ça pèse* d'un côté, *de quoi était-ce fait* de l'autre. Comme le thème, c'est une préférence d'appareil, et elle ne voyage pas dans la sauvegarde.
 
 *La langue et les animations réduites restent à faire. L'onboarding reste métrique : le réglage vit sur le profil qu'il crée, donc il n'existe pas encore quand ses questions se posent.*
 

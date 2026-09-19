@@ -372,6 +372,8 @@ glucides = (kcal − 4 × protéines − 9 × lipides − 2 × fibres) / 4
 
 **Conséquences.** L'interface doit dire qu'un total est minoré ; un chiffre affiché sans mention vaut promesse d'exactitude. Une liste vide, elle, rend des totaux **complets** à zéro : ne rien avoir noté est une information exacte, pas une lacune. Trois tests couvrent ces trois cas.
 
+> **L'accueil ne le dit plus** ([D119](#d119--deux-styles-daffichage-une-part-par-chiffre-et-plus-de-total-minoré-à-laccueil---validée)), sur demande explicite et sur cet écran seulement. Ce que cette décision établit tient toujours : le cumul reste un couple, `MacroTotals.of` reste le seul chemin, et l'écran de validation continue de désigner le champ qui manque là où on peut encore le remplir. Ce qui change est ce que l'accueil **montre** — une valeur non renseignée s'y lit comme zéro —, pas ce que l'application **sait**.
+
 ---
 
 ## D30 — Objectif provisoire en dur, avec sa date de péremption · ~ par défaut
@@ -3781,6 +3783,52 @@ Le nom d'un favori est unique, et « Déjeuner » a de bonnes chances d'être pr
 **Ce que le vert ne prouve pas.** **Que les bornes soient les bonnes.** 5 h, 11 h, 15 h, 18 h sont des milieux entre deux repas, pas des heures de repas ; rien ne dit qu'un goûter de 14 h 30 ne s'appellera pas « Déjeuner » chez quelqu'un qui déjeune à midi pile. Cela se règle en vivant avec, et le titre se corrige.
 
 Rien ne dit non plus que **le champ de titre ne gêne pas** : c'est un champ de plus en tête d'un écran qui en porte déjà beaucoup, et la seule façon de le savoir est de noter trois repas d'affilée.
+
+---
+
+## D119 — Deux styles d'affichage, une part par chiffre, et plus de total minoré à l'accueil · ✓ validée
+
+**Contexte.** Rapporté à l'usage : « l'affichage actuel des plats est lourd, il peut rapidement contenir beaucoup de texte ». Une journée de cinq plats cite une vingtaine d'aliments, et la question qu'on se pose dix fois par jour n'est pas « quels aliments » — c'est « où j'en suis ».
+
+### Deux styles, pas une densité
+
+Le **simplifié** donne le titre, l'heure, les calories et les cinq apports. Le **détaillé** y ajoute la liste des aliments, et c'est l'affichage d'avant.
+
+**Ce n'est pas une échelle de densité**, et le mot compte : ce qui distingue les deux n'est pas une hauteur de ligne mais ce qu'on lit. Une échelle aurait laissé croire qu'il existe un entre-deux, et il n'y en a pas — on cite les aliments ou on ne les cite pas.
+
+**Le simplifié est le défaut**, y compris pour une installation déjà en service : c'est le sens du changement, et le détaillé reste à un tap dans Apparence. **Un magasin illisible retombe sur le simplifié** pour la même raison — le détaillé serait le pire des deux replis, plus long à lire et sans qu'un mot l'explique.
+
+**Le trait qui sépare l'en-tête part avec les lignes** : sans lignes, il ne séparerait plus rien de rien.
+
+### Une part de journée sous chaque chiffre
+
+Un trait de 3 dp sous le total de calories et sous chacun des cinq apports : **ce plat, c'était combien de ma journée ?** Aucun chiffre ne posait cette question — ils disent des quantités, pas des proportions —, et c'est exactement ce qu'on cherche en relisant un plat.
+
+**Pleine au-delà de l'objectif**, sans rétrécissement d'échelle ni dents de scie, contrairement aux grandes barres : il faudrait les lire, et il n'y a rien à lire ici. **Absente sans objectif** : une barre suppose une cible, et une journée antérieure au premier objectif n'en a aucune ([D55](#d55--lobjectif-est-calculé-daté-et-parfois-absent---validée)). Le chiffre, lui, reste exact et reste affiché.
+
+**Sa largeur est celle du chiffre qu'elle souligne**, pas une colonne de grille : une grille régulière aurait fait un tableau, donc quelque chose à lire de plus.
+
+### Ce que l'accueil cesse de dire
+
+**Le signalement des totaux minorés disparaît de tout l'accueil** — le « ≥ » des apports, la phrase sous les barres, l'estompage des quartiers de l'hexagone. Une valeur non renseignée s'y lit désormais comme zéro.
+
+**C'est un écart assumé avec [D29](#d29--un-total-incomplet-se-signale-au-lieu-de-se-taire---validée)**, demandé explicitement et sur cet écran seulement. Ce qu'il coûte est réel et mérite d'être écrit : une journée où un aliment n'a pas de fibres se lit comme une journée à zéro fibre, et rien ne le dit plus.
+
+Ce qu'il ne coûte pas : **la base continue de distinguer l'inconnu du zéro**. `MacroTotal.complete` existe toujours et reste éprouvé ; l'écran de validation continue de désigner le champ qui manque, là où on peut encore le remplir. Ce qui change est ce que l'accueil **montre**, pas ce que l'application **sait**.
+
+Le code mort part avec l'affichage : `MacroQuarter` perd son drapeau, l'hexagone son dégradé d'estompage et son aperçu de total incomplet, les ressources leurs quatre libellés. Un paramètre que plus personne ne renseigne est une décoration, et une décoration qu'aucun cas n'observe se périme sans qu'on s'en aperçoive.
+
+### Un cas de campagne qui ne prouvait rien
+
+Le sabotage « un magasin illisible rend le détaillé » a **survécu** à son premier cas : le `ViewModel` a son propre repli, qui masquait celui du cas d'usage. La règle ne s'éprouve donc qu'au niveau où elle vit — dans `ObserveDishStyle`, avec un magasin qui jette. Un second repli plus haut ne rend pas le premier inutile ; il le rend invisible, ce qui est pire.
+
+**Campagne de défaite : sept sabotages, sept cas tombés.** Un huitième a été réécrit : remplacer `?: return null` par `?: 0.0` était neutralisé par la ligne suivante, donc ne changeait aucun comportement. Un sabotage qui ne casse rien ne prouve rien non plus.
+
+**Conséquences.** `AppearanceSettings` porte un second réglage et `observe()` devient `observeTheme()` — un port qui répond à deux questions doit dire laquelle. `ObserveDishStyle` naît pour la même raison qu'`ObserveUnitSystem` ([D111](#d111--une-règle-se-vérifie-aux-portes-pas-seulement-à-la-fabrique---validée)) : deux écrans posent la question, un seul endroit y répond.
+
+**Ce que le vert ne prouve pas.** **Que le simplifié suffise au quotidien.** Les cas affirment qu'il montre ce qu'on lui demande de montrer ; ils ne disent pas qu'on n'ira pas ouvrir chaque plat pour retrouver ce qu'on y avait mis. C'est l'usage d'une semaine qui le dira, et le réglage existe précisément pour qu'on puisse changer d'avis.
+
+Rien ne dit non plus qu'un **trait de 3 dp se voie** sur un téléphone, ni que sa piste à 18 % se distingue du fond en plein soleil. Cela se regarde ; aucun test ne le regarde.
 
 ---
 

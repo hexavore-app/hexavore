@@ -16,7 +16,6 @@
     <string name="gallery_section_hexagon">MacroHexagon</string>
     <string name="gallery_hexagon_normal">Journée en cours</string>
     <string name="gallery_hexagon_over">Deux limites dépassées, dont une au plafond</string>
-    <string name="gallery_hexagon_partial">Deux totaux minorés</string>
     <string name="gallery_section_ring">MacroRing</string>
     <string name="gallery_section_bar">MacroBar</string>
     <string name="gallery_bar_targets">À atteindre</string>

@@ -48,18 +48,6 @@ internal fun HexagonSection() = GallerySection(R.string.gallery_section_hexagon)
                 Macro.FAT to MacroQuarter(ratio = 0.8f),
             ),
         )
-
-        HexagonCase(
-            captionRes = R.string.gallery_hexagon_partial,
-            quarters = mapOf(
-                Macro.CALORIES to MacroQuarter(ratio = 0.55f),
-                Macro.PROTEIN to MacroQuarter(ratio = 0.6f),
-                Macro.FIBER to MacroQuarter(ratio = 0.3f, complete = false),
-                Macro.CARBS to MacroQuarter(ratio = 0.5f),
-                Macro.SUGARS to MacroQuarter(ratio = 0.45f, complete = false),
-                Macro.FAT to MacroQuarter(ratio = 0.4f),
-            ),
-        )
     }
 }
 

@@ -11,7 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.SolidColor
@@ -113,7 +112,7 @@ fun MacroHexagon(quarters: Map<Macro, MacroQuarter>, modifier: Modifier = Modifi
             val radius = place.radius
             val target = radius * fit
 
-            drawQuarters(centre, target, ratios, quarters, palettes)
+            drawQuarters(centre, target, ratios, palettes)
 
             // Le contour par-dessus les quartiers : c'est la reference a laquelle
             // tout se compare, elle ne doit jamais etre masquee.
@@ -138,7 +137,6 @@ private fun DrawScope.drawQuarters(
     centre: Offset,
     radius: Float,
     ratios: Map<Macro, Float>,
-    quarters: Map<Macro, MacroQuarter>,
     palettes: Map<Macro, MacroPalette>,
 ) {
     Macro.entries.forEach { macro ->
@@ -148,7 +146,6 @@ private fun DrawScope.drawQuarters(
             axis = macro.axisDegrees,
             palette = palettes.getValue(macro),
             ratio = ratios.getValue(macro),
-            complete = quarters[macro]?.complete ?: true,
         )
     }
 
@@ -161,7 +158,6 @@ private fun DrawScope.drawQuarters(
             axis = macro.axisDegrees,
             palette = palettes.getValue(macro),
             intensity = ratio.coerceAtMost(1f),
-            complete = quarters[macro]?.complete ?: true,
         )
     }
 }
@@ -190,9 +186,6 @@ private val LabelGap: Dp = 6.dp
 
 private val GlowSpread: Dp = GlowRoom / GLOW_LAYERS
 
-/** L'épaisseur sur laquelle l'arête d'un total minoré s'estompe. */
-private val FadeDepth: Dp = 8.dp
-
 /**
  * Part du rayon au-delà de laquelle la lueur cesse de grandir.
  *
@@ -213,18 +206,11 @@ private const val GLOW_MAX_FRACTION = 0.12f
  *
  * [decisions]: docs/11-decisions.md
  */
-private fun DrawScope.drawQuarter(
-    centre: Offset,
-    radius: Float,
-    axis: Float,
-    palette: MacroPalette,
-    ratio: Float,
-    complete: Boolean,
-) {
+private fun DrawScope.drawQuarter(centre: Offset, radius: Float, axis: Float, palette: MacroPalette, ratio: Float) {
     if (ratio <= 0f) return
     val colour = if (ratio > 1f) palette.base.saturate(OVERSHOOT_SATURATION) else palette.base
 
-    drawPath(quarterPath(centre, radius, axis), brush = fillBrush(colour, centre, radius, axis, complete))
+    drawPath(quarterPath(centre, radius, axis), SolidColor(colour))
 
     if (ratio >= RATIO_CAP) {
         drawTruncation(centre, radius, axis, colour)
@@ -251,7 +237,6 @@ private fun DrawScope.drawQuarterGlow(
     axis: Float,
     palette: MacroPalette,
     intensity: Float,
-    complete: Boolean,
 ) {
     if (palette.glow.alpha == 0f) return
     val path = quarterPath(centre, radius, axis)
@@ -263,38 +248,10 @@ private fun DrawScope.drawQuarterGlow(
         )
         drawPath(
             path = path,
-            brush = fillBrush(colour, centre, radius, axis, complete),
+            color = colour,
             style = Stroke(width = spread * (layer + 1) * 2f, join = StrokeJoin.Round, cap = StrokeCap.Round),
         )
     }
-}
-
-/**
- * De quoi peindre un quartier, ou sa lueur.
- *
- * Un total amputé d'une valeur inconnue s'estompe au lieu de s'arrêter net : on ne
- * sait pas où il s'arrête, la figure ne prétend donc pas le savoir. Le dégradé
- * s'applique au remplissage **et** à la lueur, sans quoi l'arête floue du quartier
- * aurait été soulignée d'un trait de néon parfaitement net.
- *
- * **Le dégradé est linéaire, le long de l'axe du quartier, et non radial.** Un
- * dégradé radial suit un cercle : ses lignes d'égale opacité coupent le triangle en
- * arcs, si bien que les deux sommets — qui sont à `radius` du centre — disparaissent
- * complètement pendant que le milieu de l'arête — qui n'est qu'à `√3/2 · radius` —
- * reste presque opaque. Le quartier semblait alors rongé par les coins plutôt
- * qu'estompé sur son bord. Le long de l'axe, les lignes d'égale opacité sont
- * parallèles à l'arête, et les trois points du bord s'effacent ensemble.
- */
-private fun DrawScope.fillBrush(colour: Color, centre: Offset, radius: Float, axis: Float, complete: Boolean): Brush {
-    if (complete) return SolidColor(colour)
-
-    val apothem = radius * APOTHEM_RATIO
-    val start = (1f - FadeDepth.toPx() / apothem).coerceIn(0f, 1f)
-    return Brush.linearGradient(
-        colorStops = arrayOf(0f to colour, start to colour, 1f to Color.Transparent),
-        start = centre,
-        end = pointAt(centre, apothem, axis),
-    )
 }
 
 /**
@@ -396,23 +353,6 @@ private fun MacroHexagonDepassementPreview() {
                 Macro.CARBS to MacroQuarter(1.4f),
                 Macro.SUGARS to MacroQuarter(2.3f),
                 Macro.FAT to MacroQuarter(0.8f),
-            ),
-        )
-    }
-}
-
-@NeonPreviews
-@Composable
-private fun MacroHexagonTotalIncompletPreview() {
-    PreviewSurface {
-        MacroHexagon(
-            mapOf(
-                Macro.CALORIES to MacroQuarter(0.55f),
-                Macro.PROTEIN to MacroQuarter(0.6f),
-                Macro.FIBER to MacroQuarter(0.3f, complete = false),
-                Macro.CARBS to MacroQuarter(0.5f),
-                Macro.SUGARS to MacroQuarter(0.45f, complete = false),
-                Macro.FAT to MacroQuarter(0.4f),
             ),
         )
     }

@@ -1,5 +1,6 @@
 package app.hexavore.feature.settings
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.hexavore.core.designsystem.component.ScreenTopBar
 import app.hexavore.core.designsystem.theme.Spacing
+import app.hexavore.domain.appearance.DishDisplayStyle
 import app.hexavore.domain.appearance.ThemeMode
 import app.hexavore.domain.profile.UnitSystem
 
@@ -51,6 +53,7 @@ internal fun AppearanceRoute(onClose: () -> Unit, viewModel: AppearanceViewModel
         state = state,
         onTheme = viewModel::onTheme,
         onUnits = viewModel::onUnits,
+        onDishStyle = viewModel::onDishStyle,
         onClose = onClose,
     )
 }
@@ -60,6 +63,7 @@ private fun AppearanceScreen(
     state: AppearanceUiState,
     onTheme: (ThemeMode) -> Unit,
     onUnits: (UnitSystem) -> Unit,
+    onDishStyle: (DishDisplayStyle) -> Unit,
     onClose: () -> Unit,
 ) {
     Scaffold(
@@ -79,48 +83,72 @@ private fun AppearanceScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(Spacing.betweenCards),
         ) {
-            SectionTitle(stringResource(R.string.appearance_theme_title))
-
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(Spacing.cardPadding).selectableGroup(),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.xs),
-                ) {
-                    // L'ordre de l'enumeration : un quatrieme theme apparaitrait ici
-                    // sans qu'une ligne d'affichage bouge, et sans libelle il ne
-                    // compilerait pas.
-                    ThemeMode.entries.forEach { mode ->
-                        ChoiceRow(
-                            labelRes = mode.labelRes,
-                            selected = mode == state.theme,
-                            onSelect = { onTheme(mode) },
-                        )
-                    }
-                }
-            }
-
-            Body(stringResource(R.string.appearance_theme_note))
-
-            SectionTitle(stringResource(R.string.appearance_units_title))
-
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(Spacing.cardPadding).selectableGroup(),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.xs),
-                ) {
-                    UnitSystem.entries.forEach { system ->
-                        ChoiceRow(
-                            labelRes = system.labelRes,
-                            selected = system == state.units,
-                            onSelect = { onUnits(system) },
-                        )
-                    }
-                }
-            }
-
-            Body(stringResource(R.string.appearance_units_note))
+            // L'ordre des enumerations : un quatrieme theme, un troisieme style
+            // apparaitraient ici sans qu'une ligne d'affichage bouge, et sans libelle
+            // ils ne compileraient pas.
+            ChoiceSection(
+                titleRes = R.string.appearance_theme_title,
+                noteRes = R.string.appearance_theme_note,
+                options = ThemeMode.entries,
+                selected = state.theme,
+                labelOf = { it.labelRes },
+                onSelect = onTheme,
+            )
+            ChoiceSection(
+                titleRes = R.string.appearance_units_title,
+                noteRes = R.string.appearance_units_note,
+                options = UnitSystem.entries,
+                selected = state.units,
+                labelOf = { it.labelRes },
+                onSelect = onUnits,
+            )
+            ChoiceSection(
+                titleRes = R.string.appearance_dishes_title,
+                noteRes = R.string.appearance_dishes_note,
+                options = DishDisplayStyle.entries,
+                selected = state.dishStyle,
+                labelOf = { it.labelRes },
+                onSelect = onDishStyle,
+            )
         }
     }
+}
+
+/**
+ * Un réglage : son titre, ses choix exclusifs, et la phrase qui dit ce qu'il fait.
+ *
+ * **Les trois réglages posent la même question et la posent pareil**, donc ils ne se
+ * dessinent qu'une fois. Les recopier aurait laissé le troisième diverger du premier
+ * — une carte sans note, un intervalle différent — le jour où l'un des trois apprend
+ * quelque chose.
+ */
+@Composable
+private fun <T> ChoiceSection(
+    @StringRes titleRes: Int,
+    @StringRes noteRes: Int,
+    options: List<T>,
+    selected: T,
+    labelOf: (T) -> Int,
+    onSelect: (T) -> Unit,
+) {
+    SectionTitle(stringResource(titleRes))
+
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(Spacing.cardPadding).selectableGroup(),
+            verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+        ) {
+            options.forEach { option ->
+                ChoiceRow(
+                    labelRes = labelOf(option),
+                    selected = option == selected,
+                    onSelect = { onSelect(option) },
+                )
+            }
+        }
+    }
+
+    Body(stringResource(noteRes))
 }
 
 /** Une ligne à choix unique. Les deux réglages posent la même question, et la posent pareil. */
@@ -162,4 +190,11 @@ private val UnitSystem.labelRes: Int
     get() = when (this) {
         UnitSystem.METRIC -> R.string.appearance_units_metric
         UnitSystem.IMPERIAL -> R.string.appearance_units_imperial
+    }
+
+/** Le libellé d'un style d'affichage, par la même table et pour la même raison. */
+private val DishDisplayStyle.labelRes: Int
+    get() = when (this) {
+        DishDisplayStyle.SIMPLE -> R.string.appearance_dishes_simple
+        DishDisplayStyle.DETAILED -> R.string.appearance_dishes_detailed
     }

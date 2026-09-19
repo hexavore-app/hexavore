@@ -42,6 +42,7 @@ import app.hexavore.core.designsystem.component.MacroQuarter
 import app.hexavore.core.designsystem.component.MacroUnit
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.core.designsystem.theme.Timing
+import app.hexavore.domain.appearance.DishDisplayStyle
 import app.hexavore.domain.diary.DaySummary
 import app.hexavore.domain.diary.Dish
 import app.hexavore.domain.goal.AdjustmentSuggestion
@@ -66,6 +67,7 @@ fun HomeRoute(routes: HomeRoutes) {
     val aiConfigured by viewModel.aiConfigured.collectAsStateWithLifecycle()
     val suggestion by viewModel.suggestion.collectAsStateWithLifecycle()
     val day by viewModel.selectedDay.collectAsStateWithLifecycle()
+    val dishStyle by viewModel.dishStyle.collectAsStateWithLifecycle()
     val noticeViewModel: NoticeViewModel = hiltViewModel()
     val notices by noticeViewModel.notices.collectAsStateWithLifecycle()
 
@@ -77,6 +79,7 @@ fun HomeRoute(routes: HomeRoutes) {
         onDismissFavoriteError = viewModel::onDismissFavoriteError,
         suggestion = suggestion,
         onAdjustment = viewModel::onAdjustment,
+        dishStyle = dishStyle,
         day = day,
         today = calendar.today,
         onBackToToday = { viewModel.onSelectDay(null) },
@@ -148,6 +151,13 @@ fun HomeScreen(
      */
     suggestion: AdjustmentSuggestion? = null,
     onAdjustment: (AdjustmentResponse) -> Unit = {},
+    /**
+     * Le style d'affichage des plats, tel que les réglages l'ont posé.
+     *
+     * **Simplifié par défaut** : le détaillé cite chaque aliment de chaque plat, ce qui
+     * fait beaucoup de texte dès qu'une journée est chargée. Il reste à un réglage.
+     */
+    dishStyle: DishDisplayStyle = DishDisplayStyle.SIMPLE,
     /**
      * Le jour affiche, ou `null` pour aujourd'hui.
      *
@@ -234,6 +244,7 @@ fun HomeScreen(
                         HomeUiState.Loading -> Unit
                         is HomeUiState.Content -> DayContent(
                             summary = state.summary,
+                            style = dishStyle,
                             actions = actions,
                             favoriteNameTaken = favoriteNameTaken,
                             onDismissFavoriteError = onDismissFavoriteError,
@@ -358,6 +369,7 @@ private fun DayScroll(collapseOnScroll: NestedScrollConnection, content: @Compos
 @Composable
 internal fun DayContent(
     summary: DaySummary,
+    style: DishDisplayStyle,
     actions: HomeActions,
     favoriteNameTaken: Boolean,
     onDismissFavoriteError: () -> Unit,
@@ -374,6 +386,8 @@ internal fun DayContent(
         DishList(
             dishes = summary.dishes,
             zone = summary.zone,
+            goal = goal,
+            style = style,
             actions = actions,
             favoriteNameTaken = favoriteNameTaken,
             onDismissFavoriteError = onDismissFavoriteError,
@@ -433,12 +447,8 @@ private fun RemainingBlock(summary: DaySummary, dailyGoal: DailyGoal) {
  * la seule lecture honnête d'une cible qui n'existe pas.
  */
 private fun DaySummary.quarters(goal: DailyGoal): Map<Macro, MacroQuarter> = Macro.entries.associateWith { macro ->
-    val total = totals[macro]
     val target = goal[macro]
-    MacroQuarter(
-        ratio = if (target > 0.0) (total.value / target).toFloat() else 0f,
-        complete = total.complete,
-    )
+    MacroQuarter(ratio = if (target > 0.0) (totals[macro].value / target).toFloat() else 0f)
 }
 
 @Composable
@@ -454,16 +464,6 @@ private fun MacroBars(summary: DaySummary, goal: DailyGoal) {
                 consumed = summary.totals[macro].value.toFloat(),
                 goal = goal[macro].toFloat(),
                 unit = MacroUnit.GRAM,
-            )
-        }
-
-        // D29 : un total ampute d'une valeur inconnue ne doit pas se lire comme
-        // exact. Le dire une fois sous les barres, plutot que de bruiter chacune.
-        if (BAR_MACROS.any { !summary.totals[it].complete }) {
-            Text(
-                text = stringResource(R.string.home_incomplete_totals),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

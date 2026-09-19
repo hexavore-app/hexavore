@@ -25,9 +25,6 @@
     <string name="home_error_body">La lecture n\'a pas abouti. Rien n\'a été modifié : vos plats sont là où ils étaient.</string>
     <string name="home_error_retry">Réessayer</string>
 
-    <!-- D29 : un total amputé d'une valeur inconnue ne doit pas se lire comme exact. -->
-    <string name="home_incomplete_totals">Totaux minorés : certaines lignes n\'ont pas toutes leurs valeurs.</string>
-
     <!-- Tant qu'aucun objectif n'a été posé. Une invitation, pas six jauges vides :
          une jauge à zéro laisserait croire qu'un objectif existe et n'est pas atteint. -->
     <string name="home_no_goal_title">Pas encore d\'objectif</string>
@@ -39,9 +36,10 @@
     <string name="home_open_profile">Profil et objectifs</string>
     <string name="home_open_weight">Journal de poids</string>
 
-    <!-- Ce qui a été mangé reste exact sans objectif : c'est la comparaison qui manque. -->
+    <!-- Ce qui a été mangé reste exact sans objectif : c'est la comparaison qui manque.
+         Plus de forme « au moins » : l'accueil ne signale plus les totaux minorés, et
+         une valeur non renseignée s'y lit comme zéro (D119). -->
     <string name="home_total_line">%1$s : %2$d</string>
-    <string name="home_total_line_partial">%1$s : au moins %2$d</string>
 
     <!-- Un seul bouton : il ouvre la recherche, qui porte aussi la saisie manuelle.
          Le scan et l'IA n'existent pas encore, et un bouton qui n'ouvre rien n'est
@@ -117,9 +115,7 @@
     <!-- Apports du plat. L'initiale porte la même information que la couleur :
          une couleur ne renseigne jamais seule. -->
     <string name="home_macro_chip">%1$s %2$s</string>
-    <string name="home_macro_chip_partial">%1$s ≥ %2$s</string>
     <string name="home_macro_grams">%1$s g</string>
-    <string name="home_macro_at_least">%1$s au moins %2$s</string>
 
     <string name="macro_calories">Calories</string>
     <string name="macro_protein">Protéines</string>
