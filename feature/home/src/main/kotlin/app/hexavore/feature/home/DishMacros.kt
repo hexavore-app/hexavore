@@ -118,12 +118,7 @@ internal fun Shared(macro: Macro, share: Float?, value: @Composable () -> Unit) 
  * `null` sans objectif, et `null` aussi sur un objectif nul — une part de quelque chose
  * qui vaut zéro n'existe pas, et le rapport serait infini.
  */
-internal fun DishSummary.share(macro: Macro, goal: DailyGoal?): Float? {
-    // Un objectif nul se traite comme un objectif absent : la part de quelque chose qui
-    // vaut zero n'existe pas, et le rapport serait infini.
-    val target = goal?.get(macro)?.takeIf { it > 0.0 } ?: return null
-    return (totals[macro].value / target).toFloat().coerceIn(0f, 1f)
-}
+internal fun DishSummary.share(macro: Macro, goal: DailyGoal?): Float? = shareOf(totals[macro].value, macro, goal)
 
 /** Les cinq macros affichées par plat. Les calories ont déjà leur chiffre en tête. */
 private val CHIP_MACROS = listOf(Macro.PROTEIN, Macro.CARBS, Macro.SUGARS, Macro.FAT, Macro.FIBER)

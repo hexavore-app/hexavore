@@ -2,6 +2,9 @@ package app.hexavore.core.designsystem.component
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import app.hexavore.domain.nutrition.Macro
 import kotlin.math.cos
 import kotlin.math.sin
@@ -137,3 +140,25 @@ internal fun quarterPath(centre: Offset, radius: Float, axis: Float): Path = Pat
     lineTo(right.x, right.y)
     close()
 }
+
+/** Ce que la lueur déborde vers l'extérieur, et qu'il faut donc réserver. */
+internal val GlowRoom: Dp = 12.dp
+
+/** Entre la lueur et la lettre, pour que la seconde ne baigne pas dans la première. */
+internal val LabelGap: Dp = 6.dp
+
+/**
+ * La place de la figure dans une zone, lueur et lettres réservées.
+ *
+ * **Le seul endroit où les trois réserves sont dites.** Le tracé en a besoin pour ne
+ * pas déborder, le doigt pour savoir jusqu'où s'étend une cible : deux calculs du même
+ * cercle finiraient par diverger, et ce serait le genre d'écart qu'aucun cas ne voit —
+ * une figure juste, une cible décalée de quelques points.
+ */
+internal fun Density.hexagonZone(width: Float, height: Float, labelExtent: Float): HexagonFit = hexagonFit(
+    width = width,
+    height = height,
+    labelExtent = labelExtent,
+    glow = GlowRoom.toPx(),
+    gap = LabelGap.toPx(),
+)
