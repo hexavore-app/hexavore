@@ -34,7 +34,7 @@ import kotlin.math.roundToInt
  * quinze lignes serait exactement ce qu'« envahissante » veut dire. Le reste est compté
  * plutôt que tu : sans cette ligne, la somme de ce qu'on lit passerait pour le total.
  *
- * @see docs/11-decisions.md — D123
+ * @see docs/11-decisions.md — D122
  */
 @Composable
 internal fun MacroSourcesBubble(sources: MacroSources, total: MacroTotal, goal: DailyGoal?) {

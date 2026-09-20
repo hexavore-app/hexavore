@@ -55,7 +55,7 @@ L'écran par défaut, celui qu'on ouvre dix fois par jour. Il tient en un défil
 
 ### Bandeau calendrier (fixe en haut)
 
-Sept pastilles : **une semaine calendaire**, du premier jour de la locale au dernier, et non sept jours glissants ([D93](11-decisions.md)). Le défilement horizontal va de semaine en semaine. Aujourd'hui est affiché par défaut ; le jour affiché porte son numéro en gras et en encre pleine.
+Sept pastilles : **une semaine calendaire**, du premier jour de la locale au dernier, et non sept jours glissants ([D93](11-decisions.md)). Le défilement horizontal va de semaine en semaine. Aujourd'hui est affiché par défaut ; le jour affiché porte son numéro en gras et en encre pleine, **sur un disque plein** ([D121](11-decisions.md#d121--le-changement-de-jour-se-voit---validée)). Le gras seul ne se voyait pas au milieu de sept anneaux colorés, qui attirent l'œil bien davantage. Le disque de la cellule qu'on quitte se rétracte pendant que celui qu'on rejoint s'ouvre : l'œil lit un déplacement.
 
 Chaque pastille porte le jour de la semaine, le numéro, et un **anneau segmenté** reprenant les six couleurs de macro, dans l'ordre angulaire commun à toute l'application ([08](08-design-system.md#daltonisme)). Le calendrier garde l'anneau : à cette taille, les six quartiers d'un hexagone ne se distingueraient plus.
 
@@ -73,6 +73,14 @@ Le jour de départ d'un objectif porte un liseré : on voit où une nouvelle pha
 
 **Trois gestes ouvrent le mois, et c'est le nombre qu'il fallait** ([D116](11-decisions.md)) : tirer la poignée, **la toucher** — elle ne répondait pas au doigt, seule l'action d'accessibilité était déclarée — et **tirer la page vers le bas quand elle est déjà en haut**, d'environ un centimètre. Ce dernier est celui que tout le monde connaît sans l'avoir appris ; les deux autres sont pour qui vise la poignée. Un défilement **lancé** qui bute en haut n'ouvre rien : un élan est un arrêt, pas une intention. La poignée elle-même porte un chevron et passe en encre claire — en `outline`, elle tenait 1,4:1 sur le fond sombre, là où un élément d'interface en demande 3.
 
+### Le titre du jour
+
+En tête d'écran, **le jour regardé**, et c'est le seul endroit qui le dise. « Aujourd'hui », « Hier », « Avant-hier », puis la date longue : les deux jours qui ont un nom le portent, parce qu'un mot se lit plus vite qu'une date qu'il faut décoder ([D121](11-decisions.md#d121--le-changement-de-jour-se-voit---validée)).
+
+**Il participe au balayage.** Il glisse avec la journée — au tiers du déplacement, en s'effaçant — puis marque son arrivée d'une brève pulsation. Sans cela, le contenu changeait de jour en glissant pendant que le titre se substituait d'un coup, et on arrivait sans savoir où. La pulsation sert aussi les deux cas où rien ne glisse : un geste lâché à mi-course, et un jour choisi dans le calendrier.
+
+Elle est **supprimée**, et non raccourcie, quand l'appareil demande moins de mouvement : un grossissement instantané suivi d'un retour instantané serait un clignotement.
+
 ### Bloc « Reste aujourd'hui »
 
 Le cœur de l'écran, et la figure qui donne son nom à l'application : l'**hexagone des macros**. Six quartiers, un par compteur, remplis depuis le centre, le contour marquant l'objectif du jour ([08](08-design-system.md#macrohexagon)). Il répond à une seule question — comment va ma journée.
@@ -80,6 +88,14 @@ Le cœur de l'écran, et la figure qui donne son nom à l'application : l'**hexa
 Sous l'hexagone, le **restant en calories** en grand chiffre. Le restant et non le consommé : c'est l'information dont on a besoin au moment de décider quoi manger. Le consommé et l'objectif sont écrits en dessous, plus petits. En cas de dépassement, le chiffre devient négatif. Aucun message moralisateur, aucun rouge d'alerte : c'est une donnée, pas un jugement.
 
 Puis les **six barres**, dans le même ordre angulaire que les quartiers. Elles répondent à l'autre question : combien exactement. L'hexagone ne peut dire ni « 87 / 144 g » ni le `max` d'une limite ; les barres ne peuvent pas montrer une journée d'un coup d'œil. Les deux ne se concurrencent pas.
+
+**Toucher un quartier dit ce qui l'a rempli** ([D122](11-decisions.md#d122--un-quartier-touché-dit-ce-qui-la-rempli---validée)). Le quartier grossit légèrement, les cinq autres s'éteignent, et une bulle se pose contre lui : les cinq plus gros aliments de la journée pour cette macro, du plus gros au plus petit, chacun avec la même mini-barre que sous les plats. Le reste est cumulé en une ligne — « 3 autres, 6 g » — plutôt que tu, sans quoi la somme de ce qu'on lit passerait pour le total.
+
+La bulle se pose **du côté opposé au quartier** : recouvrir ce qu'on vient de mettre en avant l'annulerait. Toucher un autre quartier change son contenu sans la refermer ; **tout appui ailleurs la referme**. Un quartier qui n'a rien à montrer ne répond pas — et « rien à montrer » n'est pas « le quartier est à zéro » : une macro dont un aliment ne renseigne pas la valeur a beaucoup à dire.
+
+**Un aliment dont la valeur est inconnue est nommé à part, sans chiffre ni barre.** Depuis [D119](11-decisions.md) l'accueil ne signale plus ses totaux minorés ; cette ligne est le seul endroit de l'écran qui dise encore qu'un total l'est, et le seul qui dise **par quel aliment** — donc lequel aller corriger.
+
+**Les six barres ouvrent la même bulle.** Toucher un triangle est un geste que rien n'annonce ; une barre pleine largeur est une cible qu'on trouve sans la connaître, et que le lecteur d'écran annonce déjà. La figure, elle, porte six actions d'accessibilité — un dessin ne se découpe pas en six vues.
 
 Ce bloc est le même sur l'accueil et sur l'écran **Journée** d'un jour passé : c'est le même récapitulatif, seule la date change.
 

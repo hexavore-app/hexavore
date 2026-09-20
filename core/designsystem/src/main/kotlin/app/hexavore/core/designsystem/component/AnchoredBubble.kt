@@ -35,7 +35,7 @@ import app.hexavore.core.designsystem.theme.NeonTheme
  * pour annoncer qu'un appui à côté la referme ; celle-ci ne le fait pas, et c'est ce
  * qui lui permet d'apparaître et de changer de macro sans faire clignoter l'écran
  * entier. En contrepartie, c'est l'appelant qui doit refermer sur un appui à côté :
- * rien ici ne capte le doigt ([D123][decisions]).
+ * rien ici ne capte le doigt ([D122][decisions]).
  *
  * **Elle se pose du côté opposé à ce qu'elle explique** ([bubbleSpot]) : recouvrir le
  * quartier qu'on vient de mettre en avant serait l'annuler.

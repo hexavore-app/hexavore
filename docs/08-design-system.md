@@ -133,6 +133,16 @@ Les six quartiers sont traités **de la même façon** : teinte `base`, lueur cr
 
 La distinction objectif / limite ne se joue donc plus ici. Elle se lit sur les barres, qui portent la valeur et peuvent l'écrire.
 
+#### Le doigt
+
+**Toucher un quartier le sélectionne** ([D122](11-decisions.md#d122--un-quartier-touché-dit-ce-qui-la-rempli---validée)). Le quartier touché grossit de 8 %, les cinq autres tombent à 28 % d'opacité — lueur et lettre comprises. **Deux signaux et non un** : le grossissement seul ne se voit pas sur un quartier presque vide, et l'extinction seule ne dit pas lequel on a touché quand deux macros sont au même niveau.
+
+La cible se décide **par l'angle et non par le triangle**. Les six secteurs se partagent tout le disque ; seule la distance dit si l'appui est dans la figure, et le rayon retenu est celui des **lettres** — viser un « F » est la façon la plus naturelle de désigner les fibres, et le triangle exact la refuserait. Ce rayon vient de la même fonction que le tracé : deux calculs du même cercle donneraient une figure juste et une cible décalée.
+
+Pas de zone morte au centre. Les six pointes s'y touchent, donc l'angle y est instable au pixel près — mais un appui au centre exact doit répondre quelque chose plutôt que rien, et personne ne vise le point où six triangles se rejoignent en espérant un résultat précis.
+
+**Accessibilité** : la figure porte **six actions personnalisées**, une par macro. Six zones tactiles invisibles posées par-dessus un dessin se disputeraient le doigt avec lui, et leurs rectangles ne suivraient pas des triangles. Les six **valeurs**, elles, restent dans les barres, sous une forme qui se lit bien mieux à la voix.
+
 #### La lueur
 
 Elle est tracée **en contour sur les trois arêtes du quartier**, en trois passes de plus en plus larges et de moins en moins opaques — la technique du `NeonButton`, faute d'un flou disponible partout (`BlurMaskFilter` n'est pas accéléré matériellement et imposerait un rendu logiciel à chaque image animée).
@@ -212,6 +222,17 @@ Ce n'est pas une `MacroBar` en petit. La grande barre répond à « où j'en sui
 - Largeur : celle du chiffre qu'elle souligne, pas une colonne de grille — une grille régulière aurait fait un tableau, donc quelque chose à lire.
 - **Muette pour un lecteur d'écran** : la ligne annonce déjà « protéines 24 g ».
 - **Absente quand la journée n'a pas d'objectif** : une barre suppose une cible.
+
+### `AnchoredBubble`
+
+Une carte qui commente un point d'une figure, et une pointe qui le désigne ([D122](11-decisions.md#d122--un-quartier-touché-dit-ce-qui-la-rempli---validée)).
+
+- **Elle se pose du côté opposé à son ancre**, par rapport au centre de la figure : recouvrir ce qu'elle explique reviendrait à l'annuler.
+- **La pointe suit l'ancre, le corps suit l'écran.** Les deux se désolidarisent dès que la carte bute sur un bord ; la pointe reste bornée à l'intérieur, loin des angles arrondis, faute de quoi elle flotterait toute seule.
+- **Fond à 95 %** de `surfaceContainerHighest`. Assez transparent pour qu'on sache ce qu'il y a dessous — c'est ce qui la distingue d'un écran —, assez opaque pour qu'un trait de 3 dp reste lisible sur un quartier allumé.
+- **Largeur plafonnée à 260 dp** : une bulle pleine largeur est un bandeau.
+- **Aucun voile derrière elle.** Une modale assombrit ce qu'elle recouvre pour annoncer qu'un appui à côté la referme ; celle-ci ne le fait pas, et rien en elle ne capte le doigt — c'est l'appelant qui referme.
+- **La pointe est tracée par le parent.** Sa position le long du bord n'est connue qu'une fois la carte mesurée et placée, alors que le fond doit être décrit avant : faire redescendre cette position dans une forme obligerait à recomposer l'enfant pour un nombre que la mise en page vient de calculer.
 
 ### `MacroBar`
 
