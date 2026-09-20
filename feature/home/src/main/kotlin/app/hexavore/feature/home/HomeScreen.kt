@@ -218,6 +218,10 @@ fun HomeScreen(
     // bulle qui survivrait au glissement parlerait des aliments de la veille.
     val focus = rememberMacroFocus()
     LaunchedEffect(day) { focus.clear() }
+
+    // Partage entre le titre et la journee : ils glissent ensemble sans etre
+    // voisins, le calendrier etant entre les deux.
+    val swipe = rememberDaySwipe()
     val snackbarHostState = rememberUndoBar(pendingUndo, actions.onUndo, actions.onUndoExpired)
 
     Scaffold(
@@ -237,13 +241,14 @@ fun HomeScreen(
             // Le titre et le calendrier ne defilent pas : docs/02 les veut fixes en
             // haut, et c'est aussi ce qui permet au mois deplie de defiler pour son
             // propre compte -- il n'est plus sous la connexion qui replie.
-            DayHeader(actions, day, onBackToToday, notices)
+            DayHeader(actions, day, today, swipe, onBackToToday, notices)
             calendar(calendarExpanded) { calendarExpanded = it }
 
             // Le glissement porte sur ce qui defile, jamais sur le calendrier : celui-ci
             // a son propre defilement horizontal, de semaine en semaine, et les deux
             // gestes se disputeraient le meme doigt au meme endroit.
             SwipingDay(
+                state = swipe,
                 shown = day ?: today,
                 today = today,
                 earliest = today.minusMonths(MONTHS_BACK),

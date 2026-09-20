@@ -2,6 +2,10 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:locale="fr">
 
     <string name="home_title">Aujourd\'hui</string>
+    <!-- Les deux jours qui ont un nom le portent : « Hier » se lit plus vite qu\'une
+         date qu\'il faut décoder. Au-delà, la date longue reprend la main. -->
+    <string name="home_title_yesterday">Hier</string>
+    <string name="home_title_before_yesterday">Avant-hier</string>
 
     <!-- Le chemin visible du retour à aujourd'hui. Le bouton retour du système y mène
          aussi, mais un geste sans représentation visible est introuvable pour qui
