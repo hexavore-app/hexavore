@@ -1,6 +1,7 @@
 package app.hexavore.feature.home
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -9,28 +10,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,20 +32,18 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.hexavore.core.designsystem.component.AdjustmentCard
-import app.hexavore.core.designsystem.component.BarcodeGlyph
-import app.hexavore.core.designsystem.component.CameraGlyph
 import app.hexavore.core.designsystem.component.MacroBar
 import app.hexavore.core.designsystem.component.MacroHexagon
 import app.hexavore.core.designsystem.component.MacroQuarter
 import app.hexavore.core.designsystem.component.MacroUnit
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.core.designsystem.theme.Timing
+import app.hexavore.domain.appearance.DishDisplayStyle
 import app.hexavore.domain.diary.DaySummary
 import app.hexavore.domain.diary.Dish
 import app.hexavore.domain.goal.AdjustmentSuggestion
@@ -77,6 +68,7 @@ fun HomeRoute(routes: HomeRoutes) {
     val aiConfigured by viewModel.aiConfigured.collectAsStateWithLifecycle()
     val suggestion by viewModel.suggestion.collectAsStateWithLifecycle()
     val day by viewModel.selectedDay.collectAsStateWithLifecycle()
+    val dishStyle by viewModel.dishStyle.collectAsStateWithLifecycle()
     val noticeViewModel: NoticeViewModel = hiltViewModel()
     val notices by noticeViewModel.notices.collectAsStateWithLifecycle()
 
@@ -88,8 +80,11 @@ fun HomeRoute(routes: HomeRoutes) {
         onDismissFavoriteError = viewModel::onDismissFavoriteError,
         suggestion = suggestion,
         onAdjustment = viewModel::onAdjustment,
+        dishStyle = dishStyle,
         day = day,
+        today = calendar.today,
         onBackToToday = { viewModel.onSelectDay(null) },
+        onSelectDay = viewModel::onSelectDay,
         notices = notices,
         calendar = { expanded, onExpandedChange ->
             CalendarPane(
@@ -110,11 +105,9 @@ fun HomeRoute(routes: HomeRoutes) {
             HomeActions(
                 onAddDish = routes.onAddDish,
                 onScan = routes.onScan,
-                onDescribe = routes.onDescribe,
-                onPhotograph = routes.onPhotograph,
+                onAnalyse = routes.onAnalyse,
                 onEditDish = routes.onEditDish,
                 onDeleteDish = viewModel::onDeleteDish,
-                onDeleteEntry = viewModel::onDeleteEntry,
                 onUndo = viewModel::onUndo,
                 onUndoExpired = viewModel::onUndoExpired,
                 onRetry = viewModel::retry,
@@ -159,13 +152,31 @@ fun HomeScreen(
     suggestion: AdjustmentSuggestion? = null,
     onAdjustment: (AdjustmentResponse) -> Unit = {},
     /**
+     * Le style d'affichage des plats, tel que les réglages l'ont posé.
+     *
+     * **Simplifié par défaut** : le détaillé cite chaque aliment de chaque plat, ce qui
+     * fait beaucoup de texte dès qu'une journée est chargée. Il reste à un réglage.
+     */
+    dishStyle: DishDisplayStyle = DishDisplayStyle.SIMPLE,
+    /**
      * Le jour affiche, ou `null` pour aujourd'hui.
      *
      * L'ecran Journee a disparu : c'est cette date qui dit ce que montrent les six
      * compteurs et la liste des plats, et c'est sur elle que le bouton d'ajout ecrit.
      */
     day: LocalDate? = null,
+    /**
+     * La date du jour, telle que l'horloge la voit.
+     *
+     * Elle vient du calendrier, qui la connaît déjà, plutôt que d'une seconde lecture :
+     * deux sources pour « aujourd'hui », c'est une application qui change de jour à
+     * deux moments différents. Elle sert à borner le glissement — le journal ne va pas
+     * dans le futur.
+     */
+    today: LocalDate,
     onBackToToday: () -> Unit = {},
+    /** Change le jour affiché. Le port range « aujourd'hui » comme `null` lui-même. */
+    onSelectDay: (LocalDate) -> Unit = {},
     /** Ce qui merite une pastille. Vide dans les apercus, qui n'ont rien a signaler. */
     notices: Set<Notice> = emptySet(),
     /**
@@ -187,36 +198,11 @@ fun HomeScreen(
     // plus rien, et le geste n'aurait sinon aucune cible.
     BackHandler(enabled = day != null) { onBackToToday() }
 
-    // La regle est dans `collapsingDelta`, ou elle se laisse eprouver. Ce qui reste
-    // ici est le seul effet : ce qu'on consomme, on l'a referme.
-    //
-    // **La connexion n'est posee que sur le contenu**, jamais sur le calendrier :
-    // `onPreScroll` va du parent vers l'enfant, donc une connexion englobant le mois
-    // deplie le refermerait avant qu'il ait pu defiler.
-    val collapseOnScroll = remember {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset =
-                collapsingDelta(calendarExpanded, available).also { if (it != Offset.Zero) calendarExpanded = false }
-        }
-    }
-    val snackbarHostState = remember { SnackbarHostState() }
-    val deleted = stringResource(R.string.home_entry_deleted)
-    val undo = stringResource(R.string.home_entry_undo)
-
-    // La barre reste affichee cinq secondes, ni quatre ni dix : SnackbarDuration
-    // n'offre que ces deux-la, donc la fenetre est tenue par le delai et la barre
-    // par un affichage indefini. Voir Timing dans :core:designsystem.
-    LaunchedEffect(pendingUndo) {
-        if (pendingUndo == null) return@LaunchedEffect
-        val result = withTimeoutOrNull(Timing.UNDO_WINDOW_MILLIS) {
-            snackbarHostState.showSnackbar(
-                message = deleted,
-                actionLabel = undo,
-                duration = SnackbarDuration.Indefinite,
-            )
-        }
-        if (result == SnackbarResult.ActionPerformed) actions.onUndo() else actions.onUndoExpired()
-    }
+    // Le defilement de la page vit ici : la connexion a besoin de savoir s'il est en
+    // haut, et la colonne a besoin de defiler. Un seul etat, deux lecteurs.
+    val dayScroll = rememberScrollState()
+    val collapseOnScroll = rememberCalendarScroll(calendarExpanded, dayScroll) { calendarExpanded = it }
+    val snackbarHostState = rememberUndoBar(pendingUndo, actions.onUndo, actions.onUndoExpired)
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -237,27 +223,128 @@ fun HomeScreen(
             DayHeader(actions, day, onBackToToday, notices)
             calendar(calendarExpanded) { calendarExpanded = it }
 
-            DayScroll(collapseOnScroll) {
-                suggestion?.let {
-                    AdjustmentCard(
-                        suggestion = it,
-                        onAccept = { onAdjustment(AdjustmentResponse.ACCEPT) },
-                        onIgnore = { onAdjustment(AdjustmentResponse.IGNORE) },
-                        onStop = { onAdjustment(AdjustmentResponse.STOP) },
-                    )
+            // Le glissement porte sur ce qui defile, jamais sur le calendrier : celui-ci
+            // a son propre defilement horizontal, de semaine en semaine, et les deux
+            // gestes se disputeraient le meme doigt au meme endroit.
+            SwipingDay(
+                shown = day ?: today,
+                today = today,
+                earliest = today.minusMonths(MONTHS_BACK),
+                onDay = onSelectDay,
+                modifier = Modifier.weight(1f),
+            ) {
+                DayScroll(collapseOnScroll, dayScroll) {
+                    suggestion?.let {
+                        AdjustmentCard(
+                            suggestion = it,
+                            onAccept = { onAdjustment(AdjustmentResponse.ACCEPT) },
+                            onIgnore = { onAdjustment(AdjustmentResponse.IGNORE) },
+                            onStop = { onAdjustment(AdjustmentResponse.STOP) },
+                        )
+                    }
+
+                    when (state) {
+                        HomeUiState.Loading -> Unit
+                        is HomeUiState.Content -> DayContent(
+                            summary = state.summary,
+                            style = dishStyle,
+                            actions = actions,
+                            favoriteNameTaken = favoriteNameTaken,
+                            onDismissFavoriteError = onDismissFavoriteError,
+                        )
+
+                        HomeUiState.Error -> UnreadableDay(actions.onRetry)
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * La barre qui rattrape un plat supprimé.
+ *
+ * **Elle reste affichée cinq secondes, ni quatre ni dix** : `SnackbarDuration` n'offre
+ * que ces deux-là, donc la fenêtre est tenue par le délai et la barre par un affichage
+ * indéfini. Voir `Timing` dans `:core:designsystem`, et la raison pour laquelle ce
+ * délai-là ne suit pas le réglage d'animations réduites.
+ *
+ * Sortie de l'écran quand celui-ci a atteint le seuil de longueur, et le découpage
+ * suit ce que les choses sont : une barre d'annulation est un dispositif à elle seule
+ * — un état, un délai, deux issues.
+ */
+@Composable
+private fun rememberUndoBar(pendingUndo: Dish?, onUndo: () -> Unit, onExpired: () -> Unit): SnackbarHostState {
+    val host = remember { SnackbarHostState() }
+    val deleted = stringResource(R.string.home_dish_deleted)
+    val undo = stringResource(R.string.home_dish_undo)
+
+    LaunchedEffect(pendingUndo) {
+        if (pendingUndo == null) return@LaunchedEffect
+        val result = withTimeoutOrNull(Timing.UNDO_WINDOW_MILLIS) {
+            host.showSnackbar(message = deleted, actionLabel = undo, duration = SnackbarDuration.Indefinite)
+        }
+        if (result == SnackbarResult.ActionPerformed) onUndo() else onExpired()
+    }
+
+    return host
+}
+
+/**
+ * Ce que le défilement de la page fait au calendrier : l'ouvrir, ou le replier.
+ *
+ * **Les deux règles sont ailleurs**, dans `collapsingDelta` et `pulledBy`, où elles
+ * s'éprouvent sans écran. Ce qui vit ici est le branchement : ce qu'on consomme, on
+ * l'a refermé ; ce qu'on a accumulé, on l'a ouvert.
+ *
+ * **La connexion n'est posée que sur le contenu**, jamais sur le calendrier :
+ * `onPreScroll` va du parent vers l'enfant, donc une connexion englobant le mois
+ * déplié le refermerait avant qu'il ait pu défiler ([D103][decisions]).
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+@Composable
+private fun rememberCalendarScroll(
+    expanded: Boolean,
+    scroll: ScrollState,
+    onExpandedChange: (Boolean) -> Unit,
+): NestedScrollConnection {
+    // Lues a chaque geste et non capturees une fois : la connexion survit aux
+    // recompositions, l'etat du calendrier non.
+    val deplie by rememberUpdatedState(expanded)
+    val change by rememberUpdatedState(onExpandedChange)
+    val pullToExpand = with(LocalDensity.current) { ExpandPull.toPx() }
+
+    // La traction vers le bas quand la page est deja en haut, accumulee. Remise a zero
+    // par `pulledBy` des que le geste cesse d'en etre une.
+    var pulled by remember { mutableFloatStateOf(0f) }
+
+    return remember(pullToExpand, scroll) {
+        object : NestedScrollConnection {
+            // **Tout se decide avant l'enfant.** Ce qu'il n'a pas pu consommer n'arrive
+            // pas jusqu'ici : l'effet d'etirement d'Android le prend pour dessiner son
+            // rebond. C'est donc la position du defilement qui dit qu'on est en haut.
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                val replie = collapsingDelta(deplie, available)
+                if (replie != Offset.Zero) {
+                    change(false)
+                    return replie
                 }
 
-                when (state) {
-                    HomeUiState.Loading -> Unit
-                    is HomeUiState.Content -> DayContent(
-                        summary = state.summary,
-                        actions = actions,
-                        favoriteNameTaken = favoriteNameTaken,
-                        onDismissFavoriteError = onDismissFavoriteError,
-                    )
-
-                    HomeUiState.Error -> UnreadableDay(actions.onRetry)
+                pulled = pulledBy(
+                    previous = pulled,
+                    expanded = deplie,
+                    atTop = scroll.value == 0,
+                    available = available,
+                    byUser = source == NestedScrollSource.UserInput,
+                )
+                if (pulled >= pullToExpand) {
+                    change(true)
+                    pulled = 0f
                 }
+                // Rien n'est repris : la page reste libre de ne pas bouger, ce qu'elle
+                // fait deja puisqu'elle est en haut.
+                return Offset.Zero
             }
         }
     }
@@ -272,146 +359,20 @@ fun HomeScreen(
  * défiler. La portée du geste est une affaire de disposition, pas de condition.
  */
 @Composable
-private fun ColumnScope.DayScroll(
+private fun DayScroll(
     collapseOnScroll: NestedScrollConnection,
+    scroll: ScrollState,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .weight(1f)
+            // Toute la place que le glissement lui donne : c'est lui qui porte
+            // desormais le poids dans la colonne de l'ecran.
+            .fillMaxSize()
             .nestedScroll(collapseOnScroll)
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(scroll),
         verticalArrangement = Arrangement.spacedBy(Spacing.xl),
         content = content,
-    )
-}
-
-/**
- * Les boutons flottants, empilés.
- *
- * L'étoile ouvre les plats déjà composés, « Ajouter » la recherche — qui porte aussi
- * la saisie manuelle, puisqu'un aliment tapé à la main devient une fiche. « Ajouter »
- * reste le geste principal : c'est le seul qui porte un libellé.
- *
- * **Les quatre modes de saisie y sont enfin**, et c'est [docs/02][parcours] au complet
- * à une forme près : une colonne plutôt qu'un arc déployé par un bouton unique. L'arc
- * viendra quand il aura quelque chose à replier — quatre boutons empilés se visent
- * aussi bien, et se codent sans animation.
- *
- * Les deux modes d'IA sont **grisés ensemble** : c'est la même clé qui leur manque.
- *
- * [parcours]: docs/02-parcours-et-ecrans.md
- */
-@Composable
-private fun DayActions(actions: HomeActions, aiConfigured: Boolean) {
-    var explaining by rememberSaveable { mutableStateOf(false) }
-
-    if (explaining) {
-        AiUnavailableDialog(
-            onConfigure = {
-                explaining = false
-                actions.onConfigureAi()
-            },
-            onDismiss = { explaining = false },
-        )
-    }
-
-    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-        AiButton(
-            label = stringResource(R.string.home_photograph),
-            configured = aiConfigured,
-            onClick = actions.onPhotograph,
-            onExplain = { explaining = true },
-        ) { label -> CameraGlyph(contentDescription = label) }
-        AiButton(
-            label = stringResource(R.string.home_describe),
-            configured = aiConfigured,
-            onClick = actions.onDescribe,
-            onExplain = { explaining = true },
-        ) { label -> Icon(imageVector = Icons.Filled.Edit, contentDescription = label) }
-        SmallFloatingActionButton(onClick = actions.onScan) {
-            BarcodeGlyph(contentDescription = stringResource(R.string.home_scan))
-        }
-        SmallFloatingActionButton(onClick = actions.onOpenFavorites) {
-            Icon(
-                imageVector = Icons.Filled.Star,
-                contentDescription = stringResource(R.string.home_open_favorites),
-            )
-        }
-        ExtendedFloatingActionButton(onClick = actions.onAddDish) {
-            Text(text = stringResource(R.string.home_add_dish))
-        }
-    }
-}
-
-/**
- * Visible et grisé plutôt que caché ([D73][decisions]), et **tapable dans les deux
- * cas**.
- *
- * Un bouton absent tant qu'aucune clé n'est saisie ne s'apprend jamais : personne ne
- * cherche dans les réglages une fonctionnalité dont rien n'indique l'existence. Un
- * bouton inerte n'apprend rien non plus — c'est pourquoi l'appui ouvre l'explication
- * et le chemin vers les réglages, au lieu de ne rien faire.
- *
- * [decisions]: docs/11-decisions.md
- */
-@Composable
-private fun AiButton(
-    label: String,
-    configured: Boolean,
-    onClick: () -> Unit,
-    onExplain: () -> Unit,
-    icon: @Composable (String) -> Unit,
-) {
-    val unavailable = stringResource(R.string.home_describe_unavailable)
-
-    SmallFloatingActionButton(
-        // **Sans cle, le bouton explique avant d'emmener.** Y aller directement
-        // deposait quelqu'un dans un ecran de reglages sans lui avoir dit pourquoi --
-        // ce qu'il cherchait etait de photographier une assiette, pas de configurer
-        // un fournisseur. La boite dit ce qui manque et ce que ca coute ; son bouton
-        // ouvre la **section d'IA** et non le hub, pour ne pas faire choisir deux fois.
-        onClick = if (configured) onClick else onExplain,
-        containerColor = if (configured) {
-            MaterialTheme.colorScheme.secondaryContainer
-        } else {
-            MaterialTheme.colorScheme.surfaceVariant
-        },
-        // Le grisé ne se voit pas au lecteur d'ecran : sans cette phrase, le bouton
-        // s'annonce comme n'importe quel autre et l'appui semble sans effet.
-        modifier = Modifier.semantics { if (!configured) stateDescription = unavailable },
-    ) {
-        // Les deux glyphes suivent la couleur du contenu : le grise se decide ici,
-        // une fois, plutot que dans chaque appelant.
-        CompositionLocalProvider(
-            LocalContentColor provides
-                if (configured) LocalContentColor.current else MaterialTheme.colorScheme.onSurfaceVariant,
-        ) {
-            icon(label)
-        }
-    }
-}
-
-/**
- * Ce qu'on dit quand il n'y a pas de clé, et **où aller**.
- *
- * Une explication sans chemin obligerait à chercher soi-même la bonne section des
- * réglages ; le bouton l'ouvre — la section d'IA directement, et non le hub, parce que
- * quelqu'un qui vient d'appuyer sur l'appareil photo cherche l'endroit où mettre une
- * clé, pas la liste des réglages. [docs/02][parcours] veut cette explication courte :
- * ce qui manque, ce que ça coûte, et rien de plus.
- *
- * [parcours]: docs/02-parcours-et-ecrans.md
- */
-@Composable
-private fun AiUnavailableDialog(onConfigure: () -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.home_ai_title)) },
-        text = { Text(stringResource(R.string.home_ai_explanation)) },
-        confirmButton = { TextButton(onClick = onConfigure) { Text(stringResource(R.string.home_ai_configure)) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.home_ai_later)) } },
     )
 }
 
@@ -429,6 +390,7 @@ private fun AiUnavailableDialog(onConfigure: () -> Unit, onDismiss: () -> Unit) 
 @Composable
 internal fun DayContent(
     summary: DaySummary,
+    style: DishDisplayStyle,
     actions: HomeActions,
     favoriteNameTaken: Boolean,
     onDismissFavoriteError: () -> Unit,
@@ -445,6 +407,8 @@ internal fun DayContent(
         DishList(
             dishes = summary.dishes,
             zone = summary.zone,
+            goal = goal,
+            style = style,
             actions = actions,
             favoriteNameTaken = favoriteNameTaken,
             onDismissFavoriteError = onDismissFavoriteError,
@@ -475,9 +439,10 @@ private fun RemainingBlock(summary: DaySummary, dailyGoal: DailyGoal) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(Spacing.sm),
     ) {
-        // Un intervalle de plus sous la figure : les six lettres touchent le bas de
-        // sa zone, et le « G » des glucides venait buter contre le grand chiffre.
-        MacroHexagon(quarters = summary.quarters(dailyGoal), modifier = Modifier.padding(bottom = Spacing.md))
+        // Plus d'intervalle a rajouter sous la figure : les six lettres tiennent
+        // desormais dans sa zone, donc le « G » des glucides ne vient plus buter
+        // contre le grand chiffre et le « C » ne sort plus par le haut.
+        MacroHexagon(quarters = summary.quarters(dailyGoal))
         Text(
             text = abs(remaining).roundToInt().toString(),
             style = MaterialTheme.typography.displayLarge,
@@ -503,12 +468,8 @@ private fun RemainingBlock(summary: DaySummary, dailyGoal: DailyGoal) {
  * la seule lecture honnête d'une cible qui n'existe pas.
  */
 private fun DaySummary.quarters(goal: DailyGoal): Map<Macro, MacroQuarter> = Macro.entries.associateWith { macro ->
-    val total = totals[macro]
     val target = goal[macro]
-    MacroQuarter(
-        ratio = if (target > 0.0) (total.value / target).toFloat() else 0f,
-        complete = total.complete,
-    )
+    MacroQuarter(ratio = if (target > 0.0) (totals[macro].value / target).toFloat() else 0f)
 }
 
 @Composable
@@ -524,16 +485,6 @@ private fun MacroBars(summary: DaySummary, goal: DailyGoal) {
                 consumed = summary.totals[macro].value.toFloat(),
                 goal = goal[macro].toFloat(),
                 unit = MacroUnit.GRAM,
-            )
-        }
-
-        // D29 : un total ampute d'une valeur inconnue ne doit pas se lire comme
-        // exact. Le dire une fois sous les barres, plutot que de bruiter chacune.
-        if (BAR_MACROS.any { !summary.totals[it].complete }) {
-            Text(
-                text = stringResource(R.string.home_incomplete_totals),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

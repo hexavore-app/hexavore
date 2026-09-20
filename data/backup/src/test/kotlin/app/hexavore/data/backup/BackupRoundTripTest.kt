@@ -21,6 +21,7 @@ import app.hexavore.domain.diary.FavoriteComponent
 import app.hexavore.domain.diary.FavoriteDish
 import app.hexavore.domain.diary.FavoriteDishId
 import app.hexavore.domain.diary.FoodEntry
+import app.hexavore.domain.diary.MealMoment
 import app.hexavore.domain.diary.QuantityUnit
 import app.hexavore.domain.food.Food
 import app.hexavore.domain.food.FoodId
@@ -307,6 +308,10 @@ class BackupRoundTripTest {
                     macros = Macros(kcal = 161.7, protein = 1.9, carbs = 17.3, sugars = null, fat = 9.3, fiber = null),
                 ),
             ),
+            // Le nom et le moment voyagent avec le reste : la sauvegarde porte ce que
+            // la base tient (D96), et le cas d'aller-retour compare le plat entier.
+            title = "Poke bowl",
+            moment = MealMoment.DINNER,
         )
 
         val FAVORI = FavoriteDish(

@@ -63,9 +63,6 @@ interface DiaryRepository {
      */
     suspend fun save(dish: Dish)
 
-    /** Retire une ligne. Les autres lignes du plat sont intactes. */
-    suspend fun deleteEntry(id: EntryId)
-
     /** Retire un plat et, avec lui, toutes ses lignes. */
     suspend fun deleteDish(id: DishId)
 

@@ -57,7 +57,11 @@
     <!-- Le nom propose. Les libelles de l'ANSES sont a rallonge : trois d'entre
          eux faisaient un titre de cinquante caracteres qu'on efface au lieu de le
          corriger. Un numero se garde ou se remplace, il ne se subit pas. -->
-    <string name="entry_favorite_proposal">Plat %1$d</string>
+    <!-- Le titre d'un plat : propose depuis l'heure, corrigeable, et repris tel quel
+         quand on met le plat en favori. Le rang distingue deux plats du meme moment,
+         et sert aussi a proposer « Dejeuner 2 » quand « Dejeuner » est deja pris. -->
+    <string name="entry_dish_title">Titre du plat</string>
+    <string name="entry_title_ranked">%1$s %2$d</string>
     <!-- Le balayage n'est pas le seul chemin : un geste sans représentation visible
          est introuvable pour qui ne le connaît pas, et hors d'atteinte au lecteur
          d'écran. Le nom est repris pour que « Supprimer » désigne quelque chose. -->

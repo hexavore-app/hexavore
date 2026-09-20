@@ -7,6 +7,7 @@ import app.hexavore.domain.diary.EntryDraft
 import app.hexavore.domain.diary.EntryId
 import app.hexavore.domain.diary.EntrySource
 import app.hexavore.domain.diary.FavoriteDishId
+import app.hexavore.domain.diary.MealMoment
 import app.hexavore.domain.diary.QuantityUnit
 import app.hexavore.domain.diary.Suggestion
 import app.hexavore.domain.food.Food
@@ -43,6 +44,18 @@ internal data class EntryForm(
      * [decisions]: docs/11-decisions.md
      */
     val favoriteId: FavoriteDishId? = null,
+    /**
+     * Le titre écrit à la main, ou `null` tant que le champ n'a pas été touché.
+     *
+     * Le champ affiche pourtant quelque chose — le nom du [moment] — et c'est toute la
+     * distinction : ce qui est **proposé** n'est pas ce qui est **saisi**, et seul le
+     * second s'enregistre ([D118][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val title: String? = null,
+    /** Le moment du plat. Les quatre pastilles le changent, et effacent [title]. */
+    val moment: MealMoment,
 ) {
     fun toDraft(): EntryDraft = EntryDraft(
         dishId = dishId,
@@ -50,6 +63,8 @@ internal data class EntryForm(
         source = source,
         lines = lines.map { it.toDraftLine() },
         favoriteId = favoriteId,
+        title = title,
+        moment = moment,
     )
 
     /**
@@ -69,6 +84,8 @@ internal data class EntryForm(
             source = draft.source,
             lines = draft.lines.map(EntryFormLine::of),
             favoriteId = draft.favoriteId,
+            title = draft.title,
+            moment = draft.moment,
         )
     }
 }

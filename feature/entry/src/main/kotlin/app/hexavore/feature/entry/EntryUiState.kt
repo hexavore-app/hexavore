@@ -40,8 +40,15 @@ internal sealed interface EntryUiState {
          * plutôt que de tout retaper.
          */
         val favoriteNameTaken: Boolean = false,
-        /** Le numéro proposé pour nommer ce plat : « Plat 3 ». */
-        val favoriteNumber: Int = 1,
+        /**
+         * Le nom proposé pour ce favori, ou `null` quand la boîte est fermée.
+         *
+         * **C'est lui qui ouvre la boîte.** Le nom dépend d'une lecture — « Déjeuner »
+         * est peut-être déjà pris — et le champ de la boîte est non contrôlé : il
+         * garde le texte de sa première composition, donc la boîte ne peut pas
+         * s'ouvrir avant de savoir quoi y écrire.
+         */
+        val favoriteProposal: String? = null,
         /**
          * `true` quand on modifie **le favori lui-même** et non un repas.
          *

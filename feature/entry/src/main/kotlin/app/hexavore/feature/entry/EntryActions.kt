@@ -2,6 +2,7 @@ package app.hexavore.feature.entry
 
 import androidx.compose.runtime.Immutable
 import app.hexavore.domain.diary.DraftLineId
+import app.hexavore.domain.diary.MealMoment
 
 /**
  * Ce que l'écran de validation peut déclencher.
@@ -30,12 +31,17 @@ internal data class EntryActions(
      *
      * [decisions]: docs/11-decisions.md
      */
-    /** La boîte de nom s'ouvre : l'écran demande le premier numéro libre. */
-    val onNaming: ((Int) -> String) -> Unit,
+    /** Le titre du plat vient d'être écrit. */
+    val onTitle: (String) -> Unit,
+    /** Une pastille de moment a été touchée : elle remplace le titre. */
+    val onMoment: (MealMoment) -> Unit,
+    /** La boîte de nom s'ouvre : l'écran donne le titre, le modèle cherche un nom libre. */
+    val onNaming: (String, (String, Int) -> String) -> Unit,
+    /** La boîte de nom se referme sans rien enregistrer. */
+    val onDismissNaming: () -> Unit,
     val onFavorite: (String) -> Unit,
     /** Éteindre l'étoile **supprime** le favori : c'est le seul chemin pour l'ôter. */
     val onUnfavorite: () -> Unit,
-    val onDismissFavoriteError: () -> Unit,
     val onRetry: () -> Unit,
     val onClose: () -> Unit,
 )

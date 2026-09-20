@@ -35,6 +35,8 @@ data class Motion(
     val contentEnterMillis: Int,
     /** Décalage appliqué à chaque élément successif d'une apparition. */
     val contentStaggerMillis: Int,
+    /** Sortie d'une journée et entrée de sa voisine, au glissement horizontal. */
+    val daySwipeMillis: Int,
 ) {
     companion object {
         /** Le cadre nominal. */
@@ -45,6 +47,7 @@ data class Motion(
                 buttonPressMillis = 100,
                 contentEnterMillis = 200,
                 contentStaggerMillis = 30,
+                daySwipeMillis = 200,
             )
 
         /**
@@ -61,6 +64,7 @@ data class Motion(
                 buttonPressMillis = 0,
                 contentEnterMillis = 0,
                 contentStaggerMillis = 0,
+                daySwipeMillis = 0,
             )
 
         /** Courbe des jauges et des apparitions de contenu. */

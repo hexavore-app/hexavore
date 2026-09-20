@@ -3,6 +3,7 @@ package app.hexavore.feature.home
 import app.hexavore.core.testing.FixedClock
 import app.hexavore.core.testing.InMemoryAdjustmentSettings
 import app.hexavore.core.testing.InMemoryAiCredentials
+import app.hexavore.core.testing.InMemoryAppearanceSettings
 import app.hexavore.core.testing.InMemoryDiaryRepository
 import app.hexavore.core.testing.InMemoryFavoriteDishes
 import app.hexavore.core.testing.InMemoryGoals
@@ -18,9 +19,9 @@ import app.hexavore.domain.concurrency.DispatcherProvider
 import app.hexavore.domain.diary.EntrySource
 import app.hexavore.domain.nutrition.Macro
 import app.hexavore.domain.usecase.DeleteDish
-import app.hexavore.domain.usecase.DeleteEntry
 import app.hexavore.domain.usecase.GetDaySummary
 import app.hexavore.domain.usecase.GetDishDraft
+import app.hexavore.domain.usecase.ObserveDishStyle
 import app.hexavore.domain.usecase.RemoveFavoriteDish
 import app.hexavore.domain.usecase.RespondToAdjustment
 import app.hexavore.domain.usecase.RestoreDish
@@ -151,29 +152,13 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `supprimer une ligne la retire des totaux`() = runTest(dispatcher) {
-        val diary = InMemoryDiaryRepository(SampleDiary.day(jour))
-        val viewModel = viewModel(diary, FixedClock.atNoon(jour))
-        val avant = viewModel.uiState.filterIsInstance<HomeUiState.Content>().first().summary
-        val plat = avant.dishes.first().dish
-
-        viewModel.onDeleteEntry(plat, plat.entries.first().id)
-
-        val apres = viewModel.uiState.filterIsInstance<HomeUiState.Content>().first().summary
-        assertTrue(
-            apres.totals[Macro.CALORIES].value < avant.totals[Macro.CALORIES].value,
-            "les totaux doivent suivre immediatement",
-        )
-    }
-
-    @Test
     fun `annuler une suppression remet la journee comme avant`() = runTest(dispatcher) {
         val diary = InMemoryDiaryRepository(SampleDiary.day(jour))
         val viewModel = viewModel(diary, FixedClock.atNoon(jour))
         val avant = viewModel.uiState.filterIsInstance<HomeUiState.Content>().first().summary
         val plat = avant.dishes.first().dish
 
-        viewModel.onDeleteEntry(plat, plat.entries.first().id)
+        viewModel.onDeleteDish(plat)
         viewModel.onUndo()
 
         val apres = viewModel.uiState.filterIsInstance<HomeUiState.Content>().first().summary
@@ -189,7 +174,7 @@ class HomeViewModelTest {
         val plat = viewModel.uiState.filterIsInstance<HomeUiState.Content>().first().summary.dishes.first().dish
         diary.failure = IllegalStateException("base illisible")
 
-        viewModel.onDeleteEntry(plat, plat.entries.first().id)
+        viewModel.onDeleteDish(plat)
 
         assertNull(viewModel.pendingUndo.value)
     }
@@ -255,26 +240,28 @@ class HomeViewModelTest {
         credentials = cles,
         // L'adaptation hebdomadaire se tait ici : rien n'est pese, donc il n'y a ni
         // pente ni cap annonce. Elle a ses propres cas dans :domain.
-        suggestGoalAdjustment = SuggestGoalAdjustment(
-            weights = InMemoryWeightLog(),
-            diary = diary,
-            goals = InMemoryGoals(),
-            profiles = InMemoryProfiles(),
-            settings = InMemoryAdjustmentSettings(),
-            clock = clock,
+        adjustment = DayAdjustment(
+            suggest = SuggestGoalAdjustment(
+                weights = InMemoryWeightLog(),
+                diary = diary,
+                goals = InMemoryGoals(),
+                profiles = InMemoryProfiles(),
+                settings = InMemoryAdjustmentSettings(),
+                clock = clock,
+            ),
+            respondTo = RespondToAdjustment(
+                goals = InMemoryGoals(),
+                settings = adaptation,
+                ids = SequentialIdGenerator("objectif"),
+                clock = clock,
+            ),
         ),
-        respondToAdjustment = RespondToAdjustment(
-            goals = InMemoryGoals(),
-            settings = InMemoryAdjustmentSettings(),
-            ids = SequentialIdGenerator("objectif"),
-            clock = clock,
-        ),
+        observeDishStyle = ObserveDishStyle(InMemoryAppearanceSettings()),
         gestures = DishGestures(
-            deleteEntry = DeleteEntry(diary),
             deleteDish = DeleteDish(diary),
             restoreDish = RestoreDish(diary),
             toggleFavorite = ToggleDishFavorite(
-                drafts = GetDishDraft(diary, SequentialIdGenerator("ligne")),
+                drafts = GetDishDraft(diary, SequentialIdGenerator("ligne"), clock),
                 update = UpdateDish(diary, SequentialIdGenerator("ligne")),
                 save = SaveFavoriteDish(favoris, SequentialIdGenerator("fav")),
                 remove = RemoveFavoriteDish(favoris),
@@ -287,6 +274,7 @@ class HomeViewModelTest {
 
     private val favoris = InMemoryFavoriteDishes()
     private val cles = InMemoryAiCredentials()
+    private val adaptation = InMemoryAdjustmentSettings()
 
     /** Tout sur le dispatcher de test : aucun vrai pool de threads dans un test. */
     private class TestDispatchers(private val dispatcher: CoroutineDispatcher) : DispatcherProvider {

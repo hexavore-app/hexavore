@@ -2,12 +2,14 @@ package app.hexavore.feature.settings
 
 import app.hexavore.core.testing.InMemoryAppearanceSettings
 import app.hexavore.core.testing.InMemoryProfiles
+import app.hexavore.domain.appearance.DishDisplayStyle
 import app.hexavore.domain.appearance.ThemeMode
 import app.hexavore.domain.profile.ActivityLevel
 import app.hexavore.domain.profile.Sex
 import app.hexavore.domain.profile.UnitSystem
 import app.hexavore.domain.profile.UserProfile
 import app.hexavore.domain.usecase.ChooseUnitSystem
+import app.hexavore.domain.usecase.ObserveDishStyle
 import app.hexavore.domain.usecase.ObserveUnitSystem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -123,11 +125,43 @@ internal class AppearanceViewModelTest {
 
     private fun modele() = modeleDe(settings)
 
-    /** Le profil porte les unites, le magasin porte le theme : deux sources, un ecran. */
+    @Test
+    fun `sans rien de choisi, les plats s affichent en simplifie`() = runTest(dispatcher) {
+        // Le defaut d'une installation neuve : le detaille cite chaque aliment de
+        // chaque plat, ce qui fait beaucoup de texte des qu'une journee est chargee.
+        assertEquals(DishDisplayStyle.SIMPLE, modele().uiState.value.dishStyle)
+    }
+
+    @Test
+    fun `choisir le detaille l enregistre et le montre`() = runTest(dispatcher) {
+        val modele = modele()
+
+        modele.onDishStyle(DishDisplayStyle.DETAILED)
+        advanceUntilIdle()
+
+        assertEquals(DishDisplayStyle.DETAILED, modele.uiState.value.dishStyle)
+        assertEquals(
+            DishDisplayStyle.DETAILED,
+            settings.currentStyle,
+            "le choix doit etre ecrit, pas seulement affiche",
+        )
+    }
+
+    @Test
+    fun `un magasin illisible laisse l ecran ouvert, sur le simplifie`() = runTest(dispatcher) {
+        // Le detaille serait le pire des deux replis : plus long a lire, et un reglage
+        // qu'on croit avoir mis se retrouverait ignore sans un mot.
+        val abime = InMemoryAppearanceSettings(initialStyle = DishDisplayStyle.DETAILED, failure = true)
+
+        assertEquals(DishDisplayStyle.SIMPLE, modeleDe(abime).uiState.value.dishStyle)
+    }
+
+    /** Le profil porte les unites, le magasin porte le theme et le style : deux sources, un ecran. */
     private fun modeleDe(apparence: InMemoryAppearanceSettings) = AppearanceViewModel(
         settings = apparence,
         chooseUnits = ChooseUnitSystem(profils),
         observeUnits = ObserveUnitSystem(profils),
+        observeDishStyle = ObserveDishStyle(apparence),
     )
 
     private companion object {

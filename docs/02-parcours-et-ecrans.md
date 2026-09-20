@@ -71,13 +71,15 @@ Le jour de départ d'un objectif porte un liseré : on voit où une nouvelle pha
 
 **Tap sur une pastille : l'accueil change de date, sur place** ([D101](11-decisions.md#d101--laccueil-porte-une-date-et-lécran-journée-disparaît---validée)). Le calendrier ne bouge pas — c'est ce qui permet de se promener dans l'historique sans le perdre — et le bouton d'ajout écrit sur le jour affiché, pour rattraper un oubli. Une poignée déplie le mois ; un glissement vers le haut le replie et la page suit.
 
+**Trois gestes ouvrent le mois, et c'est le nombre qu'il fallait** ([D116](11-decisions.md)) : tirer la poignée, **la toucher** — elle ne répondait pas au doigt, seule l'action d'accessibilité était déclarée — et **tirer la page vers le bas quand elle est déjà en haut**, d'environ un centimètre. Ce dernier est celui que tout le monde connaît sans l'avoir appris ; les deux autres sont pour qui vise la poignée. Un défilement **lancé** qui bute en haut n'ouvre rien : un élan est un arrêt, pas une intention. La poignée elle-même porte un chevron et passe en encre claire — en `outline`, elle tenait 1,4:1 sur le fond sombre, là où un élément d'interface en demande 3.
+
 ### Bloc « Reste aujourd'hui »
 
 Le cœur de l'écran, et la figure qui donne son nom à l'application : l'**hexagone des macros**. Six quartiers, un par compteur, remplis depuis le centre, le contour marquant l'objectif du jour ([08](08-design-system.md#macrohexagon)). Il répond à une seule question — comment va ma journée.
 
 Sous l'hexagone, le **restant en calories** en grand chiffre. Le restant et non le consommé : c'est l'information dont on a besoin au moment de décider quoi manger. Le consommé et l'objectif sont écrits en dessous, plus petits. En cas de dépassement, le chiffre devient négatif. Aucun message moralisateur, aucun rouge d'alerte : c'est une donnée, pas un jugement.
 
-Puis les **six barres**, dans le même ordre angulaire que les quartiers. Elles répondent à l'autre question : combien exactement. L'hexagone ne peut dire ni « 87 / 144 g », ni le `max` d'une limite, ni le `≥` d'un total minoré ; les barres ne peuvent pas montrer une journée d'un coup d'œil. Les deux ne se concurrencent pas.
+Puis les **six barres**, dans le même ordre angulaire que les quartiers. Elles répondent à l'autre question : combien exactement. L'hexagone ne peut dire ni « 87 / 144 g » ni le `max` d'une limite ; les barres ne peuvent pas montrer une journée d'un coup d'œil. Les deux ne se concurrencent pas.
 
 Ce bloc est le même sur l'accueil et sur l'écran **Journée** d'un jour passé : c'est le même récapitulatif, seule la date change.
 
@@ -85,30 +87,40 @@ Ce bloc est le même sur l'accueil et sur l'écran **Journée** d'un jour passé
 
 Les plats de la journée, du plus ancien au plus récent. Un **plat** est ce qu'on a saisi en une fois : plusieurs aliments, une seule origine.
 
-Pas de petit-déjeuner, de déjeuner ni de dîner. Ces catégories obligeraient à ranger chaque saisie dans une case avant de l'enregistrer, pour répondre à une question qu'on ne se pose pas : ce qui compte est ce qu'on a mangé aujourd'hui, et l'heure situe déjà chaque plat ([D31](11-decisions.md)).
+Pas de case à choisir avant d'enregistrer : ce qui compte est ce qu'on a mangé aujourd'hui, et l'heure situe déjà chaque plat ([D31](11-decisions.md)).
 
-**En tête de plat** : sa pastille d'origine, son heure, son total de calories.
+**Un plat porte quand même un nom** ([D118](11-decisions.md)), et ce n'est pas la même chose : il se déduit de l'heure — petit-déjeuner, déjeuner, goûter, dîner —, ne coûte aucun geste, ne range le plat nulle part, et sert à écrire une liste sans citer tous ses aliments. Deux plats du même moment le même jour se numérotent à l'affichage : « Déjeuner », puis « Déjeuner 2 ». Il se corrige dans l'écran de validation, au clavier ou d'un tap sur l'une des quatre pastilles — l'heure d'un plat étant celle de sa saisie, le dîner d'hier noté ce matin s'appellerait sinon « Petit-déjeuner ».
+
+**En tête de plat** : sa pastille d'origine, **son titre**, son heure, son total de calories.
 
 **En pied de plat** : ses cinq autres apports. Un plat qui ne se lit que par son énergie ne dit pas d'où viennent les protéines ni ce qui a fait grimper les sucres — or c'est exactement la question qu'on se pose en relisant sa journée.
 
-Chaque ligne d'aliment montre nom, quantité, calories. **Pas de pastille par ligne** : la source appartient au plat ([D32](11-decisions.md)).
+**Sous chaque chiffre, un trait de 3 dp** : la part que ce plat a prise sur l'objectif du jour ([D119](11-decisions.md)). Il répond à une question qu'aucun chiffre ne posait — *ce plat, c'était combien de ma journée ?* — et il disparaît quand la journée n'a pas d'objectif, faute de cible à laquelle se rapporter.
+
+**Deux styles d'affichage**, réglés dans Apparence : le **simplifié** — titre, heure, calories, apports — et le **détaillé**, qui y ajoute la liste des aliments. Le simplifié est le défaut, parce que citer chaque aliment de chaque plat fait beaucoup de texte dès qu'une journée est chargée. Le geste ne change pas d'un style à l'autre : le tap ouvre la modification, l'appui long ouvre le menu.
+
+Chaque ligne d'aliment — en détaillé — montre nom, quantité, calories. **Pas de pastille par ligne** : la source appartient au plat ([D32](11-decisions.md)).
+
+**L'accueil ne signale plus les totaux minorés** ([D119](11-decisions.md)) : plus de « ≥ » sur les apports, plus de phrase sous les barres, plus de quartier estompé. Une valeur non renseignée s'y lit comme zéro. Ce que la base sait reste ce qu'elle sait — la distinction entre inconnu et zéro vit toujours dans les données, et l'écran de validation continue de désigner le champ qui manque.
 
 - **Tap** → ouvre l'écran de validation du plat, en édition. La cible tactile est le plat **entier** — pastille, heure, total et apports compris, pas seulement ses lignes d'aliment ([D48](11-decisions.md)). Sans coins arrondis : ils tronquaient la pastille et le total ([D52](11-decisions.md)).
-- **Balayage vers la gauche** → supprimer, avec `Snackbar` d'annulation (5 s). Aucune suppression n'est immédiatement définitive.
+- ~~**Balayage vers la gauche** → supprimer une ligne.~~ **Le balayage change de jour** ([D117](11-decisions.md)) : vers la gauche le lendemain, vers la droite la veille, le contenu suivant le doigt et s'arrêtant à aujourd'hui. Supprimer une ligne se fait en ouvrant le plat, où chaque ligne porte sa corbeille ; l'accueil ne supprime plus qu'un plat entier, par l'appui long, et la barre d'annulation reste offerte (5 s). Aucune suppression n'est immédiatement définitive.
 - **Appui long** → menu du plat : ~~dupliquer, déplacer vers un autre plat,~~ **Modifier**, **Supprimer** ([D61](11-decisions.md)). Supprimer emporte les *n* lignes d'un coup : un dialogue le demande d'abord et **dit le nombre**, puis la barre d'annulation reste offerte. « Modifier » double le tap volontairement — un menu dont la moitié des entrées manque oblige à se souvenir de quel geste sert à quoi. **Mettre en favori** / **Retirer des favoris** ([D62](11-decisions.md)) : mettre demande un nom, retirer n'en demande pas — le favori est déjà désigné par le plat. *Dupliquer et déplacer restent à faire.*
 
 ### Bouton d'ajout
 
-Bouton d'action flottant en bas à droite. Un tap déploie quatre actions étiquetées, en arc :
+Une colonne de boutons flottants en bas à droite. ~~Un tap déploie quatre actions étiquetées, en arc.~~
 
 | | Action | Ouvre |
 |---|---|---|
+| ✨ | IA | Écran d'IA — une photo, une phrase, ou les deux |
 | ⌗ | Scanner | Modale code-barres |
-| ⛶ | Photographier | Modale photo |
-| ⌕ | Rechercher | Modale recherche |
-| ✎ | Décrire | Modale texte |
+| ★ | Favoris | Liste des plats enregistrés |
+| — | **Ajouter** | Modale recherche, qui porte aussi la saisie manuelle |
 
-L'ordre est fixe. Un ordre adaptatif « selon vos habitudes » ferait bouger les cibles sous le doigt et détruirait la mémoire musculaire — c'est exactement le contraire du but.
+**Un seul bouton d'IA** ([D120](11-decisions.md)), là où « Photographier » et « Décrire » en occupaient deux : les deux modales ne différaient que par ce qu'elles envoyaient. La colonne y gagne la place qui manquait le plus, juste au-dessus du pouce.
+
+L'ordre est fixe. Un ordre adaptatif « selon vos habitudes » ferait bouger les cibles sous le doigt et détruirait la mémoire musculaire — c'est exactement le contraire du but. « Ajouter » reste le seul à porter un libellé : c'est le geste principal.
 
 ---
 
@@ -142,18 +154,25 @@ La permission est demandée **à l'ouverture**, sans écran d'explication devant
 
 ---
 
-## Modale : photo
+## Écran d'IA
 
-1. **Prise de vue.** Aperçu CameraX, déclencheur, bascule galerie. Conseil discret en surimpression : *« Cadrez l'assiette entière, de préférence vue de dessus. »*
-2. **Contexte facultatif.** Un champ d'une ligne : « Un détail à préciser ? (facultatif) » — par exemple *« l'assiette fait 24 cm »* ou *« la sauce est allégée »*. Ce texte est joint au prompt. C'est le levier de précision le moins coûteux qui existe.
-3. **Analyse.** L'image est réduite (1024 px sur le côté long, JPEG qualité 80) puis envoyée au fournisseur configuré. Écran d'attente avec animation néon et bouton **Annuler** qui coupe réellement la requête.
-4. **Validation.** Écran de validation multi-lignes.
+**Un seul écran pour la photo et pour le texte** ([D120](11-decisions.md)). Il remplace ~~la modale photo~~ et ~~la modale texte libre~~, qui suivaient le même pipeline, déposaient au même endroit, traduisaient les mêmes erreurs et sortaient au même écran : ce qui les distinguait tenait en une ligne de code.
 
-Le fichier temporaire vit dans le cache de l'application et est supprimé dans un bloc `finally`, que l'appel réussisse, échoue ou soit annulé. Il n'entre jamais dans la galerie du téléphone.
+Trois zones, de haut en bas :
 
-**Aucune clé API configurée.** L'entrée « Photographier » reste visible mais grisée ; un tap ouvre une explication courte et un raccourci vers les réglages. La masquer laisserait croire que la fonctionnalité n'existe pas.
+1. **Le cadre de l'image**, et **dedans deux boutons ronds** — prendre une photo, choisir une image. Ce qu'on regarde et ce qui le change sont au même endroit. Vide, le cadre dit ce qu'on attend de lui : *« Photographiez l'assiette entière, de préférence vue de dessus — ou décrivez votre repas en dessous. »* C'est le conseil de cadrage que cette page voulait en surimpression d'un aperçu caméra, et il se lit mieux **avant** d'appuyer. Une croix retire la photo, ce qui permet de basculer vers le texte sans quitter l'écran.
+2. **Le champ de texte**, qui change de rôle selon le cadre : sans photo il **décrit** le repas, avec photo il le **précise** — *« l'assiette fait 24 cm »*, *« la sauce est allégée »*, le levier de justesse le moins coûteux qui existe. Son libellé le dit ; un champ qui demanderait « décrivez votre repas » sous une photo ferait tout retaper.
+3. **Le bouton « Analyser »**, en bas, actif dès qu'il y a **une photo ou une phrase**.
 
-**Échec.** Les erreurs sont traduites en langage humain, jamais en code HTTP : clé invalide → « Votre clé pour *Gemini* a été refusée. Vérifiez-la dans les réglages. » ; quota → « Votre fournisseur a refusé la requête : quota atteint. » ; réseau → « Pas de connexion. » Dans tous les cas, la photo est conservée en mémoire le temps de proposer **Réessayer**, et une porte de sortie vers la saisie manuelle est offerte.
+**La prise de vue reste celle du système.** Un aperçu CameraX demanderait une seconde implémentation — la première sert le scan, qui analyse un flux en continu — pour un écran dont le seul travail est de remettre un JPEG. L'appareil du système apporte sa mise au point, son flash et son zoom, et il écrit directement dans notre cache. Le fichier temporaire est supprimé dans un bloc `finally`, que l'appel réussisse, échoue ou soit annulé ; il n'entre jamais dans la galerie.
+
+L'image est réduite (1024 px sur le côté long, JPEG qualité 80) avant l'envoi. **Annuler coupe réellement la requête** : ce qui n'est pas parti n'est pas facturé.
+
+**L'avertissement ne concerne que la photo.** Elle envoie une image de votre repas — et de ce qui l'entoure — à un tiers, et cela se dit une fois avant le premier envoi ([05](05-ia.md)). Une phrase tapée part sans avertissement : celui qui l'écrit sait exactement ce qu'il envoie.
+
+**Aucune clé API configurée.** Le bouton d'IA reste visible mais grisé ; un tap ouvre une explication courte et un raccourci vers la section d'IA des réglages. Le masquer laisserait croire que la fonctionnalité n'existe pas.
+
+**Échec.** Les erreurs sont traduites en langage humain, jamais en code HTTP : clé invalide → « Votre clé pour *Gemini* a été refusée. Vérifiez-la dans les réglages. » ; quota → « Votre fournisseur a refusé la requête : quota atteint. » ; réseau → « Pas de connexion. » Dans tous les cas, **la photo et la phrase sont conservées** le temps de proposer de réessayer, et une porte de sortie vers la saisie manuelle est offerte.
 
 ---
 
@@ -186,18 +205,6 @@ Tap → écran de validation avec la quantité par défaut de l'aliment (voir [0
 
 ---
 
-## Modale : texte libre
-
-Une zone de texte, un exemple en placeholder, un bouton « Analyser ».
-
-> *deux œufs brouillés, une tranche de pain complet, un verre de jus d'orange*
-
-L'analyse suit exactement le même pipeline que la photo — le contrat d'entrée du modèle accepte une image ou un texte, rien d'autre ne change ([05](05-ia.md)). Mêmes erreurs, mêmes messages, même écran de sortie.
-
-La dernière saisie est conservée tant que la modale n'a pas abouti, pour qu'un échec réseau ne fasse jamais retaper une phrase.
-
----
-
 ## Écran de validation d'entrée
 
 Le point de convergence. Une ou plusieurs lignes, chacune éditable, un bouton d'enregistrement.
@@ -210,11 +217,11 @@ Chaque ligne présente :
 - **Macros dépliables** : les six valeurs, chacune éditable, en **grammes entiers** — personne ne compte les demi-grammes, et l'arrondi a lieu à la saisie et non à l'affichage, pour que le chiffre lu soit celui qui est enregistré ([D52](11-decisions.md)). Une valeur modifiée à la main est marquée et ne sera plus jamais recalculée automatiquement pour cette ligne. Vider un champ compte comme une modification : c'est une affirmation, et la quantité n'a pas à la contredire.
 - **Date** : aujourd'hui par défaut, ou le jour affiché par l'accueil si on est parti d'un jour passé. Elle ne change pas de place — elle est à côté du badge de source depuis toujours — elle change de **ton** : discrète pour aujourd'hui, en corps de texte et en encre pleine pour un autre jour, où elle dit « Sera noté sur le mardi 18 août » ([D101](11-decisions.md#d101--laccueil-porte-une-date-et-lécran-journée-disparaît---validée)). Il n'y a **pas** de repas de destination à choisir : les lignes de cet écran forment un plat, et le plat se range tout seul à son heure.
 
-En bas du défilement : total de la saisie, et son impact sur les compteurs du jour (« il vous restera 780 kcal »), avec **Ajouter un aliment** — qui rouvre la même recherche que le bouton de l'accueil, et dont le choix revient au brouillon en cours. **Enregistrer** et **Annuler** n'y sont pas : ils flottent au-dessus de la liste, côte à côte et toujours à l'image, parce qu'en pied de défilement ils s'éloignaient à mesure que le plat grossissait ([D48](11-decisions.md)). Les autres actions — **Supprimer une ligne**, **Enregistrer comme plat favori** — restent auprès de ce sur quoi elles portent. L'étoile est **en haut à droite** de l'écran, et elle n'apparaît que sur un brouillon complet : un favori sans ligne enregistrable ne rejouerait rien. L'allumer demande un nom, **proposé** depuis les aliments du plat ; l'éteindre **supprime le favori**, et c'est le seul chemin pour l'ôter de la liste ([D62](11-decisions.md)).
+En bas du défilement : total de la saisie, et son impact sur les compteurs du jour (« il vous restera 780 kcal »), avec **Ajouter un aliment** — qui rouvre la même recherche que le bouton de l'accueil, et dont le choix revient au brouillon en cours. **Enregistrer** et **Annuler** n'y sont pas : ils flottent au-dessus de la liste, côte à côte et toujours à l'image, parce qu'en pied de défilement ils s'éloignaient à mesure que le plat grossissait ([D48](11-decisions.md)). Les autres actions — **Supprimer une ligne**, **Enregistrer comme plat favori** — restent auprès de ce sur quoi elles portent. L'étoile est **en haut à droite** de l'écran, et elle n'apparaît que sur un brouillon complet : un favori sans ligne enregistrable ne rejouerait rien. L'allumer demande un nom, **proposé depuis le titre du plat** — et suivi de son premier rang libre si ce nom est déjà pris, « Déjeuner 2 » ([D118](11-decisions.md)) ; ~~proposé depuis les aliments du plat~~ ; l'éteindre **supprime le favori**, et c'est le seul chemin pour l'ôter de la liste ([D62](11-decisions.md)).
 
-**Un plat relu et vidé de toutes ses lignes se supprime** ([D61](11-decisions.md)), et le bouton d'enregistrement le dit : il devient « Supprimer ce plat ». C'est la même règle que le balayage applique déjà à la dernière ligne d'un plat — un plat sans contenu n'est pas un plat à zéro calorie, c'est une saisie qui n'a pas eu lieu. Une saisie **neuve** vidée, elle, n'a rien à supprimer et reste non enregistrable.
+**Un plat relu et vidé de toutes ses lignes se supprime** ([D61](11-decisions.md)), et le bouton d'enregistrement le dit : il devient « Supprimer ce plat ». C'est la seule règle sur le sujet depuis que le balayage a disparu — un plat sans contenu n'est pas un plat à zéro calorie, c'est une saisie qui n'a pas eu lieu. Une saisie **neuve** vidée, elle, n'a rien à supprimer et reste non enregistrable.
 
-**Deux chemins pour supprimer une ligne**, et les deux sont nécessaires : une corbeille visible à droite du nom, et le balayage. Un geste sans représentation visible est introuvable pour qui ne le connaît pas, hors d'atteinte au lecteur d'écran, et difficile pour une main qui tient mal le téléphone. Le balayage reste le raccourci de celui qui le connaît, jamais le seul chemin vers une action destructrice.
+**Un seul chemin pour supprimer une ligne** : la corbeille visible à droite du nom. Il y en avait deux — la corbeille et le balayage — et c'est le balayage qui part ([D117](11-decisions.md)) : le chemin visible était de toute façon le seul que la règle du projet rendait obligatoire, un geste sans représentation visible étant introuvable pour qui ne le connaît pas, hors d'atteinte au lecteur d'écran, et difficile pour une main qui tient mal le téléphone.
 
 Cet écran est aussi celui qu'on obtient en tapant sur une ligne déjà enregistrée : même composant, en mode édition. Les macros affichées sont alors celles **figées à l'enregistrement**, pas celles recalculées depuis la source — un produit reformulé par son fabricant ne doit pas réécrire le passé.
 
@@ -312,6 +319,8 @@ Le réglage vit dans **son propre fichier** — effacer ses clés d'IA n'a aucun
 **Unités** — métrique ou impérial ([D114](11-decisions.md#d114--lonce-est-une-unité-de-saisie-la-livre-un-affichage---validée)). Le réglage **ne convertit rien** : les lignes du journal gardent l'unité dans laquelle elles ont été saisies, la base garde ses kilogrammes et ses centimètres, et l'on peut basculer, regarder, puis revenir sans qu'un chiffre ait bougé.
 
 En impérial, une ligne se saisit en **oz** ou **fl oz** — une unité de plus dans la liste, comme « 1 tranche » —, le corps s'affiche et se saisit en **livres** et en **pieds et pouces**, et la taille prend alors deux champs plutôt qu'un : personne n'énonce sa taille en pouces. Les **macros restent en grammes**, comme sur les étiquettes américaines.
+
+**Affichage des plats** — simplifié ou détaillé ([D119](11-decisions.md)). Le simplifié donne le titre du plat, son heure, ses calories et ses apports ; le détaillé y ajoute la liste de ses aliments. Deux styles et non une échelle de densité : ce qui les distingue n'est pas une hauteur de ligne, c'est ce qu'on lit — *qu'est-ce que j'ai mangé et combien ça pèse* d'un côté, *de quoi était-ce fait* de l'autre. Comme le thème, c'est une préférence d'appareil, et elle ne voyage pas dans la sauvegarde.
 
 *La langue et les animations réduites restent à faire. L'onboarding reste métrique : le réglage vit sur le profil qu'il crée, donc il n'existe pas encore quand ses questions se posent.*
 

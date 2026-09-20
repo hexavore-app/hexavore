@@ -25,9 +25,6 @@
     <string name="home_error_body">La lecture n\'a pas abouti. Rien n\'a été modifié : vos plats sont là où ils étaient.</string>
     <string name="home_error_retry">Réessayer</string>
 
-    <!-- D29 : un total amputé d'une valeur inconnue ne doit pas se lire comme exact. -->
-    <string name="home_incomplete_totals">Totaux minorés : certaines lignes n\'ont pas toutes leurs valeurs.</string>
-
     <!-- Tant qu'aucun objectif n'a été posé. Une invitation, pas six jauges vides :
          une jauge à zéro laisserait croire qu'un objectif existe et n'est pas atteint. -->
     <string name="home_no_goal_title">Pas encore d\'objectif</string>
@@ -39,19 +36,21 @@
     <string name="home_open_profile">Profil et objectifs</string>
     <string name="home_open_weight">Journal de poids</string>
 
-    <!-- Ce qui a été mangé reste exact sans objectif : c'est la comparaison qui manque. -->
+    <!-- Ce qui a été mangé reste exact sans objectif : c'est la comparaison qui manque.
+         Plus de forme « au moins » : l'accueil ne signale plus les totaux minorés, et
+         une valeur non renseignée s'y lit comme zéro (D119). -->
     <string name="home_total_line">%1$s : %2$d</string>
-    <string name="home_total_line_partial">%1$s : au moins %2$d</string>
 
     <!-- Un seul bouton : il ouvre la recherche, qui porte aussi la saisie manuelle.
          Le scan et l'IA n'existent pas encore, et un bouton qui n'ouvre rien n'est
          pas une avance. -->
     <string name="home_add_dish">Ajouter</string>
 
-    <!-- Aucune suppression n'est immédiatement définitive. -->
-    <string name="home_entry_delete">Supprimer</string>
-    <string name="home_entry_deleted">Ligne supprimée</string>
-    <string name="home_entry_undo">Annuler</string>
+    <!-- Aucune suppression n'est immédiatement définitive. La barre parle du plat :
+         c'est la seule chose que l'accueil supprime depuis que le balayage sert à
+         changer de jour, et son libellé annonçait une ligne même pour un plat entier. -->
+    <string name="home_dish_deleted">Plat supprimé</string>
+    <string name="home_dish_undo">Annuler</string>
 
     <!-- Une ligne est un seul nœud d'accessibilité : nom, quantité, calories, en
          une phrase plutôt qu'en trois arrêts. -->
@@ -76,11 +75,11 @@
     <string name="home_open_favorites">Vos plats favoris</string>
     <string name="home_scan">Scanner un code-barres</string>
 
-    <!-- Le bouton d'IA reste visible sans cle, et grise : cache, il ne s'apprend
-         jamais ; inerte, il n'apprend rien non plus. L'appui ouvre l'explication. -->
-    <string name="home_describe">Décrire un repas</string>
-    <string name="home_photograph">Photographier un repas</string>
-    <string name="home_describe_unavailable">indisponible, aucune clé d\'IA</string>
+    <!-- Un seul bouton d'IA depuis D120 : les deux ecrans n'en font plus qu'un. Il
+         reste visible sans cle, et grise : cache, il ne s'apprend jamais ; inerte, il
+         n'apprend rien non plus. L'appui ouvre l'explication. -->
+    <string name="home_analyse">Analyser un repas avec l\'IA</string>
+    <string name="home_analyse_unavailable">indisponible, aucune clé d\'IA</string>
 
     <!-- Ce qui manque, ce que ça coûte, et où aller. Le bouton ouvre la section d'IA
          et non le hub : qui vient d'appuyer sur l'appareil photo cherche l'endroit où
@@ -116,9 +115,7 @@
     <!-- Apports du plat. L'initiale porte la même information que la couleur :
          une couleur ne renseigne jamais seule. -->
     <string name="home_macro_chip">%1$s %2$s</string>
-    <string name="home_macro_chip_partial">%1$s ≥ %2$s</string>
     <string name="home_macro_grams">%1$s g</string>
-    <string name="home_macro_at_least">%1$s au moins %2$s</string>
 
     <string name="macro_calories">Calories</string>
     <string name="macro_protein">Protéines</string>

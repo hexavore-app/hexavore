@@ -1,12 +1,9 @@
 package app.hexavore.feature.home
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -27,17 +24,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import app.hexavore.core.designsystem.component.SourceBadge
-import app.hexavore.core.designsystem.component.SwipeToDelete
+import app.hexavore.core.designsystem.component.dishTitleText
 import app.hexavore.core.designsystem.theme.NeonTheme
 import app.hexavore.core.designsystem.theme.Spacing
+import app.hexavore.domain.appearance.DishDisplayStyle
 import app.hexavore.domain.diary.DishSummary
 import app.hexavore.domain.diary.FoodEntry
+import app.hexavore.domain.goal.DailyGoal
 import app.hexavore.domain.nutrition.Macro
-import app.hexavore.domain.nutrition.MacroTotal
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -46,12 +44,17 @@ import kotlin.math.roundToInt
 /**
  * Les plats de la journée, du plus ancien au plus récent.
  *
- * Pas de repas nommés : un plat est une saisie, et l'heure suffit à le situer.
+ * Chaque plat porte un nom, déduit de son heure ou écrit à la main ([D118][decisions]) :
+ * c'est ce qui permet de lire une journée sans lire chaque aliment.
+ *
+ * [decisions]: docs/11-decisions.md
  */
 @Composable
 internal fun DishList(
     dishes: List<DishSummary>,
     zone: ZoneId,
+    goal: DailyGoal?,
+    style: DishDisplayStyle,
     actions: HomeActions,
     favoriteNameTaken: Boolean,
     onDismissFavoriteError: () -> Unit,
@@ -60,7 +63,16 @@ internal fun DishList(
 
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.xl)) {
         dishes.forEach { dish ->
-            DishBlock(dish, zone, timeFormatter, actions, favoriteNameTaken, onDismissFavoriteError)
+            DishBlock(
+                summary = dish,
+                zone = zone,
+                goal = goal,
+                style = style,
+                timeFormatter = timeFormatter,
+                actions = actions,
+                favoriteNameTaken = favoriteNameTaken,
+                onDismissFavoriteError = onDismissFavoriteError,
+            )
         }
     }
 }
@@ -74,8 +86,9 @@ internal fun DishList(
  * pastille, le total et les apports inertes — c'est-à-dire la moitié de la surface
  * du plat, sans que rien ne dise pourquoi elle ne répond pas ([D48][decisions]).
  *
- * Le balayage de suppression continue de fonctionner : il est capté plus bas dans
- * l'arbre, et un tap n'est pas un glissement.
+ * **Plus aucun balayage ici.** Celui qui supprimait une ligne a été retiré, et
+ * l'horizontal appartient désormais à la journée entière : il change de jour
+ * ([D117][decisions]).
  *
  * [decisions]: docs/11-decisions.md
  */
@@ -85,6 +98,8 @@ internal fun DishList(
 private fun DishBlock(
     summary: DishSummary,
     zone: ZoneId,
+    goal: DailyGoal?,
+    style: DishDisplayStyle,
     timeFormatter: DateTimeFormatter,
     actions: HomeActions,
     favoriteNameTaken: Boolean,
@@ -130,17 +145,14 @@ private fun DishBlock(
             onConfirmingChange = { confirming = it },
             onDismissFavoriteError = onDismissFavoriteError,
         )
-        DishHeader(summary, zone, timeFormatter)
-        HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-        summary.entries.forEach { entry ->
-            SwipeToDelete(
-                label = stringResource(R.string.home_entry_delete),
-                onDelete = { actions.onDeleteEntry(summary.dish, entry.id) },
-            ) {
-                EntryRow(entry = entry)
-            }
+        DishHeader(summary, zone, goal, timeFormatter)
+        // Le trait et les lignes d'aliments vont ensemble : sans lignes, le trait ne
+        // separerait plus rien de rien.
+        if (style == DishDisplayStyle.DETAILED) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+            summary.entries.forEach { entry -> EntryRow(entry = entry) }
         }
-        DishMacros(summary)
+        DishMacros(summary, goal)
     }
 }
 
@@ -166,7 +178,11 @@ private fun DishDialogs(
 
     if (naming) {
         FavoriteNameDialog(
-            proposal = summary.entries.take(PROPOSED_NAME_PARTS).joinToString(", ") { it.displayName },
+            // Le titre du plat, et non ses trois premiers aliments : c'est le nom que
+            // l'utilisateur a sous les yeux, et celui qu'il reconnaitra dans sa liste
+            // de modeles. Les libelles de l'ANSES faisaient des titres de cinquante
+            // caracteres qu'on efface au lieu de les corriger.
+            proposal = dishTitleText(summary.title),
             nameTaken = favoriteNameTaken,
             onConfirm = { actions.onToggleFavorite(summary.dish, it) },
             onDismiss = {
@@ -192,26 +208,43 @@ private fun DishDialogs(
     }
 }
 
-/** La pastille de source, l'heure, et le total du plat. */
+/**
+ * Le titre du plat, sa pastille de source, son heure et son total.
+ *
+ * **Le titre est ce qui a manqué le plus longtemps.** Un plat se lisait par ses
+ * aliments, ce qui oblige à tous les lire pour savoir de quel repas il s'agit ; il
+ * porte désormais un nom, déduit de son moment ou écrit à la main ([D118][decisions]).
+ *
+ * [decisions]: docs/11-decisions.md
+ */
 @Composable
-private fun DishHeader(summary: DishSummary, zone: ZoneId, timeFormatter: DateTimeFormatter) {
+private fun DishHeader(summary: DishSummary, zone: ZoneId, goal: DailyGoal?, timeFormatter: DateTimeFormatter) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.Bottom,
     ) {
         SourceBadge(source = summary.dish.source)
+        Text(
+            text = dishTitleText(summary.title),
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
         Text(
             text = timeFormatter.format(summary.dish.loggedAt.atZone(zone)),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(1f),
         )
-        Text(
-            text = stringResource(R.string.home_dish_kcal, summary.totals[Macro.CALORIES].value.roundToInt()),
-            style = MaterialTheme.typography.labelLarge,
-            color = NeonTheme.macros[Macro.CALORIES].base,
-        )
+        Shared(macro = Macro.CALORIES, share = summary.share(Macro.CALORIES, goal)) {
+            Text(
+                text = stringResource(R.string.home_dish_kcal, summary.totals[Macro.CALORIES].value.roundToInt()),
+                style = MaterialTheme.typography.labelLarge,
+                color = NeonTheme.macros[Macro.CALORIES].base,
+            )
+        }
     }
 }
 
@@ -288,56 +321,6 @@ private fun DeleteDishConfirmation(lines: Int, onConfirm: () -> Unit, onDismiss:
 private val DishSummary.entries: List<FoodEntry> get() = dish.entries
 
 /**
- * Ce que le plat a apporté, au-delà des calories.
- *
- * Sans cette ligne, un plat ne se lit que par son énergie — or la question qu'on se
- * pose en relisant sa journée est rarement « combien de calories », c'est « d'où
- * viennent mes protéines » ou « qu'est-ce qui a fait grimper les sucres ».
- *
- * La couleur reprend celle des barres du haut, et l'initiale porte la même
- * information : une couleur ne renseigne jamais seule.
- */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun DishMacros(summary: DishSummary) {
-    // `map` est inline, donc stringResource y reste appelable ; `joinToString` ne
-    // l'est pas, d'ou les deux etapes.
-    val parts = CHIP_MACROS.map { macro ->
-        val total = summary.totals[macro]
-        val value = stringResource(R.string.home_macro_grams, formatGrams(total.value))
-        val label = stringResource(macro.labelRes)
-        if (total.complete) "$label $value" else stringResource(R.string.home_macro_at_least, label, value)
-    }
-    val spoken = parts.joinToString(separator = ", ")
-
-    FlowRow(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clearAndSetSemantics { contentDescription = spoken },
-        horizontalArrangement = Arrangement.spacedBy(Spacing.md),
-        verticalArrangement = Arrangement.spacedBy(Spacing.xs),
-    ) {
-        CHIP_MACROS.forEach { macro -> MacroChip(macro, summary.totals[macro]) }
-    }
-}
-
-@Composable
-private fun MacroChip(macro: Macro, total: MacroTotal) {
-    val value = stringResource(R.string.home_macro_grams, formatGrams(total.value))
-    Text(
-        // « ≥ » et non une valeur nue : le total est amputé d'au moins une valeur
-        // inconnue, donc la vraie quantité est supérieure.
-        text = stringResource(
-            if (total.complete) R.string.home_macro_chip else R.string.home_macro_chip_partial,
-            stringResource(macro.initialRes),
-            value,
-        ),
-        style = MaterialTheme.typography.labelSmall,
-        color = NeonTheme.macros[macro].base,
-    )
-}
-
-/**
  * Une ligne d'aliment.
  *
  * Elle ne porte pas le clic : c'est le plat qui l'a, et il l'a en entier. Ce qu'elle
@@ -382,18 +365,3 @@ private fun EntryRow(entry: FoodEntry) {
         )
     }
 }
-
-/** Les cinq macros affichées par plat. Les calories ont déjà leur chiffre en tête. */
-private const val PROPOSED_NAME_PARTS = 3
-
-private val CHIP_MACROS = listOf(Macro.PROTEIN, Macro.CARBS, Macro.SUGARS, Macro.FAT, Macro.FIBER)
-
-internal val Macro.initialRes: Int
-    @StringRes get() = when (this) {
-        Macro.CALORIES -> R.string.macro_initial_calories
-        Macro.PROTEIN -> R.string.macro_initial_protein
-        Macro.CARBS -> R.string.macro_initial_carbs
-        Macro.SUGARS -> R.string.macro_initial_sugars
-        Macro.FAT -> R.string.macro_initial_fat
-        Macro.FIBER -> R.string.macro_initial_fiber
-    }

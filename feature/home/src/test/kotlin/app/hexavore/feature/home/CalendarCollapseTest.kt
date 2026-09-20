@@ -48,4 +48,57 @@ class CalendarCollapseTest {
         // Le cas limite du precedent : un `y` a zero n'est pas un doigt qui monte.
         assertEquals(Offset.Zero, collapsingDelta(expanded = true, available = Offset.Zero))
     }
+
+    @Test
+    fun `en haut de page, la traction s accumule`() {
+        // Le geste se poursuit d'un evenement a l'autre : ce qui compte est la distance
+        // parcourue, pas la vitesse d'un seul.
+        val premier =
+            pulledBy(previous = 0f, expanded = false, atTop = true, available = Offset(0f, 20f), byUser = true)
+
+        assertEquals(20f, premier)
+        assertEquals(
+            50f,
+            pulledBy(premier, expanded = false, atTop = true, available = Offset(0f, 30f), byUser = true),
+        )
+    }
+
+    @Test
+    fun `un defilement lance qui bute en haut n accumule rien`() {
+        // Sans cette regle, toute lecture rapide finirait par deplier le mois : un
+        // elan qui touche le haut rendrait exactement le meme delta qu'une traction.
+        assertEquals(
+            0f,
+            pulledBy(previous = 40f, expanded = false, atTop = true, available = Offset(0f, 30f), byUser = false),
+        )
+    }
+
+    @Test
+    fun `deplie, il n y a plus rien a tirer`() {
+        assertEquals(
+            0f,
+            pulledBy(previous = 40f, expanded = true, atTop = true, available = Offset(0f, 30f), byUser = true),
+        )
+    }
+
+    @Test
+    fun `un doigt qui remonte efface la traction`() {
+        // Tirer a moitie, repartir vers le haut, puis tirer de nouveau ne doit pas
+        // ouvrir le mois d'un demi-geste.
+        assertEquals(
+            0f,
+            pulledBy(previous = 40f, expanded = false, atTop = true, available = Offset(0f, -10f), byUser = true),
+        )
+    }
+
+    @Test
+    fun `au milieu de la page, la traction ne commence pas`() {
+        // Un doigt qui descend au milieu d'une journee chargee remonte la page, il ne
+        // demande pas un mois. C'est la position du defilement qui le dit, et non ce
+        // qu'il reste du geste : l'effet d'etirement d'Android consomme ce reste.
+        assertEquals(
+            0f,
+            pulledBy(previous = 0f, expanded = false, atTop = false, available = Offset(0f, 30f), byUser = true),
+        )
+    }
 }

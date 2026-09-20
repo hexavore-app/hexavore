@@ -3,7 +3,6 @@ package app.hexavore.feature.home
 import androidx.compose.runtime.Immutable
 import app.hexavore.domain.diary.Dish
 import app.hexavore.domain.diary.DishId
-import app.hexavore.domain.diary.EntryId
 
 /**
  * Ce que l'accueil peut déclencher.
@@ -27,15 +26,15 @@ data class HomeActions(
     /**
      * Supprime le plat entier, ses *n* lignes avec lui.
      *
-     * Atteint par l'appui long, et **confirmé par un dialogue** : le balayage retire
-     * une ligne et se rattrape à la barre, celui-ci en retire plusieurs d'un coup et
-     * mérite d'être voulu ([D61][decisions]). La barre reste offerte ensuite — la
-     * confirmation évite l'accident, la barre rattrape le regret.
+     * Atteint par l'appui long, et **confirmé par un dialogue** : il emporte *n*
+     * lignes d'un coup et mérite d'être voulu ([D61][decisions]). La barre
+     * d'annulation reste offerte ensuite — la confirmation évite l'accident, la barre
+     * rattrape le regret. C'est désormais la seule suppression qui parte de l'accueil :
+     * une ligne se retire en ouvrant le plat ([D117][decisions]).
      *
      * [decisions]: docs/11-decisions.md
      */
     val onDeleteDish: (Dish) -> Unit,
-    val onDeleteEntry: (Dish, EntryId) -> Unit,
     /**
      * Met le plat en favori sous ce nom, ou l'en retire quand [name] est `null`.
      *
@@ -45,18 +44,19 @@ data class HomeActions(
      */
     val onToggleFavorite: (Dish, name: String?) -> Unit,
     /**
-     * Ouvre la modale « Décrire ».
+     * Ouvre l'écran d'IA — une photo, une phrase, ou les deux.
      *
      * **Appelée seulement quand une clé existe.** Sans clé, le bouton reste visible et
-     * grisé, et l'appui ouvre l'explication plutôt que la modale ([D73][decisions]) :
-     * un mode d'IA caché ne s'apprend jamais, un mode d'IA qui échoue sans dire
-     * pourquoi ne s'utilise qu'une fois.
+     * grisé, et l'appui ouvre l'explication plutôt que l'écran ([D73][decisions]) : un
+     * mode d'IA caché ne s'apprend jamais, un mode d'IA qui échoue sans dire pourquoi
+     * ne s'utilise qu'une fois.
+     *
+     * Un seul rappel là où il y en avait deux ([D120][decisions]) : les deux écrans
+     * n'en font plus qu'un.
      *
      * [decisions]: docs/11-decisions.md
      */
-    val onDescribe: () -> Unit,
-    /** Ouvre la modale « Photographier ». Mêmes règles que [onDescribe]. */
-    val onPhotograph: () -> Unit,
+    val onAnalyse: () -> Unit,
     /** Ouvre la liste des plats favoris, pour en rejouer un. */
     val onOpenFavorites: () -> Unit,
     val onUndo: () -> Unit,
@@ -104,11 +104,9 @@ data class HomeActions(
 internal fun HomeRoutes.toActions(viewModel: HomeViewModel) = HomeActions(
     onAddDish = onAddDish,
     onScan = onScan,
-    onDescribe = onDescribe,
-    onPhotograph = onPhotograph,
+    onAnalyse = onAnalyse,
     onEditDish = onEditDish,
     onDeleteDish = viewModel::onDeleteDish,
-    onDeleteEntry = viewModel::onDeleteEntry,
     onUndo = viewModel::onUndo,
     onUndoExpired = viewModel::onUndoExpired,
     onRetry = viewModel::retry,

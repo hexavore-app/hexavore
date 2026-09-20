@@ -99,7 +99,7 @@ class ScannedFoodTest {
         val clock = FixedClock(MAINTENANT)
         val create = CreateDraft(clock, ids, InMemorySelectedDay(clock.today()))
         return OpenDraft(
-            dishes = GetDishDraft(InMemoryDiaryRepository(), ids),
+            dishes = GetDishDraft(InMemoryDiaryRepository(), ids, clock),
             favorites = GetFavoriteDraft(InMemoryFavoriteDishes(), catalogue, create, ids),
             create = create,
             foods = catalogue,

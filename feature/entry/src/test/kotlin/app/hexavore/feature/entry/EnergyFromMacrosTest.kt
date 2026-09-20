@@ -8,6 +8,7 @@ import app.hexavore.core.testing.SequentialIdGenerator
 import app.hexavore.domain.diary.DraftLineId
 import app.hexavore.domain.diary.EntryDraft
 import app.hexavore.domain.diary.EntrySource
+import app.hexavore.domain.diary.MealMoment
 import app.hexavore.domain.diary.QuantityUnit
 import app.hexavore.domain.food.Food
 import app.hexavore.domain.food.FoodId
@@ -176,6 +177,7 @@ class EnergyFromMacrosTest {
         date = JOUR,
         source = EntrySource.MANUAL,
         lines = listOf(line.toDraftLine()),
+        moment = MealMoment.LUNCH,
     )
 
     /**

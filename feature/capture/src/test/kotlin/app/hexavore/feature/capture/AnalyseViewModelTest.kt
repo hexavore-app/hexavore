@@ -31,23 +31,29 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 /**
- * La modale photo, sans appareil.
+ * L'écran d'IA, sans appareil.
  *
- * Elle ne voit ni caméra, ni galerie, ni `Uri` : l'écran lui remet un JPEG déjà réduit.
+ * Il ne voit ni caméra, ni galerie, ni `Uri` : l'écran lui remet un JPEG déjà réduit.
  * C'est ce qui rend éprouvable **tout ce qui coûte de l'argent ou expose une donnée** —
  * le consentement, l'annulation, ce qui est déposé et ce qui survit à un échec — alors
  * que la prise de vue elle-même ne s'éprouve qu'en tenant le téléphone.
+ *
+ * **Ces cas viennent de deux fichiers**, ceux des deux modales fusionnées
+ * ([D120][decisions]). Ce qui s'y ajoute est la seule chose que la fusion invente : ce
+ * qui décide **ce qui part** — une photo, une phrase, ou une photo et sa précision.
+ *
+ * [decisions]: docs/11-decisions.md
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-internal class PhotoViewModelTest {
+internal class AnalyseViewModelTest {
     private val dispatcher = UnconfinedTestDispatcher()
     private val pending = InMemoryPendingRecognition()
     private val consent = RecordingConsent()
-    private val sent = mutableListOf<RecognitionInput.Photo>()
+    private val sent = mutableListOf<RecognitionInput>()
     private var outcome: RecognitionOutcome = RecognitionOutcome.Recognized(Recognition(listOf(RIZ)))
 
     private val recognizer = FoodRecognizer { input ->
-        sent += input as RecognitionInput.Photo
+        sent += input
         outcome
     }
 
@@ -56,6 +62,81 @@ internal class PhotoViewModelTest {
 
     @AfterEach
     fun tearDown() = Dispatchers.resetMain()
+
+    // --- Ce qui part ------------------------------------------------------------
+
+    @Test
+    fun `sans photo, c est la phrase qui part`() = runTest {
+        val viewModel = viewModel()
+        viewModel.onText("  un bol de riz et deux oeufs  ")
+
+        viewModel.onAnalyse()
+        advanceUntilIdle()
+
+        assertEquals(RecognitionInput.Text("un bol de riz et deux oeufs"), sent.single())
+        assertEquals(EntrySource.TEXT_AI, pending.take()?.source)
+    }
+
+    @Test
+    fun `avec photo, la phrase devient la precision`() = runTest {
+        // Le levier de justesse le moins couteux qui existe : un modele voit mal les
+        // quantites sans reference d'echelle.
+        consent.given = true
+        val viewModel = viewModel()
+        viewModel.onPhoto(JPEG)
+        viewModel.onText("  l assiette fait 24 cm  ")
+
+        viewModel.onAnalyse()
+        advanceUntilIdle()
+
+        val photo = sent.single() as RecognitionInput.Photo
+        assertEquals("l assiette fait 24 cm", photo.note)
+        assertEquals(EntrySource.PHOTO_AI, pending.take()?.source)
+    }
+
+    @Test
+    fun `une precision vide n est pas une precision`() = runTest {
+        // Une chaine vide jointe au prompt ferait deux lignes vides dans la demande,
+        // pour dire qu'il n'y a rien a dire.
+        consent.given = true
+        val viewModel = viewModel()
+        viewModel.onPhoto(JPEG)
+        viewModel.onText("   ")
+
+        viewModel.onAnalyse()
+        advanceUntilIdle()
+
+        assertNull((sent.single() as RecognitionInput.Photo).note)
+    }
+
+    @Test
+    fun `sans photo ni phrase, rien ne part`() = runTest {
+        consent.given = true
+        val viewModel = viewModel()
+
+        viewModel.onAnalyse()
+        advanceUntilIdle()
+
+        assertEquals(emptyList<RecognitionInput>(), sent)
+    }
+
+    @Test
+    fun `retirer la photo rend la main au texte`() = runTest {
+        // Une photo mal cadree qu'on remplace par une phrase, sans quitter l'ecran.
+        consent.given = true
+        val viewModel = viewModel()
+        viewModel.onPhoto(JPEG)
+        viewModel.onText("un bol de riz")
+
+        viewModel.onRemovePhoto()
+        viewModel.onAnalyse()
+        advanceUntilIdle()
+
+        assertEquals(RecognitionInput.Text("un bol de riz"), sent.single())
+        assertEquals(EntrySource.TEXT_AI, pending.take()?.source)
+    }
+
+    // --- Le consentement --------------------------------------------------------
 
     @Test
     fun `rien ne part avant que l avertissement soit accepte`() = runTest {
@@ -69,8 +150,23 @@ internal class PhotoViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value.consentNeeded)
-        assertEquals(emptyList<RecognitionInput.Photo>(), sent)
+        assertEquals(emptyList<RecognitionInput>(), sent)
         assertNull(pending.take())
+    }
+
+    @Test
+    fun `une phrase part sans avertissement`() = runTest {
+        // Celui qui ecrit sait exactement ce qu'il envoie ; une image emporte aussi ce
+        // qui entoure l'assiette. L'accord porte sur la photo, pas sur l'IA.
+        val viewModel = viewModel()
+        viewModel.onText("un bol de riz")
+
+        viewModel.onAnalyse()
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.consentNeeded)
+        assertEquals(1, sent.size)
+        assertFalse(consent.given, "rien n'a ete accepte, donc rien n'a ete enregistre")
     }
 
     @Test
@@ -124,53 +220,29 @@ internal class PhotoViewModelTest {
         viewModel.onConsentDeclined()
 
         assertFalse(viewModel.uiState.value.consentNeeded)
-        assertEquals(emptyList<RecognitionInput.Photo>(), sent)
+        assertEquals(emptyList<RecognitionInput>(), sent)
         assertTrue(viewModel.uiState.value.photo != null, "changer d avis ne doit pas reprendre la photo")
     }
 
-    @Test
-    fun `la note accompagne la photo, debarrassee de ses espaces`() = runTest {
-        consent.given = true
-        val viewModel = viewModel()
-        viewModel.onPhoto(JPEG)
-        viewModel.onNote("  l assiette fait 24 cm  ")
-
-        viewModel.onAnalyse()
-        advanceUntilIdle()
-
-        assertEquals("l assiette fait 24 cm", sent.single().note)
-    }
+    // --- Les échecs -------------------------------------------------------------
 
     @Test
-    fun `une note vide n est pas une note`() = runTest {
-        // Une chaine vide jointe au prompt ferait deux lignes vides dans la demande,
-        // pour dire qu'il n'y a rien a dire.
-        consent.given = true
-        val viewModel = viewModel()
-        viewModel.onPhoto(JPEG)
-        viewModel.onNote("   ")
-
-        viewModel.onAnalyse()
-        advanceUntilIdle()
-
-        assertNull(sent.single().note)
-    }
-
-    @Test
-    fun `un echec garde la photo`() = runTest {
-        // docs/02 : la photo est conservee le temps de proposer Reessayer. Sans ca, un
-        // reseau absent obligerait a ressortir le telephone au-dessus d'une assiette
-        // qu'on est peut-etre en train de manger.
+    fun `un echec garde la photo et la phrase`() = runTest {
+        // docs/02 : ce qui a ete saisi est conserve le temps de proposer Reessayer.
+        // Sans ca, un reseau absent obligerait a ressortir le telephone au-dessus
+        // d'une assiette qu'on est peut-etre en train de manger.
         consent.given = true
         outcome = RecognitionOutcome.Failed(AiError.NoNetwork)
         val viewModel = viewModel()
         viewModel.onPhoto(JPEG)
+        viewModel.onText("l assiette fait 24 cm")
 
         viewModel.onAnalyse()
         advanceUntilIdle()
 
         assertEquals(AiError.NoNetwork, viewModel.uiState.value.error)
         assertTrue(viewModel.uiState.value.photo != null)
+        assertEquals("l assiette fait 24 cm", viewModel.uiState.value.text)
         assertNull(pending.take(), "un echec ne depose rien")
     }
 
@@ -189,6 +261,42 @@ internal class PhotoViewModelTest {
     }
 
     @Test
+    fun `relancer efface l erreur precedente`() = runTest {
+        outcome = RecognitionOutcome.Failed(AiError.NoNetwork)
+        val viewModel = viewModel()
+        viewModel.onText("un bol de riz")
+        viewModel.onAnalyse()
+        advanceUntilIdle()
+        outcome = RecognitionOutcome.Recognized(Recognition(listOf(RIZ)))
+
+        viewModel.onAnalyse()
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.error)
+        assertTrue(viewModel.uiState.value.analysed)
+    }
+
+    @Test
+    fun `un second appui pendant l analyse ne repaie pas la meme demande`() = runTest {
+        // Chaque appel se paie : un double tap acheterait deux fois la meme assiette.
+        val viewModel = AnalyseViewModel(
+            recognizer = {
+                sent += it
+                awaitCancellation()
+            },
+            pending = pending,
+            consent = consent,
+            settings = SETTINGS,
+        )
+        viewModel.onText("un bol de riz")
+
+        viewModel.onAnalyse()
+        viewModel.onAnalyse()
+
+        assertEquals(1, sent.size)
+    }
+
+    @Test
     fun `annuler coupe l appel en vol`() = runTest {
         // docs/02 l'ecrit noir sur blanc, et c'est une question d'argent : une requete
         // abandonnee qu'on laisse courir se paie quand meme.
@@ -197,7 +305,7 @@ internal class PhotoViewModelTest {
         // exactement la meme apparence, et se paie pareil.
         consent.given = true
         var coupe = false
-        val viewModel = PhotoViewModel(
+        val viewModel = AnalyseViewModel(
             recognizer = {
                 try {
                     awaitCancellation()
@@ -219,17 +327,20 @@ internal class PhotoViewModelTest {
     }
 
     @Test
-    fun `sans photo, rien ne s analyse`() = runTest {
-        consent.given = true
+    fun `revenir sur l ecran ne repart pas vers une validation vide`() = runTest {
         val viewModel = viewModel()
-
+        viewModel.onText("un bol de riz")
         viewModel.onAnalyse()
         advanceUntilIdle()
 
-        assertEquals(emptyList<RecognitionInput.Photo>(), sent)
+        viewModel.onNavigated()
+
+        assertFalse(viewModel.uiState.value.analysed)
     }
 
-    private fun viewModel() = PhotoViewModel(
+    // --- Décor ------------------------------------------------------------------
+
+    private fun viewModel() = AnalyseViewModel(
         recognizer = recognizer,
         pending = pending,
         consent = consent,

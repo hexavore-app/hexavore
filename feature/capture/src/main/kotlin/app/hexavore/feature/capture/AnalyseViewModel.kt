@@ -37,19 +37,35 @@ import javax.inject.Inject
 internal class ReducedPhoto(val jpeg: ByteArray)
 
 /**
- * Ce que la modale photo montre.
+ * Ce que l'écran d'IA montre.
  *
- * **La photo survit à l'échec**, et c'est ce que [docs/02][parcours] demande : une
- * clé refusée ou un réseau absent ne doit jamais obliger à ressortir le téléphone
- * au-dessus d'une assiette qu'on est peut-être en train de manger.
+ * **Une photo, une phrase, ou les deux** ([D120][decisions]). Les deux modales
+ * précédentes portaient deux états qui ne différaient que par ce qu'ils envoyaient ;
+ * celui-ci porte les deux entrées, et c'est [analysable] qui dit quand il y a de quoi
+ * analyser.
+ *
+ * **La photo et la phrase survivent à l'échec**, et c'est ce que [docs/02][parcours]
+ * demande : une clé refusée ou un réseau absent ne doit jamais obliger à ressortir le
+ * téléphone au-dessus d'une assiette qu'on est peut-être en train de manger, ni à
+ * retaper une phrase.
  *
  * [parcours]: docs/02-parcours-et-ecrans.md
+ * [decisions]: docs/11-decisions.md
  */
 @Immutable
-internal data class PhotoUiState(
+internal data class AnalyseUiState(
     val photo: ReducedPhoto? = null,
-    val note: String = "",
+    /**
+     * Ce qui est écrit sous l'image.
+     *
+     * **Un seul champ pour deux rôles**, et c'est ce que la fusion des deux modales
+     * rend possible : sans photo il décrit le repas, avec photo il le précise —
+     * « l'assiette fait 24 cm », « la sauce est allégée ». L'écran change son libellé ;
+     * le modèle, lui, envoie la même chaîne au bon endroit.
+     */
+    val text: String = "",
     val analysing: Boolean = false,
+    /** L'issue du dernier essai, quand il a échoué. Effacée dès qu'on relance. */
     val error: AiError? = null,
     /**
      * `true` quand l'avertissement doit être montré avant d'envoyer quoi que ce soit.
@@ -68,16 +84,29 @@ internal data class PhotoUiState(
      * se vérifie pas. Vide si rien n'est configuré, cas où l'écran dit autrement.
      */
     val provider: String = "",
+    /**
+     * `true` quand la proposition est déposée et que l'écran doit céder la place.
+     *
+     * Un drapeau plutôt qu'un événement : la navigation est un effet, et l'écran le
+     * consomme une fois. Ce que l'analyse a produit n'est pas ici — il attend dans le
+     * dépôt, parce qu'une route ne porte pas cinq lignes.
+     */
     val analysed: Boolean = false,
 ) {
-    val analysable: Boolean get() = photo != null && !analysing
+    /** Une photo **ou** une phrase : l'un des deux suffit, et rien ne suffit sans eux. */
+    val analysable: Boolean get() = (photo != null || text.isNotBlank()) && !analysing
 }
 
 /**
- * La modale photo : de l'image réduite au dépôt des propositions.
+ * L'écran d'IA : de la photo ou de la phrase au dépôt des propositions.
  *
- * **Elle ne voit ni caméra, ni galerie, ni `Uri`.** L'écran lui remet un JPEG déjà
- * réduit ; d'où viennent ces octets ne la regarde pas, et c'est ce qui la garde
+ * **Un seul modèle pour les deux entrées** ([D120][decisions]). Les deux précédents —
+ * photo et texte — faisaient la même chose à l'envoi près : même reconnaissance, même
+ * dépôt, mêmes erreurs, même sortie. Ce qui les distinguait tenait en une ligne, et
+ * cette ligne est ici.
+ *
+ * **Il ne voit ni caméra, ni galerie, ni `Uri`.** L'écran lui remet un JPEG déjà
+ * réduit ; d'où viennent ces octets ne le regarde pas, et c'est ce qui le garde
  * vérifiable sur la JVM alors que tout ce qui l'entoure demande un appareil. C'est la
  * division de [D66][decisions] pour le scan, appliquée telle quelle.
  *
@@ -89,14 +118,14 @@ internal data class PhotoUiState(
  * [decisions]: docs/11-decisions.md
  */
 @HiltViewModel
-internal class PhotoViewModel @Inject constructor(
+internal class AnalyseViewModel @Inject constructor(
     private val recognizer: FoodRecognizer,
     private val pending: PendingRecognition,
     private val consent: PhotoConsent,
     private val settings: AiSettings,
 ) : ViewModel() {
-    private val state = MutableStateFlow(PhotoUiState())
-    val uiState: StateFlow<PhotoUiState> = state.asStateFlow()
+    private val state = MutableStateFlow(AnalyseUiState())
+    val uiState: StateFlow<AnalyseUiState> = state.asStateFlow()
 
     /** L'analyse en vol, gardée pour pouvoir la couper. */
     private var analysis: Job? = null
@@ -107,38 +136,55 @@ internal class PhotoViewModel @Inject constructor(
         state.update { it.copy(photo = ReducedPhoto(jpeg), error = null) }
     }
 
-    fun onNote(text: String) {
-        state.update { it.copy(note = text) }
+    /**
+     * La photo est retirée, et le texte reste.
+     *
+     * **C'est ce qui permet de basculer d'un mode à l'autre sans quitter l'écran** :
+     * une photo mal cadrée qu'on remplace par une phrase, ou l'inverse. Sans ce geste,
+     * une photo prise par erreur obligerait à refermer l'écran pour envoyer du texte.
+     */
+    fun onRemovePhoto() {
+        state.update { it.copy(photo = null, error = null) }
+    }
+
+    fun onText(text: String) {
+        state.update { it.copy(text = text) }
     }
 
     /**
      * Lance l'analyse, ou demande d'abord l'accord.
      *
-     * L'accord est vérifié **ici** et non à l'ouverture de l'écran : c'est l'envoi qui
+     * **L'accord ne concerne que la photo** : c'est elle qui expose une image de son
+     * repas — et de ce qui l'entoure — à un tiers. Une phrase tapée part sans
+     * avertissement, comme avant, parce que celui qui l'écrit sait exactement ce qu'il
+     * envoie.
+     *
+     * Il est vérifié **ici** et non à l'ouverture de l'écran : c'est l'envoi qui
      * expose la photo, pas le fait de la prendre. Quelqu'un qui cadre, réfléchit et
      * referme n'a rien envoyé et n'avait donc rien à accepter.
      */
     fun onAnalyse() {
-        val photo = state.value.photo ?: return
-        if (state.value.analysing) return
+        val current = state.value
+        if (!current.analysable) return
 
         analysis = viewModelScope.launch {
-            if (!consent.accepted()) {
+            if (current.photo != null && !consent.accepted()) {
                 state.update { it.copy(consentNeeded = true, provider = providerName()) }
                 return@launch
             }
-            analyse(photo)
+            analyse(current)
         }
     }
 
     /** L'avertissement accepté : on enregistre, et on envoie dans la foulée. */
     fun onConsent() {
-        val photo = state.value.photo ?: return
+        val current = state.value
+        if (current.photo == null) return
 
         state.update { it.copy(consentNeeded = false) }
         analysis = viewModelScope.launch {
             consent.accept()
-            analyse(photo)
+            analyse(current)
         }
     }
 
@@ -162,25 +208,38 @@ internal class PhotoViewModel @Inject constructor(
     /**
      * Après que l'écran est parti vers la validation.
      *
-     * Sans quoi revenir en arrière — le geste qui reprend une photo mal comprise —
-     * repartirait aussitôt vers une validation dont le dépôt est déjà vide.
+     * Sans quoi revenir en arrière — le geste qui reprend une photo mal comprise ou
+     * corrige une phrase — repartirait aussitôt vers une validation dont le dépôt est
+     * déjà vide.
      */
     fun onNavigated() {
         state.update { it.copy(analysed = false) }
     }
 
-    private suspend fun analyse(photo: ReducedPhoto) {
+    /**
+     * Ce qui part, et sous quelle source.
+     *
+     * **La photo l'emporte quand il y en a une**, et le texte devient sa précision :
+     * c'est le levier de justesse le moins coûteux qui existe — « l'assiette fait
+     * 24 cm » — là où une phrase seule décrit tout le repas.
+     */
+    private suspend fun analyse(shown: AnalyseUiState) {
         state.update { it.copy(analysing = true, error = null) }
+        val written = shown.text.trim()
 
         // Rien n'entoure cet appel : une annulation doit traverser. `onCancel` a deja
         // remis l'ecran en etat, et l'attraper ici pour ecrire un echec ferait revivre
         // un etat que l'utilisateur vient de quitter.
-        val outcome = recognizer.recognize(RecognitionInput.Photo(photo.jpeg, state.value.note.trim().ifBlank { null }))
+        val outcome = when (val photo = shown.photo) {
+            null -> recognizer.recognize(RecognitionInput.Text(written))
+            else -> recognizer.recognize(RecognitionInput.Photo(photo.jpeg, written.ifBlank { null }))
+        }
+        val source = if (shown.photo == null) EntrySource.TEXT_AI else EntrySource.PHOTO_AI
 
         state.update { current ->
             when (outcome) {
                 is RecognitionOutcome.Recognized -> {
-                    pending.offer(outcome.recognition, EntrySource.PHOTO_AI)
+                    pending.offer(outcome.recognition, source)
                     current.copy(analysing = false, analysed = true)
                 }
 

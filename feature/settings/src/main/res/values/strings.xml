@@ -233,7 +233,7 @@
          La section que docs/02 annoncait et qui n ouvrait rien. Elle ouvre le theme ;
          le systeme d unites la rejoindra. -->
     <string name="settings_appearance_title">Apparence</string>
-    <string name="settings_appearance_subtitle">Le thème de l\'application</string>
+    <string name="settings_appearance_subtitle">Le thème, les unités, et l\'affichage des plats</string>
 
     <string name="appearance_title">Apparence</string>
     <string name="appearance_close">Fermer</string>
@@ -242,6 +242,13 @@
     <string name="appearance_theme_dark">Sombre</string>
     <string name="appearance_theme_system">Suivre le système</string>
     <string name="appearance_units_title">Unités</string>
+    <!-- Le style d'affichage des plats. Deux styles et non une densite : ce qui les
+         distingue est ce qu'on lit, pas une hauteur de ligne. -->
+    <string name="appearance_dishes_title">Affichage des plats</string>
+    <string name="appearance_dishes_simple">Simplifié</string>
+    <string name="appearance_dishes_detailed">Détaillé</string>
+    <string name="appearance_dishes_note">Le simplifié donne le titre du plat, son heure, ses calories et ses apports. Le détaillé y ajoute la liste de ses aliments.</string>
+
     <string name="appearance_units_metric">Métrique — g, ml, kg, cm</string>
     <string name="appearance_units_imperial">Impérial — oz, fl oz, lb, pieds et pouces</string>
     <string name="appearance_units_note">Ce réglage change ce qui est affiché et ce qu\'on propose de saisir. Rien n\'est converti dans vos données : un plat noté en grammes garde ses grammes, et vous pouvez basculer, regarder, puis revenir.</string>

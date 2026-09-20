@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Libelles de la modale « Decrire ».
+  Libelles de l'ecran d'IA.
+
+  Un seul ecran depuis D120, la ou il y avait « Photographier » et « Decrire » : les
+  deux ne differaient que par ce qu'elles envoyaient.
 
   Les messages d'erreur n'y sont pas : ils vivent dans le design system, parce que
   docs/02 veut les memes phrases pour la photo, pour la description et pour le
@@ -8,44 +11,38 @@
 -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:locale="fr">
 
-    <string name="describe_title">Décrire un repas</string>
-    <string name="describe_close">Fermer</string>
+    <string name="analyse_title">Analyser un repas</string>
+    <string name="analyse_close">Fermer</string>
 
-    <!-- Le libelle du champ dit quoi faire ; l'exemple, en dessous, montre a quoi
-         ressemble une bonne description. L'exemple n'est pas prerempli : il faudrait
-         l'effacer avant d'ecrire. -->
-    <string name="describe_hint">Ce que vous avez mangé</string>
-    <string name="describe_example">Par exemple : deux œufs brouillés, une tranche de pain complet, un verre de jus d\'orange</string>
+    <!-- Le cadre vide dit ce qu'on attend de lui. C'est le conseil que docs/02 voulait
+         en surimpression de l'apercu camera ; il se lit mieux avant d'appuyer. -->
+    <string name="analyse_photo_hint">Photographiez l\'assiette entière, de préférence vue de dessus — ou décrivez votre repas en dessous.</string>
+    <string name="analyse_shoot">Prendre une photo</string>
+    <string name="analyse_pick">Choisir une image</string>
+    <string name="analyse_photo_remove">Retirer la photo</string>
+    <string name="analyse_photo_a11y">La photo de votre repas</string>
 
-    <string name="describe_analyse">Analyser</string>
-    <string name="describe_analysing">Analyse en cours…</string>
+    <!-- Le meme champ, deux roles : sans photo il decrit, avec photo il precise. Un
+         champ qui demanderait « decrivez votre repas » sous une photo ferait tout
+         retaper. -->
+    <string name="analyse_describe_label">Ce que vous avez mangé</string>
+    <string name="analyse_describe_example">Par exemple : deux œufs brouillés, une tranche de pain complet, un verre de jus d\'orange</string>
+    <string name="analyse_note_label">Un détail à préciser ? (facultatif)</string>
+    <string name="analyse_note_example">Par exemple : l\'assiette fait 24 cm, la sauce est allégée</string>
 
-    <string name="photo_title">Photographier un repas</string>
-    <string name="photo_close">Fermer</string>
+    <string name="analyse_submit">Analyser</string>
+    <string name="analyse_running">Analyse en cours…</string>
+    <string name="analyse_cancel">Annuler</string>
+    <string name="analyse_manual">Saisir ce repas à la main</string>
 
-    <!-- Le conseil que docs/02 voulait en surimpression sur l'apercu. Il est ici,
-         ou il se lit avant d'appuyer plutot que pendant qu'on vise. -->
-    <string name="photo_framing_hint">Cadrez l\'assiette entière, de préférence vue de dessus.</string>
-
-    <string name="photo_shoot">Prendre une photo</string>
-    <string name="photo_pick">Choisir une image</string>
-    <string name="photo_preview_a11y">La photo que vous venez de prendre</string>
-
-    <!-- Le levier de precision le moins couteux qui existe : un modele voit mal les
-         quantites sans reference d'echelle. -->
-    <string name="photo_note_label">Un détail à préciser ? (facultatif)</string>
-
-    <string name="photo_analyse">Analyser</string>
-    <string name="photo_analysing">Analyse en cours…</string>
-    <string name="photo_cancel">Annuler</string>
-    <string name="photo_manual">Saisir ce repas à la main</string>
-
-    <!-- Dit une fois, avant que la premiere photo parte. Il nomme le fournisseur :
-         « votre photo part chez Mistral » se verifie, « chez votre fournisseur » non. -->
-    <string name="photo_consent_title">Votre photo va partir</string>
-    <string name="photo_consent">Votre photo sera envoyée à %1$s avec votre clé API. Hexavore ne conserve ni la photo ni le résultat sur un serveur — nous n\'en avons aucun. Les conditions d\'utilisation et de conservation sont celles de votre fournisseur.</string>
-    <string name="photo_consent_unnamed">Votre photo sera envoyée au fournisseur d\'IA que vous avez configuré, avec votre clé API. Hexavore ne conserve ni la photo ni le résultat sur un serveur — nous n\'en avons aucun.</string>
-    <string name="photo_consent_accept">J\'ai compris</string>
-    <string name="photo_consent_decline">Annuler</string>
+    <!-- Dit une fois, avant que la premiere photo parte, et pour une photo seulement :
+         celui qui ecrit une phrase sait exactement ce qu'il envoie. Il nomme le
+         fournisseur : « votre photo part chez Mistral » se verifie, « chez votre
+         fournisseur » non. -->
+    <string name="analyse_consent_title">Votre photo va partir</string>
+    <string name="analyse_consent">Votre photo sera envoyée à %1$s avec votre clé API. Hexavore ne conserve ni la photo ni le résultat sur un serveur — nous n\'en avons aucun. Les conditions d\'utilisation et de conservation sont celles de votre fournisseur.</string>
+    <string name="analyse_consent_unnamed">Votre photo sera envoyée au fournisseur d\'IA que vous avez configuré, avec votre clé API. Hexavore ne conserve ni la photo ni le résultat sur un serveur — nous n\'en avons aucun.</string>
+    <string name="analyse_consent_accept">J\'ai compris</string>
+    <string name="analyse_consent_decline">Annuler</string>
 
 </resources>

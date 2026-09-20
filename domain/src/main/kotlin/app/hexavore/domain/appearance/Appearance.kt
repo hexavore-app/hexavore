@@ -48,7 +48,38 @@ enum class ThemeMode {
  * @see docs/02-parcours-et-ecrans.md
  */
 interface AppearanceSettings {
-    fun observe(): Flow<ThemeMode>
+    fun observeTheme(): Flow<ThemeMode>
 
     suspend fun setThemeMode(mode: ThemeMode)
+
+    fun observeDishStyle(): Flow<DishDisplayStyle>
+
+    suspend fun setDishStyle(style: DishDisplayStyle)
+}
+
+/**
+ * La façon dont l'accueil montre un plat.
+ *
+ * **Deux styles et non un réglage de densité.** Ce qui distingue les deux n'est pas une
+ * hauteur de ligne : c'est ce qu'on lit. Le simplifié répond à « qu'est-ce que j'ai
+ * mangé et combien ça pèse » ; le détaillé répond à « de quoi était-ce fait ». Une
+ * échelle de densité aurait fait croire qu'il existe un entre-deux.
+ *
+ * **Une préférence d'appareil, comme le thème** ([D113][decisions]) : elle ne voyage pas
+ * dans la sauvegarde, parce qu'elle ne dit rien de ce qui a été mangé.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+enum class DishDisplayStyle {
+    /**
+     * Le titre, l'heure, les calories, les cinq apports. Pas la liste des aliments.
+     *
+     * **Le défaut** : l'affichage détaillé cite chaque aliment de chaque plat, ce qui
+     * fait beaucoup de texte dès qu'une journée est chargée — et la question qu'on se
+     * pose dix fois par jour n'est pas « quels aliments », c'est « où j'en suis ».
+     */
+    SIMPLE,
+
+    /** Le simplifié, plus chaque ligne d'aliment : son nom, sa quantité, ses calories. */
+    DETAILED,
 }

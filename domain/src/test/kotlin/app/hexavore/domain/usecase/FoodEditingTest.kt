@@ -10,6 +10,7 @@ import app.hexavore.domain.diary.DraftLine
 import app.hexavore.domain.diary.DraftLineId
 import app.hexavore.domain.diary.EntryDraft
 import app.hexavore.domain.diary.EntrySource
+import app.hexavore.domain.diary.MealMoment
 import app.hexavore.domain.food.CustomFoodDraft
 import app.hexavore.domain.food.Food
 import app.hexavore.domain.food.FoodId
@@ -46,7 +47,7 @@ class FoodEditingTest {
 
     private val logDish = LogDish(diary, catalogue, favoris, clock, ids)
     private val getDaySummary = GetDaySummary(diary, InMemoryGoals(listOf(InMemoryGoals.maintenance(JOUR))), clock)
-    private val getDishDraft = GetDishDraft(diary, ids)
+    private val getDishDraft = GetDishDraft(diary, ids, clock)
     private val saveCustomFood = SaveCustomFood(catalogue, ids)
 
     @Test
@@ -115,6 +116,7 @@ class FoodEditingTest {
             EntryDraft(
                 date = JOUR,
                 source = EntrySource.MANUAL,
+                moment = MealMoment.LUNCH,
                 lines = listOf(
                     DraftLine(
                         id = DraftLineId("l1"),
@@ -164,6 +166,7 @@ class FoodEditingTest {
         date = JOUR,
         source = EntrySource.MANUAL,
         lines = listOf(DraftLine.of(DraftLineId("l1"), food)),
+        moment = MealMoment.LUNCH,
     )
 
     private companion object {

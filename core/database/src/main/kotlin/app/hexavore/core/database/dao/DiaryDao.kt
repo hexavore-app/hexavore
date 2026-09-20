@@ -75,9 +75,6 @@ interface DiaryDao {
         insertEntries(entries.map { it.copy(createdAt = entryCreatedAt[it.id] ?: it.createdAt) })
     }
 
-    @Query("DELETE FROM food_entry WHERE id = :id")
-    suspend fun deleteEntry(id: String)
-
     @Query("DELETE FROM dish WHERE id = :id")
     suspend fun deleteDish(id: String)
 

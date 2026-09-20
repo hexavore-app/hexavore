@@ -153,9 +153,15 @@ Un **plat** : plusieurs aliments, entrés en une fois. Pas de repas nommé, pas 
 | `date` | TEXT | journée locale à laquelle le plat est rattaché |
 | `source` | TEXT | `MANUAL` · `BARCODE` · `PHOTO_AI` · `TEXT_AI` · `FAVORITE` |
 | `logged_at` | INTEGER | ordonne les plats de la journée |
+| `title` | TEXT NULL | le nom écrit à la main ; `NULL` dans le cas courant |
+| `moment` | TEXT NULL | `BREAKFAST` · `LUNCH` · `SNACK` · `DINNER`, retenu à la saisie |
 | `created_at`, `updated_at` | INTEGER | |
 
 Index sur `(date, logged_at)` : c'est l'ordre d'affichage de l'accueil.
+
+**`title` à `NULL` ne veut pas dire « sans titre »** ([D118](11-decisions.md)) : le plat s'appelle alors du nom de son `moment`, composé à l'affichage et numéroté quand deux plats du même moment se suivent — « Déjeuner », puis « Déjeuner 2 ». Y écrire ce nom aurait figé des mots français dans la base, là où l'utilisateur n'a rien dit, et l'aurait fait pour chaque plat.
+
+**`moment` à `NULL` non plus** : c'est l'état des plats écrits avant que les moments existent, et l'heure du plat le dit alors. La migration ne les remplit pas — affirmer un moment que personne n'a choisi, pour des mois de journal d'un coup, serait exactement l'erreur que ce projet évite sur les valeurs nutritionnelles.
 
 `SEARCH` a existé et n'existe plus : elle se confondait avec `MANUAL`, puisqu'un même plat mêle couramment un aliment trouvé dans la table et un autre saisi à la main ([D52](11-decisions.md)). Une base antérieure en porte encore ; elle se relit en `MANUAL`.
 

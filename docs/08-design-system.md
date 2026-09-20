@@ -145,8 +145,6 @@ Trois pièges, tous rencontrés sur appareil et tous évités par cette forme :
 
 Les six lueurs sont dessinées **après** les six quartiers, en une seconde passe. Dessinées quartier par quartier, chacune se ferait recouvrir par le remplissage du suivant.
 
-Un quartier dont le total est minoré voit sa lueur s'estomper comme son remplissage : le même dégradé s'applique aux deux, sans quoi une arête volontairement floue se retrouverait soulignée d'un trait de néon parfaitement net.
-
 #### Mise à l'échelle
 
 Le contour de l'objectif n'est pas la limite du dessin : un quartier peut le dépasser. Pour que rien ne sorte de la zone allouée :
@@ -159,15 +157,15 @@ Rcible       = Rzone × ajustement
 
 Quand rien ne dépasse, l'hexagone cible remplit la zone. Au plafond, la cible garde les deux tiers de sa taille et le quartier débordant touche le bord. **Le rétrécissement de l'hexagone cible est lui-même le signal** : on voit qu'on a débordé avant même d'avoir lu quelle macro.
 
-`Rzone = min(largeur / 2, hauteur / √3) − réserve` — un hexagone à sommet plat de circumrayon R mesure 2R de large et √3·R de haut. La **réserve** est ce qui vit hors de la zone : la lueur, un intervalle, puis la lettre. Elle est déduite du rayon plutôt qu'ajoutée à la boîte, faute de quoi la lueur du quartier le plus rempli se ferait rogner par le bord du dessin.
+Le rayon est **ce que trois contraintes laissent**, la plus serrée gagnant : la lettre du haut et celle du bas doivent tenir entières dans la hauteur, la lueur des deux sommets latéraux dans la largeur, et les quatre lettres obliques aussi — leur abscisse vaut `√3/2` fois leur rayon. La **réserve** entre le contour et une lettre est la lueur, un intervalle, puis la demi-lettre ; elle est déduite du rayon plutôt qu'ajoutée à la boîte, faute de quoi la lueur du quartier le plus rempli se ferait rogner par le bord du dessin.
+
+**Elle se compte depuis l'arête, pas depuis le sommet** ([D115](11-decisions.md)). Une lettre est posée sur l'**axe** d'un quartier, donc face au milieu d'une arête, qui est plus près du centre que les sommets d'un facteur `√3/2`. Comptée depuis le cercle des sommets, la réserve éloignait les six lettres d'un huitième du rayon et faisait sortir celle du haut de la zone — donc de l'écran, rognée net par le défilement qui encadre la figure.
 
 **Plafond à 150 %.** Au-delà, le quartier s'arrête là et son arête extérieure est tracée **en dents de scie**, la convention de rupture d'échelle des graphiques. Sans ce plafond, une saisie erronée à 2 000 % réduirait l'hexagone cible à un point et rendrait toute la figure illisible pour corriger l'erreur — c'est-à-dire au pire moment. À 200 %, la cible tombait à la moitié de sa taille et les six lettres se retrouvaient loin d'une figure devenue petite ; un dépassement de moitié se voit déjà largement.
 
-#### Totaux minorés
+#### ~~Totaux minorés~~
 
-Un quartier dont le total est amputé d'une valeur inconnue ([D29](11-decisions.md)) voit son arête extérieure **s'estomper** sur ses huit derniers dp, au lieu d'être nette. On ne sait pas où ça s'arrête, la figure ne prétend donc pas le savoir. Aucune légende n'est nécessaire ; la mention chiffrée reste sous les barres.
-
-Le dégradé est **linéaire, le long de l'axe du quartier**, et non radial. Un dégradé radial suit un cercle : ses lignes d'égale opacité coupent le triangle en arcs, donc les deux sommets — à `R` du centre — disparaissent entièrement pendant que le milieu de l'arête — à `√3/2 · R` seulement — reste presque opaque. Le quartier paraissait rongé par les coins plutôt qu'estompé sur son bord. Le long de l'axe, les lignes d'égale opacité sont parallèles à l'arête, et les trois points du bord s'effacent ensemble.
+~~Un quartier dont le total est amputé d'une valeur inconnue voit son arête extérieure s'estomper sur ses huit derniers dp.~~ **L'accueil ne signale plus les totaux minorés** ([D119](11-decisions.md)) : l'estompage, le « ≥ » des apports et la phrase sous les barres ont disparu, et une valeur non renseignée s'y lit comme zéro. La base, elle, continue de distinguer l'inconnu du zéro — `MacroTotal.complete` existe toujours, aucun écran ne le montre.
 
 #### Repères
 
@@ -177,7 +175,7 @@ L'initiale de chaque macro est posée **à l'extérieur** de la zone, sur l'axe 
 
 **Elles sont écrites en `title`, en gras.** Ce n'est pas un choix esthétique : un second canal qu'il faut chercher des yeux n'en est pas un. En taille de légende, ces lettres se lisaient à peine sur le fond, et la règle de daltonisme reposait alors sur la seule position.
 
-Leur rayon est celui de la **zone** et non du contour : elles ne bougent pas quand l'hexagone cible rétrécit sous l'effet d'un dépassement. Six repères qui se déplaceraient à chaque saisie ne seraient plus des repères.
+Leur rayon est celui de la **zone** et non du contour : elles ne bougent pas quand l'hexagone cible rétrécit sous l'effet d'un dépassement. Six repères qui se déplaceraient à chaque saisie ne seraient plus des repères. Il se mesure depuis l'arête de la zone, augmentée de la lueur et d'un intervalle : c'est là que la lettre regarde.
 
 #### Accessibilité
 
@@ -202,6 +200,18 @@ Diamètre de référence 180 dp.
 - Lueur : `glow`, flou 16 dp, opacité proportionnelle à l'avancement — l'anneau s'allume à mesure qu'on approche de l'objectif. C'est la seule récompense visuelle de l'application, et elle suffit.
 - Dépassement : un second arc se superpose, teinte `base` saturée, épaisseur 4 dp.
 - Centre : emplacement libre, laissé à l'appelant — le numéro du jour dans une pastille de calendrier.
+
+### `MacroShareBar`
+
+Un trait de 3 dp sous un chiffre : **la part qu'un plat a prise sur la journée** ([D119](11-decisions.md)).
+
+Ce n'est pas une `MacroBar` en petit. La grande barre répond à « où j'en suis » sur la journée entière, avec sa valeur écrite et son dépassement qui rétrécit l'échelle. Celle-ci répond à une question qu'aucun chiffre ne posait — *ce plat, c'était combien de ma journée ?* — et n'a ni valeur, ni échelle, ni légende : le chiffre est juste au-dessus.
+
+- Piste : la teinte de la macro à 18 %. Un gris neutre aurait fait une septième couleur dans une figure qui en compte six.
+- Remplissage : la teinte pleine, **plafonné à la barre entière**. Pas de saturation ni de dents de scie : un plat qui dépasse à lui seul l'objectif du jour est déjà lisible dans son chiffre.
+- Largeur : celle du chiffre qu'elle souligne, pas une colonne de grille — une grille régulière aurait fait un tableau, donc quelque chose à lire.
+- **Muette pour un lecteur d'écran** : la ligne annonce déjà « protéines 24 g ».
+- **Absente quand la journée n'a pas d'objectif** : une barre suppose une cible.
 
 ### `MacroBar`
 
@@ -231,7 +241,7 @@ Pastille du bandeau calendrier. 44 dp, `MacroRing` segmenté en couronne, jour d
 
 ### `EntryRow`
 
-Ligne d'aliment dans un plat. Nom, quantité, calories. Balayage vers la gauche pour supprimer, avec un fond magenta qui se révèle progressivement.
+Ligne d'aliment dans un plat. Nom, quantité, calories. ~~Balayage vers la gauche pour supprimer, avec un fond magenta qui se révèle progressivement.~~ **Plus aucun balayage** ([D117](11-decisions.md)) : l'horizontal appartient à la journée entière, qui change de jour. `SwipeToDelete` a disparu du design system — il n'avait plus qu'un appelant, et il n'en a plus.
 
 **Aucune pastille de source ici** : elle appartient au plat et se pose une fois en tête ([D32](11-decisions.md)). Cinq pastilles voisines ne distinguaient plus rien.
 
@@ -254,7 +264,7 @@ Fond transparent, bordure 1,5 dp en `base`, texte en `base`, lueur externe au re
 | | Au repos | À l'appui | Pour quoi |
 |---|---|---|---|
 | **Disponible** | teinte pleine, lueur | échelle 0,97, lueur intensifiée | le cas courant |
-| **Indisponible** | grisé, sans lueur | **réagit quand même**, puis explique | mode IA sans clé ([02](02-parcours-et-ecrans.md#modale--photo)) |
+| **Indisponible** | grisé, sans lueur | **réagit quand même**, puis explique | mode IA sans clé ([02](02-parcours-et-ecrans.md#écran-dia)) |
 | **Désactivé** | grisé, sans lueur | rien, et TalkBack l'annonce désactivé | action déjà en cours |
 
 Masquer un bouton indisponible laisserait croire que la fonctionnalité n'existe pas ; le rendre inerte laisse croire que l'appareil ne répond plus. Il reste donc visible, grisé, et répond à l'appui pour dire ce qui manque.

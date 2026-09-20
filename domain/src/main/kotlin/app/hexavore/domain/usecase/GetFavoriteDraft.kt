@@ -25,7 +25,9 @@ import app.hexavore.domain.identity.IdGenerator
  * seraient deux façons de perdre un favori pour un aliment supprimé.
  *
  * Le brouillon porte le lien vers son favori : c'est lui qui allume l'étoile, et il
- * tombera à la première ligne touchée ([D62][decisions]).
+ * tombera à la première ligne touchée ([D62][decisions]). **Il en porte aussi le nom**,
+ * qui devient le titre du plat ([D118][decisions]) : c'est déjà le nom que l'utilisateur
+ * a choisi pour ce contenu.
  *
  * **Le brouillon est fabriqué par [CreateDraft] et non ici.** C'est elle qui sait sur
  * quel jour un brouillon s'écrit — celui qu'on regarde, sinon aujourd'hui —, et le
@@ -50,7 +52,12 @@ class GetFavoriteDraft(
 
         // Composer son plat depuis ses favoris, c'est le composer soi-meme : il n'y a
         // rien de devine ici, donc rien qui merite une pastille a part.
-        return create(EntrySource.MANUAL, lines).copy(favoriteId = favorite.id)
+        //
+        // **Le favori donne son nom au plat.** « Flocons du matin » est deja le nom
+        // que l'utilisateur a choisi pour ce contenu ; le rejouer sous « Petit-dejeuner »
+        // perdrait ce qu'il avait ecrit, et la liste des plats ne dirait plus lequel de
+        // ses modeles il a rejoue.
+        return create(EntrySource.MANUAL, lines).copy(favoriteId = favorite.id, title = favorite.name)
     }
 
     /** La fiche citée, si elle existe encore et si la ligne en citait une. */

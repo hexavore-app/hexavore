@@ -71,6 +71,18 @@ internal data class DishDto(
     val source: String,
     val loggedAt: String,
     val favoriteId: String? = null,
+    /**
+     * Le nom écrit à la main, et le moment retenu à la saisie.
+     *
+     * **Facultatifs, donc le format ne change pas de version** : un fichier écrit
+     * avant [D118][decisions] se relit sans eux, et ses plats retrouvent le nom que
+     * leur heure leur donne. C'est exactement ce que fait la base pour ses propres
+     * lignes d'avant.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val title: String? = null,
+    val moment: String? = null,
 )
 
 /**

@@ -9,10 +9,8 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import app.hexavore.feature.capture.describeScreen
-import app.hexavore.feature.capture.navigateToDescribe
-import app.hexavore.feature.capture.navigateToPhoto
-import app.hexavore.feature.capture.photoScreen
+import app.hexavore.feature.capture.analyseScreen
+import app.hexavore.feature.capture.navigateToAnalyse
 import app.hexavore.feature.entry.EntryDestination
 import app.hexavore.feature.entry.entryScreen
 import app.hexavore.feature.entry.navigateToEntry
@@ -87,8 +85,7 @@ private fun HexavoreNavHost(startDestination: Any, modifier: Modifier = Modifier
                 onScan = { navController.navigateToScan() },
                 // Les deux modes d'IA, et les premiers gestes qui coutent de l'argent :
                 // l'accueil les grise tant qu'aucune cle n'est configuree.
-                onDescribe = { navController.navigateToDescribe() },
-                onPhotograph = { navController.navigateToPhoto() },
+                onAnalyse = { navController.navigateToAnalyse() },
                 onEditDish = { dishId -> navController.navigateToEntry(dishId) },
                 onSetUpGoal = { navController.navigate(OnboardingDestination) },
                 // Le hub existe desormais : sa deuxieme section est arrivee, ce qui est
@@ -140,17 +137,10 @@ private fun NavGraphBuilder.captureScreens(navController: NavHostController) {
         onAddFood = { navController.navigateToSearchForDraft() },
         onClose = { navController.popBackStack() },
     )
-    describeScreen(
-        // La modale s'efface derriere la validation, comme le scan et la recherche.
+    analyseScreen(
+        // L'ecran s'efface derriere la validation, comme le scan et la recherche.
         // Rien ne voyage avec : ce que le modele a propose attend dans le depot, et
         // c'est `OpenDraft` qui ira l'y chercher.
-        onProposal = {
-            navController.popBackStack(HomeDestination, inclusive = false)
-            navController.navigateToEntryForProposal()
-        },
-        onClose = { navController.popBackStack() },
-    )
-    photoScreen(
         onProposal = {
             navController.popBackStack(HomeDestination, inclusive = false)
             navController.navigateToEntryForProposal()

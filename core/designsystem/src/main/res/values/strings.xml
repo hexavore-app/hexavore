@@ -31,6 +31,17 @@
     <string name="ds_date_confirm">Valider</string>
     <string name="ds_date_cancel">Annuler</string>
 
+    <!-- Les quatre moments d'une journee, et le rang qui distingue deux plats du
+         meme moment. Ils vivent ici parce que trois surfaces les demandent : la liste
+         des plats, l'ecran de validation et la boite qui propose un nom de favori.
+         Trois copies auraient fini par dire « Gouter » a deux endroits et
+         « Collation » au troisieme. -->
+    <string name="ds_moment_breakfast">Petit-déjeuner</string>
+    <string name="ds_moment_lunch">Déjeuner</string>
+    <string name="ds_moment_snack">Goûter</string>
+    <string name="ds_moment_dinner">Dîner</string>
+    <string name="ds_dish_title_ranked">%1$s %2$d</string>
+
     <!-- Les mots d unite : le composant les porte, l ecran porte ce qu il mesure. -->
     <string name="ds_measure_label">%1$s (%2$s)</string>
     <string name="ds_unit_kg">kg</string>

@@ -354,7 +354,7 @@ glucides = (kcal − 4 × protéines − 9 × lipides − 2 × fibres) / 4
 
 **Choix.** `NeonButton` distingue désormais trois disponibilités au lieu d'un booléen : **disponible**, **indisponible**, **désactivé**. Un bouton *indisponible* est grisé et sans lueur au repos, mais il réagit à l'appui — réduction d'échelle, lueur brève — puis appelle son action, à qui il revient d'expliquer ce qui manque.
 
-**Raison.** Le cas existait déjà dans la spécification sans avoir de support : [02](02-parcours-et-ecrans.md#modale--photo) demande que les modes IA sans clé restent « visibles mais grisés ; un tap ouvre une explication courte ». Un booléen `enabled` ne pouvait pas exprimer ça.
+**Raison.** Le cas existait déjà dans la spécification sans avoir de support : [02](02-parcours-et-ecrans.md#écran-dia) demande que les modes IA sans clé restent « visibles mais grisés ; un tap ouvre une explication courte ». Un booléen `enabled` ne pouvait pas exprimer ça.
 
 **Écarté.** *Masquer le bouton* : laisse croire que la fonctionnalité n'existe pas — le document l'excluait déjà. *Garder un seul état éteint* : il faut bien pouvoir rendre un bouton réellement inerte pendant qu'une action est en cours, et l'annoncer comme tel au lecteur d'écran.
 
@@ -371,6 +371,8 @@ glucides = (kcal − 4 × protéines − 9 × lipides − 2 × fibres) / 4
 **Écarté.** *Rendre le total nullable* : une journée entière deviendrait « inconnue » parce qu'un seul produit ne déclare pas ses fibres, alors que le total partiel reste utile. *Ne rien signaler* : c'est l'erreur que [12](12-plan-de-developpement.md) désigne comme la plus difficile à repérer — elle fausse des mois de journal en silence.
 
 **Conséquences.** L'interface doit dire qu'un total est minoré ; un chiffre affiché sans mention vaut promesse d'exactitude. Une liste vide, elle, rend des totaux **complets** à zéro : ne rien avoir noté est une information exacte, pas une lacune. Trois tests couvrent ces trois cas.
+
+> **L'accueil ne le dit plus** ([D119](#d119--deux-styles-daffichage-une-part-par-chiffre-et-plus-de-total-minoré-à-laccueil---validée)), sur demande explicite et sur cet écran seulement. Ce que cette décision établit tient toujours : le cumul reste un couple, `MacroTotals.of` reste le seul chemin, et l'écran de validation continue de désigner le champ qui manque là où on peut encore le remplir. Ce qui change est ce que l'accueil **montre** — une valeur non renseignée s'y lit comme zéro —, pas ce que l'application **sait**.
 
 ---
 
@@ -399,6 +401,8 @@ glucides = (kcal − 4 × protéines − 9 × lipides − 2 × fibres) / 4
 **Ce que ça coûte.** Le tri chronologique remplace un ordre fixe : deux plats notés dans le désordre s'affichent dans le désordre. C'est le comportement attendu d'un journal.
 
 **Conséquences.** La table `meal` devient `dish` et perd `type`, `custom_name` et `sort_index` ; elle gagne `logged_at`. Le champ « repas de destination » disparaît de l'écran de validation, ce qui lui retire une décision. Le réglage « renommer et ajouter des repas » disparaît des préférences.
+
+> **Un plat porte de nouveau un nom, et cette décision tient quand même** ([D118](#d118--un-plat-porte-un-titre-et-cest-le-nom-que-le-favori-propose---validée)). Ce que D31 a écarté est la **case à choisir avant d'enregistrer** ; le titre, lui, se déduit de l'heure, ne coûte aucun geste, et ne range le plat nulle part — les plats restent une liste chronologique. Ce qui revient est un **nom**, pas une catégorie.
 
 ---
 
@@ -1458,7 +1462,7 @@ Deux signaux qui diraient la même chose — l'état de l'écran et la confirmat
 
 **Une rotation d'écran perd la trame et rallume l'aperçu.** L'activité est recréée, la composable avec elle, tandis que l'état de recherche survit dans le `ViewModel` : on se retrouve avec une caméra vivante derrière un « Produit inconnu ». L'écran reste utilisable et « Scanner à nouveau » repart normalement. Le corriger demanderait soit de faire survivre le `Bitmap`, soit de donner à la caméra un second maître — les deux choses que cette décision refuse. C'est un geste rare sur un écran qu'on tient contre un emballage.
 
-**Conséquences.** La trame est réduite à 720 px sur le côté long, ce qui la plafonne à un mégaoctet et demi ; c'est un budget de pixels et non une valeur de style, il vit donc dans le module et non dans `:core:designsystem`, comme les 1024 px de l'image envoyée à un modèle vivent dans [02](02-parcours-et-ecrans.md#modale--photo). L'écouteur de ML Kit s'exécute sur le fil principal faute d'exécuteur donné, et c'est ce qui rend légal d'y délier la caméra. `BarcodeAnalyzer` gagne un `close()` : le client natif est maintenant retenu pour toute la vie de l'écran, le refermer est la contrepartie. **Une règle nouvelle s'éprouve sur la JVM** — la réduction, dans `frameScale` — et un quatrième cas a été **retiré** : « une trame exactement à la borne » ne bougeait sous aucune des deux règles défaites, parce que 720 ⁄ 720 vaut 1 avec ou sans la garde. Un test qui ne tombe jamais n'est pas une sécurité.
+**Conséquences.** La trame est réduite à 720 px sur le côté long, ce qui la plafonne à un mégaoctet et demi ; c'est un budget de pixels et non une valeur de style, il vit donc dans le module et non dans `:core:designsystem`, comme les 1024 px de l'image envoyée à un modèle vivent dans [02](02-parcours-et-ecrans.md#écran-dia). L'écouteur de ML Kit s'exécute sur le fil principal faute d'exécuteur donné, et c'est ce qui rend légal d'y délier la caméra. `BarcodeAnalyzer` gagne un `close()` : le client natif est maintenant retenu pour toute la vie de l'écran, le refermer est la contrepartie. **Une règle nouvelle s'éprouve sur la JVM** — la réduction, dans `frameScale` — et un quatrième cas a été **retiré** : « une trame exactement à la borne » ne bougeait sous aucune des deux règles défaites, parce que 720 ⁄ 720 vaut 1 avec ou sans la garde. Un test qui ne tombe jamais n'est pas une sécurité.
 
 ---
 
@@ -1601,7 +1605,7 @@ La densité est donc un **paramètre** de la conversion, nul partout aujourd'hui
 
 **Conséquences.** `app.hexavore.domain.resolution` naît avec la conversion et rien d'autre ; la recherche de candidats et le repli IA suivront. Onze règles ont été défaites, quatorze cas, **tous tombent** — dont celui du bol, qui ne tient que parce que le forfait a cessé d'être une règle. Deux seuils de detekt ont forcé un découpage : le `when` des neuf unités passait la complexité cyclomatique tant que cinq branches portaient leur propre `?:`, et le type de retour a pris son fichier.
 
-**Trois arbitrages pour la suite de la tranche, tranchés et notés ici pour ne pas être rejoués** : les deux boutons IA restent **visibles et grisés** sans clé, comme [02](02-parcours-et-ecrans.md#modale--photo) et la décision par défaut n° 19 le demandent — `NeonButtonAvailability.UNAVAILABLE` n'existe que pour ce cas ; le modèle par défaut est **`claude-opus-5`** ; et les appels passent par **Retrofit**, comme Open Food Facts, pour que les six fournisseurs partagent une seule pile et un seul intercepteur de redaction.
+**Trois arbitrages pour la suite de la tranche, tranchés et notés ici pour ne pas être rejoués** : les deux boutons IA restent **visibles et grisés** sans clé, comme [02](02-parcours-et-ecrans.md#écran-dia) et la décision par défaut n° 19 le demandent — `NeonButtonAvailability.UNAVAILABLE` n'existe que pour ce cas ; le modèle par défaut est **`claude-opus-5`** ; et les appels passent par **Retrofit**, comme Open Food Facts, pour que les six fournisseurs partagent une seule pile et un seul intercepteur de redaction.
 
 ---
 
@@ -1881,7 +1885,7 @@ L'accueil gagne un bouton, pas deux. Les deux modes d'IA partagent tout sauf leu
 
 Le bouton est **visible et grisé** sans clé ([D73](#d73--la-portion-de-la-fiche-lemporte-sur-le-forfait-et-la-densité-attend-son-auteur---validée)), et **tapable dans les deux cas** : caché, il ne s'apprendrait jamais — personne ne cherche dans les réglages une fonctionnalité dont rien n'indique l'existence — et inerte, il n'apprendrait rien non plus. L'appui ouvre une explication courte, avec le chemin vers les réglages.
 
-Les huit messages d'erreur descendent dans `:core:designsystem` au passage. [02](02-parcours-et-ecrans.md#modale--texte-libre) veut *« mêmes erreurs, mêmes messages »* entre la photo et la description, et le bouton « Tester » pose exactement la même question au même port : trois écrans qui rédigent chacun leur version d'« il n'y a pas de réseau » finissent par en avoir trois, dont deux qui vieillissent mal. C'est le raisonnement de `SourceBadge`, qui traduit déjà une énumération du domaine au même endroit.
+Les huit messages d'erreur descendent dans `:core:designsystem` au passage. [02](02-parcours-et-ecrans.md#écran-dia) veut *« mêmes erreurs, mêmes messages »* entre la photo et la description, et le bouton « Tester » pose exactement la même question au même port : trois écrans qui rédigent chacun leur version d'« il n'y a pas de réseau » finissent par en avoir trois, dont deux qui vieillissent mal. C'est le raisonnement de `SourceBadge`, qui traduit déjà une énumération du domaine au même endroit.
 
 ### Campagne de défaite : seize sabotages, trois survivants au premier tour
 
@@ -1947,7 +1951,7 @@ Le cas de routage énumère donc les six entrées et **affirme d'abord que la ta
 
 ### L'appareil photo du système plutôt qu'un aperçu à nous
 
-[02](02-parcours-et-ecrans.md#modale--photo) décrit un aperçu CameraX avec déclencheur et bascule galerie. **Il n'est pas là**, et c'est le seul écart de forme de cette livraison.
+[02](02-parcours-et-ecrans.md#écran-dia) décrit un aperçu CameraX avec déclencheur et bascule galerie. **Il n'est pas là**, et c'est le seul écart de forme de cette livraison.
 
 Un aperçu intégré demanderait une **seconde** implémentation de CameraX — la première sert le scan, qui analyse un flux en continu et n'a rien à partager avec une prise unique — pour un écran dont le seul travail est de remettre un JPEG. Elle serait entièrement invérifiable ici : il n'y a pas d'émulateur, et le liage, la rotation et la capture ne s'éprouvent qu'en tenant le téléphone. L'appareil photo du système, lui, apporte la mise au point, le flash et le zoom de l'appareil, écrit directement dans notre cache, et **le sélecteur de médias donne la bascule galerie sans une ligne**.
 
@@ -1975,7 +1979,7 @@ Il est rangé **dans le même fichier que les clés**, non chiffré. Ce n'est pa
 
 ### Ce qui protège l'argent et le repas
 
-**Annuler coupe vraiment**, comme [02](02-parcours-et-ecrans.md#modale--photo) l'écrit : une requête abandonnée qu'on laisse courir se paie quand même.
+**Annuler coupe vraiment**, comme [02](02-parcours-et-ecrans.md#écran-dia) l'écrit : une requête abandonnée qu'on laisse courir se paie quand même.
 
 **La photo survit à l'échec.** Une clé refusée ou un réseau absent ne doit jamais obliger à ressortir le téléphone au-dessus d'une assiette qu'on est peut-être en train de manger. Et l'échec offre la **saisie manuelle** : un fournisseur en panne ne doit pas empêcher de noter son repas.
 
@@ -3650,6 +3654,226 @@ Et **l'onboarding n'a pas été touché** : sa première impression reste métri
 
 ---
 
+## D115 — Une lettre de l'hexagone se mesure depuis l'arête · ✓ validée
+
+**Contexte.** Rapporté à l'usage : « le C de calories est hors écran, et les lettres sont assez éloignées de l'hexagone ». Deux symptômes, une seule cause.
+
+**La cause.** La réserve des six lettres — lueur, intervalle, demi-lettre — était retranchée du **circumrayon**, celui des sommets, puis les lettres étaient posées à cette même distance sur les **axes** des quartiers. Or un axe traverse le milieu d'une arête, qui n'est qu'à `√3/2` du sommet : la lettre se retrouvait à un huitième du rayon trop loin du contour, et la lettre du haut sortait de la zone par le haut. Le dessin, lui, ne se plaint pas — c'est le défilement qui encadre la figure qui rognait le « C » net.
+
+**Choix.** Une fonction pure, `hexagonFit`, rend deux rayons : celui du contour et celui des lettres. Trois contraintes, la plus serrée gagne — la lettre du haut et celle du bas dans la hauteur, la lueur des sommets latéraux dans la largeur, les quatre lettres obliques dans la largeur aussi. Le rayon des lettres se compte alors **depuis l'arête** : `R·√3/2 + lueur + intervalle + demi-lettre`.
+
+**Ce que ça coûte.** La figure perd environ 6 % de son rayon dans la zone qu'elle occupe aujourd'hui, parce qu'elle réserve enfin la place qu'elle prenait en dépassant. Elle la regagne en lisibilité : les six lettres sont deux fois plus près du contour, et l'intervalle qu'il avait fallu ajouter sous la figure pour que le « G » cesse de buter contre le grand chiffre n'a plus lieu d'être.
+
+**Pourquoi une fonction et pas trois lignes dans le `Canvas`.** Une géométrie se raisonne au crayon, et celle-ci s'était trompée sans que rien ne le dise : un dessin qui déborde n'échoue pas, il se fait rogner. Sortie du tracé, la règle s'éprouve — une lettre tient dans la zone, ou elle n'y tient pas.
+
+**Campagne de défaite : cinq sabotages, cinq cas tombés.** Les trois contraintes sont bien trois : supprimer celle des lettres obliques ne se voit que sur une zone haute et étroite, et supprimer celle de la lueur que sur une zone haute. Sans ces deux cas-là, deux tiers de la règle n'auraient été gardés par rien.
+
+**Ce que le vert ne prouve pas.** Que la figure soit **belle** à sa nouvelle taille, ni que l'intervalle retenu entre l'arête et la lettre — la lueur, puis 6 dp — soit le bon à l'œil. Les cas disent que rien ne déborde et que la lettre part de l'arête ; ils ne disent pas où l'œil voudrait la voir. Cela se regarde sur un téléphone, pas dans un test.
+
+---
+
+## D116 — Le calendrier s'ouvre à la traction, et sa poignée se voit · ✓ validée
+
+**Contexte.** Rapporté à l'usage : « peu de personnes comprennent que le calendrier est développable et cliquable ». Trois causes distinctes sous une seule phrase, et il a fallu les séparer pour les corriger.
+
+### La poignée ne répondait pas au doigt
+
+`semantics { onClick(label) { … } }` **déclare** une action au lecteur d'écran ; elle n'en installe aucune. Toucher la poignée ne faisait donc rien du tout, et seul le glissement ouvrait le mois — ce qui explique l'essentiel du reproche. `clickable` pose les deux à la fois, l'action réelle et son annonce.
+
+C'est la seconde fois que ce projet paie la même confusion sous une autre forme : une règle affirmée à un seul endroit n'est pas une règle tenue ([D111](#d111--une-règle-se-vérifie-aux-portes-pas-seulement-à-la-fabrique---validée)). Ici, l'affirmation était l'annonce, et personne ne vérifiait qu'elle correspondait à quelque chose.
+
+### Elle ne se voyait pas
+
+Le trait était en `outline`, soit **1,4:1** sur le fond sombre. Une bordure décorative peut vivre à ce contraste ; un élément d'interface qu'on doit trouver, non — le seuil est 3:1. En `onSurfaceVariant`, il tient 7:1 dans les deux thèmes. Un chevron l'accompagne, et se retourne une fois le mois ouvert : un trait dit « on peut me tirer » à qui en a déjà vu un, le chevron dit dans quel sens.
+
+### Le geste que tout le monde connaît manquait
+
+**Tirer la page vers le bas quand elle est déjà en haut** ouvre le mois, après environ un centimètre. C'est le geste du rafraîchissement, connu sans avoir été appris, et il ne demande de viser rien du tout.
+
+**La règle demande « est-on en haut », elle ne le déduit pas** — et la première version faisait l'inverse. Elle lisait ce que le défilement n'avait pas pu consommer, ce qui dit « on est en haut » sans avoir à le demander : plus court, plus joli, et faux. L'effet d'étirement d'Android consomme précisément ce reste pour dessiner son rebond, donc la traction n'accumulait jamais rien. **Le vert ne l'a pas vu ; le téléphone l'a vu en un geste.** La condition est maintenant explicite — la position du défilement — et elle se décide avant l'enfant plutôt qu'après lui.
+
+**Un défilement lancé n'ouvre rien.** Un élan qui bute en haut rend le même delta qu'une traction, à ceci près que sa source est `SideEffect` et non `UserInput`. Sans cette distinction, toute lecture rapide finirait par déplier le mois — et ce serait rapporté comme un défaut, à juste titre.
+
+**Campagne de défaite : quatre sabotages, quatre cas tombés.** Le plus instructif est le quatrième : remplacer l'accumulation par le dernier delta laisse un geste *rapide* ouvrir le mois et un geste *lent* ne rien faire, ce qu'aucun cas n'aurait vu sans un cas qui tire deux fois.
+
+**Aucun de ces cas n'aurait pu voir le défaut de la première version**, et c'est la leçon à retenir : ils éprouvent la règle, pas son branchement. Quatre sabotages tombés sur une règle qui n'était jamais appelée, c'est un vert parfaitement sincère et parfaitement inutile.
+
+**Conséquences.** `pulledBy` rejoint `collapsingDelta` dans le fichier des règles du calendrier : ouvrir et fermer sont deux règles, pas une avec un signe. L'accumulateur vit dans l'écran, là où le geste arrive, comme l'état de repli lui-même.
+
+**Ce que le vert ne prouve pas.** **Que le seuil soit le bon.** Quarante-huit dp est un centimètre de doigt, choisi parce que c'est la distance d'un rafraîchissement ailleurs ; aucun cas ne dit qu'il ne s'ouvre pas trop tôt sur une journée vide, où la page ne défile pas du tout et où **chaque** geste vers le bas est une traction. Cela se règle en tirant, pas en lisant.
+
+---
+
+## D117 — Le balayage change de jour, il ne supprime plus · ✓ validée
+
+**Contexte.** Rapporté à l'usage : « la suppression d'un aliment par balayage n'est au final pas pratique ». Le geste était là depuis la tranche 1, documenté, testé, et il servait peu — là où se promener dans l'historique demandait de viser une pastille de sept millimètres.
+
+### Ce que le balayage fait maintenant
+
+**Vers la gauche le lendemain, vers la droite la veille**, le contenu suivant le doigt. C'est le sens d'une page qu'on tourne, et celui du calendrier posé au-dessus, où le temps va vers la droite.
+
+**Deux bornes, deux raisons.** Vers le futur, rien : le calendrier refuse déjà d'ouvrir un jour à venir, et noter un repas qu'on n'a pas pris n'a pas de sens. Vers le passé, la borne est celle que le calendrier sait montrer — vingt-quatre mois. Au-delà, on se promènerait dans des journées qu'aucune pastille ne désigne, sans moyen visible de revenir.
+
+**Un glissement refusé résiste au lieu de ne rien faire.** Vers demain, la page se décale du tiers et revient : c'est la réponse d'une butée, et elle apprend la règle sans une phrase. Un geste qui ne produit rien du tout se lit comme un geste non reconnu, et on le refait.
+
+**Deux façons d'emporter la journée, et il faut les deux.** La distance — un quart de la largeur — sert le geste appuyé ; la vitesse sert le geste vif, sans quoi remonter cinq jours demanderait de traîner la page cinq fois sur un quart d'écran. La vitesse ne compte que **dans le sens du déplacement** : un doigt qui repart en arrière au dernier moment annule, il ne confirme pas.
+
+**Le calendrier suit.** Le bandeau couvre désormais la même période que le mois déplié et défile jusqu'à la semaine affichée ; sinon le cerne du jour regardé sortait du champ au troisième glissement, et on ne savait plus où l'on était.
+
+### Ce qui part avec le geste
+
+`SwipeToDelete` disparaît du design system. `DeleteEntry` disparaît du domaine, et avec lui `DiaryRepository.deleteEntry`, son implémentation Room, celle en mémoire et la requête du DAO : **plus rien ne les appelait**. Un port garde une capacité tant qu'un cas d'usage la demande ; celle-ci n'existait que pour un geste retiré, et la conserver « au cas où » aurait laissé une méthode que personne n'exerce plus — c'est-à-dire une promesse qu'aucun test ne défend vraiment.
+
+Retirer une ligne reste possible, par le chemin que [02](02-parcours-et-ecrans.md) rendait déjà obligatoire : ouvrir le plat, et la corbeille de la ligne. `UpdateDish` réécrit alors le plat sans elle, et supprime le plat vidé de sa dernière ligne ([D61](#d61--un-plat-vidé-se-supprime-et-lappui-long-ouvre-ses-actions---validée)). La règle vit donc à **un** endroit au lieu de deux.
+
+**La barre d'annulation reste**, pour la suppression d'un plat entier — et elle dit enfin la vérité : elle annonçait « Ligne supprimée » y compris quand un plat de six lignes venait de partir.
+
+### Ce que ça coûte
+
+Le geste qui supprimait était **immédiat** ; celui qui le remplace demande deux gestes de plus — ouvrir le plat, viser la corbeille. C'est assumé : la suppression d'une ligne isolée est rare, la promenade dans l'historique est quotidienne, et un écran n'a qu'un balayage horizontal à distribuer.
+
+**Campagne de défaite : huit sabotages, huit cas tombés.** Les deux règles sont séparées — où va-t-on, et le geste emporte-t-il — précisément pour que la butée du futur ne dépende pas de la force du geste. Un seul calcul aurait rendu ce piège invisible.
+
+**Ce que le vert ne prouve pas.** **Que le geste ne se déclenche pas par accident.** Les cas jugent une distance et une vitesse ; ils ne disent pas qu'un défilement vertical un peu oblique, sur une journée chargée, ne parte pas de travers. C'est le reproche exact qui avait été fait au balayage de suppression, et il se vérifie avec un pouce, pas avec un test.
+
+Rien ne dit non plus que **vingt-quatre mois** soient la bonne borne : c'est celle du calendrier, retenue pour qu'il n'y ait pas deux limites différentes, pas parce que quelqu'un a voulu remonter jusque-là.
+
+---
+
+## D118 — Un plat porte un titre, et c'est le nom que le favori propose · ✓ validée
+
+**Contexte.** L'affichage simplifié demandé pour l'accueil a besoin d'une chose que le modèle n'avait pas : de quoi désigner un plat sans citer ses aliments. Un plat se lisait par son contenu — il fallait tout lire pour savoir de quel repas il s'agissait.
+
+### Ce n'est pas le retour de D06
+
+[D31](#d31--un-plat-pas-un-repas-nommé---validée) a écarté les repas nommés, et cette décision tient. Ce qu'elle a écarté est la **case à choisir avant d'enregistrer**, pour répondre à une question que personne ne se pose. Ici, personne ne choisit rien : le moment se déduit de l'heure, ne coûte aucun geste, et ne range le plat nulle part — les plats restent une liste chronologique. Ce qui revient est un **nom**, pas une catégorie.
+
+### Deux colonnes, et ni l'une ni l'autre n'est un libellé
+
+`title` porte ce que l'utilisateur a **écrit**, `moment` le repas retenu **à la saisie**. À `NULL`, le titre ne veut pas dire « sans titre » : le plat s'appelle du nom de son moment, composé à l'affichage.
+
+**Écrire ce nom dans la base aurait figé des mots français** dans chaque ligne, pour un plat que personne n'a nommé, et rendu l'application intraduisible sur son contenu le plus courant. Le domaine rend un moment et un rang ; les mots vivent dans le design system, où trois surfaces les partagent — la liste des plats, l'écran de validation, la boîte qui propose un nom de favori.
+
+**`moment` est une colonne et non un calcul**, et c'est le cas du dîner d'hier noté ce matin qui l'exige : l'heure d'un plat est celle de sa **saisie**. Sans mémoire du moment choisi, les quatre pastilles de correction n'auraient rien où écrire.
+
+### Le rang se calcule sur la journée, pas sur le plat
+
+Deux plats du même moment — le déjeuner, puis le dessert noté à part — porteraient le même nom dans une liste dont c'est justement le seul repère en affichage simplifié. Le second devient « Déjeuner 2 ».
+
+**Un plat nommé à la main ne consomme aucun rang.** Ce que l'utilisateur a écrit lui appartient : deux « Poke bowl » sont deux « Poke bowl », et un titre ajouté ne doit pas renuméroter le reste de la journée.
+
+C'est une propriété du **voisinage**, donc elle se calcule là où la journée est connue — dans `GetDaySummary`, avec les totaux — et non plat par plat.
+
+### La fusion avec les favoris va dans les deux sens
+
+**Mettre en favori propose le titre du plat.** C'est le nom qu'on a sous les yeux, donc celui qu'on reconnaîtra dans une liste de modèles. Les deux propositions précédentes disparaissent : la liste des trois premiers aliments donnait des titres de cinquante caractères qu'on efface au lieu de les corriger, et « Plat 3 » ne disait rien de rien. `FavoriteNumbering`, son fichier de préférences et `NextFavoriteNumber` partent avec elle.
+
+Le nom d'un favori est unique, et « Déjeuner » a de bonnes chances d'être pris : le rang suit alors le même principe qu'avant — on avance jusqu'au premier libre, et c'est l'écran qui écrit « Déjeuner 2 ».
+
+**Rejouer un favori donne son nom au plat.** « Flocons du matin » est déjà le nom choisi pour ce contenu ; le rejouer sous « Petit-déjeuner » perdrait ce que l'utilisateur avait écrit, et la liste ne dirait plus lequel de ses modèles il a rejoué.
+
+### Deux défauts que la campagne a trouvés
+
+**Le nom proposé ne recalculait pas l'écran.** Il vivait à côté du `combine` et n'était lu qu'à la faveur d'une autre émission : la boîte de nommage s'ouvrait par accident. Le nom proposé et le drapeau « nom déjà pris » répondent à la même question, ils entrent donc dans le même flux — et un cas qui **garde l'écran observé** pendant le geste le prouve, là où une seconde collecte relance le flux et masque exactement ce défaut.
+
+**Un moment illisible retombait sur le petit-déjeuner.** Le repli du mappeur doit rendre `NULL` — l'heure du plat reprend alors la main — et non choisir un repas. C'est l'asymétrie avec `source`, qui retombe sur `MANUAL` : « à la main » n'invente aucune provenance, là où « petit-déjeuner » affirmerait un repas avec l'aplomb d'une valeur choisie.
+
+**Campagne de défaite : vingt et un sabotages, vingt et un cas tombés.** Un vingt-deuxième a été retiré plutôt que gardé : il portait sur l'instant où la boîte s'ouvre — un tour de boucle — et non sur une règle. Le code a été simplifié à sa place : un seul écrivain pour le nom proposé.
+
+**Conséquences.** Base en version 7, deux colonnes ajoutées sans recopie de table. La sauvegarde porte les deux champs, **facultatifs**, donc le format ne change pas de version. `EntryDraft` gagne un titre et un moment ; `GetDishDraft` prend une horloge, pour lire l'heure d'un plat dans le bon fuseau.
+
+**Ce que le vert ne prouve pas.** **Que les bornes soient les bonnes.** 5 h, 11 h, 15 h, 18 h sont des milieux entre deux repas, pas des heures de repas ; rien ne dit qu'un goûter de 14 h 30 ne s'appellera pas « Déjeuner » chez quelqu'un qui déjeune à midi pile. Cela se règle en vivant avec, et le titre se corrige.
+
+Rien ne dit non plus que **le champ de titre ne gêne pas** : c'est un champ de plus en tête d'un écran qui en porte déjà beaucoup, et la seule façon de le savoir est de noter trois repas d'affilée.
+
+---
+
+## D119 — Deux styles d'affichage, une part par chiffre, et plus de total minoré à l'accueil · ✓ validée
+
+**Contexte.** Rapporté à l'usage : « l'affichage actuel des plats est lourd, il peut rapidement contenir beaucoup de texte ». Une journée de cinq plats cite une vingtaine d'aliments, et la question qu'on se pose dix fois par jour n'est pas « quels aliments » — c'est « où j'en suis ».
+
+### Deux styles, pas une densité
+
+Le **simplifié** donne le titre, l'heure, les calories et les cinq apports. Le **détaillé** y ajoute la liste des aliments, et c'est l'affichage d'avant.
+
+**Ce n'est pas une échelle de densité**, et le mot compte : ce qui distingue les deux n'est pas une hauteur de ligne mais ce qu'on lit. Une échelle aurait laissé croire qu'il existe un entre-deux, et il n'y en a pas — on cite les aliments ou on ne les cite pas.
+
+**Le simplifié est le défaut**, y compris pour une installation déjà en service : c'est le sens du changement, et le détaillé reste à un tap dans Apparence. **Un magasin illisible retombe sur le simplifié** pour la même raison — le détaillé serait le pire des deux replis, plus long à lire et sans qu'un mot l'explique.
+
+**Le trait qui sépare l'en-tête part avec les lignes** : sans lignes, il ne séparerait plus rien de rien.
+
+### Une part de journée sous chaque chiffre
+
+Un trait de 3 dp sous le total de calories et sous chacun des cinq apports : **ce plat, c'était combien de ma journée ?** Aucun chiffre ne posait cette question — ils disent des quantités, pas des proportions —, et c'est exactement ce qu'on cherche en relisant un plat.
+
+**Pleine au-delà de l'objectif**, sans rétrécissement d'échelle ni dents de scie, contrairement aux grandes barres : il faudrait les lire, et il n'y a rien à lire ici. **Absente sans objectif** : une barre suppose une cible, et une journée antérieure au premier objectif n'en a aucune ([D55](#d55--lobjectif-est-calculé-daté-et-parfois-absent---validée)). Le chiffre, lui, reste exact et reste affiché.
+
+**Sa largeur est celle du chiffre qu'elle souligne**, pas une colonne de grille : une grille régulière aurait fait un tableau, donc quelque chose à lire de plus.
+
+### Ce que l'accueil cesse de dire
+
+**Le signalement des totaux minorés disparaît de tout l'accueil** — le « ≥ » des apports, la phrase sous les barres, l'estompage des quartiers de l'hexagone. Une valeur non renseignée s'y lit désormais comme zéro.
+
+**C'est un écart assumé avec [D29](#d29--un-total-incomplet-se-signale-au-lieu-de-se-taire---validée)**, demandé explicitement et sur cet écran seulement. Ce qu'il coûte est réel et mérite d'être écrit : une journée où un aliment n'a pas de fibres se lit comme une journée à zéro fibre, et rien ne le dit plus.
+
+Ce qu'il ne coûte pas : **la base continue de distinguer l'inconnu du zéro**. `MacroTotal.complete` existe toujours et reste éprouvé ; l'écran de validation continue de désigner le champ qui manque, là où on peut encore le remplir. Ce qui change est ce que l'accueil **montre**, pas ce que l'application **sait**.
+
+Le code mort part avec l'affichage : `MacroQuarter` perd son drapeau, l'hexagone son dégradé d'estompage et son aperçu de total incomplet, les ressources leurs quatre libellés. Un paramètre que plus personne ne renseigne est une décoration, et une décoration qu'aucun cas n'observe se périme sans qu'on s'en aperçoive.
+
+### Un cas de campagne qui ne prouvait rien
+
+Le sabotage « un magasin illisible rend le détaillé » a **survécu** à son premier cas : le `ViewModel` a son propre repli, qui masquait celui du cas d'usage. La règle ne s'éprouve donc qu'au niveau où elle vit — dans `ObserveDishStyle`, avec un magasin qui jette. Un second repli plus haut ne rend pas le premier inutile ; il le rend invisible, ce qui est pire.
+
+**Campagne de défaite : sept sabotages, sept cas tombés.** Un huitième a été réécrit : remplacer `?: return null` par `?: 0.0` était neutralisé par la ligne suivante, donc ne changeait aucun comportement. Un sabotage qui ne casse rien ne prouve rien non plus.
+
+**Conséquences.** `AppearanceSettings` porte un second réglage et `observe()` devient `observeTheme()` — un port qui répond à deux questions doit dire laquelle. `ObserveDishStyle` naît pour la même raison qu'`ObserveUnitSystem` ([D111](#d111--une-règle-se-vérifie-aux-portes-pas-seulement-à-la-fabrique---validée)) : deux écrans posent la question, un seul endroit y répond.
+
+**Ce que le vert ne prouve pas.** **Que le simplifié suffise au quotidien.** Les cas affirment qu'il montre ce qu'on lui demande de montrer ; ils ne disent pas qu'on n'ira pas ouvrir chaque plat pour retrouver ce qu'on y avait mis. C'est l'usage d'une semaine qui le dira, et le réglage existe précisément pour qu'on puisse changer d'avis.
+
+Rien ne dit non plus qu'un **trait de 3 dp se voie** sur un téléphone, ni que sa piste à 18 % se distingue du fond en plein soleil. Cela se regarde ; aucun test ne le regarde.
+
+---
+
+## D120 — Un seul bouton d'IA, un seul écran · ✓ validée
+
+**Contexte.** Demandé : « les boutons IA seront groupés dans un seul bouton *IA* ; à l'appui on retrouve un menu similaire à celui de l'ajout par photo, mais on peut aussi envoyer sans image ». Et, sur cet écran : « le menu est moche de base pour prendre les photos, très peu moderne, revois l'ensemble ».
+
+### Deux modales qui n'en étaient qu'une
+
+« Photographier » et « Décrire » partageaient le pipeline de reconnaissance, le dépôt des propositions, les messages d'erreur et l'écran de sortie. Ce qui les distinguait tenait en une ligne : quelle variante de `RecognitionInput` partait. Deux `ViewModel`, deux états, deux écrans, deux destinations et deux suites de cas pour cette ligne-là.
+
+**Le nouvel écran porte les deux entrées**, et `analysable` dit quand il y a de quoi analyser : une photo **ou** une phrase. Avec les deux, la photo part et la phrase devient sa précision — *« l'assiette fait 24 cm »* —, ce qui était déjà le rôle du champ de la modale photo.
+
+### L'avertissement ne suit pas l'IA, il suit la photo
+
+**Une phrase part sans avertissement.** Celui qui l'écrit sait exactement ce qu'il envoie ; une image emporte aussi ce qui entoure l'assiette — la table, la pièce, les gens. La règle de [05](05-ia.md) porte sur la photo, et la fusion ne l'étend pas au texte : l'étendre aurait transformé un avertissement utile en formalité qu'on accepte sans lire.
+
+### Ce que l'écran est devenu
+
+Trois zones, de haut en bas : **le cadre de l'image avec deux boutons ronds dedans**, **le champ de texte**, **le bouton d'analyse**.
+
+**Les boutons vivent dans le cadre** plutôt qu'en rangée sous lui : ce qu'on regarde et ce qui le change sont alors au même endroit, et les mêmes boutons remplacent l'image sans qu'on ait à chercher ailleurs. **Une croix retire la photo**, ce qui permet de basculer vers le texte sans quitter l'écran — une photo prise par erreur obligeait sinon à tout refermer.
+
+**Le cadre a une hauteur fixe.** Un cadre qui prendrait la place restante sauterait de taille à chaque ligne tapée ; un cadre au rapport de la photo changerait de hauteur selon qu'elle est prise en portrait ou en paysage. La photo y est rognée plutôt que mise en boîte : ce qu'on juge est le cadrage — l'assiette est-elle entière — et un bord rogné ne le change pas.
+
+**Le champ de texte change de libellé, pas de place.** Sans photo il décrit, avec photo il précise. Deux champs auraient posé la question de savoir lequel remplir.
+
+### Un cinquième glyphe tracé à la main
+
+`material-icons-core` n'a ni étincelles ni image, et `material-icons-extended` embarque plusieurs milliers d'icônes pour en utiliser deux. Après `StarBorder` ([D62](#d62--un-favori-est-un-modèle-vivant-et-létoile-est-son-seul-interrupteur---validée)), le code-barres et l'appareil photo, la réponse ne change pas : vingt lignes de tracé.
+
+**Deux étincelles et non une étoile** : l'étoile à cinq branches est prise par les favoris, et une étincelle seule se lit comme une décoration. Deux, de tailles différentes, sont devenues le signe usuel de ce qu'une machine a produit.
+
+**Campagne de défaite : dix sabotages, dix cas tombés.** Les deux qui comptent le plus sont ceux que la fusion rendait possibles : envoyer une phrase comme une photo, et demander l'accord pour une phrase.
+
+**Conséquences.** Cinq fichiers disparaissent, deux naissent. La colonne de boutons flottants passe de cinq à quatre, et gagne la place qui manquait le plus — celle juste au-dessus du pouce. `HomeActions` perd un rappel, `HomeRoutes` aussi, le graphe de navigation une destination.
+
+**Ce que le vert ne prouve pas.** **Que l'écran soit beau**, ce qui était la demande. Les cas affirment ce qui part et ce qui est demandé avant ; aucun ne dit qu'un cadre de 260 dp avec deux boutons ronds posés dessus se regarde bien sur un téléphone, ni que le texte sous une photo se lit sans que le clavier le cache. Cela se juge avec le pouce, et c'est le seul retour qui compte ici.
+
+Rien ne dit non plus que **le glyphe d'étincelles se reconnaisse** : il est dessiné à la main, à vingt-quatre points, et son sens dépend d'une convention récente.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.
@@ -3669,7 +3893,7 @@ Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la sp
 | 14 | Quantité par défaut au scan | Portion de l'emballage, sinon 100 g | [02](02-parcours-et-ecrans.md) |
 | 15 | Fournisseurs d'IA | Gemini, OpenAI, Anthropic, DeepSeek, Mistral + compatible | [05](05-ia.md#fournisseurs) |
 | 17 | Compteur de coût | Oui, estimation locale datée | [05](05-ia.md#coût) |
-| 19 | Sans clé API | Modes IA visibles mais grisés, avec explication | [02](02-parcours-et-ecrans.md#modale--photo) |
+| 19 | Sans clé API | Modes IA visibles mais grisés, avec explication | [02](02-parcours-et-ecrans.md#écran-dia) |
 | 21 | Sauvegarde Drive | Quotidienne en Wi-Fi, chiffrement optionnel désactivé par défaut | [09](09-donnees-et-sauvegarde.md) |
 | 22 | Export local | JSON complet réimportable + CSV du journal | [09](09-donnees-et-sauvegarde.md#export-et-import-de-fichier) |
 | 23 | Versions de sauvegarde | 5, en rotation | [09](09-donnees-et-sauvegarde.md#rotation) |

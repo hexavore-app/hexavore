@@ -3,7 +3,7 @@ package app.hexavore.feature.entry
 import app.hexavore.domain.diary.EntryDraft
 import app.hexavore.domain.diary.FavoriteDishId
 import app.hexavore.domain.usecase.FavoriteOutcome
-import app.hexavore.domain.usecase.NextFavoriteNumber
+import app.hexavore.domain.usecase.ProposeFavoriteName
 import app.hexavore.domain.usecase.RemoveFavoriteDish
 import app.hexavore.domain.usecase.SaveFavoriteDish
 import app.hexavore.domain.usecase.UpdateFavoriteDish
@@ -21,7 +21,7 @@ import javax.inject.Inject
 class DraftFavorites @Inject constructor(
     private val saveFavoriteDish: SaveFavoriteDish,
     private val removeFavoriteDish: RemoveFavoriteDish,
-    private val nextFavoriteNumber: NextFavoriteNumber,
+    private val proposeFavoriteName: ProposeFavoriteName,
     private val updateFavoriteDish: UpdateFavoriteDish,
 ) {
     suspend fun save(draft: EntryDraft, name: String, existing: FavoriteDishId?): FavoriteOutcome =
@@ -41,6 +41,6 @@ class DraftFavorites @Inject constructor(
         checkNotNull(updateFavoriteDish(draft, id)) { "Favori disparu pendant la modification." }
     }
 
-    /** Le premier numéro libre : « Plat 3 ». Le mot vient de l'écran, le compte d'ici. */
-    suspend fun nextNumber(label: (Int) -> String): Int = nextFavoriteNumber(label)
+    /** Le titre du plat, ou son premier rang libre : « Déjeuner 2 ». Les mots viennent de l'écran. */
+    suspend fun propose(base: String, numbered: (String, Int) -> String): String = proposeFavoriteName(base, numbered)
 }

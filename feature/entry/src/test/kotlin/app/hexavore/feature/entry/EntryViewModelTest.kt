@@ -19,8 +19,8 @@ import app.hexavore.domain.diary.DishId
 import app.hexavore.domain.diary.DraftLineId
 import app.hexavore.domain.diary.EntryId
 import app.hexavore.domain.diary.EntrySource
-import app.hexavore.domain.diary.FavoriteNumbering
 import app.hexavore.domain.diary.FoodEntry
+import app.hexavore.domain.diary.MealMoment
 import app.hexavore.domain.food.Food
 import app.hexavore.domain.food.FoodId
 import app.hexavore.domain.food.FoodServing
@@ -34,9 +34,9 @@ import app.hexavore.domain.usecase.GetDaySummary
 import app.hexavore.domain.usecase.GetDishDraft
 import app.hexavore.domain.usecase.GetFavoriteDraft
 import app.hexavore.domain.usecase.LogDish
-import app.hexavore.domain.usecase.NextFavoriteNumber
 import app.hexavore.domain.usecase.ObserveUnitSystem
 import app.hexavore.domain.usecase.OpenDraft
+import app.hexavore.domain.usecase.ProposeFavoriteName
 import app.hexavore.domain.usecase.RemoveFavoriteDish
 import app.hexavore.domain.usecase.ResolveFoodLabel
 import app.hexavore.domain.usecase.ResolveRecognition
@@ -48,6 +48,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -197,6 +198,125 @@ class EntryViewModelTest {
 
         assertEquals(EntryUiState.Saved, viewModel.uiState.value)
         assertEquals(listOf("Riz", "Poulet"), diary.dishes.single().entries.map { it.displayName })
+    }
+
+    @Test
+    fun `sans titre ecrit, le plat s enregistre avec le moment de l heure`() = runTest(dispatcher) {
+        // L'horloge des cas est a midi : le champ montre « Dejeuner », rien n'est
+        // tape, et rien ne s'ecrit -- ce qui est propose n'est pas ce qui est saisi.
+        val viewModel = viewModel()
+        remplir(viewModel, viewModel.content().form.lines.single().id)
+
+        viewModel.onSave()
+
+        val plat = diary.dishes.single()
+        assertNull(plat.title, "un titre que personne n'a tape ne s'ecrit pas")
+        assertEquals(MealMoment.LUNCH, plat.moment)
+    }
+
+    @Test
+    fun `un titre tape s enregistre`() = runTest(dispatcher) {
+        val viewModel = viewModel()
+        remplir(viewModel, viewModel.content().form.lines.single().id)
+
+        viewModel.onTitle("Poke bowl")
+        viewModel.onSave()
+
+        assertEquals("Poke bowl", diary.dishes.single().title)
+    }
+
+    @Test
+    fun `une pastille de moment efface le titre ecrit`() = runTest(dispatcher) {
+        // Sans cela, le nom affiche ne changerait pas et la pastille semblerait sans
+        // effet : c'est le geste de quelqu'un qui dit « c'etait le diner ».
+        val viewModel = viewModel()
+        remplir(viewModel, viewModel.content().form.lines.single().id)
+        viewModel.onTitle("Poke bowl")
+
+        viewModel.onMoment(MealMoment.DINNER)
+        viewModel.onSave()
+
+        val plat = diary.dishes.single()
+        assertNull(plat.title)
+        assertEquals(MealMoment.DINNER, plat.moment)
+    }
+
+    @Test
+    fun `la boite de nom propose le titre du plat`() = runTest(dispatcher) {
+        // **L'ecran reste observe pendant le geste**, et ce n'est pas un detail : un
+        // nom propose qui n'entrerait pas dans le `combine` ne recalculerait pas
+        // l'etat, et la boite ne s'ouvrirait jamais. Relire l'etat par une nouvelle
+        // collecte masquerait exactement ce defaut -- elle relance le flux, qui lit
+        // alors la valeur courante.
+        val viewModel = viewModel()
+        remplir(viewModel, viewModel.content().form.lines.single().id)
+        val observation = backgroundScope.launch { viewModel.uiState.collect { } }
+
+        viewModel.favorite.propose("Déjeuner") { nom, rang -> "$nom $rang" }
+        advanceUntilIdle()
+
+        assertEquals("Déjeuner", (viewModel.uiState.value as EntryUiState.Content).favoriteProposal)
+        observation.cancel()
+    }
+
+    @Test
+    fun `un nom deja pris fait proposer le rang suivant`() = runTest(dispatcher) {
+        val viewModel = viewModel()
+        remplir(viewModel, viewModel.content().form.lines.single().id)
+        viewModel.favorite.propose("Déjeuner") { nom, rang -> "$nom $rang" }
+        advanceUntilIdle()
+        viewModel.favorite.save("Déjeuner")
+        advanceUntilIdle()
+
+        val second = viewModel()
+        remplir(second, second.content().form.lines.single().id)
+        second.favorite.propose("Déjeuner") { nom, rang -> "$nom $rang" }
+        advanceUntilIdle()
+
+        assertEquals("Déjeuner 2", second.content().favoriteProposal)
+    }
+
+    @Test
+    fun `la boite se referme quand le favori est enregistre`() = runTest(dispatcher) {
+        // Sur l'ecriture aboutie et sur elle seule : c'est le seul signal fiable.
+        val viewModel = viewModel()
+        remplir(viewModel, viewModel.content().form.lines.single().id)
+        val observation = backgroundScope.launch { viewModel.uiState.collect { } }
+        viewModel.favorite.propose("Déjeuner") { nom, rang -> "$nom $rang" }
+        advanceUntilIdle()
+
+        viewModel.favorite.save("Déjeuner")
+        advanceUntilIdle()
+
+        val etat = viewModel.uiState.value as EntryUiState.Content
+        assertNull(etat.favoriteProposal, "la boite doit se refermer")
+        assertTrue(etat.favorite, "et l'etoile doit s'allumer")
+        observation.cancel()
+    }
+
+    @Test
+    fun `un nom deja pris laisse la boite ouverte et le dit`() = runTest(dispatcher) {
+        // D62 : un nom pris est une reponse, pas une panne. La boite reste ouverte
+        // avec le nom refuse dedans, ce qui permet de le corriger plutot que de tout
+        // retaper.
+        val premier = viewModel()
+        remplir(premier, premier.content().form.lines.single().id)
+        premier.favorite.save("Déjeuner")
+        advanceUntilIdle()
+
+        val second = viewModel()
+        remplir(second, second.content().form.lines.single().id)
+        val observation = backgroundScope.launch { second.uiState.collect { } }
+        second.favorite.propose("Déjeuner") { nom, rang -> "$nom $rang" }
+        advanceUntilIdle()
+        // L'utilisateur efface la proposition et insiste avec le nom deja pris.
+        second.favorite.save("Déjeuner")
+        advanceUntilIdle()
+
+        val etat = second.uiState.value as EntryUiState.Content
+        assertTrue(etat.favoriteNameTaken, "le refus doit se dire")
+        assertEquals("Déjeuner 2", etat.favoriteProposal, "la boite reste ouverte")
+        observation.cancel()
     }
 
     @Test
@@ -395,7 +515,7 @@ class EntryViewModelTest {
         ),
         composition = DraftComposition(
             openDraft = OpenDraft(
-                dishes = GetDishDraft(diary, ids),
+                dishes = GetDishDraft(diary, ids, clock),
                 favorites = GetFavoriteDraft(favoris, catalogue, create, ids),
                 create = create,
                 foods = catalogue,
@@ -416,7 +536,7 @@ class EntryViewModelTest {
         favorites = DraftFavorites(
             saveFavoriteDish = SaveFavoriteDish(favoris, ids),
             removeFavoriteDish = RemoveFavoriteDish(favoris),
-            nextFavoriteNumber = NextFavoriteNumber(numerotation, favoris),
+            proposeFavoriteName = ProposeFavoriteName(favoris),
             updateFavoriteDish = UpdateFavoriteDish(favoris, diary),
         ),
         clock = clock,
@@ -425,18 +545,6 @@ class EntryViewModelTest {
     private val profils = InMemoryProfiles()
 
     private val favoris = InMemoryFavoriteDishes()
-
-    /**
-     * Un compteur qui avance vraiment, comme celui des préférences.
-     *
-     * Un faux qui rendrait toujours 1 laisserait passer exactement la régression que
-     * ce port existe pour empêcher.
-     */
-    private val numerotation = object : FavoriteNumbering {
-        private var next = 1
-
-        override suspend fun next(): Int = next++
-    }
 
     /** Le dépôt des propositions, partagé entre l'écran qui dépose et celui qui reprend. */
     private val pending = InMemoryPendingRecognition()

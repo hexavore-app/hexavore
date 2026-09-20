@@ -7,6 +7,7 @@ import app.hexavore.domain.diary.DishId
 import app.hexavore.domain.diary.EntryId
 import app.hexavore.domain.diary.EntrySource
 import app.hexavore.domain.diary.FoodEntry
+import app.hexavore.domain.diary.MealMoment
 import app.hexavore.domain.food.FoodCitations
 import app.hexavore.domain.food.FoodId
 import app.hexavore.domain.nutrition.Macros
@@ -165,6 +166,31 @@ abstract class DiaryContract {
     }
 
     @Test
+    fun `le titre et le moment d un plat se relisent tels quels`() = runBlocking {
+        val diary = journal()
+
+        diary.save(petitDejeuner(LUNDI, title = "Poke bowl", moment = MealMoment.DINNER))
+
+        val relu = diary.dish(PLAT)!!
+        assertEquals("Poke bowl", relu.title)
+        assertEquals(MealMoment.DINNER, relu.moment)
+    }
+
+    @Test
+    fun `un plat sans titre ni moment les relit nuls`() = runBlocking {
+        // L'etat de tous les plats ecrits avant que les moments existent. Un defaut
+        // pose ici -- une chaine vide, un moment de repli -- affirmerait un choix que
+        // personne n'a fait, et l'heure du plat ne pourrait plus le corriger.
+        val diary = journal()
+
+        diary.save(petitDejeuner(LUNDI))
+
+        val relu = diary.dish(PLAT)!!
+        assertNull(relu.title)
+        assertNull(relu.moment)
+    }
+
+    @Test
     fun `la source et la date d un plat se relisent telles quelles`() = runBlocking {
         // La source est fixee a la creation et ne change jamais, meme apres vingt
         // corrections a la main.
@@ -198,30 +224,6 @@ abstract class DiaryContract {
     // --- Supprimer --------------------------------------------------------------
 
     @Test
-    fun `supprimer une ligne laisse les autres intactes`() = runBlocking {
-        val diary = journal()
-        diary.save(petitDejeuner(LUNDI))
-
-        diary.deleteEntry(SANS_FIBRES)
-
-        assertEquals(listOf(LIGNE), diary.dish(PLAT)!!.entries.map { it.id })
-    }
-
-    @Test
-    fun `supprimer la derniere ligne laisse le plat, vide`() = runBlocking {
-        // C'est `DeleteEntry` qui decide de supprimer un plat vide, pas le port. Si
-        // le port le faisait aussi, la regle serait tenue a deux endroits et il
-        // suffirait qu'un seul change.
-        val diary = journal()
-        diary.save(petitDejeuner(LUNDI))
-
-        diary.deleteEntry(LIGNE)
-        diary.deleteEntry(SANS_FIBRES)
-
-        assertEquals(emptyList<FoodEntry>(), diary.dish(PLAT)?.entries)
-    }
-
-    @Test
     fun `supprimer un plat emporte ses lignes`() = runBlocking {
         // Une ligne orpheline n'a aucune existence dans le domaine. Cote base c'est
         // une cascade ; cote memoire les lignes sont portees par le plat -- deux
@@ -233,16 +235,6 @@ abstract class DiaryContract {
 
         assertNull(diary.dish(PLAT))
         assertTrue(diary.observeDay(LUNDI).first().isEmpty())
-    }
-
-    @Test
-    fun `supprimer une ligne inconnue ne fait rien`() = runBlocking {
-        val diary = journal()
-        diary.save(petitDejeuner(LUNDI))
-
-        diary.deleteEntry(EntryId("jamais-ecrite"))
-
-        assertEquals(DEUX_LIGNES, diary.dish(PLAT)!!.entries.size)
     }
 
     @Test
@@ -283,14 +275,17 @@ abstract class DiaryContract {
     }
 
     @Test
-    fun `la journee se dement apres la suppression d une ligne`() = runBlocking {
-        // Le cas que la lecture unique laissait passer ailleurs : supprimer une
-        // ligne ne change pas la liste des plats, seulement leur contenu.
+    fun `la journee se dement quand un plat perd une ligne`() = runBlocking {
+        // Le cas que la lecture unique laissait passer ailleurs : retirer une ligne
+        // ne change pas la liste des plats, seulement leur contenu. Depuis que le
+        // balayage a disparu, c'est `save` qui l'ecrit -- le brouillon relu part sans
+        // elle ([D117]).
         val diary = journal()
-        diary.save(petitDejeuner(LUNDI))
+        val plat = petitDejeuner(LUNDI)
+        diary.save(plat)
 
         val apres = diary.observeDay(LUNDI).firstAfter(
-            write = { diary.deleteEntry(SANS_FIBRES) },
+            write = { diary.save(plat.copy(entries = plat.entries.filterNot { it.id == SANS_FIBRES })) },
             matching = { jour -> jour.firstOrNull()?.entries?.size == 1 },
         )
 
@@ -395,11 +390,15 @@ abstract class DiaryContract {
         plat: DishId = PLAT,
         loggedAt: Instant = MATIN,
         source: EntrySource = EntrySource.MANUAL,
+        title: String? = null,
+        moment: MealMoment? = null,
     ) = Dish(
         id = plat,
         date = date,
         source = source,
         loggedAt = loggedAt,
+        title = title,
+        moment = moment,
         entries = listOf(
             FoodEntry(
                 id = EntryId("${plat.value}$PAIN"),

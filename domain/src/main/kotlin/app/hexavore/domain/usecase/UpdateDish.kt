@@ -49,6 +49,11 @@ class UpdateDish(private val diary: DiaryRepository, private val ids: IdGenerato
                 existing.copy(
                     date = draft.date,
                     entries = draft.toEntries(id, ids),
+                    // Le titre et le moment viennent du brouillon : ce sont les deux
+                    // seules choses de l'en-tete qu'on vient corriger. La source et
+                    // l'heure, elles, restent celles du plat existant.
+                    title = draft.title?.trim()?.takeIf { it.isNotEmpty() },
+                    moment = draft.moment,
                     // Le lien vers le favori vient du brouillon et non du plat
                     // existant : il tombe des qu'une ligne est touchee, et c'est
                     // precisement cette chute qu'il faut enregistrer.

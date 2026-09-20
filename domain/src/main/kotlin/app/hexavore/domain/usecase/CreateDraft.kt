@@ -4,11 +4,13 @@ import app.hexavore.domain.diary.DraftLine
 import app.hexavore.domain.diary.DraftLineId
 import app.hexavore.domain.diary.EntryDraft
 import app.hexavore.domain.diary.EntrySource
+import app.hexavore.domain.diary.MealMoment
 import app.hexavore.domain.diary.SelectedDay
 import app.hexavore.domain.food.Food
 import app.hexavore.domain.identity.IdGenerator
 import app.hexavore.domain.time.Clock
 import java.time.LocalDate
+import java.time.LocalTime
 
 /**
  * Fabrique un brouillon vierge et ses lignes.
@@ -35,11 +37,22 @@ class CreateDraft(private val clock: Clock, private val ids: IdGenerator, privat
      */
     private fun date(): LocalDate = selected.current() ?: clock.today()
 
+    /**
+     * Le moment auquel ce brouillon se rattache : celui de l'heure qu'il est.
+     *
+     * **L'heure courante et non celle du jour regardé**, qui n'en a pas : un jour passé
+     * est une date, pas un instant. Quelqu'un qui rattrape le dîner d'hier à 9 h du
+     * matin voit donc « Petit-déjeuner » proposé, et les quatre pastilles de l'écran
+     * sont là pour ça.
+     */
+    private fun moment(): MealMoment = MealMoment.at(LocalTime.ofInstant(clock.now(), clock.zone()))
+
     /** Un brouillon d'une seule ligne vide, daté du jour regardé. */
     operator fun invoke(source: EntrySource): EntryDraft = EntryDraft(
         date = date(),
         source = source,
         lines = listOf(line()),
+        moment = moment(),
     )
 
     /**
@@ -54,6 +67,7 @@ class CreateDraft(private val clock: Clock, private val ids: IdGenerator, privat
         date = date(),
         source = source,
         lines = listOf(DraftLine.of(DraftLineId(ids.next()), food)),
+        moment = moment(),
     )
 
     /**
@@ -69,6 +83,7 @@ class CreateDraft(private val clock: Clock, private val ids: IdGenerator, privat
         date = date(),
         source = source,
         lines = lines.ifEmpty { listOf(line()) },
+        moment = moment(),
     )
 
     /** Une ligne vierge de plus. Sert de repli quand aucune fiche n'est disponible. */

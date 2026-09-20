@@ -25,7 +25,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class ThemeViewModel @Inject constructor(settings: AppearanceSettings) : ViewModel() {
     val mode: StateFlow<ThemeMode> = settings
-        .observe()
+        .observeTheme()
         .catch { emit(ThemeMode.SYSTEM) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ThemeMode.SYSTEM)
 }
