@@ -1,5 +1,8 @@
 package app.hexavore.feature.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
@@ -52,10 +55,17 @@ import app.hexavore.core.designsystem.theme.Spacing
  * Le bouton d'IA reste **grisé sans clé** : caché, il ne s'apprendrait jamais ; inerte,
  * il n'apprendrait rien non plus, donc l'appui ouvre l'explication ([D73][decisions]).
  *
+ * **Toute la colonne s'efface pendant qu'une bulle de sources est ouverte**
+ * ([D122][decisions]). Les boutons flottants sont une couche du `Scaffold`, donc
+ * dessinés par-dessus tout ce que la page contient : posés sur la colonne des chiffres
+ * de la bulle, ils la rendaient illisible. Les faire passer dessous demanderait de
+ * sortir la bulle du contenu ; les retirer le temps d'une lecture dit la même chose, et
+ * plus justement — on ne note rien pendant qu'on regarde d'où vient une macro.
+ *
  * [decisions]: docs/11-decisions.md
  */
 @Composable
-internal fun DayActions(actions: HomeActions, aiConfigured: Boolean) {
+internal fun DayActions(actions: HomeActions, aiConfigured: Boolean, visible: Boolean = true) {
     var explaining by rememberSaveable { mutableStateOf(false) }
 
     if (explaining) {
@@ -68,24 +78,26 @@ internal fun DayActions(actions: HomeActions, aiConfigured: Boolean) {
         )
     }
 
-    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-        AiButton(
-            label = stringResource(R.string.home_analyse),
-            configured = aiConfigured,
-            onClick = actions.onAnalyse,
-            onExplain = { explaining = true },
-        ) { label -> SparkleGlyph(contentDescription = label) }
-        SmallFloatingActionButton(onClick = actions.onScan) {
-            BarcodeGlyph(contentDescription = stringResource(R.string.home_scan))
-        }
-        SmallFloatingActionButton(onClick = actions.onOpenFavorites) {
-            Icon(
-                imageVector = Icons.Filled.Star,
-                contentDescription = stringResource(R.string.home_open_favorites),
-            )
-        }
-        ExtendedFloatingActionButton(onClick = actions.onAddDish) {
-            Text(text = stringResource(R.string.home_add_dish))
+    AnimatedVisibility(visible = visible, enter = fadeIn(), exit = fadeOut()) {
+        Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            AiButton(
+                label = stringResource(R.string.home_analyse),
+                configured = aiConfigured,
+                onClick = actions.onAnalyse,
+                onExplain = { explaining = true },
+            ) { label -> SparkleGlyph(contentDescription = label) }
+            SmallFloatingActionButton(onClick = actions.onScan) {
+                BarcodeGlyph(contentDescription = stringResource(R.string.home_scan))
+            }
+            SmallFloatingActionButton(onClick = actions.onOpenFavorites) {
+                Icon(
+                    imageVector = Icons.Filled.Star,
+                    contentDescription = stringResource(R.string.home_open_favorites),
+                )
+            }
+            ExtendedFloatingActionButton(onClick = actions.onAddDish) {
+                Text(text = stringResource(R.string.home_add_dish))
+            }
         }
     }
 }

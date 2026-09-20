@@ -68,48 +68,51 @@ private const val FULL_TURN = 360f
 private const val HALF_TURN = FULL_TURN / 2f
 
 /**
- * Où se pose la bulle, et de quel côté pointe sa pointe.
+ * Où se pose la bulle.
  *
- * [tailX] est mesuré depuis le bord gauche de la bulle, [x] et [y] depuis celui du
- * conteneur.
+ * [tailX] est mesuré depuis le bord gauche de la bulle, [offset] depuis le coin du
+ * conteneur. La pointe est toujours sur le bord **haut**, puisque la bulle est toujours
+ * sous la figure.
  */
-internal data class BubbleSpot(val offset: IntOffset, val tailX: Int, val tailOnTop: Boolean)
+internal data class BubbleSpot(val offset: IntOffset, val tailX: Int)
 
 /**
  * La place d'une bulle qui commente un quartier.
  *
- * **Elle se pose du côté opposé au quartier**, et c'est la seule règle qui compte : une
- * bulle qui recouvrirait ce qu'elle explique ferait disparaître la surbrillance et le
- * grossissement au moment précis où on vient de les demander. Un quartier du haut
- * renvoie donc la bulle sous le centre, un quartier du bas au-dessus.
+ * **Elle se pose entièrement sous la figure**, et c'est la seule règle qui compte : une
+ * bulle qui recouvrirait la figure ferait disparaître la surbrillance et l'extinction au
+ * moment précis où on vient de les demander.
+ *
+ * **La première version se posait du côté opposé au quartier**, ce qui gardait bien le
+ * quartier touché visible mais recouvrait les cinq autres. Sur une journée à six
+ * aliments, la bulle fait deux cents points de haut : posée au-dessus du centre, elle
+ * bute sur le haut de la zone et mange la figure presque entière. Constaté sur appareil,
+ * pas déduit — et invisible depuis les cas, qui ne mesurent rien.
  *
  * **La pointe suit le quartier, le corps suit l'écran.** Les deux se désolidarisent dès
  * que la bulle bute sur un bord : le corps s'arrête, la pointe continue de désigner. Le
  * contraire — une bulle qui sort de l'écran pour rester centrée sur sa pointe — était la
  * seule chose à éviter sur une figure aussi large que l'écran.
  *
- * @param anchor le point visé, sur l'axe du quartier.
- * @param centre le centre de la figure : c'est lui qui sépare le haut du bas.
+ * @param anchorX l'abscisse du point visé, sur l'axe du quartier.
+ * @param below l'ordonnée sous laquelle la bulle doit tenir : le bas de la figure.
  * @param tailInset de combien la pointe se tient à l'écart des angles arrondis.
  */
 internal fun bubbleSpot(
-    anchor: Offset,
-    centre: Offset,
+    anchorX: Float,
+    below: Float,
     bubble: IntSize,
     container: IntSize,
     margin: Int,
     tailInset: Int,
 ): BubbleSpot {
-    val dessous = anchor.y < centre.y
-    val brut = if (dessous) centre.y + margin else centre.y - margin - bubble.height
-    val y = brut.toInt().coerceIn(0, (container.height - bubble.height).coerceAtLeast(0))
-    val x = (anchor.x - bubble.width / 2f).toInt().coerceIn(0, (container.width - bubble.width).coerceAtLeast(0))
+    val y = (below + margin).toInt().coerceIn(0, (container.height - bubble.height).coerceAtLeast(0))
+    val x = (anchorX - bubble.width / 2f).toInt().coerceIn(0, (container.width - bubble.width).coerceAtLeast(0))
 
     return BubbleSpot(
         offset = IntOffset(x, y),
         // Bornee dans la bulle : une pointe posee sur un angle arrondi ne tient a
         // rien, et une pointe hors de la bulle flotte toute seule.
-        tailX = (anchor.x - x).toInt().coerceIn(tailInset, (bubble.width - tailInset).coerceAtLeast(tailInset)),
-        tailOnTop = dessous,
+        tailX = (anchorX - x).toInt().coerceIn(tailInset, (bubble.width - tailInset).coerceAtLeast(tailInset)),
     )
 }

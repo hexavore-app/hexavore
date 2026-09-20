@@ -3,6 +3,7 @@ package app.hexavore.core.designsystem.component
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
@@ -35,10 +37,11 @@ import app.hexavore.core.designsystem.theme.NeonTheme
  * pour annoncer qu'un appui à côté la referme ; celle-ci ne le fait pas, et c'est ce
  * qui lui permet d'apparaître et de changer de macro sans faire clignoter l'écran
  * entier. En contrepartie, c'est l'appelant qui doit refermer sur un appui à côté :
- * rien ici ne capte le doigt ([D122][decisions]).
+ * seule la bulle elle-même avale les appuis, pour qu'on puisse la lire sans rien
+ * changer à ce qu'elle dit ([D122][decisions]).
  *
- * **Elle se pose du côté opposé à ce qu'elle explique** ([bubbleSpot]) : recouvrir le
- * quartier qu'on vient de mettre en avant serait l'annuler.
+ * **Elle se pose entièrement sous ce qu'elle explique** ([bubbleSpot]) : recouvrir la
+ * figure qu'on vient de mettre en avant serait l'annuler.
  *
  * **La pointe est tracée par le parent, pas par la bulle.** Sa position le long du bord
  * n'est connue qu'une fois la bulle mesurée et placée, alors que le fond de la bulle,
@@ -46,13 +49,13 @@ import app.hexavore.core.designsystem.theme.NeonTheme
  * obligerait à recomposer l'enfant pour un nombre que la mise en page vient de calculer
  * — un aller-retour visible à l'image près. Le parent, lui, dessine après.
  *
- * @param anchor le point visé, dans le repère de cette bulle.
- * @param centre le centre de la figure : c'est lui qui sépare le haut du bas.
+ * @param anchorX l'abscisse du point visé, dans le repère de cette bulle.
+ * @param below le bas de la figure, sous lequel la bulle se pose.
  *
  * [decisions]: docs/11-decisions.md
  */
 @Composable
-fun AnchoredBubble(anchor: Offset, centre: Offset, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+fun AnchoredBubble(anchorX: Float, below: Float, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     val fond = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = BUBBLE_ALPHA)
     val densite = LocalDensity.current
     val marge = with(densite) { BubbleMargin.roundToPx() }
@@ -79,7 +82,11 @@ fun AnchoredBubble(anchor: Offset, centre: Offset, modifier: Modifier = Modifier
                 Modifier
                     .widthIn(max = BubbleMaxWidth)
                     .clip(RoundedCornerShape(BubbleCorner))
-                    .background(fond),
+                    .background(fond)
+                    // **Elle avale les appuis.** Sans cela, lire la bulle change ce
+                    // qu'elle dit : elle est posee sur les barres et sur la figure, et
+                    // un appui sur un nom d'aliment ouvrait la macro qui passe dessous.
+                    .pointerInput(Unit) { detectTapGestures { } },
             ) { content() }
         },
     ) { measurables, constraints ->
@@ -87,7 +94,7 @@ fun AnchoredBubble(anchor: Offset, centre: Offset, modifier: Modifier = Modifier
             constraints.copy(minWidth = 0, minHeight = 0, maxWidth = minOf(constraints.maxWidth, maxLargeur)),
         )
         val zone = IntSize(constraints.maxWidth, constraints.maxHeight)
-        val spot = bubbleSpot(anchor, centre, IntSize(mesure.width, mesure.height), zone, marge, retrait)
+        val spot = bubbleSpot(anchorX, below, IntSize(mesure.width, mesure.height), zone, marge, retrait)
 
         layout(constraints.maxWidth, constraints.maxHeight) {
             place = PlacedBubble(spot, IntSize(mesure.width, mesure.height))
@@ -108,12 +115,8 @@ private data class PlacedBubble(val spot: BubbleSpot, val size: IntSize)
  */
 private fun DrawScope.drawTail(place: PlacedBubble, colour: Color, pointe: Offset) {
     val base = (place.spot.offset.x + place.spot.tailX).toFloat()
-    val bord = if (place.spot.tailOnTop) {
-        place.spot.offset.y.toFloat()
-    } else {
-        (place.spot.offset.y + place.size.height).toFloat()
-    }
-    val sommet = if (place.spot.tailOnTop) bord - pointe.y else bord + pointe.y
+    val bord = place.spot.offset.y.toFloat()
+    val sommet = bord - pointe.y
 
     drawPath(
         path = Path().apply {
@@ -129,13 +132,18 @@ private fun DrawScope.drawTail(place: PlacedBubble, colour: Color, pointe: Offse
 /**
  * Ce que la bulle laisse voir du fond.
  *
- * Assez transparente pour qu'on sache ce qu'il y a dessous — c'est ce qui la distingue
- * d'un écran —, assez opaque pour qu'un chiffre de trois points reste lisible sur un
- * quartier allumé. En dessous, les deux se disputent le même pixel.
+ * **Un souffle, et pas davantage.** Elle était à 95 % : sur l'accueil, elle se pose
+ * précisément sur le restant en calories, écrit en blanc et en cinquante-sept points.
+ * Cinq pour cent de ce chiffre-là traversent la bulle et se lisent aussi bien que ce
+ * qu'elle écrit — deux textes qui se disputent le même pixel, ce qui n'est pas de la
+ * légèreté mais une superposition ratée. Constaté sur appareil.
+ *
+ * Trois pour cent suffisent à ce qu'on devine qu'il y a quelque chose dessous, ce qui
+ * est tout ce qu'on demande à une bulle : ne pas ressembler à un écran.
  */
-private const val BUBBLE_ALPHA = 0.95f
+private const val BUBBLE_ALPHA = 0.97f
 
-/** Entre le centre de la figure et le corps de la bulle. Plus grand que la pointe, qui vient s'y loger. */
+/** Entre le bas de la figure et le corps de la bulle. Plus grand que la pointe, qui vient s'y loger. */
 private val BubbleMargin: Dp = 14.dp
 
 private val BubbleCorner: Dp = 16.dp

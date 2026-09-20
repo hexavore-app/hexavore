@@ -1,6 +1,8 @@
 package app.hexavore.feature.home
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -10,6 +12,7 @@ import app.hexavore.domain.diary.DaySummary
 import app.hexavore.domain.diary.MacroSources
 import app.hexavore.domain.diary.sourcesOf
 import app.hexavore.domain.nutrition.Macro
+import java.time.LocalDate
 
 /**
  * Le quartier qu'on regarde de près — celui dont la bulle dit les sources.
@@ -37,6 +40,26 @@ internal class MacroFocus {
 
 @Composable
 internal fun rememberMacroFocus(): MacroFocus = remember { MacroFocus() }
+
+/**
+ * Le quartier regardé, et les deux choses que la journée lui impose.
+ *
+ * **Un changement de jour referme.** Une bulle qui survivrait au glissement parlerait
+ * des aliments de la veille en montrant la figure d'aujourd'hui.
+ *
+ * **Une ouverture ramène la figure sous les yeux.** La bulle se pose sous l'hexagone :
+ * une barre touchée après avoir défilé jusqu'aux plats l'aurait posée hors de l'écran,
+ * et on aurait touché une barre pour ne rien voir.
+ */
+@Composable
+internal fun rememberDayFocus(day: LocalDate?, scroll: ScrollState): MacroFocus {
+    val focus = rememberMacroFocus()
+
+    LaunchedEffect(day) { focus.clear() }
+    LaunchedEffect(focus.macro) { if (focus.macro != null) scroll.animateScrollTo(0) }
+
+    return focus
+}
 
 /**
  * Le quartier montré après un appui, en partant de celui qui l'était.

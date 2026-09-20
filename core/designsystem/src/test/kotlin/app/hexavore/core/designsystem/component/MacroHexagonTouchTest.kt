@@ -81,61 +81,42 @@ class MacroHexagonTouchTest {
     }
 
     @Test
+    fun `la bulle se pose sous la figure`() {
+        // La regle qui porte tout le reste, et la seule qui reste apres l'appareil :
+        // une bulle qui recouvrirait la figure ferait disparaitre la surbrillance et
+        // l'extinction au moment precis ou on vient de les demander.
+        val spot = bubbleSpot(CENTRE.x, BAS, BULLE, ZONE, MARGE, POINTE)
+
+        assertEquals((BAS + MARGE).toInt(), spot.offset.y)
+    }
+
+    @Test
     fun `la bulle se centre sur le quartier quand elle a la place`() {
         // Le cas ordinaire, celui qu'on voit neuf fois sur dix : rien ne bute, et la
         // bulle est posee sous le quartier et non a cote.
-        val spot = bubbleSpot(Offset(CENTRE.x, 20f), CENTRE, BULLE, ZONE, MARGE, POINTE)
+        val spot = bubbleSpot(CENTRE.x, BAS, BULLE, ZONE, MARGE, POINTE)
 
         assertEquals((CENTRE.x - BULLE.width / 2f).toInt(), spot.offset.x)
     }
 
     @Test
-    fun `un quartier du haut renvoie la bulle en dessous`() {
-        // La regle qui porte tout le reste : la bulle ne recouvre jamais le quartier
-        // qu'elle explique, sinon la surbrillance disparait au moment ou on la demande.
-        val spot = bubbleSpot(
-            anchor = pointAt(CENTRE, 80f, 90f),
-            centre = CENTRE,
-            bubble = BULLE,
-            container = ZONE,
-            margin = MARGE,
-            tailInset = POINTE,
-        )
-
-        assertTrue(spot.tailOnTop, "la pointe doit etre en haut de la bulle")
-        assertTrue(spot.offset.y >= CENTRE.y.toInt(), "la bulle doit commencer sous le centre")
-    }
-
-    @Test
-    fun `un quartier du bas renvoie la bulle au-dessus`() {
-        val spot = bubbleSpot(
-            anchor = pointAt(CENTRE, 80f, 270f),
-            centre = CENTRE,
-            bubble = BULLE,
-            container = ZONE,
-            margin = MARGE,
-            tailInset = POINTE,
-        )
-
-        assertTrue(!spot.tailOnTop, "la pointe doit etre en bas de la bulle")
-        assertTrue(spot.offset.y + BULLE.height <= CENTRE.y.toInt(), "la bulle doit finir au-dessus du centre")
-    }
-
-    @Test
-    fun `la bulle ne sort pas du conteneur`() {
+    fun `la bulle ne sort pas du conteneur en largeur`() {
         // Un quartier de bord tire la bulle vers l'exterieur : c'est le corps qui
         // s'arrete, jamais l'ecran qui s'agrandit.
-        val spot = bubbleSpot(
-            anchor = Offset(ZONE.width - 2f, 20f),
-            centre = CENTRE,
-            bubble = BULLE,
-            container = ZONE,
-            margin = MARGE,
-            tailInset = POINTE,
-        )
+        val spot = bubbleSpot(ZONE.width - 2f, BAS, BULLE, ZONE, MARGE, POINTE)
 
         assertTrue(spot.offset.x >= 0, "la bulle sort a gauche")
         assertTrue(spot.offset.x + BULLE.width <= ZONE.width, "la bulle sort a droite")
+    }
+
+    @Test
+    fun `une figure basse ne pousse pas la bulle hors du conteneur`() {
+        // Le cas qui a change la regle : une bulle haute posee sous une figure qui
+        // descend bas remonte jusqu'a tenir. Elle recouvre alors le bas de la figure
+        // -- il n'y a pas d'autre issue -- mais elle reste entiere et lisible.
+        val spot = bubbleSpot(CENTRE.x, ZONE.height - 10f, BULLE, ZONE, MARGE, POINTE)
+
+        assertEquals(ZONE.height - BULLE.height, spot.offset.y)
     }
 
     @Test
@@ -144,11 +125,10 @@ class MacroHexagonTouchTest {
         // pointe sortirait de l'ecran, une pointe recentree sur la bulle designerait
         // le mauvais quartier. L'ancrage est choisi la ou le corps bute et ou la
         // pointe, elle, a encore de la course -- sinon le cas n'eprouve rien.
-        val vers = Offset(170f, 20f)
-        val spot = bubbleSpot(vers, CENTRE, BULLE, ZONE, MARGE, POINTE)
+        val spot = bubbleSpot(170f, BAS, BULLE, ZONE, MARGE, POINTE)
 
         assertEquals(ZONE.width - BULLE.width, spot.offset.x, "le corps devait buter sur le bord droit")
-        assertEquals((vers.x - spot.offset.x).toInt(), spot.tailX)
+        assertEquals((170f - spot.offset.x).toInt(), spot.tailX)
         assertTrue(spot.tailX != BULLE.width / 2, "une pointe restee au milieu ne designe plus rien")
     }
 
@@ -156,7 +136,7 @@ class MacroHexagonTouchTest {
     fun `la pointe reste dans la bulle, loin des angles`() {
         // Une pointe posee sur un angle arrondi ne tient a rien, et une pointe hors
         // de la bulle flotte toute seule.
-        val spot = bubbleSpot(Offset(0f, 20f), CENTRE, BULLE, ZONE, MARGE, POINTE)
+        val spot = bubbleSpot(0f, BAS, BULLE, ZONE, MARGE, POINTE)
 
         assertTrue(spot.tailX >= POINTE, "la pointe touche l angle gauche")
         assertTrue(spot.tailX <= BULLE.width - POINTE, "la pointe touche l angle droit")
@@ -167,7 +147,7 @@ class MacroHexagonTouchTest {
         // Cas limite d'un tres gros caractere : mieux vaut une bulle rognee en bas
         // qu'une bulle posee a une coordonnee negative, invisible en entier.
         val enorme = IntSize(ZONE.width + 100, ZONE.height + 100)
-        val spot = bubbleSpot(pointAt(CENTRE, 80f, 90f), CENTRE, enorme, ZONE, MARGE, POINTE)
+        val spot = bubbleSpot(CENTRE.x, BAS, enorme, ZONE, MARGE, POINTE)
 
         assertEquals(0, spot.offset.x)
         assertEquals(0, spot.offset.y)
@@ -177,7 +157,10 @@ class MacroHexagonTouchTest {
         val CENTRE = Offset(100f, 100f)
         const val REACH = 90f
 
-        val ZONE = IntSize(200, 200)
+        val ZONE = IntSize(200, 400)
+
+        /** Le bas de la figure : c'est sous lui que la bulle se pose. */
+        const val BAS = 100f
         val BULLE = IntSize(120, 60)
         const val MARGE = 8
         const val POINTE = 16

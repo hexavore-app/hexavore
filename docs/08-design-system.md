@@ -227,11 +227,12 @@ Ce n'est pas une `MacroBar` en petit. La grande barre répond à « où j'en sui
 
 Une carte qui commente un point d'une figure, et une pointe qui le désigne ([D122](11-decisions.md#d122--un-quartier-touché-dit-ce-qui-la-rempli---validée)).
 
-- **Elle se pose du côté opposé à son ancre**, par rapport au centre de la figure : recouvrir ce qu'elle explique reviendrait à l'annuler.
-- **La pointe suit l'ancre, le corps suit l'écran.** Les deux se désolidarisent dès que la carte bute sur un bord ; la pointe reste bornée à l'intérieur, loin des angles arrondis, faute de quoi elle flotterait toute seule.
-- **Fond à 95 %** de `surfaceContainerHighest`. Assez transparent pour qu'on sache ce qu'il y a dessous — c'est ce qui la distingue d'un écran —, assez opaque pour qu'un trait de 3 dp reste lisible sur un quartier allumé.
+- **Elle se pose entièrement sous la figure qu'elle commente** : la recouvrir reviendrait à l'annuler. La zone de placement doit donc être assez haute pour l'accueillir — sur l'accueil, elle va de l'hexagone jusqu'au bas des six barres.
+- **La pointe suit l'ancre, le corps suit l'écran.** Les deux se désolidarisent dès que la carte bute sur un bord ; la pointe reste bornée à l'intérieur, loin des angles arrondis, faute de quoi elle flotterait toute seule. Elle est toujours sur le bord haut.
+- **Fond à 97 %** de `surfaceContainerHighest`. À 95 %, un chiffre blanc de cinquante-sept points posé dessous se lisait à travers : deux textes qui se disputent le même pixel ne font pas une bulle légère. Trois pour cent suffisent à ce qu'on devine qu'il y a quelque chose dessous.
 - **Largeur plafonnée à 260 dp** : une bulle pleine largeur est un bandeau.
-- **Aucun voile derrière elle.** Une modale assombrit ce qu'elle recouvre pour annoncer qu'un appui à côté la referme ; celle-ci ne le fait pas, et rien en elle ne capte le doigt — c'est l'appelant qui referme.
+- **Aucun voile derrière elle.** Une modale assombrit ce qu'elle recouvre pour annoncer qu'un appui à côté la referme ; celle-ci ne le fait pas, et c'est l'appelant qui referme.
+- **Elle avale les appuis qui la touchent.** Elle est posée sur du contenu cliquable ; sans cela, lire la bulle changeait ce qu'elle dit.
 - **La pointe est tracée par le parent.** Sa position le long du bord n'est connue qu'une fois la carte mesurée et placée, alors que le fond doit être décrit avant : faire redescendre cette position dans une forme obligerait à recomposer l'enfant pour un nombre que la mise en page vient de calculer.
 
 ### `MacroBar`

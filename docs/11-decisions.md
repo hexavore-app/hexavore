@@ -3940,9 +3940,13 @@ L'hexagone répond à *comment va ma journée*, les barres à *où j'en suis*. N
 
 **Un aliment mesuré deux fois, dont une sans valeur, est dans les deux listes.** Les deux sont vrais en même temps — il a donné ce qu'on sait, et une part de lui n'est pas renseignée — et taire l'un des deux arrondirait la vérité du mauvais côté.
 
-### La bulle se pose du côté opposé au quartier
+### La bulle se pose sous la figure, jamais dessus
 
-**C'est la seule règle de placement qui compte.** Recouvrir le quartier qu'on vient de mettre en avant reviendrait à annuler la surbrillance au moment précis où elle est demandée. Un quartier du haut renvoie donc la bulle sous le centre de la figure, un quartier du bas au-dessus.
+**C'est la seule règle de placement qui compte.** Recouvrir la figure qu'on vient de mettre en avant reviendrait à annuler la surbrillance au moment précis où elle est demandée.
+
+**La première version se posait du côté opposé au quartier** : un quartier du haut renvoyait la bulle sous le centre, un quartier du bas au-dessus. Elle gardait bien le quartier touché visible, et recouvrait les cinq autres. Sur une journée à six aliments la bulle fait deux cents points de haut ; posée au-dessus du centre elle bute sur le haut de la zone et mange la figure presque entière. **Constaté sur appareil, et invisible depuis les cas** — aucun ne mesure une bulle.
+
+Se poser sous la figure demande de la place, et le bloc de l'hexagone seul n'en a pas : **la zone de placement va de la figure jusqu'au bas des six barres.** C'est ce qui permet à la bulle de descendre plutôt que de remonter.
 
 **La pointe suit le quartier, le corps suit l'écran**, et les deux se désolidarisent dès que la bulle bute sur un bord. L'inverse — une bulle qui sort de l'écran pour rester centrée sur sa pointe — était la seule chose à éviter sur une figure aussi large que l'écran.
 
@@ -3971,13 +3975,22 @@ La figure, elle, porte **six actions personnalisées** plutôt que six zones tac
 
 **Campagne de défaite : vingt-sept sabotages, vingt-sept cas tombés.**
 
-**Conséquences.** `DishSummary.share` et la part d'une ligne de bulle sont la même règle, écrite une fois. `MacroHexagon.kt` se sépare en trois : la figure, sa géométrie, et ce que la sélection lui fait.
+### Ce que l'appareil a montré, et que le vert taisait
 
-**Ce que le vert ne prouve pas.** **Que la bulle soit légère et non envahissante**, ce qui était la demande. Aucun cas ne juge une carte de 260 dp posée sur une figure de 310, ni son fond à quatre-vingt-quinze pour cent d'opacité, ni la lisibilité d'un nom d'aliment tronqué sur un écran de 360.
+Quatre défauts, dont aucun ne se voit depuis un cas — ils tiennent tous à des tailles et à des couches, que rien ne mesure hors d'un écran.
+
+- **Le placement**, ci-dessus : la bulle mangeait la figure.
+- **Les boutons flottants passaient par-dessus.** Ils sont une couche du `Scaffold`, dessinée après le contenu ; posés sur la colonne des chiffres, ils la rendaient illisible. Ils s'effacent désormais le temps d'une lecture — ce qui dit aussi la vérité : on ne note rien pendant qu'on regarde d'où vient une macro.
+- **La transparence demandée se retournait contre elle-même.** À 95 %, le restant en calories — blanc, cinquante-sept points — traverse la bulle et se lit aussi bien que ce qu'elle écrit. Deux textes qui se disputent le même pixel ne font pas une bulle légère. À 97 %, on devine qu'il y a quelque chose dessous, ce qui est tout ce qu'on lui demande.
+- **Un appui sur la bulle changeait de macro** : elle est posée sur la figure et sur les barres, et le geste passait au travers. Elle avale désormais les appuis. **Un cas reste non expliqué** : la bascule a été observée une fois, puis n'a pas reparu en trois reprises de la même séquence.
+
+**Conséquences.** `DishSummary.share` et la part d'une ligne de bulle sont la même règle, écrite une fois. `MacroHexagon.kt` se sépare en trois : la figure, sa géométrie, et ce que la sélection lui fait. `HomeScreen.kt` se sépare en deux : l'écran, et les compteurs du jour.
+
+**Ce que le vert ne prouve pas.** **Que la bulle soit légère et non envahissante**, ce qui était la demande. Sept écrans ont été regardés ; aucun cas ne juge une carte de 260 dp, ni son fond à trois pour cent de transparence, ni la lisibilité d'un nom d'aliment tronqué sur un écran de 360.
 
 Rien ne dit **qu'un quartier presque vide se laisse viser** : son triangle est fin près du centre, et c'est la portée angulaire qui le sauve — une règle qui s'éprouve mais dont le confort réel ne s'éprouve pas.
 
-Rien ne dit non plus **que l'appui à côté referme dans tous les cas**. La règle est que tout appui non consommé par un enfant referme ; un plat, une barre ou une pastille consomment le leur, donc la bulle leur survit le temps d'une navigation. C'est le comportement voulu, mais il dépend de l'ordre de consommation des événements, qu'aucun cas unitaire ne parcourt.
+Rien ne dit non plus **que l'appui à côté referme dans tous les cas**. La règle est que tout appui non consommé par un enfant referme ; un plat, une barre ou une pastille consomment le leur, donc la bulle leur survit le temps d'une navigation. C'est le comportement voulu, mais il dépend de l'ordre de consommation des événements, qu'aucun cas unitaire ne parcourt — et c'est précisément là qu'un appui sur la bulle a changé de macro une fois, sans qu'on sache le refaire.
 
 ---
 
