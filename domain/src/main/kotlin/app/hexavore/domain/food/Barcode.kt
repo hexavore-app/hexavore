@@ -16,8 +16,8 @@ package app.hexavore.domain.food
  * C'est pour ça qu'elle est faite ici, une fois, et pas au cas par cas.
  *
  * **UPC-E n'est pas accepté**, et c'est un écart assumé avec [docs/02][parcours].
- * Huit chiffres ne disent pas s'ils sont un EAN-8 ou un UPC-E compressé, ML Kit ne
- * décompresse pas, et lire un UPC-E comme un EAN-8 produirait un code **plausible
+ * Huit chiffres ne disent pas s'ils sont un EAN-8 ou un UPC-E compressé, rien ne les
+ * décompresse en amont, et lire un UPC-E comme un EAN-8 produirait un code **plausible
  * désignant un autre produit** — la pire des issues, puisqu'elle afficherait une
  * fiche fausse au lieu de dire « introuvable ». La clé de contrôle le rattraperait
  * neuf fois sur dix, ce qui est une coïncidence et non une règle. Le jour où un

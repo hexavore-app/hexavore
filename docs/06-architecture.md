@@ -52,7 +52,7 @@ La flèche du bas remonte : `:data` dépend de `:domain`, jamais l'inverse. Un `
 :integration:openfoodfacts  Client Retrofit + DTO + correspondances
 :integration:ai             FoodRecognizer et ses six implémentations
 :integration:drive          Google Drive appDataFolder
-:integration:scanner        CameraX + ML Kit, et la seule composable d un adaptateur
+:integration:scanner        CameraX + zxing-cpp, et la seule composable d un adaptateur
 
 :feature:onboarding
 :feature:scan               Modale de scan, ses quatre etats

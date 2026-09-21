@@ -144,9 +144,9 @@ L'ordre est fixe. Un ordre adaptatif « selon vos habitudes » ferait bouger les
 
 Feuille modale plein écran, aperçu caméra, cadre de visée, torche en haut à droite.
 
-Décodage continu par ML Kit sur le flux CameraX. Formats acceptés : EAN-13, EAN-8, UPC-A — les formats de produits alimentaires, rien d'autre, pour éviter les faux positifs sur les QR codes.
+Décodage continu par ~~ML Kit~~ **zxing-cpp** sur le flux CameraX — une bibliothèque libre qui lit sur l'appareil et n'envoie rien à personne ([D123](11-decisions.md#d123--le-scan-ne-parle-plus-à-google---validée)). Formats acceptés : EAN-13, EAN-8, UPC-A — les formats de produits alimentaires, rien d'autre, pour éviter les faux positifs sur les QR codes.
 
-~~UPC-E~~ en sort ([D65](11-decisions.md#d65--le-décodeur-est-un-module-à-part-et-sa-seule-règle-tient-sur-la-jvm---validée)) : huit chiffres ne disent pas s'ils sont un EAN-8 ou un UPC-E compressé, ML Kit ne décompresse pas, et lire l'un pour l'autre donne un code **plausible désignant un autre produit** — pire qu'un refus. Le modèle est **embarqué dans l'APK** et non téléchargé par les services Google : le premier scan doit marcher sans réseau, et sur un téléphone dégooglisé.
+~~UPC-E~~ en sort ([D65](11-decisions.md#d65--le-décodeur-est-un-module-à-part-et-sa-seule-règle-tient-sur-la-jvm---validée)) : huit chiffres ne disent pas s'ils sont un EAN-8 ou un UPC-E compressé, rien ne les décompresse en amont, et lire l'un pour l'autre donne un code **plausible désignant un autre produit** — pire qu'un refus. Le décodeur est **embarqué dans l'APK** et non téléchargé par les services Google : le premier scan doit marcher sans réseau, et sur un téléphone dégooglisé.
 
 **Anti-rebond** : un code n'est retenu qu'après deux lectures identiques consécutives, puis le scan se met en pause et le téléphone vibre brièvement. Sans cela, la caméra enchaîne les détections et l'écran clignote.
 

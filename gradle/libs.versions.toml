@@ -52,12 +52,12 @@ okhttp = "4.12.0"
 # CameraX 1.4 est le dernier palier qui se compile sous compileSdk 35 ; les 1.5 et
 # au-dela en demandent un plus recent, que D15 a fixe sur l'IDE installe.
 camerax = "1.4.2"
-# Le modele est **embarque** dans l'APK -- com.google.mlkit et non
-# com.google.android.gms. Il pese quelques megaoctets et fonctionne sans les
-# services Google, donc sur un telephone degooglise comme sur un autre. C'est la
-# variante coherente avec un APK distribue par GitHub Releases et avec un scan
-# qui doit marcher hors ligne.
-mlkitBarcode = "17.3.0"
+# Le decodeur de codes-barres est **libre** : zxing-cpp, et non ML Kit, qui envoyait
+# a Google des diagnostics qu'aucun reglage ne coupait (D123). Il tourne entierement
+# sur l'appareil, sans reseau ni services Google, donc sur un telephone degooglise
+# comme sur un autre. La 2.3.0 est la derniere qui s'accorde a la chaine de D15 :
+# les 3.x tirent CameraX 1.5 et Kotlin 2.2, donc compileSdk 36.
+zxingCpp = "2.3.0"
 
 # Calendrier Compose, licence MIT. WeekCalendar et VerticalCalendar sont batis sur
 # LazyRow et LazyColumn : la pagination des mois, le premier jour de semaine selon la
@@ -136,7 +136,7 @@ androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camerax" }
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camerax" }
 androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "camerax" }
-mlkit-barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "mlkitBarcode" }
+zxing-cpp = { module = "io.github.zxing-cpp:android", version.ref = "zxingCpp" }
 
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }

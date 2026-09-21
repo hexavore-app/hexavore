@@ -17,8 +17,11 @@ import app.hexavore.domain.food.Barcode
  * fausse n'ont pas été lus consécutivement. Les traiter autrement reviendrait à
  * accepter un accord que l'optique n'a pas donné.
  *
- * **Pur, sans caméra ni ML Kit**, et c'est délibéré : c'est la seule partie du
+ * **Pur, sans caméra ni décodeur**, et c'est délibéré : c'est la seule partie du
  * scanner qu'on puisse éprouver sur la JVM, donc la seule qui doive porter une règle.
+ *
+ * **Rien n'y est synchronisé** : un seul fil s'en sert, celui de l'analyse, et
+ * [CameraSession] y envoie jusqu'à la reprise.
  *
  * [parcours]: docs/02-parcours-et-ecrans.md
  */
