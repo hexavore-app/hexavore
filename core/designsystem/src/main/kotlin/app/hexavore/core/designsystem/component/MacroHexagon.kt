@@ -18,7 +18,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -59,7 +58,13 @@ import app.hexavore.domain.nutrition.Macro
  * @see docs/11-decisions.md — D33
  */
 @Composable
-fun MacroHexagon(quarters: Map<Macro, MacroQuarter>, modifier: Modifier = Modifier) {
+fun MacroHexagon(
+    quarters: Map<Macro, MacroQuarter>,
+    modifier: Modifier = Modifier,
+    selected: Macro? = null,
+    label: (Macro) -> String = { "" },
+    onSelect: (Macro?) -> Unit = {},
+) {
     val palettes = Macro.entries.associateWith { NeonTheme.macros[it] }
     val outline = MaterialTheme.colorScheme.outline
     val measurer = rememberTextMeasurer()
@@ -79,46 +84,35 @@ fun MacroHexagon(quarters: Map<Macro, MacroQuarter>, modifier: Modifier = Modifi
     val ratios = Macro.entries.associateWith { macro ->
         animateFloatAsState(cappedRatio(quarters[macro]), spec, label = "quartier ${macro.name}").value
     }
+    val emphasis = rememberEmphasis(selected, spec)
+
+    // Ce qu'une lettre occupe autour de son centre. La plus grande des deux
+    // dimensions : elle est posee par son centre, et on ignore de quel cote elle
+    // debordera. Mesuree en composition et non dans le trace, parce que le doigt en a
+    // besoin lui aussi -- c'est elle qui dit jusqu'ou s'etend la cible.
+    val labelExtent = measurer.measure(Macro.CALORIES.initial, initialStyle).size.let {
+        maxOf(it.width, it.height) / 2f
+    }
 
     Box(
         modifier = modifier
             .fillMaxWidth()
             .aspectRatio(HEXAGON_ASPECT)
-            // Exclu de l'arbre d'accessibilite : les six memes valeurs sont juste
-            // en dessous, dans les barres, sous une forme qui se lit bien mieux a
-            // la voix. Cette exclusion tient tant que les barres restent.
-            .clearAndSetSemantics { },
+            .quarterTaps(labelExtent, onSelect)
+            .quarterActions(label, onSelect),
     ) {
         Canvas(Modifier.fillMaxWidth().aspectRatio(HEXAGON_ASPECT)) {
             val centre = Offset(size.width / 2f, size.height / 2f)
+            val place = hexagonZone(size.width, size.height, labelExtent)
+            val target = place.radius * fit
 
-            // Ce qu'une lettre occupe autour de son centre. La plus grande des deux
-            // dimensions : elle est posee par son centre, et on ignore de quel cote
-            // elle debordera.
-            val labelExtent = measurer.measure(Macro.CALORIES.initial, initialStyle).size.let {
-                maxOf(it.width, it.height) / 2f
-            }
-            // La lueur, l'intervalle et les lettres sont reserves ici, une fois. Sans
-            // cette reserve, la lueur du quartier le plus rempli sortait de la zone et
-            // se faisait rogner net -- un neon coupe au couteau, ce qu'aucun neon ne
-            // fait -- et la lettre du haut avec elle.
-            val place = hexagonFit(
-                width = size.width,
-                height = size.height,
-                labelExtent = labelExtent,
-                glow = GlowRoom.toPx(),
-                gap = LabelGap.toPx(),
-            )
-            val radius = place.radius
-            val target = radius * fit
-
-            drawQuarters(centre, target, ratios, palettes)
+            drawQuarters(centre, target, ratios, palettes, emphasis)
 
             // Le contour par-dessus les quartiers : c'est la reference a laquelle
             // tout se compare, elle ne doit jamais etre masquee.
             drawPath(hexagonPath(centre, target), outline, style = Stroke(width = OutlineWidth.toPx()))
 
-            drawInitials(centre, place.labelRadius, measurer, initialStyle, palettes)
+            drawInitials(centre, place.labelRadius, measurer, initialStyle, palettes, emphasis)
         }
     }
 }
@@ -138,14 +132,16 @@ private fun DrawScope.drawQuarters(
     radius: Float,
     ratios: Map<Macro, Float>,
     palettes: Map<Macro, MacroPalette>,
+    emphasis: Emphasis,
 ) {
     Macro.entries.forEach { macro ->
         drawQuarter(
             centre = centre,
-            radius = radius * ratios.getValue(macro),
+            radius = radius * ratios.getValue(macro) * emphasis.zoom.getValue(macro),
             axis = macro.axisDegrees,
             palette = palettes.getValue(macro),
             ratio = ratios.getValue(macro),
+            dim = emphasis.dim.getValue(macro),
         )
     }
 
@@ -154,10 +150,12 @@ private fun DrawScope.drawQuarters(
         if (ratio <= 0f) return@forEach
         drawQuarterGlow(
             centre = centre,
-            radius = radius * ratio,
+            radius = radius * ratio * emphasis.zoom.getValue(macro),
             axis = macro.axisDegrees,
             palette = palettes.getValue(macro),
-            intensity = ratio.coerceAtMost(1f),
+            // La lueur s'eteint avec le quartier : une aura restee vive autour d'un
+            // triangle assourdi ferait un halo sans lampe.
+            intensity = ratio.coerceAtMost(1f) * emphasis.dim.getValue(macro),
         )
     }
 }
@@ -177,12 +175,6 @@ private const val ZIGZAG_DEPTH = 0.05f
 private const val GLOW_LAYERS = 3
 
 private val OutlineWidth: Dp = 2.dp
-
-/** Ce que la lueur déborde vers l'extérieur, et qu'il faut donc réserver. */
-private val GlowRoom: Dp = 12.dp
-
-/** Entre la lueur et la lettre, pour que la seconde ne baigne pas dans la première. */
-private val LabelGap: Dp = 6.dp
 
 private val GlowSpread: Dp = GlowRoom / GLOW_LAYERS
 
@@ -206,9 +198,19 @@ private const val GLOW_MAX_FRACTION = 0.12f
  *
  * [decisions]: docs/11-decisions.md
  */
-private fun DrawScope.drawQuarter(centre: Offset, radius: Float, axis: Float, palette: MacroPalette, ratio: Float) {
+private fun DrawScope.drawQuarter(
+    centre: Offset,
+    radius: Float,
+    axis: Float,
+    palette: MacroPalette,
+    ratio: Float,
+    dim: Float,
+) {
     if (ratio <= 0f) return
-    val colour = if (ratio > 1f) palette.base.saturate(OVERSHOOT_SATURATION) else palette.base
+    val vive = if (ratio > 1f) palette.base.saturate(OVERSHOOT_SATURATION) else palette.base
+    // L'opacite et non un gris melange : le fond de l'application change avec le
+    // theme, et une teinte eteinte par melange serait juste pour l'un des deux.
+    val colour = vive.copy(alpha = vive.alpha * dim)
 
     drawPath(quarterPath(centre, radius, axis), SolidColor(colour))
 
@@ -294,13 +296,18 @@ private fun DrawScope.drawInitials(
     measurer: TextMeasurer,
     style: TextStyle,
     palettes: Map<Macro, MacroPalette>,
+    emphasis: Emphasis,
 ) {
     Macro.entries.forEach { macro ->
         val layout = measurer.measure(macro.initial, style)
         val anchor = pointAt(centre, radius, macro.axisDegrees)
+        val teinte = palettes.getValue(macro).base
         drawText(
             textLayoutResult = layout,
-            color = palettes.getValue(macro).base,
+            // La lettre s'eteint avec son quartier, et ne grossit pas avec lui : son
+            // rayon est celui de la zone, et six reperes qui se deplaceraient a chaque
+            // appui ne seraient plus des reperes.
+            color = teinte.copy(alpha = teinte.alpha * emphasis.dim.getValue(macro)),
             topLeft = Offset(anchor.x - layout.size.width / 2f, anchor.y - layout.size.height / 2f),
         )
     }

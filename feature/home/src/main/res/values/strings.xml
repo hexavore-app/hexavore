@@ -2,6 +2,10 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:locale="fr">
 
     <string name="home_title">Aujourd\'hui</string>
+    <!-- Les deux jours qui ont un nom le portent : « Hier » se lit plus vite qu\'une
+         date qu\'il faut décoder. Au-delà, la date longue reprend la main. -->
+    <string name="home_title_yesterday">Hier</string>
+    <string name="home_title_before_yesterday">Avant-hier</string>
 
     <!-- Le chemin visible du retour à aujourd'hui. Le bouton retour du système y mène
          aussi, mais un geste sans représentation visible est introuvable pour qui
@@ -123,6 +127,19 @@
     <string name="macro_sugars">Sucres</string>
     <string name="macro_fat">Lipides</string>
     <string name="macro_fiber">Fibres</string>
+
+    <!-- La bulle des sources d\'une macro : ce qui la lui a donnée, du plus gros au
+         plus petit. « Valeur inconnue » n\'est pas « zéro » — c\'est la seule ligne de
+         l\'accueil qui dise encore qu\'un total est minoré, et la seule qui dise par
+         quel aliment. -->
+    <string name="home_sources_of_goal">%1$s sur %2$s</string>
+    <string name="home_sources_unknown">Valeur inconnue : %1$s</string>
+    <string name="home_sources_open">Afficher les sources</string>
+    <string name="home_sources_action">Afficher les sources : %1$s</string>
+    <plurals name="home_sources_others">
+        <item quantity="one">%1$d autre</item>
+        <item quantity="other">%1$d autres</item>
+    </plurals>
 
     <string name="macro_initial_calories">C</string>
     <string name="macro_initial_protein">P</string>

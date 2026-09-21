@@ -1,6 +1,7 @@
 package app.hexavore.feature.home
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -9,8 +10,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
@@ -66,6 +72,32 @@ private const val SWIPE_VELOCITY = 800f
 private const val REFUSED_RESISTANCE = 3f
 
 /**
+ * Où en est le glissement, pour ceux qui n'en font pas partie.
+ *
+ * **Le titre du jour est au-dessus du geste, pas dedans.** Il ne peut pas être : entre
+ * lui et la journée il y a le calendrier, qui a son propre défilement horizontal et ne
+ * doit pas bouger. Partager l'état plutôt que le voisinage est ce qui permet aux deux de
+ * glisser ensemble sans être ensemble.
+ *
+ * [progress] va de zéro — la journée est en place — à un — elle a parcouru toute la
+ * largeur. C'est ce qui dit au titre de combien s'effacer, sans qu'il ait à connaître
+ * ni la largeur de l'écran ni le sens du geste.
+ */
+@Stable
+internal class DaySwipeState {
+    val offset: Animatable<Float, AnimationVector1D> = Animatable(0f)
+
+    /** La largeur de la journée, écrite par [SwipingDay] qui est le seul à la mesurer. */
+    var width: Float by mutableFloatStateOf(0f)
+
+    val progress: Float
+        get() = if (width <= 0f) 0f else (abs(offset.value) / width).coerceIn(0f, 1f)
+}
+
+@Composable
+internal fun rememberDaySwipe(): DaySwipeState = remember { DaySwipeState() }
+
+/**
  * La journée, qui suit le doigt et cède la place à sa voisine.
  *
  * **Le contenu suit le doigt**, et c'est ce qui distingue ce geste d'un bouton : on
@@ -84,6 +116,7 @@ private const val REFUSED_RESISTANCE = 3f
  */
 @Composable
 internal fun SwipingDay(
+    state: DaySwipeState,
     shown: LocalDate,
     today: LocalDate,
     earliest: LocalDate,
@@ -91,7 +124,7 @@ internal fun SwipingDay(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    val offset = remember { Animatable(0f) }
+    val offset = state.offset
     val scope = rememberCoroutineScope()
     // Zero quand l'appareil demande moins de mouvement : le jour change alors d'un
     // coup, ce qui reste le bon comportement -- ce n'est pas une decoration qu'on
@@ -100,6 +133,9 @@ internal fun SwipingDay(
 
     BoxWithConstraints(modifier) {
         val width = with(LocalDensity.current) { maxWidth.toPx() }
+        // Portee par l'etat et non gardee ici : le titre en a besoin pour savoir ou
+        // en est le geste, et lui ne connait pas la largeur de la journee.
+        LaunchedEffect(width) { state.width = width }
 
         Box(
             modifier = Modifier

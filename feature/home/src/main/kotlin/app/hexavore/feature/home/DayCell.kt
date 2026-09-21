@@ -1,18 +1,26 @@
 package app.hexavore.feature.home
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import app.hexavore.core.designsystem.component.MacroSegmentRing
 import app.hexavore.core.designsystem.component.NoticeDot
+import app.hexavore.core.designsystem.theme.NeonTheme
 import app.hexavore.domain.nutrition.Macro
 import app.hexavore.domain.usecase.CalendarDay
 import java.time.LocalDate
@@ -66,6 +74,8 @@ internal fun DayCell(
             // navigation, et le lecteur d'ecran ne l'annonce pas comme un bouton.
             .let { base -> if (future) base else base.clickable { onOpenDay(date) } },
     ) {
+        SelectedDisc(shown = shown, diameter = footprint)
+
         MacroSegmentRing(
             modifier = Modifier.align(Alignment.Center),
             progress = day.progress(),
@@ -96,6 +106,48 @@ internal fun DayCell(
         }
     }
 }
+
+/**
+ * Le disque du jour regardé, sous son anneau.
+ *
+ * **Un chiffre en gras ne suffisait pas.** C'était tout ce qui distinguait le jour
+ * affiché de ses six voisins, au milieu de sept anneaux colorés qui attirent l'œil bien
+ * davantage — « on ne sait pas trop où on se situe » commençait là. Un disque plein se
+ * voit sans être cherché, et il ne coûte aucune couleur de plus : c'est la teinte du
+ * texte, très assourdie.
+ *
+ * **Il grandit à sa place plutôt que de glisser jusqu'à elle.** Celui qu'on quitte se
+ * rétracte pendant que celui qu'on rejoint s'ouvre, et l'œil lit un déplacement — sans
+ * qu'aucune des deux cellules ait à connaître la position de l'autre, ce qu'un
+ * `LazyRow` ne dit de toute façon pas.
+ */
+@Composable
+private fun BoxScope.SelectedDisc(shown: Boolean, diameter: Dp) {
+    val taille by animateFloatAsState(
+        targetValue = if (shown) 1f else 0f,
+        animationSpec = tween(NeonTheme.motion.gaugeValueMillis),
+        label = "pastille du jour regarde",
+    )
+    if (taille <= 0f) return
+
+    Box(
+        modifier = Modifier
+            .align(Alignment.Center)
+            .size(diameter)
+            .graphicsLayer {
+                scaleX = taille
+                scaleY = taille
+                alpha = taille
+            }
+            .background(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = DISC_ALPHA),
+                shape = CircleShape,
+            ),
+    )
+}
+
+/** Assez pour se voir contre le fond, trop peu pour concurrencer l'anneau qu'il porte. */
+private const val DISC_ALPHA = 0.14f
 
 /** Ce que le lecteur d'écran annonce : un anneau absent ne s'entend pas. */
 private fun LocalDate.labelOf(day: CalendarDay?, future: Boolean): Int = when {

@@ -2,11 +2,11 @@ package app.hexavore.feature.home
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -16,7 +16,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -26,35 +25,27 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.hexavore.core.designsystem.component.AdjustmentCard
-import app.hexavore.core.designsystem.component.MacroBar
-import app.hexavore.core.designsystem.component.MacroHexagon
-import app.hexavore.core.designsystem.component.MacroQuarter
-import app.hexavore.core.designsystem.component.MacroUnit
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.core.designsystem.theme.Timing
 import app.hexavore.domain.appearance.DishDisplayStyle
 import app.hexavore.domain.diary.DaySummary
 import app.hexavore.domain.diary.Dish
 import app.hexavore.domain.goal.AdjustmentSuggestion
-import app.hexavore.domain.goal.DailyGoal
 import app.hexavore.domain.notice.Notice
-import app.hexavore.domain.nutrition.Macro
 import app.hexavore.domain.usecase.AdjustmentResponse
 import kotlinx.coroutines.withTimeoutOrNull
 import java.time.LocalDate
-import kotlin.math.abs
-import kotlin.math.roundToInt
 
 /** L'accueil, branché sur le graphe d'injection. */
 @Composable
@@ -202,31 +193,41 @@ fun HomeScreen(
     // haut, et la colonne a besoin de defiler. Un seul etat, deux lecteurs.
     val dayScroll = rememberScrollState()
     val collapseOnScroll = rememberCalendarScroll(calendarExpanded, dayScroll) { calendarExpanded = it }
+
+    // Le quartier qu'on regarde de pres. Repose a chaque changement de jour : une
+    // bulle qui survivrait au glissement parlerait des aliments de la veille.
+    val focus = rememberDayFocus(day, dayScroll)
+
+    // Partage entre le titre et la journee : ils glissent ensemble sans etre
+    // voisins, le calendrier etant entre les deux.
+    val swipe = rememberDaySwipe()
     val snackbarHostState = rememberUndoBar(pendingUndo, actions.onUndo, actions.onUndoExpired)
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        floatingActionButton = { DayActions(actions, aiConfigured) },
+        floatingActionButton = { DayActions(actions, aiConfigured, visible = focus.macro == null) },
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = Spacing.screenMargin),
+                .padding(horizontal = Spacing.screenMargin)
+                .closingTaps(focus),
             verticalArrangement = Arrangement.spacedBy(Spacing.xl),
         ) {
             // Le titre et le calendrier ne defilent pas : docs/02 les veut fixes en
             // haut, et c'est aussi ce qui permet au mois deplie de defiler pour son
             // propre compte -- il n'est plus sous la connexion qui replie.
-            DayHeader(actions, day, onBackToToday, notices)
+            DayHeader(actions, day, today, swipe, onBackToToday, notices)
             calendar(calendarExpanded) { calendarExpanded = it }
 
             // Le glissement porte sur ce qui defile, jamais sur le calendrier : celui-ci
             // a son propre defilement horizontal, de semaine en semaine, et les deux
             // gestes se disputeraient le meme doigt au meme endroit.
             SwipingDay(
+                state = swipe,
                 shown = day ?: today,
                 today = today,
                 earliest = today.minusMonths(MONTHS_BACK),
@@ -249,6 +250,7 @@ fun HomeScreen(
                             summary = state.summary,
                             style = dishStyle,
                             actions = actions,
+                            focus = focus,
                             favoriteNameTaken = favoriteNameTaken,
                             onDismissFavoriteError = onDismissFavoriteError,
                         )
@@ -260,6 +262,20 @@ fun HomeScreen(
         }
     }
 }
+
+/**
+ * Un appui à côté referme la bulle des sources.
+ *
+ * **Posé sur l'écran entier, et pourtant sans rien voler à personne.** Un appui n'arrive
+ * ici que si aucun enfant ne l'a consommé : l'hexagone garde les siens — c'est ainsi
+ * qu'on passe d'un quartier à l'autre sans refermer —, les barres et les plats aussi. Ce
+ * qui reste est exactement ce qu'on appelle « à côté ».
+ *
+ * Rien du tout quand la bulle est fermée : un détecteur de gestes posé en permanence
+ * sur la page entière serait un obstacle de plus entre le doigt et ce qu'il vise.
+ */
+private fun Modifier.closingTaps(focus: MacroFocus): Modifier =
+    if (focus.macro == null) this else pointerInput(focus) { detectTapGestures { focus.clear() } }
 
 /**
  * La barre qui rattrape un plat supprimé.
@@ -392,13 +408,13 @@ internal fun DayContent(
     summary: DaySummary,
     style: DishDisplayStyle,
     actions: HomeActions,
+    focus: MacroFocus,
     favoriteNameTaken: Boolean,
     onDismissFavoriteError: () -> Unit,
 ) {
     val goal = summary.goal
     if (goal != null) {
-        RemainingBlock(summary, goal)
-        MacroBars(summary, goal)
+        MacroBlock(summary, goal, focus)
     } else {
         NoGoal(actions.onSetUpGoal)
         MacroTotalsOnly(summary)
@@ -417,85 +433,3 @@ internal fun DayContent(
         EmptyDay()
     }
 }
-
-/**
- * L'hexagone des macros, puis le grand chiffre.
- *
- * Le chiffre est sous la figure et non en son centre : les six quartiers prennent
- * naissance au centre, un texte y serait recouvert dès la première bouchée.
- *
- * C'est le **restant** qui s'affiche, pas le consommé — l'information dont on a
- * besoin au moment de décider quoi manger. Un dépassement l'affiche en négatif,
- * sans rouge d'alerte ni message : c'est une donnée, pas un jugement.
- */
-@Composable
-private fun RemainingBlock(summary: DaySummary, dailyGoal: DailyGoal) {
-    val consumed = summary.totals[Macro.CALORIES].value
-    val goal = dailyGoal.kcal
-    val remaining = goal - consumed
-
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Spacing.sm),
-    ) {
-        // Plus d'intervalle a rajouter sous la figure : les six lettres tiennent
-        // desormais dans sa zone, donc le « G » des glucides ne vient plus buter
-        // contre le grand chiffre et le « C » ne sort plus par le haut.
-        MacroHexagon(quarters = summary.quarters(dailyGoal))
-        Text(
-            text = abs(remaining).roundToInt().toString(),
-            style = MaterialTheme.typography.displayLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Text(
-            text = stringResource(if (remaining < 0) R.string.home_over_label else R.string.home_remaining_label),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = stringResource(R.string.home_consumed_of_goal, consumed.roundToInt(), goal.roundToInt()),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-/**
- * Les six quartiers, dérivés des totaux et de l'objectif du jour.
- *
- * Un objectif nul rendrait un ratio infini : le quartier est alors vide, ce qui est
- * la seule lecture honnête d'une cible qui n'existe pas.
- */
-private fun DaySummary.quarters(goal: DailyGoal): Map<Macro, MacroQuarter> = Macro.entries.associateWith { macro ->
-    val target = goal[macro]
-    MacroQuarter(ratio = if (target > 0.0) (totals[macro].value / target).toFloat() else 0f)
-}
-
-@Composable
-private fun MacroBars(summary: DaySummary, goal: DailyGoal) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(Spacing.md),
-    ) {
-        BAR_MACROS.forEach { macro ->
-            MacroBar(
-                macro = macro,
-                label = stringResource(macro.labelRes),
-                consumed = summary.totals[macro].value.toFloat(),
-                goal = goal[macro].toFloat(),
-                unit = MacroUnit.GRAM,
-            )
-        }
-    }
-}
-
-/**
- * Les cinq barres, dans l'**ordre angulaire des quartiers**.
- *
- * Les calories n'en ont pas : elles ont le quartier du haut et le grand chiffre.
- * L'ordre suit celui de l'hexagone pour que l'œil passe de l'un à l'autre sans
- * traduction — deux ordres différents rendraient la couleur seule porteuse du lien.
- */
-private val BAR_MACROS =
-    listOf(Macro.PROTEIN, Macro.FIBER, Macro.CARBS, Macro.SUGARS, Macro.FAT)

@@ -3874,6 +3874,126 @@ Rien ne dit non plus que **le glyphe d'étincelles se reconnaisse** : il est des
 
 ---
 
+## D121 — Le changement de jour se voit · ✓ validée
+
+**Contexte.** Demandé : « lorsqu'on change de jour en swipant ce n'est pas très clair d'où on se situe, rends plus visible le changement de jour en haut de l'écran ».
+
+### Trois causes sous une phrase
+
+Le balayage de [D117](#d117--le-balayage-change-de-jour-il-ne-supprime-plus---validée) faisait tout ce qu'on lui demandait, et pourtant on arrivait sans savoir où. Trois raisons, indépendantes :
+
+- **le titre ne participait pas au geste** — il se substituait d'un coup, au milieu d'un mouvement ;
+- **il ne disait rien de rapide à lire** — « vendredi 18 septembre 2026 » est exact et demande qu'on le déchiffre ;
+- **le calendrier ne marquait presque rien** — un chiffre en gras parmi sept anneaux colorés, qui attirent l'œil bien davantage.
+
+Les trois sont corrigées, parce qu'aucune ne suffisait.
+
+### Le titre glisse, mais moins loin que la journée
+
+Il parcourt **le tiers** du déplacement et s'efface à mesure. Le suivre au pixel près le ferait sortir de l'écran par le côté, alors qu'il est précisément le repère qui doit rester lisible pendant le geste ; c'est l'effacement, et non la distance, qui fait sentir que le titre change.
+
+**Il n'est pas dans le geste, il en partage l'état.** Entre le titre et la journée il y a le calendrier, qui a son propre défilement horizontal et ne doit pas bouger : `DaySwipeState` est hoissé hors de `SwipingDay` pour que deux composants distants glissent ensemble sans être voisins.
+
+### Il marque le coup en arrivant
+
+Un glissement lâché à mi-course ramène la même journée ; un jour choisi dans le calendrier n'en fait glisser aucune. Dans ces deux cas, rien ne bouge et pourtant quelque chose s'est passé — ou justement ne s'est pas passé. Une pulsation brève du titre les distingue de l'immobilité.
+
+**Supprimée et non raccourcie** quand l'appareil demande moins de mouvement : un grossissement instantané suivi d'un retour instantané serait un clignotement, ce qui est le contraire du but.
+
+### « Hier » plutôt qu'une date
+
+Les deux jours qui ont un nom le portent. Au-delà d'avant-hier aucun mot ne s'impose — « il y a trois jours » se compte au lieu de se lire — et la date longue reprend la main.
+
+**Un jour égal à aujourd'hui se dit comme aujourd'hui**, alors que la convention de l'écran est de porter `null` pour aujourd'hui. Les deux existent, le calendrier pouvant renvoyer la date du jour, et se contredire d'un chemin à l'autre coûterait plus cher que la redondance.
+
+### Le disque du calendrier
+
+La cellule du jour regardé porte un disque plein, dans la teinte du texte très assourdie — aucune septième couleur dans une figure qui en compte six.
+
+**Il grandit à sa place plutôt que de glisser jusqu'à elle.** Celui qu'on quitte se rétracte pendant que celui qu'on rejoint s'ouvre, et l'œil lit un déplacement : un indicateur qui voyagerait réellement d'une cellule à l'autre supposerait que chacune connaisse la position de sa voisine, ce qu'un `LazyRow` ne dit pas.
+
+**Campagne de défaite : sept sabotages, sept cas tombés.**
+
+**Ce que le vert ne prouve pas.** **Que le glissement du titre se voie**, ni que sa pulsation se remarque : les deux vivent dans la phase de tracé, où aucun cas unitaire n'entre. Ce qui s'éprouve est la progression qui les pilote — bornée, indifférente au sens du geste, nulle tant que la largeur est inconnue — et le libellé qu'ils déplacent.
+
+Rien ne dit non plus **que le disque se voie en plein soleil** à quatorze pour cent d'opacité, ni qu'il ne se confonde pas avec l'anneau qu'il porte.
+
+---
+
+## D122 — Un quartier touché dit ce qui l'a rempli · ✓ validée
+
+**Contexte.** Demandé : « ajouter la possibilité de voir le détail depuis un clic sur l'hexagone : je clique sur le triangle des fibres, il est mis en légère surbrillance et légèrement zoomé, le reste devient un peu plus gris, et une pop-up légère et transparente montre la liste des aliments du jour qui ont donné des fibres, avec à côté de chaque aliment une petite barre comme sous les plats de l'accueil. Au moindre clic à l'extérieur, cette pop-up doit disparaître. »
+
+### La question qu'aucun chiffre ne posait
+
+L'hexagone répond à *comment va ma journée*, les barres à *où j'en suis*. Ni l'un ni l'autre ne dit **d'où ça vient**, et c'est pourtant la seule des trois sur laquelle on puisse agir au repas suivant : savoir qu'il manque dix grammes de fibres ne dit pas s'il faut changer le déjeuner ou ajouter un fruit.
+
+### Ce que la bulle montre, et ce qu'elle tait
+
+**Cinq aliments, du plus gros au plus petit, puis le reste en une ligne.** L'ordre décroissant met la réponse sur la première ligne. Le reste est **cumulé et compté** — « 3 autres, 6 g » — plutôt que tu : sans cette ligne, la somme de ce qu'on lit passerait pour le total du jour, ce qu'elle n'est presque jamais.
+
+**Un aliment, une ligne, doublons cumulés.** Des lentilles au déjeuner et au dîner sont un aliment qui a donné deux fois, pas deux aliments. Le regroupement se fait par **nom affiché** et non par fiche : une fiche manque aux lignes tapées à la main, et la même chose saisie deux fois — une fois depuis une fiche, une fois au clavier — ferait deux lignes que rien ne distingue à l'œil.
+
+**Un zéro connu n'est pas une source** et sort de la liste. Lister le blanc de poulet sous les fibres répondrait à côté de la question.
+
+**Une valeur inconnue est nommée à part, sans barre et sans chiffre.** C'est [D29](#d29--un-total-incomplet-se-signale-au-lieu-de-se-taire---validée) qui revient, et d'une façon qui la sert mieux : depuis [D119](#d119--deux-styles-daffichage-une-part-par-chiffre-et-plus-de-total-minoré-à-laccueil---validée) l'accueil ne signale plus ses totaux minorés, et cette ligne est désormais le seul endroit de l'écran qui dise qu'un total l'est — en disant **par quel aliment**, donc lequel aller corriger. L'information n'est pas revenue là où elle était : elle est arrivée là où elle sert.
+
+**Un aliment mesuré deux fois, dont une sans valeur, est dans les deux listes.** Les deux sont vrais en même temps — il a donné ce qu'on sait, et une part de lui n'est pas renseignée — et taire l'un des deux arrondirait la vérité du mauvais côté.
+
+### La bulle se pose sous la figure, jamais dessus
+
+**C'est la seule règle de placement qui compte.** Recouvrir la figure qu'on vient de mettre en avant reviendrait à annuler la surbrillance au moment précis où elle est demandée.
+
+**La première version se posait du côté opposé au quartier** : un quartier du haut renvoyait la bulle sous le centre, un quartier du bas au-dessus. Elle gardait bien le quartier touché visible, et recouvrait les cinq autres. Sur une journée à six aliments la bulle fait deux cents points de haut ; posée au-dessus du centre elle bute sur le haut de la zone et mange la figure presque entière. **Constaté sur appareil, et invisible depuis les cas** — aucun ne mesure une bulle.
+
+Se poser sous la figure demande de la place, et le bloc de l'hexagone seul n'en a pas : **la zone de placement va de la figure jusqu'au bas des six barres.** C'est ce qui permet à la bulle de descendre plutôt que de remonter.
+
+**La pointe suit le quartier, le corps suit l'écran**, et les deux se désolidarisent dès que la bulle bute sur un bord. L'inverse — une bulle qui sort de l'écran pour rester centrée sur sa pointe — était la seule chose à éviter sur une figure aussi large que l'écran.
+
+**La pointe est tracée par le parent, pas par la bulle.** Sa position le long du bord n'est connue qu'une fois la bulle mesurée et placée, alors que le fond, lui, doit être décrit avant. Faire redescendre cette position dans une forme obligerait à recomposer l'enfant pour un nombre que la mise en page vient de calculer — un aller-retour visible à l'image près. Le parent, lui, dessine après.
+
+**Aucun voile derrière elle.** Une modale assombrit ce qu'elle recouvre pour annoncer qu'un appui à côté la referme ; celle-ci ne le fait pas, et c'est ce qui lui permet de changer de macro sans faire clignoter l'écran entier.
+
+### Le doigt, par l'angle et non par le triangle
+
+Un test d'appartenance au triangle exact refuserait les appuis tombés entre l'arête et la lettre qui la surplombe, alors que **viser un « F » est la façon la plus naturelle de désigner les fibres**. Les six secteurs se partagent donc tout le disque, et c'est la distance seule qui dit si l'appui est dans la zone. Le rayon de cette zone est celui des lettres, calculé par la même fonction que le tracé — deux calculs du même cercle produiraient une figure juste et une cible décalée, écart qu'aucun cas ne verrait.
+
+### Quatre cas pour un appui
+
+- **hors de la figure** — il referme ;
+- **un quartier sans rien à montrer** — il ne répond pas, et ne referme donc pas non plus ce qui était ouvert : un quartier vide est un quartier qui n'est pas là ;
+- **celui qu'on regardait** — le même geste referme ce qu'il a ouvert ;
+- **un autre** — la bulle reste et change de contenu, sans passer par le vide, ce qui permet de parcourir les six sans jamais rien refermer.
+
+**« Rien à montrer » n'est pas « le quartier est à zéro ».** Une macro qu'aucun aliment n'a apportée n'a rien à dire ; une macro dont un aliment ne renseigne pas la valeur en a beaucoup, alors que la figure les dessine toutes les deux vides.
+
+### Les barres ouvrent la même bulle
+
+**Toucher un triangle est un geste que rien n'annonce** — la règle que le projet applique déjà au retour à aujourd'hui ([D102](#d102--le-retour-à-aujourdhui-a-une-porte-visible-et-le-jour-regardé-a-un-contrat---validée)) et qu'il avait opposée au balayage qui supprimait. Une barre pleine largeur est une cible qu'on trouve sans la connaître, et que le lecteur d'écran annonce déjà par son nom et sa valeur. Le triangle reste le raccourci de qui le connaît.
+
+La figure, elle, porte **six actions personnalisées** plutôt que six zones tactiles invisibles : un dessin ne se découpe pas en six vues, et des rectangles posés par-dessus des triangles se disputeraient le doigt avec lui.
+
+**Campagne de défaite : vingt-sept sabotages, vingt-sept cas tombés.**
+
+### Ce que l'appareil a montré, et que le vert taisait
+
+Quatre défauts, dont aucun ne se voit depuis un cas — ils tiennent tous à des tailles et à des couches, que rien ne mesure hors d'un écran.
+
+- **Le placement**, ci-dessus : la bulle mangeait la figure.
+- **Les boutons flottants passaient par-dessus.** Ils sont une couche du `Scaffold`, dessinée après le contenu ; posés sur la colonne des chiffres, ils la rendaient illisible. Ils s'effacent désormais le temps d'une lecture — ce qui dit aussi la vérité : on ne note rien pendant qu'on regarde d'où vient une macro.
+- **La transparence demandée se retournait contre elle-même.** À 95 %, le restant en calories — blanc, cinquante-sept points — traverse la bulle et se lit aussi bien que ce qu'elle écrit. Deux textes qui se disputent le même pixel ne font pas une bulle légère. À 97 %, on devine qu'il y a quelque chose dessous, ce qui est tout ce qu'on lui demande.
+- **Un appui sur la bulle changeait de macro** : elle est posée sur la figure et sur les barres, et le geste passait au travers. Elle avale désormais les appuis. **Un cas reste non expliqué** : la bascule a été observée une fois, puis n'a pas reparu en trois reprises de la même séquence.
+
+**Conséquences.** `DishSummary.share` et la part d'une ligne de bulle sont la même règle, écrite une fois. `MacroHexagon.kt` se sépare en trois : la figure, sa géométrie, et ce que la sélection lui fait. `HomeScreen.kt` se sépare en deux : l'écran, et les compteurs du jour.
+
+**Ce que le vert ne prouve pas.** **Que la bulle soit légère et non envahissante**, ce qui était la demande. Sept écrans ont été regardés ; aucun cas ne juge une carte de 260 dp, ni son fond à trois pour cent de transparence, ni la lisibilité d'un nom d'aliment tronqué sur un écran de 360.
+
+Rien ne dit **qu'un quartier presque vide se laisse viser** : son triangle est fin près du centre, et c'est la portée angulaire qui le sauve — une règle qui s'éprouve mais dont le confort réel ne s'éprouve pas.
+
+Rien ne dit non plus **que l'appui à côté referme dans tous les cas**. La règle est que tout appui non consommé par un enfant referme ; un plat, une barre ou une pastille consomment le leur, donc la bulle leur survit le temps d'une navigation. C'est le comportement voulu, mais il dépend de l'ordre de consommation des événements, qu'aucun cas unitaire ne parcourt — et c'est précisément là qu'un appui sur la bulle a changé de macro une fois, sans qu'on sache le refaire.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.
