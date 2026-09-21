@@ -157,17 +157,21 @@ Désactivé par défaut, parce que le compromis n'est pas évident : `appDataFol
 
 ### Ce qui sort de l'appareil
 
-Trois flux, tous déclenchés par une action de l'utilisateur, tous documentés dans les réglages :
+~~Trois flux~~ **Cinq flux** ([D124](11-decisions.md#d124--la-politique-de-confidentialité-vit-à-côté-du-code-et-le-site-ailleurs---validée)), tous déclenchés par une action de l'utilisateur :
 
 | Destination | Contenu | Quand |
 |---|---|---|
 | `world.openfoodfacts.org` | Un code-barres | À chaque scan d'un produit inconnu |
+| `world.openfoodfacts.org` | Le texte cherché | Sur un tap sur « Chercher dans Open Food Facts » ([D67](11-decisions.md#d67--la-recherche-par-nom-se-demande-et-la-date-appartient-à-celui-qui-récupère---validée)) |
+| `world.openfoodfacts.org` | La fiche, avec l'identifiant et le mot de passe du compte Open Food Facts **de l'utilisateur** | Quand il choisit de la contribuer ([D90](11-decisions.md#d90--la-contribution-part-sous-le-compte-de-lutilisateur-et-jamais-sans-lui---validée)) |
 | Fournisseur d'IA choisi | Une photo ou un texte, avec la clé de l'utilisateur | À chaque analyse |
-| `googleapis.com` (Drive) | Le fichier de sauvegarde | Si la sauvegarde est activée |
+| `googleapis.com` (Drive) | Le fichier de sauvegarde | Si la sauvegarde est activée — **pas encore construite** |
 
-Aucun autre trafic sortant. Pas de SDK publicitaire, pas d'analytics, pas de vérification de mise à jour, pas de « ping » de démarrage.
+Le tableau en comptait trois. La recherche par nom et la contribution y sont entrées sans qu'il le dise, et ML Kit envoyait à Google des diagnostics qu'il ne mentionnait pas davantage — c'est ce qui l'a fait retirer ([D123](11-decisions.md#d123--le-scan-ne-parle-plus-à-google---validée)).
 
-Open Food Facts reçoit un code-barres sans identifiant utilisateur : la requête est anonyme et non corrélable.
+Aucun autre trafic sortant. Pas de SDK publicitaire, pas d'analytics, pas de vérification de mise à jour, pas de « ping » de démarrage. **La vérification de mise à jour que [10](10-qualite-et-livraison.md#variantes-de-build) prévoit pour la variante GitHub n'existe pas** ; le jour où elle existera, elle entrera dans ce tableau et dans la politique, dans le même PR.
+
+Hors contribution, Open Food Facts reçoit un code-barres ou un texte sans identifiant utilisateur : la requête est anonyme et non corrélable.
 
 ### Formulaire Data Safety du Play Store
 
@@ -180,7 +184,11 @@ Déclaration prévue, cohérente avec ce qui précède :
 
 ### Politique de confidentialité
 
-Obligatoire pour le Play Store. Un fichier Markdown dans le dépôt, publié via GitHub Pages, rédigé dans la même langue que le reste : courte, factuelle, sans clause décorative. Elle dit ce que le tableau ci-dessus dit, et rien de plus.
+Obligatoire pour le Play Store, pour toute application, même une qui ne collecte rien — avec un lien dans la console **et** dans l'application. ~~Un fichier Markdown dans le dépôt, publié via GitHub Pages~~ **Deux fichiers Markdown dans ce dépôt, [`confidentialite/fr.md`](../confidentialite/fr.md) et [`confidentialite/en.md`](../confidentialite/en.md), publiés par le site `hexavore-app/hexavore-site`** ([D124](11-decisions.md#d124--la-politique-de-confidentialité-vit-à-côté-du-code-et-le-site-ailleurs---validée)), rédigés dans la même langue que le reste : courte, factuelle, sans clause décorative. Elle dit ce que le tableau ci-dessus dit, et rien de plus.
+
+**Elle change dans le même PR que le flux qu'elle décrit.** C'est pour ça qu'elle vit ici et non dans le dépôt du site : un flux ajouté sans elle la rend fausse, et une politique fausse ment avec autorité à ceux qui la lisent. Un workflow demande au site de se republier dès qu'elle change sur `main`.
+
+**Elle dit ce que l'application fait aujourd'hui.** Drive n'y figure pas, parce qu'il n'existe pas encore ; sa section entrera avec lui, et c'est elle que la vérification de marque de Google lira.
 
 ---
 

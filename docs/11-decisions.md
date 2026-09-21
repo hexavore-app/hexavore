@@ -4030,6 +4030,26 @@ Rien ne dit non plus que la reprise tombe avant la première image : la file d'u
 
 ---
 
+## D124 — La politique de confidentialité vit à côté du code, et le site ailleurs · ✓ validée
+
+**Contexte.** Le Play Store exige une politique de confidentialité pour toute application, même une qui ne collecte rien, avec un lien dans la console **et** dans l'application. Google exige de son côté, pour vérifier la marque d'une application qui se connecte à Drive, une page d'accueil et une politique **sur un même domaine** que l'auteur possède et prouve. Ni l'un ni l'autre ne demande de conditions d'utilisation. [09](09-donnees-et-sauvegarde.md#politique-de-confidentialité) prévoyait « un fichier Markdown dans le dépôt, publié via GitHub Pages ».
+
+**Choix.** Deux dépôts, et la ligne de partage passe par ce qui change avec le code.
+
+- **Le site vit dans `hexavore-app/hexavore-site`** : vitrine, mentions légales, et la page qui publie la politique. Il n'a ni le rythme, ni l'outillage, ni la licence du code, et ses images n'ont rien à faire dans l'historique que clone chaque contributeur de l'application.
+- **Le texte de la politique vit ici**, dans `confidentialite/fr.md` et `confidentialite/en.md`. C'est le seul texte du site qui devient faux quand le code change — un flux ajouté sans lui, et il ment. Ici, il change dans le même PR que le flux, comme [10](10-qualite-et-livraison.md#documentation) l'exige de toute documentation.
+- **Le site le récupère à chaque publication**, et ce dépôt lui demande de se republier quand le fichier change sur `main` (`.github/workflows/politique.yml`). Un déclenchement plutôt qu'une tâche planifiée : GitHub désactive celles d'un dépôt public resté soixante jours sans activité, et un site vitrine l'est souvent.
+
+**Écarté.** *Tout dans ce dépôt* : c'était la première recommandation, faite pour la seule politique ; le reste du site n'avait aucune raison d'y être. *La politique dans le dépôt du site* : deux PR dans deux dépôts pour un seul flux, c'est une règle de vigilance, et [06](06-architecture.md#pourquoi-autant-de-modules) dit ce qu'il en advient. *Un sous-domaine `github.io`* : la vérification de marque de Google exige un domaine qu'on possède et qu'on prouve ; ce sera `hexavore.app`.
+
+**La politique dit ce que l'application fait aujourd'hui**, et rien de ce qu'elle fera. Drive n'y est pas, parce qu'il n'existe pas ; il y entrera avec lui. La vérification de mise à jour que [10](10-qualite-et-livraison.md#variantes-de-build) promet à la variante GitHub n'existe pas davantage — [09](09-donnees-et-sauvegarde.md#ce-qui-sort-de-lappareil) disait le contraire — et y entrera le jour où elle existera.
+
+**Conséquences.** Le tableau des flux de [09](09-donnees-et-sauvegarde.md#ce-qui-sort-de-lappareil) passe de trois lignes à cinq : la recherche par nom ([D67](#d67--la-recherche-par-nom-se-demande-et-la-date-appartient-à-celui-qui-récupère---validée)) et la contribution ([D90](#d90--la-contribution-part-sous-le-compte-de-lutilisateur-et-jamais-sans-lui---validée)) y étaient entrées sans qu'il le dise. **Le lien vers la politique dans l'application reste à poser** : l'écran « À propos » de [02](02-parcours-et-ecrans.md#réglages) n'existe pas, et Play l'exige.
+
+**Ce que le vert ne prouve pas.** Rien, ici, ne s'éprouve depuis le dépôt. Le déclenchement demande un jeton que seul Charly peut créer — `SITE_DISPATCH_TOKEN`, avec le droit d'écrire sur `hexavore-site` — et la publication un domaine qui n'est pas encore acheté. Tant que le jeton manque, le workflow échoue à chaque changement de la politique, et c'est voulu : il ne doit pas se taire.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.
