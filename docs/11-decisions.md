@@ -3994,6 +3994,42 @@ Rien ne dit non plus **que l'appui à côté referme dans tous les cas**. La rè
 
 ---
 
+## D123 — Le scan ne parle plus à Google · ✓ validée
+
+**Contexte.** En préparant la politique de confidentialité, la liste des flux sortants a été relue contre l'APK plutôt que contre [09](09-donnees-et-sauvegarde.md#ce-qui-sort-de-lappareil). Le manifeste fusionné portait un service que personne n'avait écrit : `com.google.android.datatransport`, le transport par lequel ML Kit envoie à Google, en HTTPS, le fabricant et le modèle de l'appareil, sa version d'Android, le nom et la version de l'application, **un identifiant par installation**, des temps de traitement, des événements et des codes d'erreur — « pour diagnostics et analyses d'usage », selon sa propre page de divulgation. Aucun réglage documenté ne le coupe.
+
+Trois promesses écrites le démentaient : « sans télémétrie » en tête du README, « Zéro collecte » dans les contraintes fermes de [01](01-perimetre.md#contraintes-fermes), « aucun autre trafic sortant » dans [09](09-donnees-et-sauvegarde.md#ce-qui-sort-de-lappareil).
+
+**Choix.** Retirer ML Kit, et lire les codes-barres avec **zxing-cpp** : libre (Apache-2.0), maintenu, entièrement sur l'appareil, sans réseau ni services Google.
+
+**Écarté.** *Déclarer l'envoi* : la fiche du Play Store perdait « aucune donnée collectée », et la règle européenne sur l'accès au terminal demande en principe un accord préalable pour ce qui n'est pas strictement nécessaire au service — un accord qu'on n'aurait pas pu honorer, puisque l'envoi ne se coupe pas. *Garder ML Kit en arrachant son transport* : rien ne garantit que la bibliothèque le tolère d'une version à l'autre, et la panne ne se verrait qu'à l'exécution, le vert n'ayant pas bougé — le cas de figure de [10](10-qualite-et-livraison.md#gradle). *ZXing en Java* : sa source de luminance ne sait pas tourner l'image, et il aurait fallu redresser chaque trame à la main.
+
+### La 2.3.0, parce que la chaîne de D15 décide
+
+Les 3.x tirent CameraX 1.5 et `kotlin-stdlib` 2.2 ou 2.3 : le premier exige `compileSdk 36`, le second un compilateur que [D15](#d15--chaîne-de-construction-alignée-sur-loutillage-installé---par-défaut) n'a pas. La 2.3.0 s'accorde à la chaîne actuelle — CameraX 1.4.1, Kotlin 1.9 — et la montée suivra celle de l'outillage. Ses bibliothèques natives 64 bits sont alignées sur 16 Ko, ce que le Play Store exige des applications qui visent Android 15.
+
+### Deux efforts que ML Kit faisait sans qu'on les demande
+
+L'emballage Android de zxing-cpp part avec `tryRotate` et `tryHarder` éteints, là où la bibliothèque C++ les allume. Sans le premier, un paquet tenu de travers n'est plus lu ; ML Kit le lisait dans toutes les orientations. Les deux sont allumés.
+
+### Le fil a changé, et c'est la seule vraie différence
+
+L'écouteur de ML Kit s'exécutait sur le fil principal, et c'est ce qui rendait légal ce que la session en faisait : délier la caméra, écrire l'image figée. zxing-cpp lit **de façon synchrone, sur le fil d'analyse**. Trois conséquences :
+
+- **le code lu traverse jusqu'au fil principal** avant d'atteindre la session ;
+- **l'anti-rebond reste sur un seul fil**, celui de l'analyse, y compris sa reprise, que la session y envoie au lieu de la faire elle-même. L'appeler depuis deux fils aurait demandé de le synchroniser ; le confiner n'a rien demandé ;
+- **rien n'est livré après la fermeture de l'écran.** Un code confirmé à l'instant où la modale se referme est déjà en route ; ML Kit l'aurait perdu avec son client, zxing-cpp n'en a pas. Un drapeau posé par `release` l'arrête.
+
+La trame figée est toujours capturée une seule fois par scan, sur l'image qui a porté l'accord — désormais sur le fil d'analyse, avant que l'image se referme.
+
+**Conséquences.** [D65](#d65--le-décodeur-est-un-module-à-part-et-sa-seule-règle-tient-sur-la-jvm---validée) l'avait chiffré à « une classe », et c'est ce qu'il a coûté : `BarcodeAnalyzer` change de décodeur, `CameraSession` de fil, `SteadyBarcode` ne change pas d'une ligne de code. Le manifeste fusionné ne porte plus ni `mlkit` ni `datatransport`. [01](01-perimetre.md#contraintes-fermes), [09](09-donnees-et-sauvegarde.md#ce-qui-sort-de-lappareil) et le README disent de nouveau vrai.
+
+**Ce que le vert ne prouve pas.** **Que zxing-cpp lise aussi bien que ML Kit** : code de biais, reflet sur un emballage, étiquette froissée, pénombre. C'est la seule inconnue, et elle ne se lève qu'en tenant le téléphone devant de vrais paquets — aucune bibliothèque native ne tourne sur la JVM. Revenir en arrière tiendrait en un commit, mais revenir, ce serait redéclarer l'envoi.
+
+Rien ne dit non plus que la reprise tombe avant la première image : la file d'un exécuteur à un seul fil le garantit, et c'est un raisonnement, pas un cas.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.
