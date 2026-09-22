@@ -57,14 +57,19 @@ internal class CameraSession(private val context: Context, private val onBarcode
     var frozen: Bitmap? by mutableStateOf(null)
         private set
 
+    // Un seul fil pour l'analyse : le decodeur y lit une image a la fois, et c'est
+    // suffisant -- CameraX jette les images en trop plutot que de les empiler. C'est
+    // aussi le seul fil qui touche l'anti-rebond, qui n'a donc rien a synchroniser.
     private val steady = SteadyBarcode()
     private val analysisThread = Executors.newSingleThreadExecutor()
-    private val decoder = BarcodeAnalyzer(steady, ::settle)
+    private val mainThread = ContextCompat.getMainExecutor(context)
+
+    // Le code lu traverse jusqu'au fil principal : delier la camera et ecrire un etat
+    // de composition ne se font que la.
+    private val decoder = BarcodeAnalyzer(steady) { code, frame -> mainThread.execute { settle(code, frame) } }
 
     private val previewCase = Preview.Builder().build().apply { surfaceProvider = preview.surfaceProvider }
 
-    // Un seul fil pour l'analyse : ML Kit y decode une image a la fois, et c'est
-    // suffisant -- CameraX jette les images en trop plutot que de les empiler.
     private val analysisCase = ImageAnalysis
         .Builder()
         // Le scan lit le present : une file d'images en retard ferait decoder un
@@ -76,16 +81,21 @@ internal class CameraSession(private val context: Context, private val onBarcode
     private var provider: ProcessCameraProvider? = null
     private var bound: Camera? = null
     private var torchOn = false
+    private var released = false
 
     /**
      * Rouvre la lecture : la trame tombe, l'anti-rebond oublie, la caméra se relie.
      *
      * Appelée aussi à la première composition — ouvrir et rouvrir sont le même geste,
      * et en faire deux chemins distincts serait s'assurer qu'un des deux dérive.
+     *
+     * **L'oubli part sur le fil d'analyse**, pas ici : c'est le seul fil qui touche
+     * l'anti-rebond. Posé dans la file avant que la caméra se relie, il passe avant
+     * la première image de la reprise.
      */
     suspend fun resume(owner: LifecycleOwner) {
         frozen = null
-        steady.resume()
+        analysisThread.execute(steady::resume)
 
         val cameras = provider ?: ProcessCameraProvider.getInstance(context).await(context).also { provider = it }
         cameras.unbindAll()
@@ -100,12 +110,12 @@ internal class CameraSession(private val context: Context, private val onBarcode
         bound?.cameraControl?.enableTorch(on)
     }
 
-    /** Tout ce qui a été ouvert : la caméra, le fil d'analyse, le client du décodeur. */
+    /** Tout ce qui a été ouvert : la caméra et le fil d'analyse. */
     fun release() {
+        released = true
         provider?.unbindAll()
         bound = null
         analysisCase.clearAnalyzer()
-        decoder.close()
         analysisThread.shutdown()
     }
 
@@ -116,8 +126,13 @@ internal class CameraSession(private val context: Context, private val onBarcode
      * comportement d'avant, et c'est le bon repli : un écran qui aurait délié sa
      * caméra sans avoir d'image à mettre à la place montrerait un rectangle noir, ce
      * qui est la seule chose pire que l'aperçu qui bouge.
+     *
+     * **Rien n'arrive après [release].** Un code confirmé à l'instant où l'écran se
+     * referme est déjà en route vers le fil principal ; le livrer ouvrirait une fiche
+     * depuis un écran que l'utilisateur vient de quitter.
      */
     private fun settle(code: Barcode, frame: Bitmap?) {
+        if (released) return
         if (frame != null) {
             frozen = frame
             provider?.unbindAll()

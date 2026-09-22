@@ -3994,6 +3994,62 @@ Rien ne dit non plus **que l'appui à côté referme dans tous les cas**. La rè
 
 ---
 
+## D123 — Le scan ne parle plus à Google · ✓ validée
+
+**Contexte.** En préparant la politique de confidentialité, la liste des flux sortants a été relue contre l'APK plutôt que contre [09](09-donnees-et-sauvegarde.md#ce-qui-sort-de-lappareil). Le manifeste fusionné portait un service que personne n'avait écrit : `com.google.android.datatransport`, le transport par lequel ML Kit envoie à Google, en HTTPS, le fabricant et le modèle de l'appareil, sa version d'Android, le nom et la version de l'application, **un identifiant par installation**, des temps de traitement, des événements et des codes d'erreur — « pour diagnostics et analyses d'usage », selon sa propre page de divulgation. Aucun réglage documenté ne le coupe.
+
+Trois promesses écrites le démentaient : « sans télémétrie » en tête du README, « Zéro collecte » dans les contraintes fermes de [01](01-perimetre.md#contraintes-fermes), « aucun autre trafic sortant » dans [09](09-donnees-et-sauvegarde.md#ce-qui-sort-de-lappareil).
+
+**Choix.** Retirer ML Kit, et lire les codes-barres avec **zxing-cpp** : libre (Apache-2.0), maintenu, entièrement sur l'appareil, sans réseau ni services Google.
+
+**Écarté.** *Déclarer l'envoi* : la fiche du Play Store perdait « aucune donnée collectée », et la règle européenne sur l'accès au terminal demande en principe un accord préalable pour ce qui n'est pas strictement nécessaire au service — un accord qu'on n'aurait pas pu honorer, puisque l'envoi ne se coupe pas. *Garder ML Kit en arrachant son transport* : rien ne garantit que la bibliothèque le tolère d'une version à l'autre, et la panne ne se verrait qu'à l'exécution, le vert n'ayant pas bougé — le cas de figure de [10](10-qualite-et-livraison.md#gradle). *ZXing en Java* : sa source de luminance ne sait pas tourner l'image, et il aurait fallu redresser chaque trame à la main.
+
+### La 2.3.0, parce que la chaîne de D15 décide
+
+Les 3.x tirent CameraX 1.5 et `kotlin-stdlib` 2.2 ou 2.3 : le premier exige `compileSdk 36`, le second un compilateur que [D15](#d15--chaîne-de-construction-alignée-sur-loutillage-installé---par-défaut) n'a pas. La 2.3.0 s'accorde à la chaîne actuelle — CameraX 1.4.1, Kotlin 1.9 — et la montée suivra celle de l'outillage. Ses bibliothèques natives 64 bits sont alignées sur 16 Ko, ce que le Play Store exige des applications qui visent Android 15.
+
+### Deux efforts que ML Kit faisait sans qu'on les demande
+
+L'emballage Android de zxing-cpp part avec `tryRotate` et `tryHarder` éteints, là où la bibliothèque C++ les allume. Sans le premier, un paquet tenu de travers n'est plus lu ; ML Kit le lisait dans toutes les orientations. Les deux sont allumés.
+
+### Le fil a changé, et c'est la seule vraie différence
+
+L'écouteur de ML Kit s'exécutait sur le fil principal, et c'est ce qui rendait légal ce que la session en faisait : délier la caméra, écrire l'image figée. zxing-cpp lit **de façon synchrone, sur le fil d'analyse**. Trois conséquences :
+
+- **le code lu traverse jusqu'au fil principal** avant d'atteindre la session ;
+- **l'anti-rebond reste sur un seul fil**, celui de l'analyse, y compris sa reprise, que la session y envoie au lieu de la faire elle-même. L'appeler depuis deux fils aurait demandé de le synchroniser ; le confiner n'a rien demandé ;
+- **rien n'est livré après la fermeture de l'écran.** Un code confirmé à l'instant où la modale se referme est déjà en route ; ML Kit l'aurait perdu avec son client, zxing-cpp n'en a pas. Un drapeau posé par `release` l'arrête.
+
+La trame figée est toujours capturée une seule fois par scan, sur l'image qui a porté l'accord — désormais sur le fil d'analyse, avant que l'image se referme.
+
+**Conséquences.** [D65](#d65--le-décodeur-est-un-module-à-part-et-sa-seule-règle-tient-sur-la-jvm---validée) l'avait chiffré à « une classe », et c'est ce qu'il a coûté : `BarcodeAnalyzer` change de décodeur, `CameraSession` de fil, `SteadyBarcode` ne change pas d'une ligne de code. Le manifeste fusionné ne porte plus ni `mlkit` ni `datatransport`. [01](01-perimetre.md#contraintes-fermes), [09](09-donnees-et-sauvegarde.md#ce-qui-sort-de-lappareil) et le README disent de nouveau vrai.
+
+**Ce que le vert ne prouve pas.** **Que zxing-cpp lise aussi bien que ML Kit** : code de biais, reflet sur un emballage, étiquette froissée, pénombre. C'est la seule inconnue, et elle ne se lève qu'en tenant le téléphone devant de vrais paquets — aucune bibliothèque native ne tourne sur la JVM. Revenir en arrière tiendrait en un commit, mais revenir, ce serait redéclarer l'envoi.
+
+Rien ne dit non plus que la reprise tombe avant la première image : la file d'un exécuteur à un seul fil le garantit, et c'est un raisonnement, pas un cas.
+
+---
+
+## D124 — La politique de confidentialité vit à côté du code, et le site ailleurs · ✓ validée
+
+**Contexte.** Le Play Store exige une politique de confidentialité pour toute application, même une qui ne collecte rien, avec un lien dans la console **et** dans l'application. Google exige de son côté, pour vérifier la marque d'une application qui se connecte à Drive, une page d'accueil et une politique **sur un même domaine** que l'auteur possède et prouve. Ni l'un ni l'autre ne demande de conditions d'utilisation. [09](09-donnees-et-sauvegarde.md#politique-de-confidentialité) prévoyait « un fichier Markdown dans le dépôt, publié via GitHub Pages ».
+
+**Choix.** Deux dépôts, et la ligne de partage passe par ce qui change avec le code.
+
+- **Le site vit dans `hexavore-app/hexavore-site`** : vitrine, mentions légales, et la page qui publie la politique. Il n'a ni le rythme, ni l'outillage, ni la licence du code, et ses images n'ont rien à faire dans l'historique que clone chaque contributeur de l'application.
+- **Le texte de la politique vit ici**, dans `confidentialite/fr.md` et `confidentialite/en.md`. C'est le seul texte du site qui devient faux quand le code change — un flux ajouté sans lui, et il ment. Ici, il change dans le même PR que le flux, comme [10](10-qualite-et-livraison.md#documentation) l'exige de toute documentation.
+- **Le site le récupère à chaque publication**, et ce dépôt lui demande de se republier quand le fichier change sur `main` (`.github/workflows/politique.yml`). Un déclenchement plutôt qu'une tâche planifiée : GitHub désactive celles d'un dépôt public resté soixante jours sans activité, et un site vitrine l'est souvent.
+
+**Écarté.** *Tout dans ce dépôt* : c'était la première recommandation, faite pour la seule politique ; le reste du site n'avait aucune raison d'y être. *La politique dans le dépôt du site* : deux PR dans deux dépôts pour un seul flux, c'est une règle de vigilance, et [06](06-architecture.md#pourquoi-autant-de-modules) dit ce qu'il en advient. *Un sous-domaine `github.io`* : la vérification de marque de Google exige un domaine qu'on possède et qu'on prouve ; ce sera `hexavore.app`.
+
+**La politique dit ce que l'application fait aujourd'hui**, et rien de ce qu'elle fera. Drive n'y est pas, parce qu'il n'existe pas ; il y entrera avec lui. La vérification de mise à jour que [10](10-qualite-et-livraison.md#variantes-de-build) promet à la variante GitHub n'existe pas davantage — [09](09-donnees-et-sauvegarde.md#ce-qui-sort-de-lappareil) disait le contraire — et y entrera le jour où elle existera.
+
+**Conséquences.** Le tableau des flux de [09](09-donnees-et-sauvegarde.md#ce-qui-sort-de-lappareil) passe de trois lignes à cinq : la recherche par nom ([D67](#d67--la-recherche-par-nom-se-demande-et-la-date-appartient-à-celui-qui-récupère---validée)) et la contribution ([D90](#d90--la-contribution-part-sous-le-compte-de-lutilisateur-et-jamais-sans-lui---validée)) y étaient entrées sans qu'il le dise. **Le lien vers la politique dans l'application reste à poser** : l'écran « À propos » de [02](02-parcours-et-ecrans.md#réglages) n'existe pas, et Play l'exige.
+
+**Ce que le vert ne prouve pas.** Rien, ici, ne s'éprouve depuis le dépôt. Le déclenchement demande un jeton que seul Charly peut créer — `SITE_DISPATCH_TOKEN`, avec le droit d'écrire sur `hexavore-site` — et la publication un domaine qui n'est pas encore acheté. Tant que le jeton manque, le workflow échoue à chaque changement de la politique, et c'est voulu : il ne doit pas se taire.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

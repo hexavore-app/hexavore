@@ -149,7 +149,7 @@ C'est le vrai premier jalon : à la fin de cette tranche, **l'application est ut
 
 **Contenu**
 
-- `:integration:scanner` : CameraX et ML Kit, formats EAN/UPC uniquement, anti-rebond à deux lectures identiques.
+- `:integration:scanner` : CameraX et ~~ML Kit~~ zxing-cpp ([D123](11-decisions.md#d123--le-scan-ne-parle-plus-à-google---validée)), formats EAN/UPC uniquement, anti-rebond à deux lectures identiques.
 - `:integration:openfoodfacts` : Retrofit, DTO, correspondance, `User-Agent` obligatoire, retrait exponentiel.
 - Mise en cache permanente dans `food`, parcours complet du produit absent.
 

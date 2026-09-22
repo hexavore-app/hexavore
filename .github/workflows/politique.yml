@@ -1,0 +1,27 @@
+name: Politique
+
+# La politique de confidentialite vit ici et se publie sur le site (D124). Quand elle
+# change sur main, le site doit se republier : ce workflow le lui demande, plutot
+# qu'une tache planifiee que GitHub couperait apres soixante jours sans activite.
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'confidentialite/**' ]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  republier:
+    name: Republier le site
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Demande au depot du site
+        # Un jeton et non GITHUB_TOKEN, qui ne vaut que pour ce depot. S'il manque ou
+        # expire, l'etape echoue et le dit : une politique publiee en retard sur le
+        # code ne doit pas passer inapercue.
+        env:
+          GH_TOKEN: ${{ secrets.SITE_DISPATCH_TOKEN }}
+        run: gh api repos/hexavore-app/hexavore-site/dispatches -f event_type=politique

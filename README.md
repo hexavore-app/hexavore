@@ -45,7 +45,7 @@ La conception est découpée en douze documents. Lisez-les dans l'ordre pour com
 
 ## Technique en une ligne
 
-Kotlin · Jetpack Compose · Room · Hilt · CameraX + ML Kit · Retrofit · WorkManager · minSdk 26.
+Kotlin · Jetpack Compose · Room · Hilt · CameraX + zxing-cpp · Retrofit · WorkManager · minSdk 26.
 
 ## Construire
 
