@@ -1,15 +1,17 @@
 name: Politique
 
 # La politique de confidentialite vit ici et se publie sur le site (D124). Quand elle
-# change sur main, le site doit se republier : ce workflow le lui demande, plutot
-# qu'une tache planifiee que GitHub couperait apres soixante jours sans activite.
+# change sur main, le site doit se republier : ce depot y pousse un commit vide, et la
+# poussee declenche sa publication (D125). Une cle de deploiement plutot qu'un jeton :
+# elle n'ouvre que ce depot-la, et elle n'expire pas.
 on:
   push:
     branches: [ main ]
     paths: [ 'confidentialite/**' ]
   workflow_dispatch:
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   republier:
@@ -18,10 +20,20 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: Demande au depot du site
-        # Un jeton et non GITHUB_TOKEN, qui ne vaut que pour ce depot. S'il manque ou
-        # expire, l'etape echoue et le dit : une politique publiee en retard sur le
-        # code ne doit pas passer inapercue.
-        env:
-          GH_TOKEN: ${{ secrets.SITE_DISPATCH_TOKEN }}
-        run: gh api repos/hexavore-app/hexavore-site/dispatches -f event_type=politique
+      - uses: actions/checkout@v4
+        with:
+          repository: hexavore-app/hexavore-site
+          # La moitie privee de la cle de deploiement du site. Absente ou revoquee,
+          # l'etape echoue et le dit : une politique publiee en retard sur le code ne
+          # doit pas passer inapercue.
+          ssh-key: ${{ secrets.SITE_DEPLOY_KEY }}
+
+      - name: Pousser une republication
+        # Un commit vide : le site ne change pas, c'est sa source de politique qui a
+        # change. L'empreinte dit laquelle, et l'historique du site garde la trace de
+        # chaque republication.
+        run: |
+          git config user.name "hexavore-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "chore: republier, politique modifiee en ${GITHUB_SHA::7}"
+          git push
