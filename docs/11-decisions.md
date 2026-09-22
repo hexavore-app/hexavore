@@ -4050,6 +4050,24 @@ Rien ne dit non plus que la reprise tombe avant la première image : la file d'u
 
 ---
 
+## D125 — Le site se republie par une clé de déploiement, pas par un jeton · ✓ validée
+
+**Contexte.** [D124](#d124--la-politique-de-confidentialité-vit-à-côté-du-code-et-le-site-ailleurs---validée) faisait demander la republication par un appel d'API, authentifié par un jeton à accès fin. Un jeton expire — un an au plus pour ceux-là — et le jour où il expire, la politique publiée prend du retard sur le code sans que personne l'ait décidé.
+
+**Choix.** Une **clé de déploiement** du dépôt du site, en écriture. Ce dépôt y pousse un commit vide quand la politique change sur `main`, et c'est cette poussée qui déclenche la publication.
+
+**La poussée déclenche parce que la clé n'est pas le jeton de l'exécution.** Un commit poussé avec `GITHUB_TOKEN` ne déclenche aucun workflow — c'est la garde de GitHub contre les boucles. Une clé de déploiement n'en est pas un : sa poussée est une poussée comme une autre.
+
+**Écarté.** *Le jeton à accès fin* : un seul secret et aucun changement de workflow, mais une échéance à retenir, et rien ne la rappelle avant la panne. *Une application GitHub* : elle ne périme pas davantage, mais c'est un objet de plus à créer et à entretenir pour une poussée tous les six mois.
+
+**Ce que ça coûte.** Un commit vide dans l'historique du site à chaque changement de politique. Le coût rapporte : cet historique dit désormais quand le site a été republié et pour quelle version de l'application, là où l'appel d'API ne laissait aucune trace.
+
+**Conséquences.** Le secret s'appelle `SITE_DEPLOY_KEY` et porte la moitié privée de la clé ; la moitié publique est une clé de déploiement de `hexavore-site`, avec écriture. Le README du site remplace le jeton par elle.
+
+**Ce que le vert ne prouve pas.** Rien n'est éprouvé tant que le secret n'est pas posé. Sans lui, l'étape échoue — et c'est voulu : une politique en retard sur le code ne doit pas passer inaperçue.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.
