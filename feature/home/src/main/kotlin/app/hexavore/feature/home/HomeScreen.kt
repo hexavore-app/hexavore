@@ -39,7 +39,6 @@ import app.hexavore.core.designsystem.component.AdjustmentCard
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.core.designsystem.theme.Timing
 import app.hexavore.domain.appearance.DishDisplayStyle
-import app.hexavore.domain.diary.DaySummary
 import app.hexavore.domain.diary.Dish
 import app.hexavore.domain.goal.AdjustmentSuggestion
 import app.hexavore.domain.notice.Notice
@@ -247,7 +246,7 @@ fun HomeScreen(
                     when (state) {
                         HomeUiState.Loading -> Unit
                         is HomeUiState.Content -> DayContent(
-                            summary = state.summary,
+                            content = state,
                             style = dishStyle,
                             actions = actions,
                             focus = focus,
@@ -405,13 +404,14 @@ private fun DayScroll(
  */
 @Composable
 internal fun DayContent(
-    summary: DaySummary,
+    content: HomeUiState.Content,
     style: DishDisplayStyle,
     actions: HomeActions,
     focus: MacroFocus,
     favoriteNameTaken: Boolean,
     onDismissFavoriteError: () -> Unit,
 ) {
+    val summary = content.summary
     val goal = summary.goal
     if (goal != null) {
         MacroBlock(summary, goal, focus)
@@ -421,9 +421,7 @@ internal fun DayContent(
     }
     if (summary.logged) {
         DishList(
-            dishes = summary.dishes,
-            zone = summary.zone,
-            goal = goal,
+            content = content,
             style = style,
             actions = actions,
             favoriteNameTaken = favoriteNameTaken,

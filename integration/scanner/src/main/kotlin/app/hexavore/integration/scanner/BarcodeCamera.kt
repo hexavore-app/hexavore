@@ -32,6 +32,10 @@ import app.hexavore.domain.food.Barcode
  * reste, elle cesse de bouger. C'est ce qui dit *ce que* l'appareil a lu, et ce qui
  * permet de juger le cadrage quand la lecture n'aboutit à rien ([D69][decisions]).
  *
+ * **[onFrame] rend la même trame en JPEG**, sur un fil d'arrière-plan. C'est ce qui
+ * permet à l'écran de validation de la montrer et à l'enregistrement de la garder,
+ * sans qu'aucun `Bitmap` ne traverse `:feature:scan` ([D66][decisions]).
+ *
  * [onBarcode] n'est appelé qu'après deux lectures d'accord ([SteadyBarcode]), et une
  * seule fois : c'est [resumeKey] qui rouvre la lecture et fait repartir la caméra. Un
  * compteur plutôt qu'un booléen, parce que rescanner le **même** produit doit
@@ -48,6 +52,7 @@ import app.hexavore.domain.food.Barcode
 fun BarcodeCamera(
     onBarcode: (Barcode) -> Unit,
     modifier: Modifier = Modifier,
+    onFrame: (ByteArray) -> Unit = {},
     torchOn: Boolean = false,
     resumeKey: Int = 0,
 ) {
@@ -56,7 +61,8 @@ fun BarcodeCamera(
     // Sans cette indirection, la lambda capturee a la premiere composition serait
     // celle que l'analyseur appellerait pour toujours.
     val latest by rememberUpdatedState(onBarcode)
-    val session = remember(context) { CameraSession(context) { latest(it) } }
+    val latestFrame by rememberUpdatedState(onFrame)
+    val session = remember(context) { CameraSession(context, { latest(it) }, { latestFrame(it) }) }
 
     LaunchedEffect(session, resumeKey) { session.resume(lifecycleOwner) }
     LaunchedEffect(session, torchOn) { session.torch(torchOn) }

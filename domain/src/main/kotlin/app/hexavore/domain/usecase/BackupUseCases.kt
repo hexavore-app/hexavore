@@ -3,11 +3,16 @@ package app.hexavore.domain.usecase
 import app.hexavore.domain.backup.BACKUP_ROTATION
 import app.hexavore.domain.backup.BackupFile
 import app.hexavore.domain.backup.BackupTarget
+import app.hexavore.domain.backup.Snapshot
+import app.hexavore.domain.backup.SnapshotArchive
 import app.hexavore.domain.backup.SnapshotCodec
 import app.hexavore.domain.backup.SnapshotRead
 import app.hexavore.domain.backup.SnapshotStore
 import app.hexavore.domain.backup.StoredPreferences
+import app.hexavore.domain.diary.DishPhotos
 import app.hexavore.domain.time.Clock
+import java.io.InputStream
+import java.io.OutputStream
 
 /**
  * Tout ce que l'utilisateur a écrit, en octets.
@@ -50,27 +55,60 @@ class CreateBackup(private val export: ExportBackup, private val clock: Clock) {
 }
 
 /**
- * Remplacer tout le contenu de l'application par celui d'un fichier.
+ * L'archive complète, écrite dans le document que l'utilisateur a choisi.
  *
- * **Une copie de sécurité part d'abord**, dans la cible qu'on lui donne, et elle n'en
- * garde qu'une ([docs/09][donnees]) : c'est ce qui permet de revenir en arrière quand
- * quelqu'un restaure le mauvais fichier. Elle est écrite **après** la lecture du
- * fichier entrant — sauvegarder pour un import qui va être refusé ferait perdre la
- * copie de sécurité précédente sans rien restaurer.
+ * **Elle ne passe pas par la mémoire.** [ExportBackup] rend des octets et c'est très
+ * bien pour un journal ; une année de photos pèse deux cents mégaoctets, et les tenir
+ * d'un bout à l'autre ferait tomber l'application chez ceux qui ont le plus à
+ * sauvegarder.
+ *
+ * **La capture précède l'ouverture du document**, et c'est pour cela que ce cas d'usage
+ * rend un écrivain plutôt que d'écrire lui-même : ce qui part décrit l'instant où
+ * l'export a été demandé, et non celui où le fichier a fini de s'ouvrir. La différence
+ * est invisible en démonstration, réelle si une saisie arrive entre les deux.
+ *
+ * Les photos, elles, sont lues à l'écriture. Une image prise entre les deux instants
+ * entre donc dans l'archive sans que son plat y soit : elle en ressort orpheline à la
+ * restauration, et le balayage du démarrage l'emporte.
+ */
+class ExportArchive(private val store: SnapshotStore, private val archive: SnapshotArchive) {
+    suspend operator fun invoke(): PendingExport = PendingExport(store.capture(), archive)
+}
+
+/** Ce qui partira, figé, en attendant un document où l'écrire. */
+class PendingExport internal constructor(private val snapshot: Snapshot, private val archive: SnapshotArchive) {
+    /** @return les octets écrits, pour que l'écran puisse le dire. */
+    suspend fun writeTo(sink: OutputStream): Long = archive.write(snapshot, sink)
+}
+
+/**
+ * Remplacer tout le contenu de l'application par celui d'une archive.
+ *
+ * **Une copie de sécurité part d'abord**, et elle n'en garde qu'une
+ * ([docs/09][donnees]) : c'est ce qui permet de revenir en arrière quand quelqu'un
+ * restaure le mauvais fichier. Elle est écrite **après** la lecture de l'archive, parce
+ * que sauvegarder pour un import qui va être refusé ferait perdre la copie précédente
+ * sans rien restaurer.
+ *
+ * **Elle ne porte que le journal**, là où l'archive porte aussi les photos : elle vit
+ * sur le même disque qu'elles, et la doubler mettrait deux fois leur poids sur un
+ * téléphone dont on ne sait rien. Revenir en arrière rend donc le journal, et les
+ * images sont encore là — rien ne les efface avant le balayage du prochain démarrage.
  *
  * [donnees]: docs/09-donnees-et-sauvegarde.md
  */
-class RestoreBackup(
+class RestoreArchive(
     private val store: SnapshotStore,
-    private val codec: SnapshotCodec,
+    private val archive: SnapshotArchive,
     private val createBackup: CreateBackup,
     private val safety: BackupTarget,
 ) {
-    suspend operator fun invoke(bytes: ByteArray): RestoreOutcome = when (val read = codec.decode(bytes)) {
-        is SnapshotRead.Readable -> replace(read)
-        is SnapshotRead.TooRecent -> RestoreOutcome.TooRecent(read.formatVersion)
-        SnapshotRead.Unreadable -> RestoreOutcome.Unreadable
-    }
+    suspend operator fun invoke(source: InputStream): RestoreOutcome =
+        when (val read = runCatching { archive.read(source) }.getOrDefault(SnapshotRead.Unreadable)) {
+            is SnapshotRead.Readable -> replace(read)
+            is SnapshotRead.TooRecent -> RestoreOutcome.TooRecent(read.formatVersion)
+            SnapshotRead.Unreadable -> RestoreOutcome.Unreadable
+        }
 
     private suspend fun replace(read: SnapshotRead.Readable): RestoreOutcome = runCatching {
         createBackup(safety, keep = 1)
@@ -100,11 +138,16 @@ sealed interface RestoreOutcome {
  * qui efface ses données ne doit pas retrouver sa clé d'API et son compte Open Food
  * Facts au prochain lancement.
  *
- * **Deux dépendances et non cinq**, et c'est une correction. Ce cas d'usage oubliait
- * jusqu'ici trois réglages — l'adaptation hebdomadaire, le consentement photo, le
- * compteur d'appels — parce qu'il composait des oublis un à un, et qu'une liste écrite
- * ici se tait quand on omet de l'allonger. Elle est désormais tenue par celui qui
- * range ([StoredPreferences][app.hexavore.domain.backup.StoredPreferences]).
+ * **Trois dépendances et non dix**, et c'est une correction. Ce cas d'usage oubliait
+ * jusqu'ici trois réglages : l'adaptation hebdomadaire, le consentement photo, le
+ * compteur d'appels. Il composait des oublis un à un, et une liste écrite ici se tait
+ * quand on omet de l'allonger. Elle est désormais tenue par celui qui range
+ * ([StoredPreferences][app.hexavore.domain.backup.StoredPreferences]).
+ *
+ * **Les photos sont la troisième**, et elles y sont parce qu'elles sont le troisième
+ * endroit où vivent des données : la base, les préférences, le disque. Le réglage qui
+ * dit s'il faut en garder, lui, reste ; c'est une préférence d'appareil, et quelqu'un
+ * qui repart de zéro la retrouvera telle qu'il l'avait posée, comme son thème.
  *
  * **Le journal d'abord, les réglages ensuite.** Si le second geste échoue, il reste des
  * préférences sans journal — l'état d'une installation neuve à qui l'on aurait déjà
@@ -117,9 +160,14 @@ sealed interface RestoreOutcome {
  *
  * [donnees]: docs/09-donnees-et-sauvegarde.md
  */
-class EraseEverything(private val store: SnapshotStore, private val preferences: StoredPreferences) {
+class EraseEverything(
+    private val store: SnapshotStore,
+    private val preferences: StoredPreferences,
+    private val photos: DishPhotos,
+) {
     suspend operator fun invoke() {
         store.erase()
+        photos.forgetAll()
         preferences.erase()
     }
 }

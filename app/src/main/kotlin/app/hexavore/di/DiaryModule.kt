@@ -1,9 +1,11 @@
 package app.hexavore.di
 
+import app.hexavore.data.diary.DishPhotoFiles
 import app.hexavore.data.diary.RoomDiaryRepository
 import app.hexavore.data.diary.RoomFavoriteDishes
 import app.hexavore.data.diary.RoomFoodCitations
 import app.hexavore.domain.diary.DiaryRepository
+import app.hexavore.domain.diary.DishPhotos
 import app.hexavore.domain.diary.FavoriteDishes
 import app.hexavore.domain.food.FoodCitations
 import dagger.Module
@@ -59,4 +61,15 @@ object DiaryModule {
      */
     @Provides
     fun foodCitations(citations: RoomFoodCitations): FoodCitations = citations
+
+    /**
+     * Les photos des plats, troisième port de ce module.
+     *
+     * **Des fichiers et non des lignes**, dans le module qui range pourtant du Room :
+     * une photo est l'accessoire d'un plat, elle porte son identifiant pour nom, et la
+     * loger ailleurs aurait inventé un `:data:photo` dont le seul contenu serait un
+     * dossier.
+     */
+    @Provides
+    fun dishPhotos(files: DishPhotoFiles): DishPhotos = files
 }

@@ -47,6 +47,10 @@ interface DiaryDao {
     @Query("SELECT * FROM dish WHERE id = :id")
     suspend fun dish(id: String): DishWithEntries?
 
+    /** Les identifiants seuls : le balayage des photos ne lit rien d'autre. */
+    @Query("SELECT id FROM dish")
+    suspend fun dishIds(): List<String>
+
     /**
      * Écrit un plat et remplace entièrement ses lignes, en une transaction.
      *

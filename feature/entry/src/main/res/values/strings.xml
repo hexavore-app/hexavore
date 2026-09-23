@@ -104,6 +104,11 @@
 
     <string name="entry_close">Fermer</string>
 
+    <!-- La photo gardee avec le plat. Decorative a l'accueil, nommee ici :
+         c'est le seul ecran ou l'on peut agir dessus. -->
+    <string name="entry_photo_a11y">La photo de ce plat</string>
+    <string name="entry_photo_remove">Retirer la photo</string>
+
     <string name="entry_unavailable_title">Plat inaccessible</string>
     <string name="entry_unavailable_body">Ce plat n\'a pas pu être rouvert. Il a peut-être été supprimé depuis un autre écran.</string>
 

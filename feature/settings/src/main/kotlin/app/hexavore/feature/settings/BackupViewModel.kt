@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.hexavore.domain.time.Clock
 import app.hexavore.domain.usecase.EraseEverything
-import app.hexavore.domain.usecase.ExportBackup
-import app.hexavore.domain.usecase.RestoreBackup
+import app.hexavore.domain.usecase.ExportArchive
+import app.hexavore.domain.usecase.RestoreArchive
 import app.hexavore.domain.usecase.RestoreOutcome
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,26 +13,30 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.InputStream
+import java.io.OutputStream
 import javax.inject.Inject
 
 /**
  * Exporter, restaurer, tout effacer.
  *
- * **Les octets traversent, les fichiers non.** Le `ViewModel` ne connaît ni `Uri` ni
- * `ContentResolver` : l'écran lit et écrit le document que le système lui a donné, et
- * ne fait passer ici qu'un tableau d'octets. C'est ce qui permet à ces trois gestes de
- * se tester sans Android.
+ * **Les flux traversent, les fichiers non.** Le `ViewModel` ne connaît ni `Uri` ni
+ * `ContentResolver` : l'écran ouvre le document que le système lui a donné et n'en fait
+ * passer ici qu'un flux. C'est ce qui permet à ces trois gestes de se tester sans
+ * Android.
  *
- * **L'export se fait en deux temps, et l'ordre compte.** Les octets sont produits
- * *avant* que le sélecteur de document s'ouvre : sans cela, ce qu'on écrirait dans le
- * fichier décrirait l'état de l'application au moment où l'utilisateur a fini de
- * parcourir ses dossiers, et non celui où il a demandé l'export. La différence est
- * invisible en démonstration et réelle si une saisie arrive entre les deux.
+ * **Des flux et non des tableaux d'octets**, depuis que l'archive emporte les photos :
+ * un an d'images pèse deux cents mégaoctets, et les tenir en mémoire entre la capture et
+ * l'écriture ferait tomber l'application chez ceux qui ont le plus à sauvegarder.
+ *
+ * **L'export se fait en deux temps, et l'ordre compte.** Le journal est figé *avant*
+ * que le document s'ouvre : l'ordre inverse écrirait l'état de l'application au moment
+ * où le fichier a fini de s'ouvrir, et non celui où l'export a été demandé.
  */
 @HiltViewModel
 internal class BackupViewModel @Inject constructor(
-    private val exportBackup: ExportBackup,
-    private val restoreBackup: RestoreBackup,
+    private val exportArchive: ExportArchive,
+    private val restoreArchive: RestoreArchive,
     private val eraseEverything: EraseEverything,
     private val clock: Clock,
 ) : ViewModel() {
@@ -43,23 +47,26 @@ internal class BackupViewModel @Inject constructor(
     fun proposedName(): String = backupFileName(clock.today())
 
     /**
-     * Prépare les octets, puis les remet à [write] — qui est l'écran, avec son document.
+     * Écrit l'archive dans le document que [open] vient d'ouvrir.
      *
-     * Un rappel plutôt qu'un état intermédiaire : garder les octets dans le `ViewModel`
-     * entre la préparation et l'écriture ferait vivre tout le journal en mémoire
-     * jusqu'à ce que l'utilisateur veuille bien choisir un dossier, ou l'abandonne.
+     * `null` quand le document n'a pas pu être ouvert : refusé, disparu, ou sur un
+     * support débranché entre le choix et l'écriture.
      */
-    fun onExport(write: (ByteArray) -> Boolean) = working {
-        val bytes = exportBackup()
-        if (write(bytes)) BackupMessage.Exported(bytes.size) else BackupMessage.ExportFailed
+    fun onExport(open: () -> OutputStream?) = working {
+        // La capture d'abord, l'ouverture du document ensuite : ce qui part decrit
+        // l'instant de la demande. Les photos, elles, sont lues a l'ecriture.
+        val pending = exportArchive()
+        val sink = open() ?: return@working BackupMessage.ExportFailed
+        runCatching { sink.use { pending.writeTo(it) } }
+            .fold({ BackupMessage.Exported(it) }, { BackupMessage.ExportFailed })
     }
 
-    fun onImport(bytes: ByteArray?) = working {
-        when (val outcome = bytes?.let { restoreBackup(it) }) {
-            // Le document n'a pas pu etre lu : c'est indiscernable d'un fichier
-            // illisible pour qui regarde l'ecran, et les deux se rattrapent pareil --
-            // en choisissant un autre fichier.
-            null -> BackupMessage.Unreadable
+    fun onImport(open: () -> InputStream?) = working {
+        // Le document n'a pas pu etre ouvert : c'est indiscernable d'un fichier
+        // illisible pour qui regarde l'ecran, et les deux se rattrapent pareil -- en
+        // choisissant un autre fichier.
+        val source = open() ?: return@working BackupMessage.Unreadable
+        when (val outcome = source.use { restoreArchive(it) }) {
             is RestoreOutcome.Restored -> BackupMessage.Restored(outcome.entryCount)
             is RestoreOutcome.TooRecent -> BackupMessage.TooRecent(outcome.formatVersion)
             RestoreOutcome.Unreadable -> BackupMessage.Unreadable

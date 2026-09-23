@@ -37,7 +37,11 @@ import java.util.concurrent.Executors
  *
  * [decisions]: docs/11-decisions.md
  */
-internal class CameraSession(private val context: Context, private val onBarcode: (Barcode) -> Unit) {
+internal class CameraSession(
+    private val context: Context,
+    private val onBarcode: (Barcode) -> Unit,
+    private val onFrame: (ByteArray) -> Unit,
+) {
     /**
      * La vue d'aperçu.
      *
@@ -130,6 +134,10 @@ internal class CameraSession(private val context: Context, private val onBarcode
      * **Rien n'arrive après [release].** Un code confirmé à l'instant où l'écran se
      * referme est déjà en route vers le fil principal ; le livrer ouvrirait une fiche
      * depuis un écran que l'utilisateur vient de quitter.
+     *
+     * **La trame part aussi en JPEG**, pour que l'écran de validation puisse la
+     * montrer et l'enregistrement la garder. C'est la même image que celle qui se
+     * fige : ce que l'appareil a lu, et rien d'autre.
      */
     private fun settle(code: Barcode, frame: Bitmap?) {
         if (released) return
@@ -137,6 +145,11 @@ internal class CameraSession(private val context: Context, private val onBarcode
             frozen = frame
             provider?.unbindAll()
             bound = null
+            // L'encodage repart sur le fil d'analyse : compresser deux cents
+            // kilo-octets sur le fil principal se verrait a l'instant precis ou
+            // l'ecran bascule. Le fil est libre -- la camera vient d'etre deliee --
+            // et il vit jusqu'a `release`.
+            analysisThread.execute { onFrame(frame.toJpeg()) }
         }
         onBarcode(code)
     }

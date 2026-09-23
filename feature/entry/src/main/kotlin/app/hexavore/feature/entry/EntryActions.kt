@@ -42,6 +42,8 @@ internal data class EntryActions(
     val onFavorite: (String) -> Unit,
     /** Éteindre l'étoile **supprime** le favori : c'est le seul chemin pour l'ôter. */
     val onUnfavorite: () -> Unit,
+    /** La croix de la photo. Elle n'efface le fichier qu'a l'enregistrement. */
+    val onRemovePhoto: () -> Unit,
     val onRetry: () -> Unit,
     val onClose: () -> Unit,
 )

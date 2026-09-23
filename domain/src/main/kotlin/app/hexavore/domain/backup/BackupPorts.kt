@@ -1,5 +1,7 @@
 package app.hexavore.domain.backup
 
+import java.io.InputStream
+import java.io.OutputStream
 import java.time.Instant
 
 /**
@@ -49,6 +51,42 @@ interface SnapshotCodec {
 
     /** Ne lance pas : un fichier illisible est un résultat, pas un accident. */
     suspend fun decode(bytes: ByteArray): SnapshotRead
+}
+
+/**
+ * L'archive que l'utilisateur exporte et réimporte : le journal **et** les photos.
+ *
+ * **Des flux et non des tableaux d'octets**, contrairement à [SnapshotCodec]. Un an de
+ * journal tient sous les cent kilo-octets ; un an de photos pèse deux cents
+ * mégaoctets, et les porter en mémoire d'un bout à l'autre ferait tomber l'application
+ * précisément chez ceux qui ont le plus à sauvegarder. `java.io` n'est pas une
+ * dépendance de plateforme : c'est le vocabulaire minimal pour dire « ça ne tient pas
+ * en mémoire ».
+ *
+ * **Le journal vient en premier dans l'archive**, et ce n'est pas un détail de format :
+ * c'est ce qui permet de refuser un fichier trop récent **avant** d'avoir touché à la
+ * moindre photo.
+ *
+ * @see docs/09-donnees-et-sauvegarde.md
+ */
+interface SnapshotArchive {
+    /** @return le nombre d'octets écrits, pour que l'écran puisse le dire. */
+    suspend fun write(snapshot: Snapshot, sink: OutputStream): Long
+
+    /**
+     * Lit le journal d'une archive, **et range ses photos au passage**.
+     *
+     * L'effet de bord est assumé : les photos sont écrites pendant la lecture du flux,
+     * donc avant que l'appelant ait remplacé la base. Si ce remplacement échoue, elles
+     * se retrouvent sans plat à décrire, et le balayage du démarrage les emporte. Le
+     * contraire aurait demandé de tenir toute l'archive en mémoire.
+     *
+     * Rien n'est écrit quand le journal est refusé : il est lu en premier.
+     *
+     * Accepte aussi un ancien fichier de journal seul, écrit avant que les photos
+     * existent. Il ne porte alors aucune image, et c'est exact.
+     */
+    suspend fun read(source: InputStream): SnapshotRead
 }
 
 /** Ce qu'on a réussi à lire d'un fichier. */

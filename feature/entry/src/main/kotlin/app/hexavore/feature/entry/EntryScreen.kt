@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
@@ -86,6 +87,7 @@ internal fun EntryRoute(
                 onDismissNaming = viewModel.favorite::dismiss,
                 onFavorite = viewModel.favorite::save,
                 onUnfavorite = viewModel.favorite::remove,
+                onRemovePhoto = viewModel::onRemovePhoto,
                 onRetry = viewModel::onRetry,
                 onClose = onClose,
             )
@@ -169,27 +171,7 @@ private fun DraftEditor(state: EntryUiState.Content, actions: EntryActions) {
             verticalArrangement = Arrangement.spacedBy(Spacing.lg),
             contentPadding = PaddingValues(bottom = with(density) { actionsHeightPx.toDp() }),
         ) {
-            item(key = "en-tete") {
-                DraftHeader(state, actions, dateFormatter)
-            }
-
-            // **Plus de balayage ici.** Il reste le raccourci d'un geste sur une
-            // liste qu'on parcourt -- l'accueil le garde --, mais cet ecran est un
-            // formulaire : on y fait glisser son doigt pour atteindre un champ, et
-            // une ligne entiere disparaissait sans qu'on l'ait voulu. La corbeille
-            // suffit, et elle demande de viser.
-            items(items = state.form.lines, key = { it.id.value }) { line ->
-                LineEditor(
-                    line = line,
-                    actions = actions,
-                    units = state.units,
-                    flagged = line.missing.takeIf { line.id == flagged },
-                )
-            }
-
-            item(key = "pied") {
-                DraftFooter(state, actions)
-            }
+            draftContent(state, actions, dateFormatter, flagged)
         }
 
         DraftActions(
@@ -209,6 +191,52 @@ private fun DraftEditor(state: EntryUiState.Content, actions: EntryActions) {
                 .align(Alignment.BottomCenter)
                 .padding(bottom = with(density) { actionsHeightPx.toDp() }),
         )
+    }
+}
+
+/**
+ * Ce que le défilement contient, du haut vers le bas.
+ *
+ * Sorti de [DraftEditor] parce qu'il portait déjà l'état du défilement, celui de la
+ * barre d'actions, celui du guide de champ manquant et la mise en page des trois. Ici,
+ * l'ordre des éléments, et rien d'autre.
+ *
+ * @param flagged la ligne dont un champ manque, telle qu'elle a été désignée au dernier
+ *   appui sur « Enregistrer ».
+ */
+private fun LazyListScope.draftContent(
+    state: EntryUiState.Content,
+    actions: EntryActions,
+    dateFormatter: DateTimeFormatter,
+    flagged: DraftLineId?,
+) {
+    item(key = "en-tete") {
+        DraftHeader(state, actions, dateFormatter)
+    }
+
+    // Entre l'en-tete et les lignes : elle dit de quel repas il s'agit, ce qui est
+    // exactement ce qu'on veut savoir avant de relire des quantites.
+    state.photo?.let { photo ->
+        item(key = "photo") {
+            DraftPhoto(photo = photo, onRemove = actions.onRemovePhoto)
+        }
+    }
+
+    // **Plus de balayage ici.** Il reste le raccourci d'un geste sur une liste qu'on
+    // parcourt -- l'accueil le garde --, mais cet ecran est un formulaire : on y fait
+    // glisser son doigt pour atteindre un champ, et une ligne entiere disparaissait
+    // sans qu'on l'ait voulu. La corbeille suffit, et elle demande de viser.
+    items(items = state.form.lines, key = { it.id.value }) { line ->
+        LineEditor(
+            line = line,
+            actions = actions,
+            units = state.units,
+            flagged = line.missing.takeIf { line.id == flagged },
+        )
+    }
+
+    item(key = "pied") {
+        DraftFooter(state, actions)
     }
 }
 

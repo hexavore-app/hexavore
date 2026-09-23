@@ -7,6 +7,7 @@ import app.hexavore.domain.food.Barcode
 import app.hexavore.domain.food.FoodId
 import app.hexavore.domain.food.ProductLookup
 import app.hexavore.domain.usecase.LookupBarcode
+import app.hexavore.domain.usecase.StageDishPhoto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -68,7 +69,10 @@ internal sealed interface ScanUiState {
  * [decisions]: docs/11-decisions.md
  */
 @HiltViewModel
-internal class ScanViewModel @Inject constructor(private val lookupBarcode: LookupBarcode) : ViewModel() {
+internal class ScanViewModel @Inject constructor(
+    private val lookupBarcode: LookupBarcode,
+    private val stagePhoto: StageDishPhoto,
+) : ViewModel() {
     private val state = MutableStateFlow<ScanUiState>(ScanUiState.Scanning)
     val uiState: StateFlow<ScanUiState> = state.asStateFlow()
 
@@ -104,6 +108,19 @@ internal class ScanViewModel @Inject constructor(private val lookupBarcode: Look
                 else -> ScanUiState.Unreachable(code)
             }
         }
+    }
+
+    /**
+     * La trame sur laquelle le code a été lu, en JPEG.
+     *
+     * **Des octets et non un `Bitmap`** : c'est ce qui garde ce modèle vérifiable sur
+     * la JVM alors que la caméra ne l'est pas ([D66][decisions]). Le dépôt décide
+     * ensuite s'il la garde, selon le réglage des photos ; cet écran ne le connaît pas.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    fun onFrame(jpeg: ByteArray) {
+        viewModelScope.launch { runCatching { stagePhoto(jpeg) } }
     }
 
     /** Après que l'écran a fini avec un code : on revise. */

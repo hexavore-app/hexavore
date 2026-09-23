@@ -210,6 +210,9 @@
     <string name="backup_export_body">Un fichier qui contient tout : le journal, les objectifs, les pesées, le catalogue et les plats favoris. Vous choisissez où l\'écrire. Ni clé d\'API ni mot de passe n\'y figurent.</string>
     <string name="backup_export_action">Choisir un emplacement</string>
     <string name="backup_exported">Exporté, %1$d Ko</string>
+    <!-- Au-dela du megaoctet : une archive qui porte des photos se compte en Mo,
+         et « 214 072 Ko » ne se lit pas. -->
+    <string name="backup_exported_large">Exporté, %1$.1f Mo</string>
     <string name="backup_export_failed">Le fichier n\'a pas pu être écrit</string>
 
     <string name="backup_import_title">Restaurer une sauvegarde</string>
@@ -235,6 +238,31 @@
     <!-- ===== Apparence ===========================================================
          La section que docs/02 annoncait et qui n ouvrait rien. Elle ouvre le theme ;
          le systeme d unites la rejoindra. -->
+    <!-- Les photos gardees avec les plats : le reglage, ce qu'elles pesent, et
+         de quoi les effacer. Une section a elles plutot qu'une case dans
+         Apparence : ce qu'elle decide n'est pas ce qu'on voit mais ce qui
+         s'ecrit sur le disque. -->
+    <string name="settings_photos_title">Photos des plats</string>
+    <string name="settings_photos_subtitle">Les garder ou non, et ce qu\'elles occupent</string>
+    <string name="photos_title">Photos des plats</string>
+    <string name="photos_close">Fermer</string>
+    <string name="photos_keeping_title">Garder les photos</string>
+    <string name="photos_keeping_body">Quand vous validez un plat scanné ou analysé, son image reste sur ce téléphone et s\'affiche avec lui. Elle ne part nulle part.</string>
+    <string name="photos_storage_title">Ce qu\'elles occupent</string>
+    <string name="photos_storage_empty">Aucune photo pour l\'instant.</string>
+    <plurals name="photos_storage_count">
+        <item quantity="one">%1$d photo, %2$.1f Mo</item>
+        <item quantity="other">%1$d photos, %2$.1f Mo</item>
+    </plurals>
+    <string name="photos_erase_action">Supprimer toutes les photos</string>
+    <string name="photos_erase_title">Supprimer les photos ?</string>
+    <plurals name="photos_erase_body">
+        <item quantity="one">%1$d image sera effacée. Vos plats et leurs valeurs restent intacts.</item>
+        <item quantity="other">%1$d images seront effacées. Vos plats et leurs valeurs restent intacts.</item>
+    </plurals>
+    <string name="photos_erase_confirm">Supprimer</string>
+    <string name="photos_erase_cancel">Annuler</string>
+
     <string name="settings_appearance_title">Apparence</string>
     <string name="settings_appearance_subtitle">Le thème, les unités, et l\'affichage des plats</string>
 

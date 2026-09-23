@@ -1,18 +1,21 @@
 package app.hexavore.feature.settings
 
 import app.hexavore.core.testing.FixedClock
+import app.hexavore.core.testing.InMemoryDishPhotos
 import app.hexavore.domain.backup.BackupFile
 import app.hexavore.domain.backup.BackupFileId
 import app.hexavore.domain.backup.BackupTarget
 import app.hexavore.domain.backup.Snapshot
+import app.hexavore.domain.backup.SnapshotArchive
 import app.hexavore.domain.backup.SnapshotCodec
 import app.hexavore.domain.backup.SnapshotRead
 import app.hexavore.domain.backup.SnapshotStore
 import app.hexavore.domain.backup.StoredPreferences
 import app.hexavore.domain.usecase.CreateBackup
 import app.hexavore.domain.usecase.EraseEverything
+import app.hexavore.domain.usecase.ExportArchive
 import app.hexavore.domain.usecase.ExportBackup
-import app.hexavore.domain.usecase.RestoreBackup
+import app.hexavore.domain.usecase.RestoreArchive
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -27,6 +30,9 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
+import java.io.OutputStream
 import java.time.Instant
 import java.time.LocalDate
 
@@ -49,16 +55,27 @@ internal class BackupViewModelTest {
     private val store = FakeSnapshotStore()
     private val codec = FakeCodec()
     private val preferences = FakeStoredPreferences()
+
+    /** L'archive, reduite a ce qu'elle a de commun avec un journal seul : voir BackupUseCasesTest. */
+    private val archive = object : SnapshotArchive {
+        override suspend fun write(snapshot: Snapshot, sink: OutputStream): Long {
+            val bytes = codec.encode(snapshot)
+            sink.write(bytes)
+            return bytes.size.toLong()
+        }
+
+        override suspend fun read(source: InputStream): SnapshotRead = codec.decode(source.readBytes())
+    }
     private val viewModel by lazy {
         BackupViewModel(
-            exportBackup = ExportBackup(store, codec),
-            restoreBackup = RestoreBackup(
+            exportArchive = ExportArchive(store, archive),
+            restoreArchive = RestoreArchive(
                 store = store,
-                codec = codec,
+                archive = archive,
                 createBackup = CreateBackup(ExportBackup(store, codec), horloge),
                 safety = FakeTarget(),
             ),
-            eraseEverything = EraseEverything(store, preferences),
+            eraseEverything = EraseEverything(store, preferences, InMemoryDishPhotos()),
             clock = horloge,
         )
     }
@@ -78,7 +95,7 @@ internal class BackupViewModelTest {
 
         viewModel.onExport {
             store.content = AUTRE
-            true
+            ByteArrayOutputStream()
         }
 
         assertEquals(PLEIN, codec.encoded, "les octets decrivent l'instant de la demande")
@@ -86,16 +103,16 @@ internal class BackupViewModelTest {
 
     @Test
     fun `un export ecrit rapporte sa taille`() = runTest {
-        viewModel.onExport { true }
+        viewModel.onExport { ByteArrayOutputStream() }
 
-        assertEquals(BackupMessage.Exported(FICHIER.size), viewModel.uiState.value.message)
+        assertEquals(BackupMessage.Exported(FICHIER.size.toLong()), viewModel.uiState.value.message)
     }
 
     @Test
     fun `un document qui refuse l ecriture se dit`() = runTest {
         // Plein, retire, ou refuse par son fournisseur : sans message, l'utilisateur
         // croit avoir une sauvegarde.
-        viewModel.onExport { false }
+        viewModel.onExport { null }
 
         assertEquals(BackupMessage.ExportFailed, viewModel.uiState.value.message)
     }
@@ -104,7 +121,7 @@ internal class BackupViewModelTest {
     fun `un document illisible se dit sans rien toucher`() = runTest {
         store.content = PLEIN
 
-        viewModel.onImport(null)
+        viewModel.onImport { null }
 
         assertEquals(BackupMessage.Unreadable, viewModel.uiState.value.message)
         assertEquals(PLEIN, store.content, "rien n'a ete remplace")
@@ -116,7 +133,7 @@ internal class BackupViewModelTest {
         // chercher un autre fichier ou mettre l'application a jour.
         codec.read = SnapshotRead.TooRecent(formatVersion = 9)
 
-        viewModel.onImport(FICHIER)
+        viewModel.onImport { FICHIER.inputStream() }
 
         assertEquals(BackupMessage.TooRecent(9), viewModel.uiState.value.message)
     }
@@ -126,7 +143,7 @@ internal class BackupViewModelTest {
         store.content = AUTRE
         codec.read = SnapshotRead.Readable(PLEIN)
 
-        viewModel.onImport(FICHIER)
+        viewModel.onImport { FICHIER.inputStream() }
 
         assertEquals(PLEIN, store.content)
         assertEquals(BackupMessage.Restored(PLEIN.entryCount), viewModel.uiState.value.message)
@@ -161,8 +178,14 @@ internal class BackupViewModelTest {
         var exports = 0
         store.retenu = CompletableDeferred()
 
-        viewModel.onExport { exports++ > -1 }
-        viewModel.onExport { exports++ > -1 }
+        viewModel.onExport {
+            exports++
+            ByteArrayOutputStream()
+        }
+        viewModel.onExport {
+            exports++
+            ByteArrayOutputStream()
+        }
 
         assertEquals(0, exports, "le premier n'a pas encore rendu la main")
         assertTrue(viewModel.uiState.value.busy)
