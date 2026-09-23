@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  La meme figure pour les icones thematiques d'Android 13 et plus.
+
+  Le systeme reteint ce trace avec les couleurs du fond d'ecran et ne garde que la
+  forme. Les six quartiers y restent donc six, separes par les memes fentes :
+  reduire la marque a un hexagone plein aurait fait perdre, sur les telephones ou
+  cette variante est active, la seule chose que l'icone raconte.
+
+  Le blanc n'est pas une couleur ici, c'est une opacite : seul le canal alpha
+  survit a la reteinte. Les traces doivent rester identiques a ceux de
+  ic_launcher_foreground, et LauncherIconTest le verifie.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:pathData="M54,50.8 L69.05,24.73 L38.95,24.73 Z" android:fillColor="#FFFFFFFF" />
+    <path android:pathData="M56.77,52.4 L86.88,52.4 L71.82,26.33 Z" android:fillColor="#FFFFFFFF" />
+    <path android:pathData="M56.77,55.6 L71.82,81.67 L86.88,55.6 Z" android:fillColor="#FFFFFFFF" />
+    <path android:pathData="M54,57.2 L38.95,83.27 L69.05,83.27 Z" android:fillColor="#FFFFFFFF" />
+    <path android:pathData="M51.23,55.6 L21.12,55.6 L36.18,81.67 Z" android:fillColor="#FFFFFFFF" />
+    <path android:pathData="M51.23,52.4 L36.18,26.33 L21.12,52.4 Z" android:fillColor="#FFFFFFFF" />
+</vector>

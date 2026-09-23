@@ -1,16 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Un hexagone : six cotes, six compteurs. Le nom de l'application porte sa propre
-  justification, l'icone aussi.
+  Les six compteurs, tous atteints : la marque du projet, et son icone de lancement.
+
+  Six quartiers dans l'ordre angulaire de l'application, separes par une fente qui
+  laisse passer le fond. La fente n'est pas un ornement : sucres et glucides sont
+  voisins par le ton comme par la place, et sans elle ils se touchent et se
+  confondent a 48 px, qui est la taille ou cette image se regarde.
+
+  L'icone n'est pas la figure. MacroHexagon montre une journee, avec des quartiers
+  de rayons inegaux et sans fente, et le site l'affiche telle quelle. Ici tout est
+  plein : une marque ne represente aucune journee en particulier.
+
+  Geometrie : hexagone a arete horizontale, rayon 33,8 sur les 108 du canevas.
+  Chaque quartier est rentre de 1,6 de ses deux cotes radiaux, d'ou un apex a 3,2
+  du centre et des sommets a 32,92, juste sous les 33 que le systeme garantit
+  visibles sous tous les masques. LauncherIconTest le verifie.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:pathData="M54,28 L76.5,41 L76.5,67 L54,80 L31.5,67 L31.5,41 Z"
-        android:strokeColor="@color/neon_calories"
-        android:strokeWidth="6"
-        android:strokeLineJoin="round" />
+    <path android:pathData="M54,50.8 L69.05,24.73 L38.95,24.73 Z" android:fillColor="@color/neon_calories" />
+    <path android:pathData="M56.77,52.4 L86.88,52.4 L71.82,26.33 Z" android:fillColor="@color/neon_protein" />
+    <path android:pathData="M56.77,55.6 L71.82,81.67 L86.88,55.6 Z" android:fillColor="@color/neon_fiber" />
+    <path android:pathData="M54,57.2 L38.95,83.27 L69.05,83.27 Z" android:fillColor="@color/neon_carbs" />
+    <path android:pathData="M51.23,55.6 L21.12,55.6 L36.18,81.67 Z" android:fillColor="@color/neon_sugars" />
+    <path android:pathData="M51.23,52.4 L36.18,26.33 L21.12,52.4 Z" android:fillColor="@color/neon_fat" />
 </vector>
