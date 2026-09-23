@@ -57,7 +57,7 @@
     <string name="onboarding_result_unavailable">Répondez au moins à la question du poids pour voir vos objectifs.</string>
     <string name="onboarding_capped">Ce rythme dépasserait les bornes de sécurité. À un rythme sûr, votre poids cible serait atteint vers le %1$s.</string>
     <string name="onboarding_use_reachable_date">Utiliser cette date</string>
-    <string name="onboarding_carbs_low">À ce niveau de calories, il reste peu de glucides une fois les protéines, les lipides et les fibres couverts. Un objectif un peu plus haut serait plus tenable.</string>
+    <string name="onboarding_carbs_low">À ce niveau de calories, il reste peu de glucides une fois les protéines, les lipides et les fibres couverts. Un objectif plus haut serait plus tenable.</string>
 
     <string name="onboarding_goal_calories">Calories : %1$d kcal</string>
     <string name="onboarding_goal_protein">Protéines : %1$d g</string>
@@ -69,10 +69,10 @@
     <!-- Une phrase par compteur : un chiffre sans raison est un chiffre qu'on ignore. -->
     <string name="onboarding_why_calories">Votre dépense estimée, ajustée à votre échéance.</string>
     <string name="onboarding_why_protein">Calculé sur votre poids cible, pour préserver la masse maigre.</string>
-    <string name="onboarding_why_fiber">14 g pour 1 000 kcal. Ce n\'est jamais réduit pour dégager des glucides.</string>
+    <string name="onboarding_why_fiber">14 g pour 1 000 kcal, jamais rogné au profit des glucides.</string>
     <string name="onboarding_why_carbs">Le solde du budget, une fois les fibres déduites.</string>
-    <string name="onboarding_why_sugars">Plafond de l\'OMS, appliqué aux sucres totaux — donc plus strict.</string>
-    <string name="onboarding_why_fat">Un budget, pas une cible : le plancher physiologique est déjà garanti par le calcul.</string>
+    <string name="onboarding_why_sugars">Plafond de l\'OMS, appliqué aux sucres totaux, donc plus strict.</string>
+    <string name="onboarding_why_fat">Une limite à ne pas dépasser. Le minimum dont le corps a besoin est déjà couvert.</string>
 
     <!-- La réponse du bouton indisponible à un appui. Elle dit ce qui manque, pas
          qu'il manque quelque chose : « complétez le formulaire » n'aide personne. -->

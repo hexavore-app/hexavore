@@ -46,7 +46,7 @@ Les deux premiers envois ne portent aucun identifiant : Open Food Facts ne peut 
 Seulement si vous avez enregistré une clé d'API, et à chaque analyse que vous lancez :
 
 - **la photo de votre repas**, réduite à 1 024 pixels, **et/ou la phrase que vous avez écrite** ;
-- en **analyse approfondie**, des extraits du catalogue d'aliments de l'application — des noms et des valeurs nutritionnelles, rien de personnel ;
+- en **analyse approfondie**, des extraits du catalogue d'aliments de l'application : des noms et des valeurs nutritionnelles, rien de personnel ;
 - **votre clé d'API**, qui désigne votre compte chez ce fournisseur.
 
 L'envoi part directement de votre téléphone vers le fournisseur : le projet ne voit rien passer. Le fournisseur facture ces appels sur votre compte, et sa propre politique de confidentialité s'applique à ce qu'il reçoit. Selon votre choix, il s'agit d'Anthropic, de Google (Gemini), d'OpenAI, de DeepSeek, de Mistral AI, ou du service dont vous avez saisi l'adresse vous-même.
