@@ -48,7 +48,7 @@
     <string name="profile_horizon_reachable">Au rythme sûr : %1$s</string>
     <string name="profile_pace">Soit environ %1$.2f kg par semaine.</string>
     <string name="profile_capped">Ce rythme dépasserait les bornes de sécurité. À un rythme sûr, votre poids cible serait atteint vers le %1$s.</string>
-    <string name="profile_carbs_low">À ce niveau de calories, il reste peu de glucides une fois les protéines, les lipides et les fibres couverts. Un objectif un peu plus haut serait plus tenable.</string>
+    <string name="profile_carbs_low">À ce niveau de calories, il reste peu de glucides une fois les protéines, les lipides et les fibres couverts. Un objectif plus haut serait plus tenable.</string>
 
     <!-- Le mode. Un objectif est calculé OU saisi à la main, sans entre-deux : c'est
          ce qui décide si une correction de profil a le droit de déplacer les six. -->
@@ -150,9 +150,12 @@
     <!-- Le compteur d'usage. La date du releve accompagne le montant : docs/05 veut
          que la table de tarifs soit datee et signalee comme indicative, parce qu'une
          estimation perimee presentee comme exacte serait pire que pas d'estimation. -->
-    <string name="ai_usage_billing">Hexavore ne connaît pas les tarifs de votre fournisseur et n’en estime aucun. Seule sa facture fait foi.</string>
+    <string name="ai_usage_billing">Hexavore n\'estime aucun coût. Seule la facture de votre fournisseur fait foi.</string>
     <string name="ai_usage_title">Ce que vos analyses ont consommé</string>
-    <string name="ai_usage_line">%1$s · %2$s — %3$d appel(s), %4$d jetons</string>
+    <plurals name="ai_usage_line">
+        <item quantity="one">%1$s · %2$s · %3$d appel, %4$d jetons</item>
+        <item quantity="other">%1$s · %2$s · %3$d appels, %4$d jetons</item>
+    </plurals>
     <string name="ai_active">Utilisé</string>
     <string name="ai_configured">Clé enregistrée</string>
     <string name="ai_not_configured">Aucune clé</string>
@@ -180,7 +183,7 @@
     <string name="ai_key_help_title">Une clé %1$s</string>
     <string name="ai_key_help_what">Une clé d\'API est un mot de passe que vous créez chez le fournisseur. Elle autorise Hexavore à lui envoyer vos photos et vos descriptions de repas pour analyse.</string>
     <string name="ai_key_help_where">Le bouton ci-dessous ouvre la page de %1$s où l\'on crée une clé. Copiez-la, puis revenez la coller ici.</string>
-    <string name="ai_key_help_billing">La clé reste sur cet appareil, chiffrée par son trousseau, et les appels partent en direct : Hexavore n\'a pas de serveur et ne voit rien de ce qui passe. C\'est votre fournisseur qui compte les appels et qui facture.</string>
+    <string name="ai_key_help_billing">La clé reste sur cet appareil, chiffrée par son trousseau. Les appels partent en direct, et c\'est votre fournisseur qui les compte et les facture.</string>
     <string name="ai_key_help_open">Ouvrir la page</string>
     <string name="ai_key_help_close">Fermer</string>
     <string name="ai_forget">Effacer la clé</string>
@@ -206,16 +209,16 @@
     <string name="backup_export_title">Exporter mes données</string>
     <string name="backup_export_body">Un fichier qui contient tout : le journal, les objectifs, les pesées, le catalogue et les plats favoris. Vous choisissez où l\'écrire. Ni clé d\'API ni mot de passe n\'y figurent.</string>
     <string name="backup_export_action">Choisir un emplacement</string>
-    <string name="backup_exported">Exporté — %1$d Ko</string>
+    <string name="backup_exported">Exporté, %1$d Ko</string>
     <string name="backup_export_failed">Le fichier n\'a pas pu être écrit</string>
 
     <string name="backup_import_title">Restaurer une sauvegarde</string>
     <string name="backup_import_body">Remplace tout ce qui est sur cet appareil par le contenu du fichier. Une copie de ce qui existe est conservée juste avant.</string>
     <string name="backup_import_action">Choisir un fichier</string>
     <string name="backup_restore_confirm_title">Remplacer toutes vos données ?</string>
-    <string name="backup_restore_confirm_body">Le contenu du fichier remplacera entièrement ce qui est sur cet appareil — les deux ne seront pas fusionnés. Une copie de l\'état actuel est enregistrée juste avant, sur l\'appareil, pour que vous puissiez revenir en arrière si vous vous êtes trompé de fichier.</string>
+    <string name="backup_restore_confirm_body">Le contenu du fichier remplacera tout ce qui est sur cet appareil. Les deux ne seront pas fusionnés. Une copie de l\'état actuel est gardée juste avant, pour que vous puissiez revenir en arrière si vous vous êtes trompé de fichier.</string>
     <string name="backup_restore_confirm_accept">Choisir un fichier</string>
-    <string name="backup_restored">Restauré — %1$d aliments notés</string>
+    <string name="backup_restored">Restauré, %1$d aliments notés</string>
     <string name="backup_too_recent">Ce fichier vient d\'une version plus récente (format %1$d). Rien n\'a été modifié : mettez l\'application à jour.</string>
     <string name="backup_unreadable">Fichier illisible. Rien n\'a été modifié.</string>
     <string name="backup_restore_failed">La restauration a échoué. Une copie de vos données d\'avant est sur l\'appareil.</string>
@@ -249,10 +252,10 @@
     <string name="appearance_dishes_detailed">Détaillé</string>
     <string name="appearance_dishes_note">Le simplifié donne le titre du plat, son heure, ses calories et ses apports. Le détaillé y ajoute la liste de ses aliments.</string>
 
-    <string name="appearance_units_metric">Métrique — g, ml, kg, cm</string>
-    <string name="appearance_units_imperial">Impérial — oz, fl oz, lb, pieds et pouces</string>
-    <string name="appearance_units_note">Ce réglage change ce qui est affiché et ce qu\'on propose de saisir. Rien n\'est converti dans vos données : un plat noté en grammes garde ses grammes, et vous pouvez basculer, regarder, puis revenir.</string>
-    <string name="appearance_theme_note">« Suivre le système » reprend le réglage d\'Android, et bascule avec lui. C\'est ce que faisait l\'application avant que ce choix existe.</string>
+    <string name="appearance_units_metric">Métrique (g, ml, kg, cm)</string>
+    <string name="appearance_units_imperial">Impérial (oz, fl oz, lb, pieds et pouces)</string>
+    <string name="appearance_units_note">Ce réglage change l\'affichage et la saisie. Vos données ne bougent pas : un plat noté en grammes garde ses grammes.</string>
+    <string name="appearance_theme_note">« Suivre le système » reprend le réglage d\'Android et bascule avec lui.</string>
 
     <!-- ===== Pastilles ============================================================
          Aucune notification systeme : ce sont des points colorés qu'on voit en ouvrant
@@ -262,7 +265,7 @@
 
     <string name="notices_title">Notifications</string>
     <string name="notices_close">Fermer</string>
-    <string name="notices_intro">Ces pastilles sont des points colorés dans l\'application. Rien ne sonne, rien n\'apparaît sur votre écran de verrouillage, et aucune permission n\'est demandée. Chacune s\'éteint d\'elle-même quand la situation qu\'elle signale a cessé.</string>
+    <string name="notices_intro">Des points colorés dans l\'application, rien de plus : aucune sonnerie, rien sur l\'écran de verrouillage, aucune permission. Chacune s\'éteint quand la situation qu\'elle signale a cessé.</string>
     <string name="settings_section_flagged">Quelque chose à régler ici</string>
     <string name="notices_active_now">Allumée en ce moment</string>
 
@@ -284,11 +287,11 @@
     <!-- L\'analyse approfondie : le modele interroge le catalogue avant de conclure,
          au lieu de laisser un score de ressemblance choisir a sa place. -->
     <string name="ai_deep_title">Analyse approfondie</string>
-    <string name="ai_deep_body">Le modèle interroge le catalogue de l\'application et choisit lui-même la fiche de chaque aliment, au lieu de laisser une recherche par nom décider. Plus lent et plus coûteux, nettement plus juste sur les aliments dont le nom ressemble à celui d\'un autre.</string>
+    <string name="ai_deep_body">Le modèle interroge le catalogue et choisit lui-même la fiche de chaque aliment. Plus lent et plus cher, mais nettement plus juste quand deux aliments portent des noms voisins.</string>
     <string name="ai_deep_unavailable">Le fournisseur actif ne sait pas appeler d\'outils. Le réglage est conservé et reprendra effet avec un fournisseur qui le sait.</string>
 
     <string name="ai_debug_title">Mode debug</string>
-    <string name="ai_debug_body">Enregistre ce qui part chez le fournisseur et ce qui en revient, pour comprendre une réponse inattendue. Rien n\'est écrit sur le disque : la liste disparaît quand vous fermez l\'application, et les images en sont retirées.</string>
+    <string name="ai_debug_body">Garde ce qui part chez le fournisseur et ce qui en revient, pour comprendre une réponse inattendue. Rien n\'est écrit sur le disque, les images sont retirées, et la liste disparaît à la fermeture.</string>
     <string name="ai_debug_open">Voir les échanges</string>
 
     <string name="exchanges_title">Échanges avec l\'IA</string>

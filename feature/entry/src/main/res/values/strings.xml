@@ -86,7 +86,7 @@
     <string name="entry_favorite_on">dans vos favoris</string>
     <string name="entry_favorite_off">pas dans vos favoris</string>
     <string name="entry_favorite_title">Enregistrer comme favori</string>
-    <string name="entry_favorite_body">Vous le retrouverez sous ce nom pour le rejouer en deux gestes. Modifier une ligne l\'en retirera.</string>
+    <string name="entry_favorite_body">Vous le retrouverez sous ce nom, prêt à rejouer. Modifier une ligne l\'en retirera.</string>
     <string name="entry_favorite_name">Nom du plat</string>
     <string name="entry_favorite_name_taken">Un plat en favori porte déjà ce nom.</string>
     <string name="entry_favorite_confirm">Enregistrer</string>

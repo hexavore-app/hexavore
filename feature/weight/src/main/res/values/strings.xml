@@ -24,11 +24,11 @@
 
     <!-- Sous trois pesées dans les sept jours, il n'y a rien à lisser. Le dire évite
          de chercher pourquoi le tracé en évidence manque. -->
-    <string name="weight_trend_missing">La tendance apparaît à partir de trois pesées dans la même semaine : en dessous, une moyenne sur sept jours ne lisse rien.</string>
+    <string name="weight_trend_missing">La tendance apparaît à partir de trois pesées dans la même semaine.</string>
 
     <!-- Une liste vide dit quoi faire, pas seulement qu'elle est vide. -->
     <string name="weight_empty_title">Aucune pesée</string>
-    <string name="weight_empty_body">Notez votre poids quand vous le souhaitez. Le poids brut varie de deux kilos avec l\'hydratation : c\'est la moyenne sur sept jours qui dit où vous allez.</string>
+    <string name="weight_empty_body">Notez votre poids quand vous voulez. Le poids brut varie de deux kilos avec l\'hydratation ; c\'est la moyenne sur sept jours qui dit où vous allez.</string>
 
     <!-- Un échec de lecture se dit, il ne s'affiche pas comme un journal vide : un
          journal vide est une affirmation, pas une absence de réponse. -->

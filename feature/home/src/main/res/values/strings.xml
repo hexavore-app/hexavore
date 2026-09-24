@@ -21,7 +21,7 @@
 
     <!-- Une liste vide dit quoi faire, pas seulement qu'elle est vide. -->
     <string name="home_empty_title">Rien de noté aujourd\'hui</string>
-    <string name="home_empty_body">Les six compteurs se rempliront à la première saisie. La journée reste neutre tant qu\'elle est vide : elle ne compte pas comme une journée à zéro.</string>
+    <string name="home_empty_body">Les six compteurs se rempliront à la première saisie.</string>
 
     <!-- Un échec de lecture se dit, il ne s'affiche pas comme une journée vide :
          une journée vide est une affirmation, pas une absence de réponse. -->
@@ -32,7 +32,7 @@
     <!-- Tant qu'aucun objectif n'a été posé. Une invitation, pas six jauges vides :
          une jauge à zéro laisserait croire qu'un objectif existe et n'est pas atteint. -->
     <string name="home_no_goal_title">Pas encore d\'objectif</string>
-    <string name="home_no_goal_body">Cinq questions suffisent à calculer vos six objectifs quotidiens. En attendant, vos totaux sont notés sans être comparés à quoi que ce soit.</string>
+    <string name="home_no_goal_body">Cinq questions suffisent à calculer vos six objectifs. En attendant, vos totaux sont notés sans être comparés à rien.</string>
     <string name="home_no_goal_action">Définir mon objectif</string>
 
     <!-- Une icône seule : c'est la porte la moins fréquentée de l'écran, et rien ne
@@ -89,14 +89,14 @@
          et non le hub : qui vient d'appuyer sur l'appareil photo cherche l'endroit où
          mettre une clé, pas la liste des réglages. -->
     <string name="home_ai_title">Analyser un repas avec l\'IA</string>
-    <string name="home_ai_explanation">Ce mode envoie votre photo ou votre description à un fournisseur d\'IA que vous choisissez, avec votre propre clé. Les appels vous sont facturés par ce fournisseur, et Hexavore ne conserve rien : nous n\'avons aucun serveur.</string>
+    <string name="home_ai_explanation">Votre photo ou votre description part chez le fournisseur d\'IA que vous choisissez, avec votre propre clé. C\'est lui qui vous facture ses appels. Hexavore n\'a aucun serveur.</string>
     <string name="home_ai_configure">Configurer</string>
     <string name="home_ai_later">Plus tard</string>
 
     <!-- Le nom est proposé depuis les aliments du plat, puis librement réécrit : un
          favori sans nom serait introuvable, et un champ vide ferait renoncer. -->
     <string name="home_favorite_title">Enregistrer comme favori</string>
-    <string name="home_favorite_body">Vous le retrouverez sous ce nom pour le rejouer en deux gestes. Modifier une ligne l\'en retirera.</string>
+    <string name="home_favorite_body">Vous le retrouverez sous ce nom, prêt à rejouer. Modifier une ligne l\'en retirera.</string>
     <string name="home_favorite_name">Nom du plat</string>
     <string name="home_favorite_name_taken">Un plat en favori porte déjà ce nom.</string>
     <string name="home_favorite_confirm">Enregistrer</string>

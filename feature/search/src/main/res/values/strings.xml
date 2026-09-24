@@ -62,7 +62,12 @@
     <string name="search_delete">Supprimer %1$s</string>
     <string name="search_delete_title">Supprimer « %1$s » ?</string>
     <string name="search_delete_unused">Cet aliment n\'a jamais servi. Sa fiche disparaît du catalogue.</string>
-    <string name="search_delete_used">Cet aliment est utilisé dans %1$d entrée(s) de votre journal. Elles sont conservées telles quelles, avec leurs valeurs : seule la fiche disparaît.</string>
+    <!-- Le nombre figure dans les deux formes : en français, « one » couvre aussi
+         zéro, et un message sans son chiffre y deviendrait faux. -->
+    <plurals name="search_delete_used">
+        <item quantity="one">Cet aliment sert dans %1$d entrée de votre journal. Elle est conservée telle quelle, avec ses valeurs : seule la fiche disparaît.</item>
+        <item quantity="other">Cet aliment sert dans %1$d entrées de votre journal. Elles sont conservées telles quelles, avec leurs valeurs : seule la fiche disparaît.</item>
+    </plurals>
     <string name="search_delete_confirm">Supprimer</string>
     <string name="search_delete_cancel">Annuler</string>
 
@@ -96,7 +101,7 @@
     <string name="contribute_sending">Envoi…</string>
     <string name="contribute_decline">Pas maintenant</string>
 
-    <string name="contribute_sent">Envoyé. Merci — le prochain qui scannera ce produit le trouvera.</string>
+    <string name="contribute_sent">Envoyé, merci. Le prochain qui scannera ce produit le trouvera.</string>
     <!-- Réessayer n'y changerait rien : c'est le compte qu'il faut corriger. -->
     <string name="contribute_rejected">Compte refusé. Vérifiez votre identifiant et votre mot de passe dans les réglages.</string>
     <string name="contribute_unreachable">Open Food Facts n\'a pas répondu. La fiche est enregistrée ici.</string>

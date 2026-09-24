@@ -16,7 +16,7 @@
 
     <!-- Le cadre vide dit ce qu'on attend de lui. C'est le conseil que docs/02 voulait
          en surimpression de l'apercu camera ; il se lit mieux avant d'appuyer. -->
-    <string name="analyse_photo_hint">Photographiez l\'assiette entière, de préférence vue de dessus — ou décrivez votre repas en dessous.</string>
+    <string name="analyse_photo_hint">Photographiez l\'assiette entière, vue de dessus si possible. Ou décrivez votre repas en dessous.</string>
     <string name="analyse_shoot">Prendre une photo</string>
     <string name="analyse_pick">Choisir une image</string>
     <string name="analyse_photo_remove">Retirer la photo</string>
@@ -40,8 +40,8 @@
          fournisseur : « votre photo part chez Mistral » se verifie, « chez votre
          fournisseur » non. -->
     <string name="analyse_consent_title">Votre photo va partir</string>
-    <string name="analyse_consent">Votre photo sera envoyée à %1$s avec votre clé API. Hexavore ne conserve ni la photo ni le résultat sur un serveur — nous n\'en avons aucun. Les conditions d\'utilisation et de conservation sont celles de votre fournisseur.</string>
-    <string name="analyse_consent_unnamed">Votre photo sera envoyée au fournisseur d\'IA que vous avez configuré, avec votre clé API. Hexavore ne conserve ni la photo ni le résultat sur un serveur — nous n\'en avons aucun.</string>
+    <string name="analyse_consent">Votre photo part chez %1$s, avec votre clé API. Hexavore n\'a aucun serveur : rien ne passe par nous. Ce que %1$s en garde, et pour combien de temps, relève de ses conditions.</string>
+    <string name="analyse_consent_unnamed">Votre photo part chez le fournisseur d\'IA que vous avez configuré, avec votre clé API. Hexavore n\'a aucun serveur : rien ne passe par nous.</string>
     <string name="analyse_consent_accept">J\'ai compris</string>
     <string name="analyse_consent_decline">Annuler</string>
 

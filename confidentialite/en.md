@@ -46,7 +46,7 @@ The first two requests carry no identifier: Open Food Facts cannot link them to 
 Only if you saved an API key, and each time you start an analysis:
 
 - **the photo of your meal**, scaled down to 1,024 pixels, **and/or the sentence you wrote**;
-- in **deep analysis**, excerpts of the app's food catalog — food names and nutrition values, nothing personal;
+- in **deep analysis**, excerpts of the app's food catalog: food names and nutrition values, nothing personal;
 - **your API key**, which identifies your account with that provider.
 
 The request goes straight from your phone to the provider: the project sees nothing of it. The provider bills these calls to your account, and its own privacy policy applies to what it receives. Depending on your choice, that is Anthropic, Google (Gemini), OpenAI, DeepSeek, Mistral AI, or the service whose address you entered yourself.
@@ -78,7 +78,7 @@ Before the first photo is sent, the app asks for your consent and names the prov
 
 ## Your rights
 
-The project holds no data about you: there is nothing to access, correct or delete on its side. Everything happens in the app. For what was sent to Open Food Facts or to your AI provider, contact them. You can also lodge a complaint with your data protection authority — in France, the [CNIL](https://www.cnil.fr).
+The project holds no data about you: there is nothing to access, correct or delete on its side. Everything happens in the app. For what was sent to Open Food Facts or to your AI provider, contact them. You can also lodge a complaint with your data protection authority; in France, that is the [CNIL](https://www.cnil.fr).
 
 ## Audience
 

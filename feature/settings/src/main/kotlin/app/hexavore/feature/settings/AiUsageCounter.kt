@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import app.hexavore.core.designsystem.theme.Spacing
 
@@ -37,8 +38,9 @@ internal fun UsageCounter(rows: List<UsageRow>) {
 
             rows.forEach { row ->
                 Text(
-                    text = stringResource(
-                        R.string.ai_usage_line,
+                    text = pluralStringResource(
+                        R.plurals.ai_usage_line,
+                        row.calls,
                         row.provider.displayName,
                         row.model,
                         row.calls,
