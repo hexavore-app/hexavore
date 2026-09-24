@@ -1,6 +1,6 @@
 # Politique de confidentialité
 
-*Dernière mise à jour : 23 septembre 2026*
+*Dernière mise à jour : 24 septembre 2026*
 
 Hexavore est une application Android de suivi alimentaire, libre et gratuite. Cette page dit quelles données l'application manipule, où elles vont, et comment les effacer.
 
@@ -13,7 +13,9 @@ Hexavore est une application Android de suivi alimentaire, libre et gratuite. Ce
 
 ## Qui est responsable
 
-Hexavore est un projet libre, développé à titre personnel et non commercial. Son code source est public : [github.com/hexavore-app/hexavore](https://github.com/hexavore-app/hexavore).
+**Charly Flu** développe Hexavore à titre personnel et non commercial, et en est le responsable de traitement au sens du RGPD. Il y a peu à traiter : le projet n'a pas de serveur et ne reçoit aucune de vos données.
+
+Le code source est public : [github.com/hexavore-app/hexavore](https://github.com/hexavore-app/hexavore).
 
 Pour toute question sur cette politique : [contact@hexavore.app](mailto:contact@hexavore.app).
 
@@ -82,7 +84,7 @@ Si vous validez le repas, une copie de l'image est gardée **sur votre télépho
 
 ## Vos droits
 
-Le projet ne détient aucune donnée vous concernant : il n'y a rien à consulter, rectifier ou supprimer de son côté. Tout se fait dans l'application. Pour ce qui a été transmis à Open Food Facts ou à votre fournisseur d'IA, adressez-vous à eux. Vous pouvez aussi saisir la [CNIL](https://www.cnil.fr).
+Le responsable ne détient aucune donnée vous concernant : il n'y a rien à consulter, rectifier ou supprimer de son côté. Tout se fait dans l'application. Pour ce qui a été transmis à Open Food Facts ou à votre fournisseur d'IA, adressez-vous à eux. Vous pouvez aussi saisir la [CNIL](https://www.cnil.fr).
 
 ## Public
 

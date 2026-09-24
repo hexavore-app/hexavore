@@ -88,6 +88,8 @@ Quatorze, nés au fur et à mesure qu'ils avaient un fichier à contenir.
 
 ## Licence
 
+Copyright © 2026 Charly Flu.
+
 Code sous **GPL-3.0**. Voir [11-decisions.md](docs/11-decisions.md#d10--licence-gpl-30---par-défaut) pour le raisonnement.
 
 Les données embarquées ou consultées ont leurs propres licences, respectées et créditées :

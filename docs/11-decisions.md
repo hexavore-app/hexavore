@@ -4024,7 +4024,9 @@ La trame figée est toujours capturée une seule fois par scan, sur l'image qui 
 
 **Conséquences.** [D65](#d65--le-décodeur-est-un-module-à-part-et-sa-seule-règle-tient-sur-la-jvm---validée) l'avait chiffré à « une classe », et c'est ce qu'il a coûté : `BarcodeAnalyzer` change de décodeur, `CameraSession` de fil, `SteadyBarcode` ne change pas d'une ligne de code. Le manifeste fusionné ne porte plus ni `mlkit` ni `datatransport`. [01](01-perimetre.md#contraintes-fermes), [09](09-donnees-et-sauvegarde.md#ce-qui-sort-de-lappareil) et le README disent de nouveau vrai.
 
-**Ce que le vert ne prouve pas.** **Que zxing-cpp lise aussi bien que ML Kit** : code de biais, reflet sur un emballage, étiquette froissée, pénombre. C'est la seule inconnue, et elle ne se lève qu'en tenant le téléphone devant de vrais paquets — aucune bibliothèque native ne tourne sur la JVM. Revenir en arrière tiendrait en un commit, mais revenir, ce serait redéclarer l'envoi.
+~~**Ce que le vert ne prouve pas.** **Que zxing-cpp lise aussi bien que ML Kit** : code de biais, reflet sur un emballage, étiquette froissée, pénombre. C'est la seule inconnue, et elle ne se lève qu'en tenant le téléphone devant de vrais paquets — aucune bibliothèque native ne tourne sur la JVM. Revenir en arrière tiendrait en un commit, mais revenir, ce serait redéclarer l'envoi.~~
+
+**Éprouvé sur l'appareil le 24 septembre 2026** : le scan fonctionne. L'inconnue est levée, et le retour en arrière n'a plus de raison d'être envisagé.
 
 Rien ne dit non plus que la reprise tombe avant la première image : la file d'un exécuteur à un seul fil le garantit, et c'est un raisonnement, pas un cas.
 
@@ -4088,7 +4090,9 @@ Sucres et glucides sont deux violets parents, et voisins de place : [08](08-desi
 
 `LauncherIconTest` tient les trois choses qu'aucun compilateur ne vérifie : que les teintes des ressources soient celles du thème, que les six quartiers tiennent dans le disque de 66 que le système garantit visible sous tous les masques, et que la variante monochrome porte le même tracé que la colorée. Les fichiers y sont lus comme du texte, et non chargés en ressources : ce qui est éprouvé est ce qui est écrit dans le dépôt, et c'est la seule forme qui attrape une teinte corrigée d'un côté et pas de l'autre.
 
-**Ce que le vert ne prouve pas.** Le rendu sur un vrai lanceur : masque de l'OEM, relief, agrandissement au toucher, icônes thématiques activées. La géométrie est tenue, l'apparence ne se juge qu'à l'écran.
+~~**Ce que le vert ne prouve pas.** Le rendu sur un vrai lanceur : masque de l'OEM, relief, agrandissement au toucher, icônes thématiques activées. La géométrie est tenue, l'apparence ne se juge qu'à l'écran.~~
+
+**Vu sur l'appareil le 24 septembre 2026** : l'icône est à jour et se lit.
 
 ---
 
@@ -4146,7 +4150,11 @@ L'image gardée est celle qui est partie au modèle : 1 024 px, environ 200 Ko. 
 
 **Conséquences.** `DishPhotos` et `PhotoSettings` sont deux ports de `:domain` ; leur adaptateur vit dans `:data:diary`, parce qu'une photo est l'accessoire d'un plat et que la loger ailleurs aurait inventé un module dont le seul contenu serait un dossier. `DiaryRepository` gagne `dishIds()`, que seul le balayage appelle. `SaveDraft` rend désormais le plat écrit, ou `null` quand il vient d'être vidé : une photo rangée sous un plat qui disparaît serait orpheline à la naissance. `RestoreBackup` disparaît au profit de `RestoreArchive`, qui fait la même chose en lisant un flux. La politique de confidentialité change dans la même livraison, et le site se republie avec elle.
 
-**Ce que le vert ne prouve pas.** La lecture des fichiers à l'écran : la vignette de 56 dp décodée au huitième de sa taille, la croix qui se vise sur un carré de 132 dp, et ce que deux cents mégaoctets de photos font au démarrage d'un téléphone qui n'est pas neuf. Le balayage, lui, est éprouvé sur la JVM ; ce qu'il coûte au lancement, non.
+~~**Ce que le vert ne prouve pas.** La lecture des fichiers à l'écran : la vignette de 56 dp décodée au huitième de sa taille, la croix qui se vise sur un carré de 132 dp, et ce que deux cents mégaoctets de photos font au démarrage d'un téléphone qui n'est pas neuf.~~
+
+**Éprouvé sur l'appareil le 24 septembre 2026** : le stockage des photos fonctionne, de la capture à l'affichage.
+
+**Ce qu'il reste à voir** : ce que deux cents mégaoctets d'images font au démarrage. Le balayage est éprouvé sur la JVM ; son coût au lancement se mesurera sur un dossier chargé, pas sur un neuf, donc dans plusieurs mois d'usage.
 
 ---
 
