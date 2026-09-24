@@ -23,7 +23,7 @@ jvmToolchain = "17"
 
 # --- Identite de l'application ------------------------------------------------
 # applicationId verrouille a la premiere publication Play : docs/10-qualite-et-livraison.md.
-versionName = "0.1.0-dev"
+versionName = "0.6.0"
 versionCode = "1"
 
 # --- Bibliotheques ------------------------------------------------------------

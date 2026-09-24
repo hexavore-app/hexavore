@@ -1,7 +1,28 @@
+import java.util.Properties
+
 plugins {
     id("hexavore.android.application")
     id("hexavore.android.hilt")
 }
+
+/**
+ * La cle de televersement, quand cette machine en a une.
+ *
+ * **Hors du depot, et le .gitignore le tient** : une cle de signature dans un historique
+ * public est une cle perdue, et celle-ci est ce qui prouve au Play Store que la mise a
+ * jour vient bien de son auteur.
+ *
+ * **Le fichier peut manquer, et le build reussit quand meme.** La CI construit, analyse
+ * et teste sans jamais signer ; un `release` qui exigerait la cle ferait echouer le vert
+ * sur chaque machine qui ne publie pas. Sans elle, le bundle sort non signe, ce qui est
+ * exactement ce qu'on veut : le Play Store le refuse, et personne ne peut le prendre
+ * pour une version publiable.
+ */
+val signingProperties: Properties? =
+    rootProject
+        .file("keystore.properties")
+        .takeIf { it.exists() }
+        ?.let { file -> Properties().apply { file.inputStream().use { stream -> load(stream) } } }
 
 android {
     namespace = "app.hexavore"
@@ -30,6 +51,22 @@ android {
         buildConfig = true
     }
 
+    signingConfigs {
+        // `create` et non `getByName` : `release` n'existe pas d'office, contrairement
+        // a `debug` qui porte la cle de developpement que le SDK genere.
+        signingProperties?.let { properties ->
+            create("release") {
+                // Le chemin s'ecrit avec des barres obliques, meme sous Windows : un
+                // fichier .properties traite la contre-oblique comme un echappement,
+                // et `C:\Users\moi\cle.jks` y devient `C:Usersmoicle.jks`.
+                storeFile = rootProject.file(properties.getProperty("storeFile"))
+                storePassword = properties.getProperty("storePassword")
+                keyAlias = properties.getProperty("keyAlias")
+                keyPassword = properties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         debug {
             // Suffixe pour que la version de developpement cohabite avec celle
@@ -38,6 +75,8 @@ android {
             versionNameSuffix = "-debug"
         }
         release {
+            // Nulle sur une machine sans cle : le bundle sort alors non signe.
+            signingConfig = signingConfigs.findByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
