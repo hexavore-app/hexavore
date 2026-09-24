@@ -4068,6 +4068,30 @@ Rien ne dit non plus que la reprise tombe avant la première image : la file d'u
 
 ---
 
+## D126 — L'icône de lancement montre les six compteurs · ✓ validée
+
+**Contexte.** L'icône était un hexagone vide : un contour de 6 unités sur un canevas de 108, cyan sur un fond presque noir. Sur un lanceur, à 48 px, il n'en restait qu'un carré sombre. Le tracé était en plus orienté pointe en haut, donc tourné de 30° par rapport à l'hexagone de l'application et à la favicon du site, qui ont une arête horizontale. Et la variante monochrome, celle qu'Android 13 reteint avec le fond d'écran, reprenait ce même contour fin.
+
+**Choix.** Les six quartiers pleins, dans l'ordre angulaire de l'application, séparés par une fente qui laisse passer le fond. C'est la figure de l'accueil à son état plein, celle que le site montre déjà dans son onglet et dans son en-tête.
+
+### La fente n'est pas un ornement
+
+Sucres et glucides sont deux violets parents, et voisins de place : [08](08-design-system.md#macros) dérive délibérément le premier du second pour que la parenté se voie. À 48 px, sans séparation, les deux quartiers se touchent et forment une seule tache violette, et la figure cesse de compter jusqu'à six. La fente est de 3,2 unités mesurées perpendiculairement, soit un dixième du rayon, et elle laisse voir le fond plutôt que de peindre un trait : une fente opaque aurait supposé connaître la couleur qui passe derrière, ce qu'un lanceur ne garantit pas.
+
+### L'icône n'est pas la figure
+
+`MacroHexagon` montre une journée : des quartiers de rayons inégaux, sans fente, et le site l'affiche telle quelle. L'icône montre l'état plein, parce qu'une marque ne représente aucune journée en particulier. Les deux se ressemblent sans être le même objet, et [08](08-design-system.md#licône-de-lancement) dit désormais lequel est lequel.
+
+**Écarté.** *L'anneau à six arêtes*, chaque arête dans sa teinte et le centre sombre : il respectait mieux la deuxième règle du parti pris, celle qui interdit les aplats saturés larges, mais il s'éloignait de la favicon du site pour un gain qui ne se voyait qu'au-dessus de 96 px. *Le contour épaissi*, d'une seule couleur : le minimum de changement, et six compteurs toujours invisibles. *La journée d'exemple*, aux quartiers inégaux : la plus parlante en grand, la plus brouillonne en petit.
+
+**Conséquences.** `colors.xml` porte les six teintes au lieu d'une seule ; elles doivent rester égales à `MacroColors.kt`, qui reste la source. Un second vecteur, `ic_launcher_monochrome`, porte le même tracé pour les icônes thématiques : réduire cette variante à un hexagone plein aurait fait perdre, sur les téléphones où elle est active, la seule chose que l'icône raconte.
+
+`LauncherIconTest` tient les trois choses qu'aucun compilateur ne vérifie : que les teintes des ressources soient celles du thème, que les six quartiers tiennent dans le disque de 66 que le système garantit visible sous tous les masques, et que la variante monochrome porte le même tracé que la colorée. Les fichiers y sont lus comme du texte, et non chargés en ressources : ce qui est éprouvé est ce qui est écrit dans le dépôt, et c'est la seule forme qui attrape une teinte corrigée d'un côté et pas de l'autre.
+
+**Ce que le vert ne prouve pas.** Le rendu sur un vrai lanceur : masque de l'OEM, relief, agrandissement au toucher, icônes thématiques activées. La géométrie est tenue, l'apparence ne se juge qu'à l'écran.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

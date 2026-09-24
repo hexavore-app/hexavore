@@ -6,9 +6,18 @@
   Compose n'existe — icone de lancement, fond de fenetre au demarrage. Les tenir
   ici, dans le module qui possede la palette, evite au moins qu'elles derivent
   depuis un module de fonctionnalite.
+
+  Les six macros y sont au complet depuis que l'icone les montre toutes. Elles
+  doivent rester egales a MacroColors.kt, qui reste la source : un ecart se
+  verrait sur la seule image que l'utilisateur regarde avant d'ouvrir.
 -->
 <resources>
     <color name="neon_background">#FF08080C</color>
     <color name="neon_background_light">#FFFAFAFC</color>
     <color name="neon_calories">#FF00E5FF</color>
+    <color name="neon_protein">#FFFF2D95</color>
+    <color name="neon_fiber">#FF39FF88</color>
+    <color name="neon_carbs">#FF9D4EDD</color>
+    <color name="neon_sugars">#FFD9A5FF</color>
+    <color name="neon_fat">#FFFFB020</color>
 </resources>

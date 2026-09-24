@@ -369,6 +369,21 @@ Motion.kt           durées et courbes
 
 Une valeur codée en dur dans un `:feature` est un défaut à corriger, pas un raccourci acceptable. C'est vérifié par une règle detekt personnalisée ([10](10-qualite-et-livraison.md)).
 
+`values/colors.xml` répète les six teintes et deux fonds, et c'est la seule répétition tolérée : le système lit l'icône de lancement et le fond de fenêtre avant que Compose n'existe. Elle est tenue par un test, pas par la discipline.
+
+### L'icône de lancement
+
+La marque du projet est l'hexagone **à son état plein** : six quartiers, dans l'ordre angulaire de l'application, séparés par une fente de 3,2 unités sur un rayon de 33,8 qui laisse passer le fond. C'est ce que montrent l'icône Android, la favicon du site et son en-tête ([D126](11-decisions.md)).
+
+**Ce n'est pas `MacroHexagon`.** La figure montre une journée, avec des quartiers de rayons inégaux et sans fente ; l'icône ne représente aucune journée en particulier. La fente existe parce que l'icône se regarde à 48 px, taille à laquelle les deux violets parents se toucheraient et ne feraient plus qu'une tache.
+
+```
+drawable/ic_launcher_foreground.xml    les six quartiers, en couleurs
+drawable/ic_launcher_monochrome.xml    le même tracé, pour les icônes thématiques d'Android 13
+```
+
+`LauncherIconTest` refuse trois dérives : une teinte de ressource qui s'écarte de `MacroColors.kt`, un sommet qui sort du disque de 66 unités que le système garantit visible sous tous les masques, et deux vecteurs qui cessent de porter le même tracé.
+
 ---
 
 ## Aperçus
