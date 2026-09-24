@@ -41,6 +41,10 @@ data object NoticeSettingsDestination
 @Serializable
 data object AppearanceDestination
 
+/** Garder les photos des plats, et les effacer. Aucun argument. */
+@Serializable
+data object PhotoSettingsDestination
+
 /** Les derniers échanges avec un fournisseur. Ouverte depuis les réglages d'IA. */
 @Serializable
 data object AiExchangesDestination
@@ -48,7 +52,7 @@ data object AiExchangesDestination
 fun NavController.navigateToSettings() = navigate(SettingsDestination)
 
 /**
- * Déclare les huit écrans de réglages dans un graphe.
+ * Déclare les neuf écrans de réglages dans un graphe.
  *
  * Ensemble parce qu'ils partagent une sortie et une seule : **le retour rend l'écran
  * précédent**. Le module ne sait pas lequel c'est, ce qui lui évite de dépendre de
@@ -57,12 +61,15 @@ fun NavController.navigateToSettings() = navigate(SettingsDestination)
 fun NavGraphBuilder.settingsScreens(navController: NavController) {
     composable<SettingsDestination> {
         SettingsHubRoute(
-            onOpenProfile = { navController.navigate(ProfileDestination) },
-            onOpenAi = { navController.navigate(AiSettingsDestination) },
-            onOpenContribution = { navController.navigate(ContributionSettingsDestination) },
-            onOpenBackup = { navController.navigate(BackupDestination) },
-            onOpenNotices = { navController.navigate(NoticeSettingsDestination) },
-            onOpenAppearance = { navController.navigate(AppearanceDestination) },
+            sections = SettingsSections(
+                onOpenProfile = { navController.navigate(ProfileDestination) },
+                onOpenAi = { navController.navigate(AiSettingsDestination) },
+                onOpenContribution = { navController.navigate(ContributionSettingsDestination) },
+                onOpenBackup = { navController.navigate(BackupDestination) },
+                onOpenPhotos = { navController.navigate(PhotoSettingsDestination) },
+                onOpenNotices = { navController.navigate(NoticeSettingsDestination) },
+                onOpenAppearance = { navController.navigate(AppearanceDestination) },
+            ),
             onClose = { navController.popBackStack() },
         )
     }
@@ -86,6 +93,9 @@ fun NavGraphBuilder.settingsScreens(navController: NavController) {
     }
     composable<AppearanceDestination> {
         AppearanceRoute(onClose = { navController.popBackStack() })
+    }
+    composable<PhotoSettingsDestination> {
+        PhotoSettingsRoute(onClose = { navController.popBackStack() })
     }
     composable<AiExchangesDestination> {
         AiExchangesRoute(onClose = { navController.popBackStack() })

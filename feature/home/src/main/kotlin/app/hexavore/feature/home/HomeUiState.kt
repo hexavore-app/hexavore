@@ -1,6 +1,8 @@
 package app.hexavore.feature.home
 
 import app.hexavore.domain.diary.DaySummary
+import app.hexavore.domain.diary.DishId
+import app.hexavore.domain.diary.PhotoFile
 
 /**
  * L'état de l'accueil, en un seul objet.
@@ -15,7 +17,19 @@ sealed interface HomeUiState {
     /** Premier rendu, avant la première émission du journal. */
     data object Loading : HomeUiState
 
-    data class Content(val summary: DaySummary) : HomeUiState
+    data class Content(
+        val summary: DaySummary,
+        /**
+         * Les photos des plats, celles de la journée regardée comme les autres.
+         *
+         * **Une carte de tous les plats et non des seuls plats du jour.** C'est le
+         * dossier qui la remplit, et le trier par journée demanderait de le relire à
+         * chaque changement de jour pour économiser quelques centaines de chaînes.
+         *
+         * Vide tant que rien n'a été lu, et vide pour qui ne garde pas ses photos.
+         */
+        val photos: Map<DishId, PhotoFile> = emptyMap(),
+    ) : HomeUiState
 
     /**
      * La lecture du journal a échoué.

@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,37 +50,41 @@ import app.hexavore.domain.notice.Notice
  */
 @Composable
 internal fun SettingsHubRoute(
-    onOpenProfile: () -> Unit,
-    onOpenAi: () -> Unit,
-    onOpenContribution: () -> Unit,
-    onOpenBackup: () -> Unit,
-    onOpenNotices: () -> Unit,
-    onOpenAppearance: () -> Unit,
+    sections: SettingsSections,
     onClose: () -> Unit,
     viewModel: NoticeSettingsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     SettingsHubScreen(
-        onOpenProfile = onOpenProfile,
-        onOpenAi = onOpenAi,
-        onOpenContribution = onOpenContribution,
-        onOpenBackup = onOpenBackup,
-        onOpenNotices = onOpenNotices,
-        onOpenAppearance = onOpenAppearance,
+        sections = sections,
         onClose = onClose,
         aiFlagged = state.active.any { it == Notice.AI_NOT_CONFIGURED || it == Notice.AI_KEY_REJECTED },
     )
 }
 
+/**
+ * Les sept portes du hub, réunies.
+ *
+ * **Nées quand le seuil de paramètres a mordu**, à la septième section, et le
+ * regroupement suit ce que les choses sont : sept lambdas qui font toutes la même chose,
+ * ouvrir un écran. C'est la forme de `HomeActions` et de `EntryActions`, appliquée
+ * là où le même symptôme est apparu.
+ */
+@Immutable
+internal data class SettingsSections(
+    val onOpenProfile: () -> Unit,
+    val onOpenAi: () -> Unit,
+    val onOpenContribution: () -> Unit,
+    val onOpenBackup: () -> Unit,
+    val onOpenPhotos: () -> Unit,
+    val onOpenNotices: () -> Unit,
+    val onOpenAppearance: () -> Unit,
+)
+
 @Composable
 internal fun SettingsHubScreen(
-    onOpenProfile: () -> Unit,
-    onOpenAi: () -> Unit,
-    onOpenContribution: () -> Unit,
-    onOpenBackup: () -> Unit,
-    onOpenNotices: () -> Unit,
-    onOpenAppearance: () -> Unit,
+    sections: SettingsSections,
     onClose: () -> Unit,
     /** La section d'IA porte une pastille : aucune clé ne sert, ou la dernière a été refusée. */
     aiFlagged: Boolean = false,
@@ -103,33 +108,40 @@ internal fun SettingsHubScreen(
             SectionCard(
                 titleRes = R.string.settings_profile_title,
                 subtitleRes = R.string.settings_profile_subtitle,
-                onClick = onOpenProfile,
+                onClick = sections.onOpenProfile,
             )
             SectionCard(
                 titleRes = R.string.settings_ai_title,
                 subtitleRes = R.string.settings_ai_subtitle,
-                onClick = onOpenAi,
+                onClick = sections.onOpenAi,
                 flagged = aiFlagged,
             )
             SectionCard(
                 titleRes = R.string.settings_contribution_title,
                 subtitleRes = R.string.settings_contribution_subtitle,
-                onClick = onOpenContribution,
+                onClick = sections.onOpenContribution,
             )
             SectionCard(
                 titleRes = R.string.settings_backup_title,
                 subtitleRes = R.string.settings_backup_subtitle,
-                onClick = onOpenBackup,
+                onClick = sections.onOpenBackup,
+            )
+            // Juste apres la sauvegarde : les deux parlent de ce que l'application
+            // garde sur le telephone, et de ce qu'on peut en effacer.
+            SectionCard(
+                titleRes = R.string.settings_photos_title,
+                subtitleRes = R.string.settings_photos_subtitle,
+                onClick = sections.onOpenPhotos,
             )
             SectionCard(
                 titleRes = R.string.settings_notices_title,
                 subtitleRes = R.string.settings_notices_subtitle,
-                onClick = onOpenNotices,
+                onClick = sections.onOpenNotices,
             )
             SectionCard(
                 titleRes = R.string.settings_appearance_title,
                 subtitleRes = R.string.settings_appearance_subtitle,
-                onClick = onOpenAppearance,
+                onClick = sections.onOpenAppearance,
             )
         }
     }

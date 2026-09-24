@@ -12,7 +12,6 @@ import app.hexavore.domain.goal.AdjustmentSuggestion
 import app.hexavore.domain.usecase.AdjustmentResponse
 import app.hexavore.domain.usecase.FavoriteOutcome
 import app.hexavore.domain.usecase.GetDaySummary
-import app.hexavore.domain.usecase.ObserveDishStyle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,7 +48,7 @@ class HomeViewModel @Inject constructor(
     getDaySummary: GetDaySummary,
     dispatchers: DispatcherProvider,
     credentials: AiCredentials,
-    observeDishStyle: ObserveDishStyle,
+    private val presentation: DishPresentation,
     private val adjustment: DayAdjustment,
     private val gestures: DishGestures,
     private val selected: SelectedDay,
@@ -112,7 +111,7 @@ class HomeViewModel @Inject constructor(
      * l'autre sous les yeux. Le réglage est local et immédiat ; rien ne justifie de le
      * lire paresseusement.
      */
-    val dishStyle: StateFlow<DishDisplayStyle> = observeDishStyle()
+    val dishStyle: StateFlow<DishDisplayStyle> = presentation.style()
         .stateIn(viewModelScope, SharingStarted.Eagerly, DishDisplayStyle.SIMPLE)
 
     /**
@@ -154,6 +153,12 @@ class HomeViewModel @Inject constructor(
                     // quoi qu'on pousse dans `attempts`. Ici, seul le flux interne
                     // se termine ; celui des tentatives, lui, ne finit jamais.
                     .catch { emit(HomeUiState.Error) }
+            }
+            // Les photos se greffent apres coup : elles ne changent pas ce que la
+            // journee contient, et une lecture de dossier qui tarde ne doit pas
+            // retarder les plats.
+            .combine(presentation.photos()) { state, photos ->
+                if (state is HomeUiState.Content) state.copy(photos = photos) else state
             }
             .flowOn(dispatchers.default)
             .stateIn(

@@ -2,8 +2,10 @@ package app.hexavore.domain.usecase
 
 import app.hexavore.core.testing.FixedClock
 import app.hexavore.core.testing.InMemoryBackupTarget
+import app.hexavore.core.testing.InMemoryDishPhotos
 import app.hexavore.domain.backup.BACKUP_ROTATION
 import app.hexavore.domain.backup.Snapshot
+import app.hexavore.domain.backup.SnapshotArchive
 import app.hexavore.domain.backup.SnapshotCodec
 import app.hexavore.domain.backup.SnapshotRead
 import app.hexavore.domain.backup.SnapshotStore
@@ -15,6 +17,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.io.InputStream
+import java.io.OutputStream
 import java.time.Instant
 import java.time.LocalDate
 
@@ -82,7 +86,7 @@ class BackupUseCasesTest {
 
     @Test
     fun `restaurer remplace tout le contenu`() = runTest {
-        val resultat = restoreBackup()(FICHIER)
+        val resultat = restoreArchive()(FICHIER.inputStream())
 
         assertEquals(RestoreOutcome.Restored(0), resultat)
         assertEquals(RESTAURE, store.content)
@@ -90,7 +94,7 @@ class BackupUseCasesTest {
 
     @Test
     fun `restaurer prend une copie de securite avant d ecraser`() = runTest {
-        restoreBackup()(FICHIER)
+        restoreArchive()(FICHIER.inputStream())
 
         assertEquals(1, securite.names.size)
     }
@@ -99,7 +103,7 @@ class BackupUseCasesTest {
     fun `un fichier trop recent ne touche a rien`() = runTest {
         codec.read = SnapshotRead.TooRecent(99)
 
-        val resultat = restoreBackup()(FICHIER)
+        val resultat = restoreArchive()(FICHIER.inputStream())
 
         assertEquals(RestoreOutcome.TooRecent(99), resultat)
         assertNull(store.content, "rien n'a ete ecrit")
@@ -110,7 +114,7 @@ class BackupUseCasesTest {
     fun `un fichier illisible ne touche a rien`() = runTest {
         codec.read = SnapshotRead.Unreadable
 
-        assertEquals(RestoreOutcome.Unreadable, restoreBackup()(FICHIER))
+        assertEquals(RestoreOutcome.Unreadable, restoreArchive()(FICHIER.inputStream()))
         assertNull(store.content)
         assertTrue(securite.names.isEmpty())
     }
@@ -119,7 +123,7 @@ class BackupUseCasesTest {
     fun `une ecriture qui echoue laisse la copie de securite`() = runTest {
         store.failing = true
 
-        assertEquals(RestoreOutcome.Failed, restoreBackup()(FICHIER))
+        assertEquals(RestoreOutcome.Failed, restoreArchive()(FICHIER.inputStream()))
         assertEquals(1, securite.names.size, "c'est elle qui permet de revenir en arriere")
     }
 
@@ -131,12 +135,14 @@ class BackupUseCasesTest {
         // elle la cle d'API, le compte Open Food Facts et l'etat de l'adaptation --
         // c'est-a-dire tout ce qui permet de reconnaitre l'utilisateur.
         val reglages = FakeStoredPreferences()
+        val photos = InMemoryDishPhotos()
         store.content = RESTAURE
 
-        EraseEverything(store, reglages)()
+        EraseEverything(store, reglages, photos)()
 
         assertNull(store.content)
         assertTrue(reglages.erased, "les reglages et les cles partent avec le journal")
+        assertTrue(photos.photos.isEmpty(), "les photos sont le troisieme rangement, et elles partent aussi")
     }
 
     @Test
@@ -145,7 +151,7 @@ class BackupUseCasesTest {
         // sans le demander detruirait la seule chose qui restait.
         createBackup()(cible)
 
-        EraseEverything(store, FakeStoredPreferences())()
+        EraseEverything(store, FakeStoredPreferences(), InMemoryDishPhotos())()
 
         assertEquals(1, cible.names.size)
     }
@@ -176,7 +182,25 @@ class BackupUseCasesTest {
     private fun createBackup(jour: LocalDate = LUNDI) =
         CreateBackup(ExportBackup(store, codec), FixedClock.atNoon(jour))
 
-    private fun restoreBackup() = RestoreBackup(store, codec, createBackup(), securite)
+    private fun restoreArchive() = RestoreArchive(store, FakeArchive(codec), createBackup(), securite)
+
+    /**
+     * Une archive réduite à ce qu'elle a de commun avec un fichier de journal seul.
+     *
+     * Ce que le zip ajoute — les photos, l'ordre des entrées, le repli sur l'ancien
+     * format — est éprouvé dans `:data:backup`, sur de vrais octets. Ici, ce qui est en
+     * jeu est la règle du cas d'usage : quand la copie de sécurité part, et ce qui reste
+     * intact quand la lecture est refusée.
+     */
+    private class FakeArchive(private val codec: SnapshotCodec) : SnapshotArchive {
+        override suspend fun write(snapshot: Snapshot, sink: OutputStream): Long {
+            val bytes = codec.encode(snapshot)
+            sink.write(bytes)
+            return bytes.size.toLong()
+        }
+
+        override suspend fun read(source: InputStream): SnapshotRead = codec.decode(source.readBytes())
+    }
 
     /** Le second rangement, reduit a la seule question que le cas d'usage lui pose. */
     private class FakeStoredPreferences : StoredPreferences {

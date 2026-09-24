@@ -1,6 +1,7 @@
 package app.hexavore.feature.entry
 
 import app.hexavore.domain.diary.DraftImpact
+import app.hexavore.domain.diary.PhotoFile
 import app.hexavore.domain.profile.UnitSystem
 import java.time.LocalDate
 
@@ -64,6 +65,14 @@ internal sealed interface EntryUiState {
          * règle du projet, et c'est aussi ce qui rend le cas éprouvable.
          */
         val today: LocalDate? = null,
+        /**
+         * La photo de ce plat, ou celle que le scan ou l'analyse viennent d'apporter.
+         *
+         * `null` dans le cas courant : une saisie manuelle, une recherche et un favori
+         * rejoué n'ont aucune image à montrer. `null` aussi dès que la croix a été
+         * touchée, sans que rien n'ait encore été effacé sur le disque.
+         */
+        val photo: PhotoFile? = null,
     ) : EntryUiState {
         /**
          * Le jour que cette saisie va écrire, **quand ce n'est pas aujourd'hui**.

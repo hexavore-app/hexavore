@@ -12,6 +12,7 @@ import app.hexavore.domain.ai.PhotoConsent
 import app.hexavore.domain.ai.RecognitionInput
 import app.hexavore.domain.ai.RecognitionOutcome
 import app.hexavore.domain.diary.EntrySource
+import app.hexavore.domain.usecase.StageDishPhoto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -123,6 +124,7 @@ internal class AnalyseViewModel @Inject constructor(
     private val pending: PendingRecognition,
     private val consent: PhotoConsent,
     private val settings: AiSettings,
+    private val stagePhoto: StageDishPhoto,
 ) : ViewModel() {
     private val state = MutableStateFlow(AnalyseUiState())
     val uiState: StateFlow<AnalyseUiState> = state.asStateFlow()
@@ -235,6 +237,13 @@ internal class AnalyseViewModel @Inject constructor(
             else -> recognizer.recognize(RecognitionInput.Photo(photo.jpeg, written.ifBlank { null }))
         }
         val source = if (shown.photo == null) EntrySource.TEXT_AI else EntrySource.PHOTO_AI
+
+        if (outcome is RecognitionOutcome.Recognized) {
+            // La photo suit la proposition, et une description seule ecarte celle qui
+            // trainait : le depot n'a qu'un emplacement, et l'ecran de validation le
+            // lit sans savoir laquelle des deux analyses l'a rempli.
+            runCatching { stagePhoto(shown.photo?.jpeg) }
+        }
 
         state.update { current ->
             when (outcome) {

@@ -18,7 +18,7 @@ internal data class BackupUiState(val busy: Boolean = false, val message: Backup
 /** Ce qu'un geste de sauvegarde a produit, avant d'être mis en mots. */
 internal sealed interface BackupMessage {
     /** Le fichier est écrit. La taille est ce qui rassure — un export vide ne l'est pas. */
-    data class Exported(val sizeBytes: Int) : BackupMessage
+    data class Exported(val sizeBytes: Long) : BackupMessage
 
     /** Le document n'a pas pu être écrit : plein, retiré, ou refusé par son fournisseur. */
     data object ExportFailed : BackupMessage

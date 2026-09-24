@@ -1,5 +1,7 @@
 package app.hexavore.feature.capture
 
+import app.hexavore.core.testing.InMemoryDishPhotos
+import app.hexavore.core.testing.InMemoryPhotoSettings
 import app.hexavore.domain.ai.AiConfiguration
 import app.hexavore.domain.ai.AiError
 import app.hexavore.domain.ai.AiProvider
@@ -14,6 +16,7 @@ import app.hexavore.domain.ai.RecognitionInput
 import app.hexavore.domain.ai.RecognitionOutcome
 import app.hexavore.domain.ai.RecognizedItem
 import app.hexavore.domain.diary.EntrySource
+import app.hexavore.domain.usecase.StageDishPhoto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
@@ -56,6 +59,12 @@ internal class AnalyseViewModelTest {
         sent += input
         outcome
     }
+
+    // Le depot des photos, et le reglage qui decide s'il se remplit. Allume, comme sur
+    // une installation neuve.
+    private val photos = InMemoryDishPhotos()
+    private val keeping = InMemoryPhotoSettings()
+    private val stagePhoto = StageDishPhoto(photos, keeping)
 
     @BeforeEach
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -287,6 +296,7 @@ internal class AnalyseViewModelTest {
             pending = pending,
             consent = consent,
             settings = SETTINGS,
+            stagePhoto = stagePhoto,
         )
         viewModel.onText("un bol de riz")
 
@@ -316,6 +326,7 @@ internal class AnalyseViewModelTest {
             pending = pending,
             consent = consent,
             settings = SETTINGS,
+            stagePhoto = stagePhoto,
         )
         viewModel.onPhoto(JPEG)
         viewModel.onAnalyse()
@@ -345,6 +356,7 @@ internal class AnalyseViewModelTest {
         pending = pending,
         consent = consent,
         settings = SETTINGS,
+        stagePhoto = stagePhoto,
     )
 
     /**

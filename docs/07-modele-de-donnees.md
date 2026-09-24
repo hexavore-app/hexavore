@@ -169,6 +169,8 @@ Index sur `(date, logged_at)` : c'est l'ordre d'affichage de l'accueil.
 
 Une journée sans saisie ne produit aucune ligne, ce qui permet de distinguer « rien mangé de noté » de « journée à zéro » ([02](02-parcours-et-ecrans.md#calendrier-déplié)).
 
+**Aucune colonne pour la photo**, alors qu'un plat scanné ou analysé en garde une ([D127](11-decisions.md)). Elle vit dans `filesDir/plats/<id du plat>.jpg`, et le nom du fichier est le seul lien : le disque est la seule vérité, donc rien ne peut se désaccorder. Une colonne aurait pu annoncer une image absente — fichier effacé par ailleurs, restauration sans photos — et l'accueil aurait montré un cadre vide sans savoir pourquoi. Voir [09](09-donnees-et-sauvegarde.md#les-photos-et-le-seul-endroit-où-elles-seffacent).
+
 ### `food_entry`
 
 | Colonne | Type | Notes |

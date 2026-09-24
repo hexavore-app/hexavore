@@ -3,6 +3,7 @@ package app.hexavore.feature.entry
 import androidx.lifecycle.SavedStateHandle
 import app.hexavore.core.testing.FixedClock
 import app.hexavore.core.testing.InMemoryDiaryRepository
+import app.hexavore.core.testing.InMemoryDishPhotos
 import app.hexavore.core.testing.InMemoryFavoriteDishes
 import app.hexavore.core.testing.InMemoryFoodCatalog
 import app.hexavore.core.testing.InMemoryGoals
@@ -29,6 +30,7 @@ import app.hexavore.domain.nutrition.Macro
 import app.hexavore.domain.nutrition.Macros
 import app.hexavore.domain.nutrition.NutrientValues
 import app.hexavore.domain.usecase.AddFoodLine
+import app.hexavore.domain.usecase.AttachDishPhoto
 import app.hexavore.domain.usecase.CreateDraft
 import app.hexavore.domain.usecase.GetDaySummary
 import app.hexavore.domain.usecase.GetDishDraft
@@ -36,6 +38,7 @@ import app.hexavore.domain.usecase.GetFavoriteDraft
 import app.hexavore.domain.usecase.LogDish
 import app.hexavore.domain.usecase.ObserveUnitSystem
 import app.hexavore.domain.usecase.OpenDraft
+import app.hexavore.domain.usecase.OpenDraftPhoto
 import app.hexavore.domain.usecase.ProposeFavoriteName
 import app.hexavore.domain.usecase.RemoveFavoriteDish
 import app.hexavore.domain.usecase.ResolveFoodLabel
@@ -530,6 +533,8 @@ class EntryViewModelTest {
             ),
             addFoodLine = AddFoodLine(catalogue, create),
             observeUnitSystem = ObserveUnitSystem(profils),
+            openDraftPhoto = OpenDraftPhoto(photos),
+            attachDishPhoto = AttachDishPhoto(photos),
         ),
         getDaySummary = GetDaySummary(diary, goals, clock),
         saveDraft = SaveDraft(LogDish(diary, catalogue, favoris, clock, ids), UpdateDish(diary, ids)),
@@ -543,6 +548,7 @@ class EntryViewModelTest {
     )
 
     private val profils = InMemoryProfiles()
+    private val photos = InMemoryDishPhotos()
 
     private val favoris = InMemoryFavoriteDishes()
 

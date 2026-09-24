@@ -4092,6 +4092,64 @@ Sucres et glucides sont deux violets parents, et voisins de place : [08](08-desi
 
 ---
 
+## D127 — La photo reste avec le plat, sur le téléphone · ✓ validée
+
+**Contexte.** Un scan et une analyse par photo produisent tous deux une image du repas, et l'application la jetait. La quatrième contrainte ferme de [01](01-perimetre.md#contraintes-fermes) l'imposait : « aucune photo n'est conservée ». Or cette phrase disait **deux choses à la fois**, et une seule protégeait quelqu'un. Que rien ne parte chez un tiers sans un geste : c'est la promesse, et elle tient. Que rien ne reste sur le téléphone : ce n'est pas une protection, c'est une perte, et elle était payée par l'utilisateur au nom de sa propre confidentialité. Un journal alimentaire qui garde le nom d'un plat mais jette son image oblige à reconnaître « Déjeuner 2 » sur une liste de titres déduits de l'heure.
+
+**Choix.** À la validation d'un plat scanné ou analysé, **son image reste sur le téléphone**, à côté du journal. L'accueil la montre en vignette, l'écran de validation la montre en grand et permet de la retirer, et une section des réglages permet de n'en garder aucune ou de toutes les effacer.
+
+**Allumé par défaut.** La fonctionnalité éteinte n'existe pas : personne ne va chercher dans les réglages une chose dont il ignore l'existence. Le réglage protège ceux qui n'en veulent pas, et il est visible dans une section qui porte leur nom.
+
+### Ce qui quitte le téléphone n'a pas changé
+
+C'est le point qui décide si la contrainte tombe pour de bon ou se contourne. Le tableau des flux sortants de [09](09-donnees-et-sauvegarde.md#ce-qui-sort-de-lappareil) est **identique** : une photo part chez un fournisseur d'IA quand on lance une analyse, et nulle part ailleurs. Une photo gardée est un fichier de plus dans `filesDir`, au même titre que la base.
+
+L'écran de permission de la caméra le dit maintenant en toutes lettres : le scan lit le code-barres sur le téléphone, aucune image ne part, celle qui a porté la lecture reste avec le plat si on le valide, et se retire d'un geste.
+
+### Le nom du fichier est l'identifiant du plat
+
+Il n'y a **pas de colonne** qui dirait qu'un plat a une photo. Le disque est la seule vérité, et c'est ce qui rend la base et les fichiers impossibles à désaccorder : aucune colonne ne peut annoncer une image absente, aucun fichier ne peut se rattacher au mauvais plat, et une restauration qui ramène les mêmes identifiants retrouve les mêmes photos sans que rien n'ait à les apparier.
+
+*Écarté* : une colonne `photo` sur `dish`. Elle aurait coûté une migration, et surtout elle aurait pu mentir — un fichier effacé par ailleurs, une restauration sans images, et l'accueil montre un cadre vide sans savoir pourquoi.
+
+### L'image attend son plat dans un emplacement unique
+
+Une analyse produit son image avant que le plat existe, donc avant que son identifiant existe. Elle est **déposée** dans un fichier de brouillon, et l'enregistrement la **range** sous le nom du plat, par un renommage.
+
+Un fichier plutôt qu'un objet en mémoire : il survit à un processus tué entre les deux écrans, comme le reste du brouillon. Le prix est le seul vrai défaut du mécanisme : **une analyse abandonnée laisse son image dans le dépôt**, et la saisie manuelle suivante l'aurait adoptée. C'est `OpenDraftPhoto` qui le tient, en écartant le dépôt pour toute origine qui n'apporte pas d'image — saisie neuve, favori rejoué, plat rouvert. Trois cas de `DishPhotoTest` défendent cette règle, et la retirer les fait tomber tous les trois.
+
+### Rien n'est effacé au moment où l'on s'y attendrait
+
+**Supprimer un plat ne supprime pas sa photo.** La suppression est rattrapable par une barre d'annulation, et une image effacée dans l'intervalle ne reviendrait pas.
+
+**Restaurer une sauvegarde non plus.** C'est ce qui laisse revenir à la copie de sécurité avec ses images, alors que celle-ci ne porte que le journal.
+
+C'est le **balayage du démarrage** qui retire les photos dont le plat n'existe plus, et il est le seul à le faire. Les deux règles ci-dessus sont ses seules raisons d'être là et nulle part ailleurs.
+
+### La sauvegarde devient une archive, et ne passe plus par la mémoire
+
+L'export écrit un zip : le journal sous son nom habituel, `hexavore.json.gz`, et un dossier `photos/` à côté. Le journal reste donc extractible et réparable à la main, ce que [09](09-donnees-et-sauvegarde.md#format-de-sauvegarde) exige depuis toujours ; le zip ne le rend pas opaque.
+
+**Le journal est la première entrée de l'archive**, et c'est ce qui permet de refuser un fichier trop récent avant d'avoir écrit la moindre image.
+
+**`formatVersion` ne bouge pas** : le JSON ne change pas d'un champ, c'est l'enveloppe autour de lui qui est neuve. Un ancien `.json.gz` se reconnaît à ses premiers octets et se relit sans rien demander.
+
+**Des flux et non des tableaux d'octets.** Un an de journal tient sous les cent kilo-octets, un an de photos pèse deux cents mégaoctets à trois repas par jour. Porter cela en mémoire ferait tomber l'application chez ceux qui ont le plus à sauvegarder. `ExportBackup` reste en octets pour la copie de sécurité interne, qui ne porte que le journal.
+
+**L'export fige le journal avant d'ouvrir le document**, et c'est pour cela qu'`ExportArchive` rend un écrivain plutôt que d'écrire lui-même : ce qui part décrit l'instant de la demande. Les photos, elles, sont lues à l'écriture — une image prise entre les deux instants entre dans l'archive sans que son plat y soit, en ressort orpheline, et le balayage suivant l'emporte.
+
+**Écarté.** *Base64 dans le JSON* : tout revient, et le fichier cesse d'être lisible à l'œil au moment précis où il devient assez gros pour qu'on veuille l'ouvrir. *Ne rien emporter* : une restauration sur un nouveau téléphone rendrait le journal sans les images, ce qui est exactement le cas où l'on en a le plus besoin.
+
+### Ce que la taille coûte, et pourquoi elle est dite
+
+L'image gardée est celle qui est partie au modèle : 1 024 px, environ 200 Ko. À trois repas par jour, cela fait de l'ordre de 200 Mo au bout d'un an. C'est beaucoup, et c'est pourquoi l'écran des réglages **dit ce que les photos occupent** au lieu de laisser deviner : « garder les photos » ne veut rien dire tant qu'on ne sait pas ce que ça coûte, et personne ne va compter ses fichiers.
+
+**Conséquences.** `DishPhotos` et `PhotoSettings` sont deux ports de `:domain` ; leur adaptateur vit dans `:data:diary`, parce qu'une photo est l'accessoire d'un plat et que la loger ailleurs aurait inventé un module dont le seul contenu serait un dossier. `DiaryRepository` gagne `dishIds()`, que seul le balayage appelle. `SaveDraft` rend désormais le plat écrit, ou `null` quand il vient d'être vidé : une photo rangée sous un plat qui disparaît serait orpheline à la naissance. `RestoreBackup` disparaît au profit de `RestoreArchive`, qui fait la même chose en lisant un flux. La politique de confidentialité change dans la même livraison, et le site se republie avec elle.
+
+**Ce que le vert ne prouve pas.** La lecture des fichiers à l'écran : la vignette de 56 dp décodée au huitième de sa taille, la croix qui se vise sur un carré de 132 dp, et ce que deux cents mégaoctets de photos font au démarrage d'un téléphone qui n'est pas neuf. Le balayage, lui, est éprouvé sur la JVM ; ce qu'il coûte au lancement, non.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

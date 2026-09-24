@@ -70,7 +70,9 @@ class BackupWordTest {
     fun `le nom propose dit ce que le fichier est`() {
         // L'extension compte : sans elle, les applications de fichiers renomment en
         // « .txt » et la sauvegarde devient illisible sans que rien ne l'ait dit.
-        assertTrue(backupFileName(LocalDate.of(2026, 8, 24)).endsWith(".json.gz"))
+        // C'est une archive depuis que les photos voyagent avec le journal ; celui-ci
+        // garde son propre nom a l'interieur.
+        assertTrue(backupFileName(LocalDate.of(2026, 8, 24)).endsWith(".zip"))
     }
 
     private companion object {

@@ -57,16 +57,16 @@ internal fun BackupRoute(onClose: () -> Unit, viewModel: BackupViewModel = hiltV
     // ecrit decrit donc l'instant de la demande, et non celui ou l'utilisateur a fini
     // de parcourir ses dossiers.
     val createDocument = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(BACKUP_MIME)) { uri ->
-        uri?.let { chosen -> viewModel.onExport { bytes -> writeDocument(context, chosen, bytes) } }
+        uri?.let { chosen -> viewModel.onExport { writeDocument(context, chosen) } }
     }
     val openDocument = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        viewModel.onImport(uri?.let { readDocument(context, it) })
+        viewModel.onImport { uri?.let { chosen -> readDocument(context, chosen) } }
     }
 
     BackupScreen(
         state = state,
         onExport = { createDocument.launch(viewModel.proposedName()) },
-        onImport = { openDocument.launch(arrayOf(BACKUP_MIME, ANY_MIME)) },
+        onImport = { openDocument.launch(arrayOf(BACKUP_MIME, LEGACY_MIME, ANY_MIME)) },
         onErase = viewModel::onErase,
         onMessageShown = viewModel::onMessageShown,
         onClose = onClose,
@@ -243,7 +243,7 @@ private fun EraseCard(enabled: Boolean, onClick: () -> Unit) {
  */
 @Composable
 private fun wording(message: BackupMessage): String = when (message) {
-    is BackupMessage.Exported -> stringResource(R.string.backup_exported, message.sizeBytes / BYTES_PER_KIB)
+    is BackupMessage.Exported -> exportedText(message.sizeBytes)
     BackupMessage.ExportFailed -> stringResource(R.string.backup_export_failed)
     is BackupMessage.Restored -> stringResource(R.string.backup_restored, message.entryCount)
     is BackupMessage.TooRecent -> stringResource(R.string.backup_too_recent, message.formatVersion)
@@ -255,11 +255,18 @@ private fun wording(message: BackupMessage): String = when (message) {
 /**
  * Le type que le sélecteur propose d'abord.
  *
- * Un JSON compressé n'a pas de type MIME officiel ; `application/gzip` décrit ce que le
- * fichier est réellement, et c'est ce qui permet aux applications de fichiers de ne pas
- * le renommer en `.txt`.
+ * Une archive, depuis que les photos voyagent avec le journal. Le déclarer pour ce qu'il
+ * est évite qu'une application de fichiers renomme le document.
  */
-private const val BACKUP_MIME = "application/gzip"
+private const val BACKUP_MIME = "application/zip"
+
+/**
+ * Le format d'avant, encore acceptable à l'ouverture.
+ *
+ * Un export écrit quand le journal voyageait seul est un gzip nu. Il se relit, et le
+ * sélecteur ne doit pas le griser pour autant.
+ */
+private const val LEGACY_MIME = "application/gzip"
 
 /**
  * Le second type accepté à l'ouverture, et il est nécessaire.
@@ -270,4 +277,19 @@ private const val BACKUP_MIME = "application/gzip"
  */
 private const val ANY_MIME = "application/octet-stream"
 
+/**
+ * « Exporté, 84 Ko », ou « Exporté, 214,1 Mo ».
+ *
+ * Deux libellés parce que la taille a changé d'ordre de grandeur le jour où les photos
+ * sont entrées dans l'archive : un journal seul pèse quelques dizaines de kilo-octets,
+ * une année de photos deux cents mégaoctets, et « 214 072 Ko » ne se lit pas.
+ */
+@Composable
+private fun exportedText(bytes: Long): String = when {
+    bytes < BYTES_PER_MIB -> stringResource(R.string.backup_exported, bytes / BYTES_PER_KIB)
+    else -> stringResource(R.string.backup_exported_large, bytes / BYTES_PER_MIB.toFloat())
+}
+
 private const val BYTES_PER_KIB = 1024
+
+private const val BYTES_PER_MIB = 1024 * 1024

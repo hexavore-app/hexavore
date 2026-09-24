@@ -5,6 +5,7 @@ import app.hexavore.core.testing.InMemoryAdjustmentSettings
 import app.hexavore.core.testing.InMemoryAiCredentials
 import app.hexavore.core.testing.InMemoryAppearanceSettings
 import app.hexavore.core.testing.InMemoryDiaryRepository
+import app.hexavore.core.testing.InMemoryDishPhotos
 import app.hexavore.core.testing.InMemoryFavoriteDishes
 import app.hexavore.core.testing.InMemoryGoals
 import app.hexavore.core.testing.InMemoryProfiles
@@ -21,6 +22,7 @@ import app.hexavore.domain.nutrition.Macro
 import app.hexavore.domain.usecase.DeleteDish
 import app.hexavore.domain.usecase.GetDaySummary
 import app.hexavore.domain.usecase.GetDishDraft
+import app.hexavore.domain.usecase.ObserveDishPhotos
 import app.hexavore.domain.usecase.ObserveDishStyle
 import app.hexavore.domain.usecase.RemoveFavoriteDish
 import app.hexavore.domain.usecase.RespondToAdjustment
@@ -256,7 +258,10 @@ class HomeViewModelTest {
                 clock = clock,
             ),
         ),
-        observeDishStyle = ObserveDishStyle(InMemoryAppearanceSettings()),
+        presentation = DishPresentation(
+            observeDishStyle = ObserveDishStyle(InMemoryAppearanceSettings()),
+            observeDishPhotos = ObserveDishPhotos(photos),
+        ),
         gestures = DishGestures(
             deleteDish = DeleteDish(diary),
             restoreDish = RestoreDish(diary),
@@ -273,6 +278,7 @@ class HomeViewModelTest {
     )
 
     private val favoris = InMemoryFavoriteDishes()
+    private val photos = InMemoryDishPhotos()
     private val cles = InMemoryAiCredentials()
     private val adaptation = InMemoryAdjustmentSettings()
 

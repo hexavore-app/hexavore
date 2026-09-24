@@ -3,6 +3,7 @@ package app.hexavore.integration.scanner
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import androidx.camera.core.ImageProxy
+import java.io.ByteArrayOutputStream
 
 /**
  * La trame sur laquelle un code vient d'être lu, redressée et réduite.
@@ -49,3 +50,23 @@ internal fun frameScale(width: Int, height: Int, maxSide: Int): Float =
  * 1024 px de l'image envoyée à un modèle en vivent dans docs/02-parcours-et-ecrans.md.
  */
 private const val FRAME_MAX_SIDE = 720
+
+/**
+ * La trame figée, en JPEG.
+ *
+ * C'est le format que tout le reste du projet manipule : `:feature:capture` réduit sa
+ * photo en JPEG avant de l'envoyer à un modèle, et les photos de plats sont des JPEG
+ * sur le disque. Rendre un `Bitmap` obligerait l'écran de scan à connaître un type
+ * Android, ce que [D66][decisions] lui interdit pour de bonnes raisons.
+ *
+ * Qualité 80, comme l'image envoyée au modèle : au-delà, le poids monte sans que
+ * l'oeil suive, et une trame d'analyse de 720 px n'a pas de détail fin à préserver.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+internal fun Bitmap.toJpeg(): ByteArray = ByteArrayOutputStream().use { out ->
+    compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)
+    out.toByteArray()
+}
+
+private const val JPEG_QUALITY = 80

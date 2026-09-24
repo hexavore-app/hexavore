@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -79,24 +80,40 @@ internal fun ScanRoute(
     ScanScreen(
         state = state,
         resumeKey = resumeKey,
-        onBarcode = viewModel::onBarcode,
-        onRetry = viewModel::onResume,
-        onCreateFood = onCreateFood,
-        onSearchByName = onSearchByName,
-        onClose = onClose,
+        actions = remember(viewModel, onCreateFood, onSearchByName, onClose) {
+            ScanActions(
+                onBarcode = viewModel::onBarcode,
+                onFrame = viewModel::onFrame,
+                onRetry = viewModel::onResume,
+                onCreateFood = onCreateFood,
+                onSearchByName = onSearchByName,
+                onClose = onClose,
+            )
+        },
     )
 }
 
+/**
+ * Ce que l'écran de scan peut faire, réuni.
+ *
+ * **Né quand le seuil de paramètres a mordu**, à l'arrivée de la trame figée, et le
+ * regroupement suit ce que les choses sont : six lambdas, toutes des réactions de
+ * l'écran. C'est la forme d'`EntryActions` et de `HomeActions`, appliquée là où le même
+ * symptôme est apparu.
+ */
+@Immutable
+internal data class ScanActions(
+    val onBarcode: (Barcode) -> Unit,
+    /** La trame sur laquelle le code a été lu, en JPEG. */
+    val onFrame: (ByteArray) -> Unit,
+    val onRetry: () -> Unit,
+    val onCreateFood: (Barcode) -> Unit,
+    val onSearchByName: () -> Unit,
+    val onClose: () -> Unit,
+)
+
 @Composable
-private fun ScanScreen(
-    state: ScanUiState,
-    resumeKey: Int,
-    onBarcode: (Barcode) -> Unit,
-    onRetry: () -> Unit,
-    onCreateFood: (Barcode) -> Unit,
-    onSearchByName: () -> Unit,
-    onClose: () -> Unit,
-) {
+private fun ScanScreen(state: ScanUiState, resumeKey: Int, actions: ScanActions) {
     val context = LocalContext.current
     var granted by remember {
         mutableStateOf(
@@ -112,19 +129,29 @@ private fun ScanScreen(
 
     Box(Modifier.fillMaxSize()) {
         if (granted) {
-            BarcodeCamera(onBarcode = onBarcode, modifier = Modifier.fillMaxSize(), resumeKey = resumeKey)
-            Viewfinder(state = state, onRetry = onRetry, onCreateFood = onCreateFood, onSearchByName = onSearchByName)
+            BarcodeCamera(
+                onBarcode = actions.onBarcode,
+                modifier = Modifier.fillMaxSize(),
+                onFrame = actions.onFrame,
+                resumeKey = resumeKey,
+            )
+            Viewfinder(
+                state = state,
+                onRetry = actions.onRetry,
+                onCreateFood = actions.onCreateFood,
+                onSearchByName = actions.onSearchByName,
+            )
             // Le bouton flotte sur l'apercu, seul de tout l'ecran a n'avoir aucun
             // panneau sous lui. Un libelle cyan pose sur un rayon de supermarche
             // eclaire ne se lit pas : il lui faut son propre voile.
             ScrimSurface(modifier = Modifier.align(Alignment.TopStart).padding(Spacing.md), shape = Radius.pill) {
-                CloseButton(onClose)
+                CloseButton(actions.onClose)
             }
         } else {
             PermissionRefused(onAsk = { context.openAppSettings() })
             // Pas de voile ici : l'ecran de refus n'a pas de camera derriere lui, et
             // un panneau sombre y serait une pastille posee sur rien.
-            CloseButton(onClose, Modifier.align(Alignment.TopStart).padding(Spacing.md))
+            CloseButton(actions.onClose, Modifier.align(Alignment.TopStart).padding(Spacing.md))
         }
     }
 }

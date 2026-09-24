@@ -47,6 +47,8 @@ class RoomDiaryRepository @Inject constructor(
 
     override suspend fun dish(id: DishId): Dish? = dao.dish(id.value)?.toDomain()
 
+    override suspend fun dishIds(): Set<DishId> = dao.dishIds().mapTo(mutableSetOf(), ::DishId)
+
     override suspend fun save(dish: Dish) {
         val now = clock.now().toEpochMilli()
         dao.saveDish(dish.toEntity(now), dish.entries.map { it.toEntity(now) })

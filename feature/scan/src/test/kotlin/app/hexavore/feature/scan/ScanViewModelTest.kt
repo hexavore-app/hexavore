@@ -1,7 +1,9 @@
 package app.hexavore.feature.scan
 
 import app.hexavore.core.testing.InMemoryBarcodeLookup
+import app.hexavore.core.testing.InMemoryDishPhotos
 import app.hexavore.core.testing.InMemoryFoodCatalog
+import app.hexavore.core.testing.InMemoryPhotoSettings
 import app.hexavore.domain.food.Barcode
 import app.hexavore.domain.food.Food
 import app.hexavore.domain.food.FoodId
@@ -10,6 +12,7 @@ import app.hexavore.domain.food.ProductLookup
 import app.hexavore.domain.food.ProductSource
 import app.hexavore.domain.nutrition.NutrientValues
 import app.hexavore.domain.usecase.LookupBarcode
+import app.hexavore.domain.usecase.StageDishPhoto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -116,7 +119,11 @@ class ScanViewModelTest {
             products = distant,
             store = catalogue,
         ),
+        StageDishPhoto(photos, InMemoryPhotoSettings()),
     )
+
+    /** Le depot des photos, pour verifier que la trame figee y arrive. */
+    private val photos = InMemoryDishPhotos()
 
     private companion object {
         val CODE: Barcode = requireNotNull(Barcode.of("5449000000996"))

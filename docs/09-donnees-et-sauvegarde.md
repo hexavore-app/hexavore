@@ -8,6 +8,7 @@
 | Préférences d'affichage | DataStore | oui |
 | Clés API | `EncryptedSharedPreferences` (Keystore) | **non, jamais** |
 | Photos analysées | `cacheDir`, supprimées immédiatement | sans objet |
+| Photos des plats | `filesDir/plats/`, une par plat | oui, dans l'archive |
 | Base CIQUAL | `assets/`, lecture seule | non, elle est dans l'APK |
 
 `android:allowBackup="false"` dans le manifeste : la sauvegarde automatique d'Android est désactivée au profit d'un mécanisme explicite. La sauvegarde système exfiltrerait les clés API vers Google Drive sans que l'utilisateur en soit informé — exactement ce que ce document s'emploie à empêcher.
@@ -16,7 +17,23 @@
 
 ## Format de sauvegarde
 
-Un JSON unique, compressé en gzip. Lisible, inspectable, réparable à la main — pour un projet libre qui héberge les données de santé de ses utilisateurs, c'est une propriété qui vaut les quelques kilo-octets supplémentaires face à un format binaire.
+~~Un JSON unique, compressé en gzip.~~ **Une archive zip**, qui contient ce JSON compressé sous son nom habituel et un dossier de photos à côté ([D127](11-decisions.md)) :
+
+```
+hexavore-2026-09-23.zip
+├── hexavore.json.gz     le journal, exactement comme avant
+└── photos/
+    ├── <id de plat>.jpg
+    └── …
+```
+
+Le journal reste lisible, inspectable, réparable à la main : pour un projet libre qui héberge les données de santé de ses utilisateurs, c'est une propriété qui vaut les quelques kilo-octets supplémentaires face à un format binaire. On l'extrait de l'archive avec n'importe quel outil, et le zip ne le rend pas opaque.
+
+**Le journal est la première entrée**, et ce n'est pas un détail : c'est ce qui permet de refuser un fichier trop récent avant d'avoir écrit la moindre image.
+
+**L'archive ne passe jamais par la mémoire.** Un an de journal tient sous les cent kilo-octets ; un an de photos pèse deux cents mégaoctets. L'export écrit directement dans le document choisi, l'import lit directement depuis lui, et une photo ne traverse qu'à la fois.
+
+**Un ancien export reste lisible.** Un fichier `.json.gz` écrit avant que les photos existent se reconnaît à ses premiers octets et se relit comme avant. Il ne porte aucune image, ce qui est exact.
 
 ```json
 {
@@ -57,14 +74,27 @@ Ce que `foods` ne porte pas : les **portions nommées**, les **teneurs complét�
 ### Ce qui est exclu
 
 - **Clés API.** Contrainte ferme ([01](01-perimetre.md#contraintes-fermes)).
-- **Photos.** Elles n'existent plus au moment de la sauvegarde.
+- ~~**Photos.** Elles n'existent plus au moment de la sauvegarde.~~ **Les photos des plats y sont** ([D127](11-decisions.md)). Celles qui partent chez un modèle, elles, n'existent toujours plus au moment de la sauvegarde.
 - **Cache Open Food Facts non référencé.** Reconstituable.
+- **Photos orphelines.** Une image dont le plat n'existe plus ne part pas dans l'archive : elle n'aurait rien à y décrire.
+
+### Les photos, et le seul endroit où elles s'effacent
+
+Une photo porte l'identifiant de son plat pour nom de fichier. Rien d'autre ne les relie, et c'est ce qui les rend impossibles à désaccorder : restaurer une sauvegarde qui ramène les mêmes identifiants retrouve les mêmes photos, sans que rien n'ait à les apparier.
+
+**Rien ne les efface quand un plat est supprimé.** La suppression est rattrapable par une barre d'annulation, et une photo effacée dans l'intervalle ne reviendrait pas. C'est le **balayage du démarrage** qui retire celles dont le plat n'existe plus, et il est le seul à le faire : le faire après une restauration empêcherait de revenir à la copie de sécurité avec ses images.
 
 ### Versionnement
 
 `formatVersion` est un entier qui s'incrémente à chaque changement incompatible. L'importeur applique une chaîne de migrations `v1 → v2 → v3`, exactement comme Room. Une sauvegarde de 2026 doit rester lisible en 2029 ; c'est le minimum de respect qu'on doit à quelqu'un qui a noté ses repas pendant trois ans.
 
 Une sauvegarde d'une version **plus récente** que l'application est refusée avec un message clair, jamais importée partiellement.
+
+L'arrivée des photos **n'incrémente pas** `formatVersion` : le JSON ne change pas d'un champ, c'est l'enveloppe autour de lui qui est neuve. Un fichier écrit hier se relit aujourd'hui, et le journal écrit aujourd'hui se relirait par une version qui ne connaîtrait pas le zip, une fois sorti de l'archive à la main.
+
+### La copie de sécurité d'avant restauration ne porte que le journal
+
+Elle vit sur le même disque que les photos, et la doubler mettrait deux fois leur poids sur un téléphone dont on ne sait rien. Revenir en arrière rend donc le journal, et les images sont encore là : **rien ne les efface avant le balayage du démarrage suivant**, qui est aussi la raison pour laquelle ce balayage a lieu là et nulle part ailleurs.
 
 ---
 
@@ -133,7 +163,7 @@ Le chemin de la fusion reste ouvert : tous les enregistrements portent `id`, `cr
 Indispensable, et pas seulement pour les utilisateurs sans compte Google.
 
 - **Export** : `ACTION_CREATE_DOCUMENT` via le Storage Access Framework. **Ce chemin n'est pas un `BackupTarget`** : on n'y liste rien et on n'y fait rien tourner, seulement un document par geste ([D104](11-decisions.md#d104--la-sauvegarde-locale-a-ses-écrans-et-deux-promesses-qui-nétaient-pas-tenues---validée)). L'utilisateur choisit l'emplacement — stockage local, Nextcloud, clé USB, peu importe. Aucune permission de stockage n'est requise.
-- **Import** : `ACTION_OPEN_DOCUMENT`, même format, mêmes migrations, même confirmation.
+- **Import** : `ACTION_OPEN_DOCUMENT`, même format, mêmes migrations, même confirmation. L'ancien format y est accepté : un `.json.gz` écrit avant que les photos voyagent se relit sans rien demander.
 
 C'est la garantie de réversibilité du projet : quelqu'un qui veut partir emporte ses données dans un fichier lisible. Un format ouvert et un export fonctionnel valent mieux que toutes les promesses de non-enfermement.
 
@@ -194,5 +224,5 @@ Obligatoire pour le Play Store, pour toute application, même une qui ne collect
 
 ## Suppression
 
-- **Bouton « Effacer toutes mes données »** dans les réglages : vide la base, les préférences, les clés, et propose de supprimer aussi les sauvegardes Drive. Double confirmation, avec saisie du mot `SUPPRIMER` — c'est irréversible et la friction est intentionnelle.
+- **Bouton « Effacer toutes mes données »** dans les réglages : vide la base, les photos, les préférences, les clés, et propose de supprimer aussi les sauvegardes Drive. Double confirmation, avec saisie du mot `SUPPRIMER` — c'est irréversible et la friction est intentionnelle.
 - **Désinstallation** : Android efface le stockage de l'application. Les fichiers Drive survivent ; la boîte de dialogue de suppression le rappelle et donne le chemin pour les retirer depuis les paramètres du compte Google.

@@ -89,6 +89,11 @@ class InMemoryDiaryRepository(initial: List<Dish> = emptyList()) :
         return state.value.firstOrNull { it.id == id }
     }
 
+    override suspend fun dishIds(): Set<DishId> {
+        failure?.let { throw it }
+        return state.value.mapTo(mutableSetOf()) { it.id }
+    }
+
     override suspend fun save(dish: Dish) {
         failure?.let { throw it }
         state.update { dishes -> dishes.filterNot { it.id == dish.id } + dish }

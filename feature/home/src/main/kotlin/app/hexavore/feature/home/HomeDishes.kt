@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -22,18 +24,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import app.hexavore.core.designsystem.component.DishPhoto
 import app.hexavore.core.designsystem.component.SourceBadge
 import app.hexavore.core.designsystem.component.dishTitleText
 import app.hexavore.core.designsystem.theme.NeonTheme
+import app.hexavore.core.designsystem.theme.Radius
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.domain.appearance.DishDisplayStyle
 import app.hexavore.domain.diary.DishSummary
 import app.hexavore.domain.diary.FoodEntry
+import app.hexavore.domain.diary.PhotoFile
 import app.hexavore.domain.goal.DailyGoal
 import app.hexavore.domain.nutrition.Macro
 import java.time.ZoneId
@@ -51,27 +59,27 @@ import kotlin.math.roundToInt
  */
 @Composable
 internal fun DishList(
-    dishes: List<DishSummary>,
-    zone: ZoneId,
-    goal: DailyGoal?,
+    content: HomeUiState.Content,
     style: DishDisplayStyle,
     actions: HomeActions,
     favoriteNameTaken: Boolean,
     onDismissFavoriteError: () -> Unit,
 ) {
     val timeFormatter = remember { DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT) }
+    val summary = content.summary
 
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.xl)) {
-        dishes.forEach { dish ->
+        summary.dishes.forEach { dish ->
             DishBlock(
                 summary = dish,
-                zone = zone,
-                goal = goal,
+                zone = summary.zone,
+                goal = summary.goal,
                 style = style,
                 timeFormatter = timeFormatter,
                 actions = actions,
                 favoriteNameTaken = favoriteNameTaken,
                 onDismissFavoriteError = onDismissFavoriteError,
+                photo = content.photos[dish.dish.id],
             )
         }
     }
@@ -104,6 +112,7 @@ private fun DishBlock(
     actions: HomeActions,
     favoriteNameTaken: Boolean,
     onDismissFavoriteError: () -> Unit,
+    photo: PhotoFile?,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     var confirming by remember { mutableStateOf(false) }
@@ -145,16 +154,47 @@ private fun DishBlock(
             onConfirmingChange = { confirming = it },
             onDismissFavoriteError = onDismissFavoriteError,
         )
-        DishHeader(summary, zone, goal, timeFormatter)
-        // Le trait et les lignes d'aliments vont ensemble : sans lignes, le trait ne
-        // separerait plus rien de rien.
-        if (style == DishDisplayStyle.DETAILED) {
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-            summary.entries.forEach { entry -> EntryRow(entry = entry) }
+        // La vignette a gauche et le reste a droite. Elle n'est la que quand elle
+        // existe : reserver sa place pour les plats qui n'en ont pas decalerait
+        // chaque titre d'une journee entiere pour un seul plat photographie.
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
+            photo?.let { DishThumbnail(it) }
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                DishHeader(summary, zone, goal, timeFormatter)
+                // Le trait et les lignes d'aliments vont ensemble : sans lignes, le
+                // trait ne separerait plus rien de rien.
+                if (style == DishDisplayStyle.DETAILED) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+                    summary.entries.forEach { entry -> EntryRow(entry = entry) }
+                }
+                DishMacros(summary, goal)
+            }
         }
-        DishMacros(summary, goal)
     }
 }
+
+/**
+ * La photo d'un plat, à la taille d'une ligne de liste.
+ *
+ * **Décorative au sens de [docs/08][design]** : le plat dit déjà son nom, son heure et
+ * ses calories juste à côté, et « photo du plat » annoncé par un lecteur d'écran
+ * n'apprendrait rien à personne.
+ *
+ * [design]: docs/08-design-system.md
+ */
+@Composable
+private fun DishThumbnail(photo: PhotoFile) {
+    DishPhoto(
+        path = photo.path,
+        contentDescription = null,
+        modifier = Modifier
+            .size(ThumbnailSize)
+            .clip(RoundedCornerShape(Radius.card)),
+    )
+}
+
+/** Assez pour reconnaitre une assiette, assez peu pour que le titre reste le sujet. */
+private val ThumbnailSize: Dp = 56.dp
 
 /**
  * Les deux boîtes du plat : nommer un favori, confirmer une suppression.

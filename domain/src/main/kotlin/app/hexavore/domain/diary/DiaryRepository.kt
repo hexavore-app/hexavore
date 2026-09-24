@@ -50,6 +50,15 @@ interface DiaryRepository {
     suspend fun dish(id: DishId): Dish?
 
     /**
+     * Les identifiants de tous les plats notés.
+     *
+     * Une seule chose s'en sert : le balayage des photos orphelines au démarrage,
+     * qui doit savoir ce qui existe encore. Les plats entiers auraient chargé des
+     * années de journal pour n'en lire qu'une colonne.
+     */
+    suspend fun dishIds(): Set<DishId>
+
+    /**
      * Écrit un plat et **remplace** entièrement ses lignes.
      *
      * Un seul verbe pour créer, modifier et restaurer, parce que les trois

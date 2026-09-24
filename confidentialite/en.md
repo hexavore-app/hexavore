@@ -1,6 +1,6 @@
 # Privacy policy
 
-*Last updated: September 21, 2026*
+*Last updated: September 23, 2026*
 
 Hexavore is a free and open-source food tracking app for Android. This page explains which data the app handles, where it goes, and how to erase it.
 
@@ -22,6 +22,7 @@ For any question about this policy: [contact@hexavore.app](mailto:contact@hexavo
 - **Your profile**: date of birth, sex (or "prefer not to say"), height, activity level, unit system.
 - **Your weigh-ins and your goals.**
 - **Your food log**: dishes, foods, quantities, nutrition values, time of entry.
+- **The photos of your dishes**, when you confirm a scanned or analyzed meal. They stay on the phone and go nowhere. You can remove the one attached to a dish, stop keeping them, or erase them all: **Settings → Dish photos**.
 - **Your custom foods, your favorites**, and the Open Food Facts products you have already looked up.
 - **Your settings**: AI provider API keys, the username and password of your Open Food Facts account if you entered one, display preferences.
 
@@ -53,15 +54,17 @@ The request goes straight from your phone to the provider: the project sees noth
 
 Before the first photo is sent, the app asks for your consent and names the provider. A photo taken from within Hexavore is written to a temporary app folder, read, then deleted right away: it never enters your gallery. An image picked from your gallery is read without being modified.
 
+If you confirm the meal, a copy of the image is kept **on your phone**, with the dish. It goes nowhere, and the section above says how to erase it.
+
 ### Nothing else
 
-- **The barcode reader works entirely on the phone.** Camera images are neither stored nor sent.
+- **The barcode reader works entirely on the phone.** No camera image is ever sent. The frame the code was read on is kept on the phone if you confirm the dish, as above.
 - **No advertising, analytics or tracking library.** No update check, no signal sent at startup.
 - **Debug mode**, in the AI settings, keeps the latest exchanges with the provider in memory only. Nothing is written, and everything is gone when the app closes.
 
 ## Your backups
 
-"Export my data" produces a file that you save wherever you decide. It contains your profile, goals, weigh-ins, food log, foods and favorites, and **never** your API keys or your Open Food Facts account. If it then goes to a storage service or an email, it does so through the app you chose, under that app's own rules.
+"Export my data" produces an archive that you save wherever you decide. It contains your profile, goals, weigh-ins, food log, foods, favorites and the photos of your dishes, and **never** your API keys or your Open Food Facts account. If it then goes to a storage service or an email, it does so through the app you chose, under that app's own rules.
 
 ## Security
 
@@ -72,7 +75,8 @@ Before the first photo is sent, the app asks for your consent and names the prov
 ## Retention and deletion
 
 - Your data stays on your phone until you erase it.
-- **Settings → Backup → "Erase all my data"** erases the log, the profile, the API keys, the Open Food Facts account and the other settings. Files you already exported are not touched.
+- **Settings → Dish photos** lets you stop keeping them, and erase the ones already there.
+- **Settings → Backup → "Erase all my data"** erases the log, the photos, the profile, the API keys, the Open Food Facts account and the other settings. Files you already exported are not touched.
 - **Uninstalling Hexavore** erases everything the app stored.
 - What was sent to an outside service falls under that service's policy: a product contributed to Open Food Facts stays public, and what an AI provider receives is kept under its terms.
 

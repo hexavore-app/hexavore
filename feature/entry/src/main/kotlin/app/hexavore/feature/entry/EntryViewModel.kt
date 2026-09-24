@@ -9,6 +9,7 @@ import app.hexavore.domain.diary.DraftLineId
 import app.hexavore.domain.diary.EntryDraft
 import app.hexavore.domain.diary.FavoriteDishId
 import app.hexavore.domain.diary.MealMoment
+import app.hexavore.domain.diary.PhotoFile
 import app.hexavore.domain.diary.impactOf
 import app.hexavore.domain.food.FoodId
 import app.hexavore.domain.time.Clock
@@ -65,6 +66,20 @@ internal class EntryViewModel @Inject constructor(
     private val status = MutableStateFlow(Status.LOADING)
 
     /**
+     * L'image de ce brouillon, et le souvenir de l'avoir retirée.
+     *
+     * **Deux champs et non un**, parce que `null` y dirait deux choses : « ce plat n'a
+     * jamais eu de photo » et « on vient de la retirer ». Le second doit effacer un
+     * fichier à l'enregistrement, le premier n'a rien à effacer, et les confondre
+     * ferait relire le dossier à chaque sauvegarde.
+     *
+     * **Rien n'est effacé avant l'enregistrement.** Annuler doit rendre l'écran comme
+     * il était, photo comprise.
+     */
+    private val photo = MutableStateFlow<PhotoFile?>(null)
+    private var photoRemoved = false
+
+    /**
      * L'étoile et sa boîte de nom, avec leur état.
      *
      * Elles vivent à part parce qu'elles sont à part : ce `ViewModel` porte la saisie
@@ -117,6 +132,12 @@ internal class EntryViewModel @Inject constructor(
                 )
             }
         }
+            // La photo se greffe apres coup plutot que dans la combinaison : `combine`
+            // s'arrete a cinq flux, et surtout elle ne concerne qu'un seul des cinq
+            // etats. L'ajouter au-dessus garde la regle qui les distingue lisible.
+            .combine(photo) { state, image ->
+                if (state is EntryUiState.Content) state.copy(photo = image) else state
+            }
             // Aucun `flowOn` ici, contrairement a l'accueil, et c'est deliberé.
             // Ce que produit ce flux a chaque frappe tient en une conversion de
             // quelques lignes et deux additions ; le passer sur un autre
@@ -197,6 +218,17 @@ internal class EntryViewModel @Inject constructor(
     }
 
     /**
+     * La croix sur la photo.
+     *
+     * **Elle n'efface rien tout de suite.** Annuler la modification doit rendre le plat
+     * tel qu'il était ; ce n'est qu'à l'enregistrement que le fichier part.
+     */
+    fun onRemovePhoto() {
+        photoRemoved = true
+        photo.value = null
+    }
+
+    /**
      * Enregistrer, et ce que le mot veut dire ici.
      *
      * **Deux sens pour un bouton**, selon d'où l'on vient. Le cas courant note un repas
@@ -210,13 +242,24 @@ internal class EntryViewModel @Inject constructor(
 
         status.value = Status.SAVING
         viewModelScope.launch {
-            val written = runCatching { if (editingFavorite) favorites.rewrite(draft) else saveDraft(draft) }
+            val written =
+                runCatching { if (editingFavorite) favorites.rewrite(draft).let { null } else saveDraft(draft) }
+            // La photo apres le plat, et seulement s'il en reste un : l'ecriture du
+            // journal est ce qui compte, et un fichier qui ne se range pas ne doit pas
+            // faire echouer un repas deja note. Un favori reecrit ne rend aucun plat,
+            // donc ne range aucune image : ce n'est pas un repas.
+            written.getOrNull()?.let { dish -> runCatching { composition.attachPhoto(dish, !photoRemoved) } }
             status.value = if (written.isSuccess) Status.SAVED else Status.FAILED
         }
     }
 
     private suspend fun open() {
-        val relu = composition.open(origin(proposal, dishId, favoriteId, scannedFoodId, foodId))
+        val origin = origin(proposal, dishId, favoriteId, scannedFoodId, foodId)
+        val relu = composition.open(origin)
+        // Meme quand le plat a disparu : c'est cet appel qui ecarte l'image qu'une
+        // analyse abandonnee aurait laissee dans le depot.
+        photo.value = runCatching { composition.photo(origin) }.getOrNull()
+
         if (relu == null) {
             status.value = Status.UNAVAILABLE
         } else {
