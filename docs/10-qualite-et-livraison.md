@@ -280,6 +280,18 @@ L'identifiant ne mentionne ni pseudonyme, ni hébergeur : il survit à un change
 
 ---
 
+## Signature
+
+`keystore.properties`, à la racine, dit où est la clé de téléversement et comment l'ouvrir. Le fichier et le trousseau sont ignorés par git, et ils doivent le rester : une clé de signature dans un historique public est une clé perdue. `keystore.properties.example` sert de modèle.
+
+**Le fichier peut manquer, et le build réussit quand même.** La CI construit, analyse et teste sans jamais signer ; un `release` qui exigerait la clé ferait échouer le vert sur chaque machine qui ne publie pas. Sans elle, `bundleRelease` rend un bundle **non signé**, ce qui est exactement ce qu'on veut : le Play Store le refuse, donc personne ne peut le prendre pour une version publiable.
+
+**Le chemin s'écrit avec des barres obliques, même sous Windows.** Un fichier `.properties` traite la contre-oblique comme un échappement : `C:\\Users\\moi\\cle.jks` y est lu `C:Usersmoicle.jks`, et Gradle cherche un fichier sous un nom que personne ne reconnaît. Le piège a été rencontré, pas supposé.
+
+**Deux clés, et une seule se rattrape.** La signature d'applications par Google Play sépare la clé de *téléversement*, qui prouve qu'une mise à jour vient de son auteur, et la clé d'*application*, que Google détient et qui signe ce que les téléphones installent. Perdre la première se règle avec le support ; perdre la seconde, sans ce mécanisme, condamne l'application. Il s'active à la création de la fiche, et pas après.
+
+---
+
 ## Versionnement
 
 **SemVer** pour le nom (`1.4.2`), `versionCode` entier strictement croissant, calculé depuis le tag Git.
