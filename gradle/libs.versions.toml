@@ -10,15 +10,18 @@
 # AGP 8.7 est le dernier palier que comprend Android Studio Ladybug (2024.2.1),
 # l'IDE de la machine de developpement. Voir D15 dans docs/11-decisions.md pour
 # le raisonnement et le chemin de montee.
-agp = "8.7.3"
+agp = "8.11.1"
 kotlin = "2.0.21"
 ksp = "2.0.21-1.0.28"
 
 # --- Plateforme Android -------------------------------------------------------
 # minSdk 26 : docs/01-perimetre.md (java.time, Keystore, notifications).
-compileSdk = "35"
+#
+# targetSdk 36 parce que le Play Store l'exige d'une nouvelle application depuis le
+# 31 aout 2026, et compileSdk avec lui : docs/11-decisions.md, D128.
+compileSdk = "36"
 minSdk = "26"
-targetSdk = "35"
+targetSdk = "36"
 jvmToolchain = "17"
 
 # --- Identite de l'application ------------------------------------------------
