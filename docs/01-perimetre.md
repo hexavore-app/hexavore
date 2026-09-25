@@ -91,6 +91,6 @@ Formulés pour être vérifiables, pas pour faire joli.
 ## Plateforme
 
 - **minSdk 26** (Android 8.0, août 2017). Couvre ~99 % du parc actif et évite le désendettement de compatibilité que traînent les API 21-25 (`java.time`, notifications, Keystore).
-- **targetSdk** : la plus récente stable au moment de la publication.
+- **targetSdk 36** (Android 16). Ce n'est pas un confort : le Play Store l'exige d'une nouvelle application depuis le 31 août 2026, et un bundle qui vise moins est refusé ([D128](11-decisions.md)).
 - Orientation portrait uniquement en v1 ; le paysage n'est pas bloqué mais n'est pas optimisé.
 - Français et anglais. La langue suit le système, forçable dans les réglages.
