@@ -59,7 +59,7 @@ JDK 17 et le SDK Android (plateforme 35). Aucune clé, aucun compte, aucun secre
 
 `installDebug` **installe par-dessus** plutôt que de remplacer. C'est ce qu'il faut : une migration Room et la recopie de `ciqual.db` ne s'éprouvent que sur une base déjà présente, et désinstaller d'abord les rend intestables. Les pièges de ce genre sont rassemblés dans [10](docs/10-qualite-et-livraison.md#travailler-sur-ce-dépôt).
 
-Le projet est bâti sur Gradle 8.10 et AGP 8.7 ; le choix du palier et la marche à suivre pour en changer sont expliqués en [D15](docs/11-decisions.md#d15--chaîne-de-construction-alignée-sur-loutillage-installé---par-défaut). Toutes les versions vivent dans `gradle/libs.versions.toml` — aucune n'est écrite dans un `build.gradle.kts`.
+Le projet est bâti sur Gradle 8.13 et AGP 8.11, et vise Android 16 ([D128](docs/11-decisions.md)) ; le choix du palier et la marche à suivre pour en changer sont expliqués en [D15](docs/11-decisions.md#d15--chaîne-de-construction-alignée-sur-loutillage-installé---par-défaut). Toutes les versions vivent dans `gradle/libs.versions.toml` — aucune n'est écrite dans un `build.gradle.kts`.
 
 Trois règles [detekt](build-logic/detekt-rules) maison font échouer le build sur ce que la relecture laisse passer : une couleur écrite hors du design system, un import Android dans `:domain`, une lecture directe de l'horloge système.
 

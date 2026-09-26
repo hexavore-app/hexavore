@@ -186,7 +186,9 @@ Cette décision conditionne toutes les autres. Toute fonctionnalité qui exigera
 
 **Écarté.** *Palier courant* : oblige à mettre à jour Android Studio et laisse detekt sans version stable. *Palier plus ancien* : aucun gain.
 
-**Conséquences.** Le catalogue de versions rend la montée mécanique : cinq lignes dans `gradle/libs.versions.toml`. **À rejuger quand detekt 2.0 sera stable** — c'est le seul événement qui débloque le reste de la chaîne.
+**Conséquences.** Le catalogue de versions rend la montée mécanique : cinq lignes dans `gradle/libs.versions.toml`. ~~**À rejuger quand detekt 2.0 sera stable** — c'est le seul événement qui débloque le reste de la chaîne.~~
+
+**Ce n'est pas detekt qui a déclenché la première montée, c'est le Play Store** ([D128](#d128--lapplication-vise-android-16-et-la-chaîne-monte-avec-elle---validée)) : AGP passe en 8.11.1 et Gradle en 8.13 pour atteindre `compileSdk 36`. Kotlin et detekt ne bougent pas, donc ce qui avait tranché ici tient toujours, et le reste de la chaîne attend encore la 2.0 stable.
 
 ---
 
@@ -4155,6 +4157,42 @@ L'image gardée est celle qui est partie au modèle : 1 024 px, environ 200 Ko. 
 **Éprouvé sur l'appareil le 24 septembre 2026** : le stockage des photos fonctionne, de la capture à l'affichage.
 
 **Ce qu'il reste à voir** : ce que deux cents mégaoctets d'images font au démarrage. Le balayage est éprouvé sur la JVM ; son coût au lancement se mesurera sur un dossier chargé, pas sur un neuf, donc dans plusieurs mois d'usage.
+
+---
+
+## D128 — L'application vise Android 16, et la chaîne monte avec elle · ✓ validée
+
+**Contexte.** Le premier téléversement sur le Play Store approchait, et [D15](#d15--chaîne-de-construction-alignée-sur-loutillage-installé---par-défaut) tenait le projet en `compileSdk 35` / `targetSdk 35`. La règle de Google a été relue **à la source** plutôt que de mémoire : depuis le **31 août 2026**, une **nouvelle** application doit viser **API 36** (Android 16). Une extension au 1ᵉʳ novembre existe, mais elle s'adresse aux applications déjà publiées qui ont besoin de temps ; une première fiche n'y échappe pas.
+
+Le bundle aurait donc été refusé à la Console, après la clé, après la fiche, après le formulaire Data Safety. C'est le genre de mur qu'on préfère rencontrer avant.
+
+**Choix.** `compileSdk 36`, `targetSdk 36`, et la chaîne qui va avec : AGP 8.7.3 → 8.11.1, Gradle 8.10.2 → 8.13.
+
+### Ce qui ne bouge pas est ce qui justifiait D15
+
+**Kotlin reste en 2.0.21, detekt en 1.23.8.** D15 avait figé la chaîne pour une raison précise, et ce n'était ni l'IDE ni AGP : la seule ligne stable de detekt est la 1.23, publiée pour Gradle 8 et Kotlin 2.0, et les trois règles personnalisées du projet ne sont pas négociables. Cette montée reste **à l'intérieur** des deux bornes, donc elle ne touche pas à ce qui avait tranché.
+
+D15 attendait detekt 2.0 comme seul événement débloquant. Ce n'est pas lui qui est arrivé, c'est une échéance réglementaire — et elle ne demandait qu'une partie de ce que D15 avait mis en attente. Le reste de la chaîne peut continuer d'attendre.
+
+`minSdk` ne bouge pas non plus : 26, pour les raisons de [01](01-perimetre.md#plateforme).
+
+### L'edge-to-edge était déjà là, et c'est ce qui rend la montée bon marché
+
+Ce qu'Android 16 impose de plus visible à une application qui vise 36 est l'**edge-to-edge obligatoire** : plus moyen de s'en exempter, le contenu passe sous les barres système et c'est à l'application de gérer ses encarts. `MainActivity` appelle `enableEdgeToEdge()` depuis toujours. Le changement le plus coûteux de cette version d'Android ne coûte donc rien ici.
+
+### La somme de contrôle du wrapper se vérifie chez son éditeur
+
+Le wrapper épingle un `distributionSha256Sum`, et changer l'URL sans lui fait échouer le lancement avec un message qui parle d'altération. La tentation est de recopier la somme du fichier qu'on vient de télécharger : cela revient à se vérifier soi-même. Celle qui est écrite vient de `services.gradle.org/distributions/gradle-8.13-bin.zip.sha256`, et le fichier téléchargé lui correspond.
+
+### La plateforme s'installe seule
+
+AGP a téléchargé `android-36` sans qu'on lui demande, parce que les licences du SDK étaient déjà acceptées sur la machine. Aucun `sdkmanager` n'a été nécessaire, ce qui est heureux : cette installation n'a plus que l'ancien `tools/bin`, déprécié.
+
+**Écarté.** *Attendre l'extension au 1ᵉʳ novembre* : elle ne couvre pas une première publication, et elle n'aurait de toute façon repoussé le mur que de cinq semaines. *Monter toute la chaîne d'un coup* — Kotlin 2.x récent, detekt 2.0 alpha, AGP 8.13 : ce serait abandonner la raison de D15 pour un besoin qui ne la demandait pas.
+
+**Conséquences.** Le bundle de release déclare `targetSdkVersion 36`, `compileSdkVersion 36`, `platformBuildVersionName 16`. La montée a tenu en quatre lignes : le catalogue de versions pour AGP et les deux SDK, le wrapper pour Gradle et sa somme. C'est exactement la « montée mécanique » que D15 annonçait.
+
+**Ce que le vert ne prouve pas.** Le comportement d'Android 16 sur un vrai téléphone. Viser une version d'Android change ce que le système accorde et ce qu'il exige à l'exécution, et aucune de ces différences ne se voit dans une compilation : l'edge-to-edge sous les barres, le retour prédictif, les permissions au moment où on les demande. Il faut installer la release sur un appareil sous Android 16 et refaire le tour des écrans.
 
 ---
 
