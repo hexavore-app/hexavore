@@ -1,5 +1,6 @@
 package app.hexavore.data.food
 
+import app.hexavore.core.database.ciqual.CiqualAnnotations
 import app.hexavore.core.database.ciqual.CiqualFoodRow
 import app.hexavore.core.database.ciqual.CiqualServingRow
 import app.hexavore.core.database.entity.FoodEntity
@@ -25,18 +26,26 @@ import java.time.Instant
  */
 fun FoodEntity.toDomain(
     servings: List<FoodServing> = emptyList(),
-    category: FoodCategory? = null,
-    shortName: String? = null,
+    /**
+     * Ce que la table de l'ANSES sait de cette fiche, ou `null` si elle n'en vient pas.
+     *
+     * **Trois choses qui ne vivent pas dans la copie** : le libellé, le rayon et le titre
+     * court. Une copie les figerait au jour où elle a été faite — et, depuis que la table
+     * est bilingue, à la **langue** de ce jour-là : une fiche copiée en français puis
+     * relue en anglais aurait porté un titre court anglais sur un nom français.
+     */
+    annotations: CiqualAnnotations? = null,
 ) = Food(
     id = FoodId(id),
     source = source.toFoodSource(),
     sourceRef = sourceRef,
-    name = name,
-    // Il ne vient pas de cette table : la copie n'en porte pas, il se relit dans la
-    // base de reference par le code de la fiche, comme le rayon.
-    shortName = shortName,
+    // Le libellé de la référence quand il y en a une, celui de la copie sinon. Un
+    // aliment personnel ou un produit scanné n'a que le second : il a été nommé une
+    // fois, par quelqu'un, et aucune table ne le renomme.
+    name = annotations?.name ?: name,
+    shortName = annotations?.shortName,
     brand = brand,
-    category = category,
+    category = annotations?.category.toFoodCategory(),
     per100g = NutrientValues(
         kcal = kcal100,
         protein = protein100,

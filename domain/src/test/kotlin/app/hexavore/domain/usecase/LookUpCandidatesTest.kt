@@ -87,7 +87,7 @@ class LookUpCandidatesTest {
         assertEquals(6, candidats.size, "or ${candidats.size} candidats")
     }
 
-    private fun outil(vararg fiches: Food) = LookUpCandidates(InMemoryFoodCatalog(initial = fiches.toList()))
+    private fun outil(vararg fiches: Food) = LookUpCandidates(InMemoryFoodCatalog(initial = fiches.toList()), FRANCAIS)
 
     private fun fiche(reference: String?, name: String) = Food(
         id = FoodId("id-${reference ?: name}"),

@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="fr">
+
+    <string name="home_title">Aujourd\'hui</string>
+    <!-- Les deux jours qui ont un nom le portent : « Hier » se lit plus vite qu\'une
+         date qu\'il faut décoder. Au-delà, la date longue reprend la main. -->
+    <string name="home_title_yesterday">Hier</string>
+    <string name="home_title_before_yesterday">Avant-hier</string>
+
+    <!-- Le chemin visible du retour à aujourd'hui. Le bouton retour du système y mène
+         aussi, mais un geste sans représentation visible est introuvable pour qui
+         l'ignore — la même règle que le balayage qui supprime une ligne. -->
+    <string name="home_back_to_today">Aujourd\'hui</string>
+
+    <!-- Le chiffre affiché est le restant, pas le consommé : c'est l'information
+         dont on a besoin au moment de décider quoi manger. -->
+    <string name="home_remaining_label">restantes</string>
+    <string name="home_over_label">de trop</string>
+    <string name="home_consumed_of_goal">%1$d consommées sur %2$d</string>
+    <string name="home_ring_a11y">Calories, %1$d sur %2$d, %3$d %%</string>
+
+    <!-- Une liste vide dit quoi faire, pas seulement qu'elle est vide. -->
+    <string name="home_empty_title">Rien de noté aujourd\'hui</string>
+    <string name="home_empty_body">Les six compteurs se rempliront à la première saisie.</string>
+
+    <!-- Un échec de lecture se dit, il ne s'affiche pas comme une journée vide :
+         une journée vide est une affirmation, pas une absence de réponse. -->
+    <string name="home_error_title">Journal illisible</string>
+    <string name="home_error_body">La lecture n\'a pas abouti. Rien n\'a été modifié : vos plats sont là où ils étaient.</string>
+    <string name="home_error_retry">Réessayer</string>
+
+    <!-- Tant qu'aucun objectif n'a été posé. Une invitation, pas six jauges vides :
+         une jauge à zéro laisserait croire qu'un objectif existe et n'est pas atteint. -->
+    <string name="home_no_goal_title">Pas encore d\'objectif</string>
+    <string name="home_no_goal_body">Cinq questions suffisent à calculer vos six objectifs. En attendant, vos totaux sont notés sans être comparés à rien.</string>
+    <string name="home_no_goal_action">Définir mon objectif</string>
+
+    <!-- Une icône seule : c'est la porte la moins fréquentée de l'écran, et rien ne
+         doit disputer au titre du jour la première ligne du regard. -->
+    <string name="home_open_profile">Profil et objectifs</string>
+    <string name="home_open_weight">Journal de poids</string>
+
+    <!-- Ce qui a été mangé reste exact sans objectif : c'est la comparaison qui manque.
+         Plus de forme « au moins » : l'accueil ne signale plus les totaux minorés, et
+         une valeur non renseignée s'y lit comme zéro (D119). -->
+    <string name="home_total_line">%1$s : %2$d</string>
+
+    <!-- Un seul bouton : il ouvre la recherche, qui porte aussi la saisie manuelle.
+         Le scan et l'IA n'existent pas encore, et un bouton qui n'ouvre rien n'est
+         pas une avance. -->
+    <string name="home_add_dish">Ajouter</string>
+
+    <!-- Aucune suppression n'est immédiatement définitive. La barre parle du plat :
+         c'est la seule chose que l'accueil supprime depuis que le balayage sert à
+         changer de jour, et son libellé annonçait une ligne même pour un plat entier. -->
+    <string name="home_dish_deleted">Plat supprimé</string>
+    <string name="home_dish_undo">Annuler</string>
+
+    <!-- Une ligne est un seul nœud d'accessibilité : nom, quantité, calories, en
+         une phrase plutôt qu'en trois arrêts. -->
+    <string name="home_entry_a11y">%1$s, %2$s %3$s, %4$d kilocalories</string>
+
+    <!-- Un plat : plusieurs aliments entrés en une fois, situés par leur heure. -->
+    <string name="home_dish_kcal">%1$d kcal</string>
+    <!-- Le plat entier est tapable. Ce libellé est ce que TalkBack annonce après
+         « appuyer deux fois pour » : sans lui, il dirait « activer ». -->
+    <string name="home_dish_edit">modifier ce plat</string>
+
+    <!-- L'appui long double le tap plutôt que de le remplacer : le tap ouvre la
+         modification, le menu donne accès à ce qui n'a pas sa place sur le plat. -->
+    <string name="home_dish_menu">ouvrir le menu du plat</string>
+    <string name="home_dish_menu_edit">Modifier</string>
+    <string name="home_dish_menu_delete">Supprimer</string>
+    <string name="home_dish_menu_favorite">Mettre en favori</string>
+    <string name="home_dish_menu_unfavorite">Retirer des favoris</string>
+
+    <!-- L'étoile ouvre les plats déjà composés. Une icône seule : « Ajouter » reste
+         le geste principal, et c'est lui qui porte un libellé. -->
+    <string name="home_open_favorites">Vos plats favoris</string>
+    <string name="home_scan">Scanner un code-barres</string>
+
+    <!-- Un seul bouton d'IA depuis D120 : les deux ecrans n'en font plus qu'un. Il
+         reste visible sans cle, et grise : cache, il ne s'apprend jamais ; inerte, il
+         n'apprend rien non plus. L'appui ouvre l'explication. -->
+    <string name="home_analyse">Analyser un repas avec l\'IA</string>
+    <string name="home_analyse_unavailable">indisponible, aucune clé d\'IA</string>
+
+    <!-- Ce qui manque, ce que ça coûte, et où aller. Le bouton ouvre la section d'IA
+         et non le hub : qui vient d'appuyer sur l'appareil photo cherche l'endroit où
+         mettre une clé, pas la liste des réglages. -->
+    <string name="home_ai_title">Analyser un repas avec l\'IA</string>
+    <string name="home_ai_explanation">Votre photo ou votre description part chez le fournisseur d\'IA que vous choisissez, avec votre propre clé. C\'est lui qui vous facture ses appels. Hexavore n\'a aucun serveur.</string>
+    <string name="home_ai_configure">Configurer</string>
+    <string name="home_ai_later">Plus tard</string>
+
+    <!-- Le nom est proposé depuis les aliments du plat, puis librement réécrit : un
+         favori sans nom serait introuvable, et un champ vide ferait renoncer. -->
+    <string name="home_favorite_title">Enregistrer comme favori</string>
+    <string name="home_favorite_body">Vous le retrouverez sous ce nom, prêt à rejouer. Modifier une ligne l\'en retirera.</string>
+    <string name="home_favorite_name">Nom du plat</string>
+    <string name="home_favorite_name_taken">Un plat en favori porte déjà ce nom.</string>
+    <string name="home_favorite_confirm">Enregistrer</string>
+    <string name="home_favorite_cancel">Annuler</string>
+
+    <!-- Un dialogue, là où le balayage d'une ligne se contente de sa barre : celui-ci
+         emporte n lignes d'un coup, et le nombre est dit. -->
+    <string name="home_dish_delete_title">Supprimer ce plat ?</string>
+    <!-- Le nombre figure dans les deux formes : en français, « one » couvre aussi
+         zéro, et un message sans son chiffre y deviendrait faux. -->
+    <plurals name="home_dish_delete_body">
+        <item quantity="one">%1$d ligne sera retirée de votre journée. Vous pourrez annuler juste après.</item>
+        <item quantity="other">%1$d lignes seront retirées de votre journée. Vous pourrez annuler juste après.</item>
+    </plurals>
+    <string name="home_dish_delete_confirm">Supprimer</string>
+    <string name="home_dish_delete_cancel">Annuler</string>
+    <string name="home_entry_quantity">%1$s %2$s</string>
+    <string name="home_entry_kcal">%1$d kcal</string>
+
+    <!-- Apports du plat. L'initiale porte la même information que la couleur :
+         une couleur ne renseigne jamais seule. -->
+    <string name="home_macro_chip">%1$s %2$s</string>
+    <string name="home_macro_grams">%1$s g</string>
+
+    <string name="macro_calories">Calories</string>
+    <string name="macro_protein">Protéines</string>
+    <string name="macro_carbs">Glucides</string>
+    <string name="macro_sugars">Sucres</string>
+    <string name="macro_fat">Lipides</string>
+    <string name="macro_fiber">Fibres</string>
+
+    <!-- La bulle des sources d\'une macro : ce qui la lui a donnée, du plus gros au
+         plus petit. « Valeur inconnue » n\'est pas « zéro » — c\'est la seule ligne de
+         l\'accueil qui dise encore qu\'un total est minoré, et la seule qui dise par
+         quel aliment. -->
+    <string name="home_sources_of_goal">%1$s sur %2$s</string>
+    <string name="home_sources_unknown">Valeur inconnue : %1$s</string>
+    <string name="home_sources_open">Afficher les sources</string>
+    <string name="home_sources_action">Afficher les sources : %1$s</string>
+    <plurals name="home_sources_others">
+        <item quantity="one">%1$d autre</item>
+        <item quantity="other">%1$d autres</item>
+    </plurals>
+
+    <string name="macro_initial_calories">C</string>
+    <string name="macro_initial_protein">P</string>
+    <string name="macro_initial_carbs">G</string>
+    <string name="macro_initial_sugars">S</string>
+    <string name="macro_initial_fat">L</string>
+    <string name="macro_initial_fiber">F</string>
+
+    <!-- Le bandeau calendrier et la vue mensuelle. Une journée sans saisie est
+         annoncée comme telle : pour un lecteur d'écran, un anneau absent ne se
+         distingue pas d'un anneau vide, alors que la différence est tout le sujet. -->
+    <string name="calendar_day_a11y">Le %1$d, journée notée</string>
+    <string name="calendar_day_empty_a11y">Le %1$d, aucune saisie</string>
+    <!-- Un jour à venir : il se voit mais ne s'ouvre pas. Le dire évite de chercher
+         pourquoi le toucher ne fait rien. -->
+    <string name="calendar_day_future_a11y">Le %1$d, jour à venir</string>
+    <string name="calendar_close">Fermer</string>
+    <!-- La poignée. Elle porte le geste d'ouverture parce qu'un glissement vertical
+         sur le mois déplié appartient à son propre défilement. -->
+    <string name="calendar_expand">Afficher le mois</string>
+    <string name="calendar_collapse">Revenir à la semaine</string>
+
+
+    <!-- ===== Pastilles ============================================================
+         Chacune designe une situation, jamais un message : elle s'eteint quand la
+         situation cesse, et aucune ne se rejette. Le libelle dit ce qu'il y a a faire,
+         jamais « notification » - « 1 notification » demande d'aller voir. -->
+    <string name="notice_ai_absent">Aucune intelligence artificielle configurée</string>
+    <string name="notice_ai_rejected">Votre clé d\'API a été refusée</string>
+    <string name="notice_weight_stale">Aucune pesée depuis une semaine</string>
+    <string name="notice_yesterday_empty">Hier n\'a rien de noté</string>
+</resources>

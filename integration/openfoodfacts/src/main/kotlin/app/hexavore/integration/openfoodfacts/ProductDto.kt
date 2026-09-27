@@ -35,7 +35,15 @@ internal data class SearchEnvelope(val products: List<ProductDto> = emptyList())
 internal data class ProductDto(
     val code: String? = null,
     @SerialName("product_name") val name: String? = null,
+    /**
+     * Les noms traduits, un champ par langue de l'application.
+     *
+     * Déclarés et non déduits : kotlinx.serialization veut des champs écrits. C'est
+     * [localisedName] qui porte le `when` exhaustif, donc une langue de plus ne compile
+     * pas tant qu'elle n'a pas son champ ici et sa branche là-bas.
+     */
     @SerialName("product_name_fr") val nameFr: String? = null,
+    @SerialName("product_name_en") val nameEn: String? = null,
     val brands: String? = null,
     @SerialName("serving_size") val servingSize: String? = null,
     /**

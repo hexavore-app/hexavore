@@ -8,6 +8,8 @@ Trois sources, trois rôles distincts, un catalogue local unifié qui les fait c
 | **Open Food Facts** | Produits emballés, par code-barres | API en ligne + cache permanent | ODbL 1.0 |
 | **Aliments personnels** | Ce que l'utilisateur crée lui-même | Base locale | — |
 
+**La table de l'ANSES est bilingue, et elle l'était déjà** ([D129](11-decisions.md#d129--langlais-est-le-repli-le-français-une-traduction-et-la-langue-est-une-donnée---validée)). `alim_nom_eng` est présent sur 3 484 lignes sur 3 484, `alim_grp_nom_eng` et `alim_ssgrp_nom_eng` aussi : le catalogue anglais ne coûte ni passe d'IA, ni traduction à relire, ni licence nouvelle. Dans `ciqual.db`, **la langue est une ligne et non une colonne** — une table `ciqual_name` à une ligne par aliment et par langue —, de sorte qu'une troisième langue n'ajoute que des lignes. Ce qui n'a pas d'anglais est nommé : les **titres courts**, dont la passe n'a tourné qu'en français ; l'affichage retombe alors sur le libellé anglais de l'ANSES, en moyenne plus court que le français.
+
 Pourquoi ce partage plutôt qu'une source unique : Open Food Facts référence des *produits de marque*. Chercher « lasagnes » y renvoie quarante barquettes industrielles, pas une lasagne. CIQUAL fait exactement l'inverse : des aliments et des plats représentatifs de la consommation française, avec des valeurs de référence, mais aucun code-barres. Les deux sont complémentaires, aucun ne remplace l'autre.
 
 ---

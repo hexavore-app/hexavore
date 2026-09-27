@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="fr">
+<!--
+  Le nom de l'application, et rien d'autre.
 
-    <string name="app_name">Hexavore</string>
+  `translatable="false"` : « Hexavore » est un nom propre. Un `values-fr/` qui le
+  recopierait a l'identique serait une ligne a tenir a jour pour rien, et Android Lint
+  refuse de reclamer la traduction de ce qui est declare intraduisible.
+-->
+<resources>
+
+    <string name="app_name" translatable="false">Hexavore</string>
 
 </resources>

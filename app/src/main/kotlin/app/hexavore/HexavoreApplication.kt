@@ -2,6 +2,7 @@ package app.hexavore
 
 import android.app.Application
 import app.hexavore.domain.concurrency.DispatcherProvider
+import app.hexavore.domain.language.LanguageSettings
 import app.hexavore.domain.usecase.SweepDishPhotos
 import app.hexavore.feature.capture.sweepCapturePhotos
 import dagger.hilt.android.HiltAndroidApp
@@ -27,6 +28,9 @@ class HexavoreApplication : Application() {
     @Inject
     lateinit var sweepPhotos: SweepDishPhotos
 
+    @Inject
+    lateinit var languages: LanguageSettings
+
     /**
      * Les deux ménages du démarrage, et ils ne ramassent pas la même chose.
      *
@@ -43,10 +47,18 @@ class HexavoreApplication : Application() {
      * **Hors du fil principal**, parce qu'ils touchent au disque, et sans rien
      * attendre : personne ne dépend de leur résultat.
      *
+     * **La langue, elle, est appliquee ici et tout de suite.** Pas dans une coroutine :
+     * elle doit etre en place avant que la premiere activite resolve ses ressources, et
+     * un `launch` la poserait une image trop tard -- l'accueil s'ouvrirait dans la langue
+     * du systeme avant de basculer, ce qui se voit exactement comme le clignotement de
+     * theme que D113 a evite. La lecture est une preference deja en memoire, et le plus
+     * souvent il n'y a rien a appliquer du tout (D129).
+     *
      * [ia]: docs/05-ia.md
      */
     override fun onCreate() {
         super.onCreate()
+        languages.restore()
         CoroutineScope(SupervisorJob() + dispatchers.io).launch {
             sweepCapturePhotos(this@HexavoreApplication)
             sweepPhotos()

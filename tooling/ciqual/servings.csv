@@ -5,104 +5,116 @@
 # balance de cuisine obligatoire.
 #
 # Ce fichier est le point d'entree ideal pour contribuer sans ecrire de Kotlin.
-# Une ligne mal formee -- code inexistant, poids nul, deuxieme portion par defaut
-# pour un meme aliment -- arrete l'import en nommant son numero de ligne. C'est
-# voulu : une portion silencieusement absente, ou rattachee au mauvais aliment,
-# fausse une saisie sans que rien ne le dise.
+# Une ligne mal formee -- code inexistant, poids nul, libelle manquant dans une
+# langue, deuxieme portion par defaut pour un meme aliment -- arrete l'import en
+# nommant son numero de ligne. C'est voulu : une portion silencieusement absente,
+# ou rattachee au mauvais aliment, fausse une saisie sans que rien ne le dise.
 #
-# Le libelle est affiche tel quel dans l'application : il porte ses accents, la
-# ou le reste de ce fichier est en ASCII. Un aliment sans portion declaree propose
-# 100 g.
+# UN POIDS, PLUSIEURS LIBELLES. « 1 pomme moyenne » et « 1 medium apple »
+# designent la meme portion de 150 g : le poids est ecrit une fois, et chaque
+# langue a sa colonne. Une ligne par langue aurait laisse les deux deriver, et
+# personne n'aurait su laquelle fait foi. Ajouter une langue a l'application
+# ajoute une colonne `libelle_<langue>` ici, et l'import la reclame.
+#
+# L'ORDRE DES COLONNES VIENT DE L'ENUMERATION `ContentLanguage`, pas de ce
+# fichier : l'anglais d'abord, parce que c'est le repli de l'application comme
+# c'est le `values/` sans qualificatif de ses ressources. L'import refuse un
+# autre ordre et ecrit l'en-tete attendu dans son message.
+#
+# Les libelles sont affiches tels quels dans l'application : ils portent leurs
+# accents, la ou le reste de ce fichier est en ASCII. Un aliment sans portion
+# declaree propose 100 g.
+#
+# CINQ MOTS COMPTENT DOUBLE. « tranche », « cuillere a soupe », « cuillere a
+# cafe », « bol » et « verre » -- et leurs equivalents anglais « slice »,
+# « tablespoon », « teaspoon », « bowl », « glass » -- sont reconnus par la
+# conversion des quantites estimees par l'IA. Un libelle qui les contient donne
+# a cette fiche son poids mesure plutot qu'un forfait. Les ecrire autrement n'est
+# pas une faute, mais fait perdre cette precision.
 #
 # Les poids sont ceux de la partie comestible, parce que c'est ce que CIQUAL
 # mesure : une pomme de 150 g est une pomme entiere d'environ 170 g.
-code_ciqual,libelle,grammes,par_defaut
 
+code_ciqual,grammes,par_defaut,libelle_en,libelle_fr
 # --- Fruits -------------------------------------------------------------------
-13039,1 pomme moyenne,150,true
-13005,1 banane moyenne,120,true
-13034,1 orange moyenne,130,true
-13024,1 clémentine,70,true
-13037,1 poire moyenne,150,true
-13043,1 pêche,130,true
-13000,1 abricot,40,true
-13021,1 kiwi,75,true
-13014,1 fraise,12,false
-13014,1 barquette,250,true
-13044,1 grain,5,false
-13044,1 grappe,150,true
-13004,1 demi-avocat,75,true
-13004,1 avocat,150,false
-
+13039,150,true,1 medium apple,1 pomme moyenne
+13005,120,true,1 medium banana,1 banane moyenne
+13034,130,true,1 medium orange,1 orange moyenne
+13024,70,true,1 clementine,1 clémentine
+13037,150,true,1 medium pear,1 poire moyenne
+13043,130,true,1 peach,1 pêche
+13000,40,true,1 apricot,1 abricot
+13021,75,true,1 kiwi,1 kiwi
+13014,12,false,1 strawberry,1 fraise
+13014,250,true,1 container,1 barquette
+13044,5,false,1 grape,1 grain
+13044,150,true,1 bunch,1 grappe
+13004,75,true,1 half avocado,1 demi-avocat
+13004,150,false,1 avocado,1 avocat
 # --- Oeufs --------------------------------------------------------------------
-22000,1 oeuf,50,true
-22000,1 gros oeuf,60,false
-
+22000,50,true,1 egg,1 oeuf
+22000,60,false,1 large egg,1 gros oeuf
 # --- Pains et cereales --------------------------------------------------------
-7001,1 tranche,30,true
-7001,1 demi-baguette,125,false
-7001,1 baguette,250,false
-7300,1 biscotte,10,true
-32140,1 bol,40,true
-32140,1 cuillère à soupe,10,false
-32004,1 bol,50,true
-9104,1 portion,150,true
-9683,1 portion,150,true
-
+7001,30,true,1 slice,1 tranche
+7001,125,false,1 half baguette,1 demi-baguette
+7001,250,false,1 baguette,1 baguette
+7300,10,true,1 rusk,1 biscotte
+32140,40,true,1 bowl,1 bol
+32140,10,false,1 tablespoon,1 cuillère à soupe
+32004,50,true,1 bowl,1 bol
+9104,150,true,1 serving,1 portion
+9683,150,true,1 serving,1 portion
 # --- Produits laitiers --------------------------------------------------------
-19033,1 verre,200,true
-19033,1 bol,250,false
-19600,1 pot,125,true
-12115,1 portion,30,true
-12001,1 portion,30,true
-16400,1 noisette,10,true
-16400,1 plaquette,250,false
-
+19033,200,true,1 glass,1 verre
+19033,250,false,1 bowl,1 bol
+19600,125,true,1 pot,1 pot
+12115,30,true,1 serving,1 portion
+12001,30,true,1 serving,1 portion
 # --- Matieres grasses ---------------------------------------------------------
-17270,1 cuillère à soupe,10,true
-17270,1 cuillère à café,5,false
-17440,1 cuillère à soupe,10,true
-17440,1 cuillère à café,5,false
-15202,1 cuillère à soupe,15,true
-
+# « 1 noisette » de beurre et « 1 noisette » du fruit a coque sont le meme mot en
+# francais et deux mots en anglais. C'est le genre d'ecart qu'une colonne par
+# langue rend visible, la ou une traduction automatique aurait produit « 1
+# hazelnut » de beurre.
+16400,10,true,1 knob,1 noisette
+16400,250,false,1 block,1 plaquette
+17270,10,true,1 tablespoon,1 cuillère à soupe
+17270,5,false,1 teaspoon,1 cuillère à café
+17440,10,true,1 tablespoon,1 cuillère à soupe
+17440,5,false,1 teaspoon,1 cuillère à café
+15202,15,true,1 tablespoon,1 cuillère à soupe
 # --- Legumes ------------------------------------------------------------------
-20009,1 carotte moyenne,100,true
-20019,1 concombre,300,false
-20019,1 portion,80,true
-20031,1 portion,50,true
-20037,1 portion,120,true
-20041,1 poivron,150,true
-4003,1 pomme de terre moyenne,150,true
-
+20009,100,true,1 medium carrot,1 carotte moyenne
+20019,300,false,1 cucumber,1 concombre
+20019,80,true,1 serving,1 portion
+20031,50,true,1 serving,1 portion
+20037,120,true,1 serving,1 portion
+20041,150,true,1 bell pepper,1 poivron
+4003,150,true,1 medium potato,1 pomme de terre moyenne
 # --- Legumineuses et substituts -----------------------------------------------
-20360,1 portion,150,true
-20507,1 portion,150,true
-20904,1 portion,100,true
-
+20360,150,true,1 serving,1 portion
+20507,150,true,1 serving,1 portion
+20904,100,true,1 serving,1 portion
 # --- Viandes et poissons ------------------------------------------------------
-6251,1 steak,100,true
-36306,1 escalope,120,true
-26025,1 filet,130,true
-26039,1 boîte égouttée,100,true
-10007,1 crevette,8,true
-
+6251,100,true,1 patty,1 steak
+36306,120,true,1 cutlet,1 escalope
+26025,130,true,1 fillet,1 filet
+26039,100,true,1 drained can,1 boîte égouttée
+10007,8,true,1 prawn,1 crevette
 # --- Fruits a coque -----------------------------------------------------------
-15000,1 amande,1.2,false
-15000,1 poignée,30,true
-15004,1 noisette,1.5,false
-15004,1 poignée,30,true
-15005,1 cerneau,5,false
-15005,1 poignée,30,true
-
+15000,1.2,false,1 almond,1 amande
+15000,30,true,1 handful,1 poignée
+15004,1.5,false,1 hazelnut,1 noisette
+15004,30,true,1 handful,1 poignée
+15005,5,false,1 walnut half,1 cerneau
+15005,30,true,1 handful,1 poignée
 # --- Sucre ---------------------------------------------------------------------
-31008,1 cuillère à café,8,true
-31008,1 cuillère à soupe,20,false
-31005,1 carré,6,true
-31005,1 tablette,100,false
-
+31008,8,true,1 teaspoon,1 cuillère à café
+31008,20,false,1 tablespoon,1 cuillère à soupe
+31005,6,true,1 square,1 carré
+31005,100,false,1 bar,1 tablette
 # --- Boissons -----------------------------------------------------------------
-2013,1 verre,200,true
-18071,1 tasse,30,true
-5000,1 demi,250,true
-5000,1 canette,330,false
-5214,1 verre,125,true
+2013,200,true,1 glass,1 verre
+18071,30,true,1 cup,1 tasse
+5000,250,true,1 small glass,1 demi
+5000,330,false,1 can,1 canette
+5214,125,true,1 glass,1 verre

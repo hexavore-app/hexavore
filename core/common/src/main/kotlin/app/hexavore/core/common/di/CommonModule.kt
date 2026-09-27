@@ -4,11 +4,13 @@ import app.hexavore.core.common.ai.RecentExchanges
 import app.hexavore.core.common.concurrency.DefaultDispatcherProvider
 import app.hexavore.core.common.diary.CurrentSelectedDay
 import app.hexavore.core.common.identity.UuidGenerator
+import app.hexavore.core.common.language.SystemLocales
 import app.hexavore.core.common.time.SystemClock
 import app.hexavore.domain.ai.AiExchangeLog
 import app.hexavore.domain.concurrency.DispatcherProvider
 import app.hexavore.domain.diary.SelectedDay
 import app.hexavore.domain.identity.IdGenerator
+import app.hexavore.domain.language.SystemLanguages
 import app.hexavore.domain.time.Clock
 import dagger.Binds
 import dagger.Module
@@ -50,6 +52,16 @@ abstract class CommonModule {
     @Binds
     @Singleton
     abstract fun exchangeLog(implementation: RecentExchanges): AiExchangeLog
+
+    /**
+     * Les langues du système, au même titre que l'horloge et le fuseau.
+     *
+     * Une lecture de plateforme sans règle : la règle — que faire d'une liste où
+     * l'application ne reconnaît rien — vit dans le domaine et s'éprouve sur la JVM.
+     */
+    @Binds
+    @Singleton
+    abstract fun systemLanguages(implementation: SystemLocales): SystemLanguages
 
     @Binds
     @Singleton

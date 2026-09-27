@@ -28,20 +28,26 @@ import app.hexavore.core.designsystem.component.ScreenTopBar
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.domain.appearance.DishDisplayStyle
 import app.hexavore.domain.appearance.ThemeMode
+import app.hexavore.domain.language.ContentLanguage
+import app.hexavore.domain.language.LanguageMode
 import app.hexavore.domain.profile.UnitSystem
 
 /**
  * L'apparence de l'application.
  *
  * **La section que [docs/02][parcours] annonçait depuis la conception et qui « n'ouvrait
- * rien ».** Elle en ouvre une maintenant : le thème. Le système d'unités la rejoindra,
- * et c'est la raison pour laquelle l'écran est une liste de cartes plutôt qu'un
+ * rien ».** Elle en ouvre quatre : la langue, le thème, les unités et le style
+ * d'affichage. C'est la raison pour laquelle l'écran est une liste de cartes plutôt qu'un
  * interrupteur solitaire.
  *
- * **Trois choix exclusifs et non un interrupteur.** Un interrupteur « sombre » ne saurait
+ * **Des choix exclusifs et non un interrupteur.** Un interrupteur « sombre » ne saurait
  * pas dire « suivre le système », qui est le défaut et le comportement que l'application
- * avait avant d'être réglable. Trois boutons radio disent les trois états sans qu'aucun
- * ne soit un cas particulier caché.
+ * avait avant d'être réglable. Des boutons radio disent tous les états sans qu'aucun ne
+ * soit un cas particulier caché.
+ *
+ * **La langue est en tête**, parce que c'est elle qui décide comment les trois autres se
+ * lisent — et parce que quelqu'un qui ouvre cet écran sans savoir lire ce qu'il porte
+ * cherche cette ligne-là et aucune autre.
  *
  * [parcours]: docs/02-parcours-et-ecrans.md
  */
@@ -51,6 +57,7 @@ internal fun AppearanceRoute(onClose: () -> Unit, viewModel: AppearanceViewModel
 
     AppearanceScreen(
         state = state,
+        onLanguage = viewModel::onLanguage,
         onTheme = viewModel::onTheme,
         onUnits = viewModel::onUnits,
         onDishStyle = viewModel::onDishStyle,
@@ -61,6 +68,7 @@ internal fun AppearanceRoute(onClose: () -> Unit, viewModel: AppearanceViewModel
 @Composable
 private fun AppearanceScreen(
     state: AppearanceUiState,
+    onLanguage: (LanguageMode) -> Unit,
     onTheme: (ThemeMode) -> Unit,
     onUnits: (UnitSystem) -> Unit,
     onDishStyle: (DishDisplayStyle) -> Unit,
@@ -83,9 +91,17 @@ private fun AppearanceScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(Spacing.betweenCards),
         ) {
-            // L'ordre des enumerations : un quatrieme theme, un troisieme style
-            // apparaitraient ici sans qu'une ligne d'affichage bouge, et sans libelle
-            // ils ne compileraient pas.
+            // L'ordre des enumerations : un quatrieme theme, un troisieme style, une
+            // troisieme langue apparaitraient ici sans qu'une ligne d'affichage bouge, et
+            // sans libelle ils ne compileraient pas.
+            ChoiceSection(
+                titleRes = R.string.appearance_language_title,
+                noteRes = R.string.appearance_language_note,
+                options = LanguageMode.ALL,
+                selected = state.language,
+                labelOf = { it.labelRes },
+                onSelect = onLanguage,
+            )
             ChoiceSection(
                 titleRes = R.string.appearance_theme_title,
                 noteRes = R.string.appearance_theme_note,
@@ -171,6 +187,30 @@ private fun ChoiceRow(labelRes: Int, selected: Boolean, onSelect: () -> Unit) {
         )
     }
 }
+
+/**
+ * Le libellé d'un réglage de langue.
+ *
+ * **Chaque langue est écrite dans elle-même**, et les deux fichiers de ressources portent
+ * la même chaîne : « English » et « Français », qu'on lise l'écran en anglais ou en
+ * français. Quelqu'un qui cherche sa langue dans cette liste ne sait justement pas lire
+ * celle qui est affichée — c'est pour ça qu'il la cherche. « Anglais » ne lui aurait servi
+ * à rien.
+ *
+ * Une table plutôt qu'un `when` avec un `else` : une troisième langue **ne compile pas**
+ * tant qu'elle n'a pas de nom à montrer.
+ */
+private val LanguageMode.labelRes: Int
+    get() = when (this) {
+        LanguageMode.System -> R.string.appearance_language_system
+        is LanguageMode.Chosen -> language.labelRes
+    }
+
+private val ContentLanguage.labelRes: Int
+    get() = when (this) {
+        ContentLanguage.ENGLISH -> R.string.appearance_language_en
+        ContentLanguage.FRENCH -> R.string.appearance_language_fr
+    }
 
 /**
  * Le libellé d'un thème.

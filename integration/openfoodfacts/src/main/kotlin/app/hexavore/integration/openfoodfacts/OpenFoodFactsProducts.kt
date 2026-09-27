@@ -8,6 +8,7 @@ import app.hexavore.domain.food.ProductResults
 import app.hexavore.domain.food.ProductSearch
 import app.hexavore.domain.food.ProductSource
 import app.hexavore.domain.identity.IdGenerator
+import app.hexavore.domain.language.ContentLanguages
 import app.hexavore.domain.time.Clock
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -21,6 +22,7 @@ import java.io.IOException
  */
 internal class OpenFoodFactsProducts(
     private val api: OpenFoodFactsApi,
+    private val languages: ContentLanguages,
     private val ids: IdGenerator,
     private val clock: Clock,
     private val dispatchers: DispatcherProvider,
@@ -47,7 +49,9 @@ internal class OpenFoodFactsProducts(
                 .search(terms = query, limit = limit, fields = PRODUCT_FIELDS)
                 .body()
                 ?.products
-                ?.mapNotNull { it.toFound(id = FoodId(ids.next()), fetchedAt = fetchedAt) }
+                ?.mapNotNull {
+                    it.toFound(id = FoodId(ids.next()), fetchedAt = fetchedAt, language = languages.current())
+                }
                 ?.let(ProductResults::Found)
                 ?: ProductResults.Unreachable
         } catch (offline: IOException) {
@@ -88,7 +92,12 @@ internal class OpenFoodFactsProducts(
         val food = body()
             ?.takeIf { envelope -> envelope.status == FOUND_STATUS }
             ?.product
-            ?.toFood(barcode = code, id = FoodId(ids.next()), fetchedAt = clock.now())
+            ?.toFood(
+                barcode = code,
+                id = FoodId(ids.next()),
+                fetchedAt = clock.now(),
+                language = languages.current(),
+            )
 
         return food?.let(ProductLookup::Found) ?: ProductLookup.Unknown
     }

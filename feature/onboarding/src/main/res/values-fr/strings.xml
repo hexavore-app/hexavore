@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="fr">
+
+    <!-- 1. Accueil. L'avertissement est à accepter pour continuer : c'est la seule
+         étape bloquante des cinq. -->
+    <string name="onboarding_welcome_title">Bienvenue dans Hexavore</string>
+    <!-- D56 : le « Passer » a disparu, et cette phrase le promettait encore. Un
+         objectif calculé sur des valeurs par défaut est l'objectif de quelqu'un
+         d'autre, affiché avec l'autorité d'un chiffre personnel. -->
+    <string name="onboarding_welcome_body">Six compteurs, calculés à partir de vos réponses. Cinq questions, une minute.</string>
+    <string name="onboarding_disclaimer">Hexavore est un outil de suivi personnel. Ce n\'est pas un dispositif médical et il ne remplace pas l\'avis d\'un professionnel de santé.</string>
+
+    <!-- 2. Vous. Rien n'est pré-rempli : une valeur plausible affichée serait acceptée
+         par distraction, et l'objectif serait celui de quelqu'un d'autre. -->
+    <string name="onboarding_you_title">Vous</string>
+    <!-- D56 : le champ ouvre un sélecteur, il ne se tape pas. Le format restait
+         demandé sous un champ qui n'accepte plus aucune frappe. -->
+    <string name="onboarding_birth_date">Date de naissance</string>
+    <string name="onboarding_sex_label">Sexe</string>
+    <string name="onboarding_sex_male">Homme</string>
+    <string name="onboarding_sex_female">Femme</string>
+    <string name="onboarding_sex_unspecified">Je préfère ne pas répondre</string>
+    <string name="onboarding_sex_unspecified_note">Nous utiliserons une estimation intermédiaire, que vous pourrez ajuster ensuite.</string>
+    <string name="onboarding_height">Taille (cm)</string>
+    <string name="onboarding_weight">Poids actuel (kg)</string>
+
+    <!-- 3. Activité. Un exemple concret plutôt qu'un adjectif : « modérément actif »
+         ne veut rien dire, « sport 3 à 5 fois par semaine » se répond en une seconde. -->
+    <string name="onboarding_activity_title">Votre activité</string>
+    <string name="onboarding_activity_body">L\'exercice est compté ici, une fois pour toutes, et jamais ajouté au jour le jour.</string>
+    <string name="onboarding_activity_sedentary">Travail assis, peu ou pas de sport</string>
+    <string name="onboarding_activity_light">Sport léger 1 à 3 fois par semaine</string>
+    <string name="onboarding_activity_moderate">Sport 3 à 5 fois par semaine</string>
+    <string name="onboarding_activity_active">Sport 6 à 7 fois par semaine</string>
+    <string name="onboarding_activity_very_active">Métier physique, ou sport biquotidien</string>
+
+    <!-- 4. Objectif. -->
+    <string name="onboarding_objective_title">Votre objectif</string>
+    <string name="onboarding_strategy_lose">Perdre du poids</string>
+    <string name="onboarding_strategy_maintain">Maintenir</string>
+    <string name="onboarding_strategy_gain">Prendre du poids</string>
+    <string name="onboarding_target_weight">Poids cible (kg)</string>
+
+    <!-- Trois pastilles plutôt qu'un calendrier : une date exacte n'a aucune valeur
+         en soi, ce qui compte est le rythme. La quatrième n'apparaît que si les
+         garde-fous ont calculé une date atteignable. -->
+    <string name="onboarding_horizon_label">D\'ici quand ?</string>
+    <string name="onboarding_horizon_three">Dans 3 mois</string>
+    <string name="onboarding_horizon_six">Dans 6 mois</string>
+    <string name="onboarding_horizon_twelve">Dans 12 mois</string>
+    <string name="onboarding_horizon_reachable">Au rythme sûr : %1$s</string>
+    <!-- Le rythme réel, après garde-fous, et non celui qu'on espérait. -->
+    <string name="onboarding_pace">Soit environ %1$.2f kg par semaine.</string>
+
+    <!-- 5. Vos objectifs. L'application ne refuse jamais : elle explique et propose. -->
+    <string name="onboarding_result_title">Vos objectifs</string>
+    <string name="onboarding_result_unavailable">Répondez au moins à la question du poids pour voir vos objectifs.</string>
+    <string name="onboarding_capped">Ce rythme dépasserait les bornes de sécurité. À un rythme sûr, votre poids cible serait atteint vers le %1$s.</string>
+    <string name="onboarding_use_reachable_date">Utiliser cette date</string>
+    <string name="onboarding_carbs_low">À ce niveau de calories, il reste peu de glucides une fois les protéines, les lipides et les fibres couverts. Un objectif plus haut serait plus tenable.</string>
+
+    <string name="onboarding_goal_calories">Calories : %1$d kcal</string>
+    <string name="onboarding_goal_protein">Protéines : %1$d g</string>
+    <string name="onboarding_goal_fiber">Fibres : %1$d g</string>
+    <string name="onboarding_goal_carbs">Glucides : %1$d g max</string>
+    <string name="onboarding_goal_sugars">Sucres : %1$d g max</string>
+    <string name="onboarding_goal_fat">Lipides : %1$d g max</string>
+
+    <!-- Une phrase par compteur : un chiffre sans raison est un chiffre qu'on ignore. -->
+    <string name="onboarding_why_calories">Votre dépense estimée, ajustée à votre échéance.</string>
+    <string name="onboarding_why_protein">Calculé sur votre poids cible, pour préserver la masse maigre.</string>
+    <string name="onboarding_why_fiber">14 g pour 1 000 kcal, jamais rogné au profit des glucides.</string>
+    <string name="onboarding_why_carbs">Le solde du budget, une fois les fibres déduites.</string>
+    <string name="onboarding_why_sugars">Plafond de l\'OMS, appliqué aux sucres totaux, donc plus strict.</string>
+    <string name="onboarding_why_fat">Une limite à ne pas dépasser. Le minimum dont le corps a besoin est déjà couvert.</string>
+
+    <!-- La réponse du bouton indisponible à un appui. Elle dit ce qui manque, pas
+         qu'il manque quelque chose : « complétez le formulaire » n'aide personne. -->
+    <string name="onboarding_blocked_disclaimer">Acceptez l\'avertissement pour continuer.</string>
+    <string name="onboarding_blocked_identity">Renseignez votre date de naissance, votre sexe, votre taille et votre poids.</string>
+    <string name="onboarding_blocked_activity">Choisissez le niveau qui décrit le mieux vos semaines.</string>
+    <string name="onboarding_blocked_objective">Choisissez un objectif, puis un poids cible et une échéance.</string>
+
+    <string name="onboarding_next">Continuer</string>
+    <string name="onboarding_back">Retour</string>
+    <string name="onboarding_start">C\'est parti</string>
+    <string name="onboarding_save_failed">L\'enregistrement n\'a pas abouti. Vos réponses sont conservées telles quelles.</string>
+
+</resources>

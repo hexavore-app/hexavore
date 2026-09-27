@@ -12,6 +12,11 @@ android {
 }
 
 dependencies {
+    // Pour `AppCompatDelegate.setApplicationLocales`, et pour elle seule : c'est la seule
+    // API qui impose une langue de l'API 26 a l'API 36 (D129). Aucun widget, aucun
+    // fragment, aucune activite de ce paquet ne sert ici.
+    implementation(libs.androidx.appcompat)
+
     // Ce module implemente deux ports declares par le domaine : la fleche remonte.
     api(projects.domain)
 

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="fr">
+
+    <!-- Aucune chaîne ne mentionne un mode de saisie. C'est la même règle que dans
+         le code : cet écran est le point de convergence des quatre modes, et un
+         texte qui dirait « saisie manuelle » serait la première chose à réécrire
+         quand la recherche puis l'IA arriveront. -->
+    <!-- Le jour visé, affiché seulement quand ce n'est pas aujourd'hui. Depuis qu'on
+         peut rattraper un repas oublié, le brouillon peut viser un jour passé — et
+         c'est ici, juste avant l'écriture, qu'il faut le dire. -->
+    <string name="entry_other_day">Sera noté sur le %1$s</string>
+
+    <string name="entry_title_new">Nouvelle saisie</string>
+    <string name="entry_title_edit">Modifier le plat</string>
+    <!-- Le meme ecran sert d'editeur au favori lui-meme. Il doit le dire : un titre
+         qui annonce « nouvelle saisie » alors qu'on reecrit un modele ment sur ce que
+         l'appui va faire. -->
+    <string name="entry_title_favorite">Modifier le favori</string>
+
+    <string name="entry_field_name">Aliment</string>
+
+    <!-- Ce qu'une ligne proposee par un modele annonce d'elle-meme. Deux
+         incertitudes distinctes : ce que le modele a compris, et le fait que la
+         quantite vienne d'un forfait plutot que d'une portion mesuree (docs/04). -->
+    <string name="entry_suggestion">Proposé par l\'IA · confiance %1$d %%</string>
+    <string name="entry_suggestion_quantity">quantité estimée</string>
+    <!-- Le badge que docs/04 exige sur le repli de l'etape 4 : ces chiffres ne
+         viennent d'aucune base, et le dire est ce qui les rend utilisables. -->
+    <string name="entry_suggestion_macros">valeurs estimées par l\'IA</string>
+    <string name="entry_alternatives">Ou peut-être :</string>
+    <string name="entry_field_quantity">Quantité</string>
+
+    <!-- Chaque champ porte son unité : sans elle, « Protéines 12 » se lit aussi bien
+         comme des grammes que comme un pourcentage. -->
+    <string name="entry_field_calories">Calories (kcal)</string>
+    <string name="entry_field_protein">Protéines (g)</string>
+    <string name="entry_field_carbs">Glucides (g)</string>
+    <string name="entry_field_sugars">Sucres (g)</string>
+    <string name="entry_field_fat">Lipides (g)</string>
+    <string name="entry_field_fiber">Fibres (g)</string>
+
+    <!-- L'énergie déduite des quatre autres valeurs, selon le règlement UE 1169/2011.
+         Le libellé dit d'où vient le chiffre : « Calculer » laisserait croire que rien
+         n'est encore fait, alors que le calcul est déjà là et n'attend qu'un accord. -->
+    <string name="entry_energy_proposal">D\'après les macros : %1$d kcal</string>
+    <!-- Ce que l'appui va faire. « 297 kcal » annoncé seul ne laisse pas deviner que
+         la valeur en remplace une autre. -->
+    <string name="entry_energy_proposal_a11y">Remplacer les calories par %1$d, calculées d\'après les macros</string>
+    <!-- Les fibres n'étaient pas renseignées : elles n'ont rien apporté au calcul, qui
+         est donc minoré. Une valeur minorée qui s'annonce débloque la ligne ; la même
+         valeur silencieuse serait un chiffre inventé de plus. -->
+    <string name="entry_energy_without_fiber">Hors fibres, non renseignées</string>
+
+    <string name="entry_add_line">Ajouter un aliment</string>
+    <string name="entry_remove_line">Supprimer</string>
+
+    <!-- Le nom propose. Les libelles de l'ANSES sont a rallonge : trois d'entre
+         eux faisaient un titre de cinquante caracteres qu'on efface au lieu de le
+         corriger. Un numero se garde ou se remplace, il ne se subit pas. -->
+    <!-- Le titre d'un plat : propose depuis l'heure, corrigeable, et repris tel quel
+         quand on met le plat en favori. Le rang distingue deux plats du meme moment,
+         et sert aussi a proposer « Dejeuner 2 » quand « Dejeuner » est deja pris. -->
+    <string name="entry_dish_title">Titre du plat</string>
+    <string name="entry_title_ranked">%1$s %2$d</string>
+    <!-- Le balayage n'est pas le seul chemin : un geste sans représentation visible
+         est introuvable pour qui ne le connaît pas, et hors d'atteinte au lecteur
+         d'écran. Le nom est repris pour que « Supprimer » désigne quelque chose. -->
+    <string name="entry_remove_line_a11y">Supprimer la ligne %1$s</string>
+
+    <string name="entry_total_label">Total de la saisie</string>
+    <string name="entry_kcal">%1$d kcal</string>
+    <string name="entry_remaining">Il vous restera %1$d kcal aujourd\'hui</string>
+    <string name="entry_over">Vous dépasserez de %1$d kcal aujourd\'hui</string>
+
+    <string name="entry_save">Enregistrer</string>
+    <string name="entry_save_favorite">Enregistrer le favori</string>
+    <string name="entry_saving">Enregistrement…</string>
+    <!-- Un plat relu et vidé de ses lignes se supprime : le bouton le dit, plutôt
+         que de laisser le plat disparaître sous le libellé « Enregistrer ». -->
+    <string name="entry_delete_dish">Supprimer ce plat</string>
+
+    <!-- L'étoile met le plat en favori. Une seule icône pour les deux états :
+         material-icons-core n'a pas de contour, et la teinte ne travaille jamais
+         seule — l'état est annoncé à TalkBack. -->
+    <string name="entry_favorite">Plat favori</string>
+    <string name="entry_favorite_on">dans vos favoris</string>
+    <string name="entry_favorite_off">pas dans vos favoris</string>
+    <string name="entry_favorite_title">Enregistrer comme favori</string>
+    <string name="entry_favorite_body">Vous le retrouverez sous ce nom, prêt à rejouer. Modifier une ligne l\'en retirera.</string>
+    <string name="entry_favorite_name">Nom du plat</string>
+    <string name="entry_favorite_name_taken">Un plat en favori porte déjà ce nom.</string>
+    <string name="entry_favorite_confirm">Enregistrer</string>
+    <string name="entry_favorite_cancel">Annuler</string>
+    <!-- Le pendant d'Enregistrer, et le double du retour arrière. Pas « Fermer » :
+         cette paire de boutons se lit ensemble, et « Annuler » dit ce qu'il advient
+         de la saisie là où « Fermer » ne dit que ce qu'il advient de l'écran. -->
+    <string name="entry_cancel">Annuler</string>
+    <!-- Le bouton indisponible répond à l'appui ; cette phrase est ce qu'il répond. -->
+    <!-- Ce qui manque, nomme, et de quel aliment. « Un champ est vide » n'aide
+         personne devant vingt-quatre champs : l'ecran designe le premier et y va. -->
+    <string name="entry_missing_name">Il manque le nom de cet aliment</string>
+    <string name="entry_missing_quantity">Il manque la quantité</string>
+    <string name="entry_missing_calories">Il manque les calories</string>
+
+    <string name="entry_close">Fermer</string>
+
+    <!-- La photo gardee avec le plat. Decorative a l'accueil, nommee ici :
+         c'est le seul ecran ou l'on peut agir dessus. -->
+    <string name="entry_photo_a11y">La photo de ce plat</string>
+    <string name="entry_photo_remove">Retirer la photo</string>
+
+    <string name="entry_unavailable_title">Plat inaccessible</string>
+    <string name="entry_unavailable_body">Ce plat n\'a pas pu être rouvert. Il a peut-être été supprimé depuis un autre écran.</string>
+
+    <string name="entry_error_title">Enregistrement impossible</string>
+    <string name="entry_error_body">L\'écriture n\'a pas abouti. Votre saisie est conservée telle quelle.</string>
+    <string name="entry_error_retry">Réessayer</string>
+
+</resources>

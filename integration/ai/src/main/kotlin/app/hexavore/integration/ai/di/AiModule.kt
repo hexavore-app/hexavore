@@ -9,17 +9,19 @@ import app.hexavore.domain.ai.FoodRecognizer
 import app.hexavore.domain.ai.NotingRecognizer
 import app.hexavore.domain.ai.NutritionEstimator
 import app.hexavore.domain.concurrency.DispatcherProvider
+import app.hexavore.domain.language.ContentLanguages
 import app.hexavore.domain.notice.KeyRejection
 import app.hexavore.integration.ai.AiPrompts
 import app.hexavore.integration.ai.AnthropicRecognizer
 import app.hexavore.integration.ai.AssetSystemPrompt
 import app.hexavore.integration.ai.ConfiguredRecognizer
-import app.hexavore.integration.ai.DEEP_PROMPT_ASSET
-import app.hexavore.integration.ai.ESTIMATE_PROMPT_ASSET
-import app.hexavore.integration.ai.EXTRACT_PROMPT_ASSET
 import app.hexavore.integration.ai.GeminiRecognizer
 import app.hexavore.integration.ai.OpenAiCompatibleRecognizer
+import app.hexavore.integration.ai.ProviderRecognizers
 import app.hexavore.integration.ai.SystemPrompt
+import app.hexavore.integration.ai.deepPromptAsset
+import app.hexavore.integration.ai.estimatePromptAsset
+import app.hexavore.integration.ai.extractPromptAsset
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -49,19 +51,20 @@ internal object AiModule {
     @Provides
     @Singleton
     @Named(EXTRACT_PROMPT)
-    fun systemPrompt(@ApplicationContext context: Context): SystemPrompt =
-        AssetSystemPrompt(context, EXTRACT_PROMPT_ASSET)
+    fun systemPrompt(@ApplicationContext context: Context, languages: ContentLanguages): SystemPrompt =
+        AssetSystemPrompt(context, languages, ::extractPromptAsset)
 
     @Provides
     @Singleton
     @Named(ESTIMATE_PROMPT)
-    fun estimatePrompt(@ApplicationContext context: Context): SystemPrompt =
-        AssetSystemPrompt(context, ESTIMATE_PROMPT_ASSET)
+    fun estimatePrompt(@ApplicationContext context: Context, languages: ContentLanguages): SystemPrompt =
+        AssetSystemPrompt(context, languages, ::estimatePromptAsset)
 
     @Provides
     @Singleton
     @Named(DEEP_PROMPT)
-    fun deepPrompt(@ApplicationContext context: Context): SystemPrompt = AssetSystemPrompt(context, DEEP_PROMPT_ASSET)
+    fun deepPrompt(@ApplicationContext context: Context, languages: ContentLanguages): SystemPrompt =
+        AssetSystemPrompt(context, languages, ::deepPromptAsset)
 
     /**
      * Les trois prompts, en un objet.
@@ -88,6 +91,7 @@ internal object AiModule {
     @Singleton
     fun configured(
         settings: AiSettings,
+        languages: ContentLanguages,
         usage: AiUsageLog,
         catalogue: CatalogueTool,
         apis: AiApis,
@@ -95,14 +99,17 @@ internal object AiModule {
         dispatchers: DispatcherProvider,
     ): ConfiguredRecognizer = ConfiguredRecognizer(
         settings = settings,
+        languages = languages,
         usage = usage,
         catalogue = catalogue,
-        anthropic = AnthropicRecognizer(apis.anthropic, prompts, dispatchers),
-        gemini = GeminiRecognizer(apis.gemini, prompts, dispatchers),
-        // Deux instances d'une meme classe, et la difference tient en un booleen :
-        // OpenAI prend un schema complet, les trois autres ne promettent que du JSON.
-        openAi = openAiLike(apis, prompts, dispatchers, strictSchema = true),
-        compatible = openAiLike(apis, prompts, dispatchers, strictSchema = false),
+        providers = ProviderRecognizers(
+            anthropic = AnthropicRecognizer(apis.anthropic, prompts, dispatchers),
+            gemini = GeminiRecognizer(apis.gemini, prompts, dispatchers),
+            // Deux instances d'une meme classe, et la difference tient en un booleen :
+            // OpenAI prend un schema complet, les trois autres ne promettent que du JSON.
+            openAi = openAiLike(apis, prompts, dispatchers, strictSchema = true),
+            compatible = openAiLike(apis, prompts, dispatchers, strictSchema = false),
+        ),
     )
 
     /**

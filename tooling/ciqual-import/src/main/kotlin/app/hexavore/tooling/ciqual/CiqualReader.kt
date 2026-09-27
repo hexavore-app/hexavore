@@ -1,6 +1,7 @@
 package app.hexavore.tooling.ciqual
 
 import app.hexavore.domain.food.FoodCategory
+import app.hexavore.domain.language.ContentLanguage
 
 /** Une teneur dont l'écriture n'est reconnue par aucune règle du parseur. */
 internal data class UnrecognisedValue(val foodCode: String, val constCode: String, val raw: String) {
@@ -21,8 +22,12 @@ internal data class CiqualTable(val foods: List<CiqualFood>, val unrecognised: L
 internal class CiqualReader(private val archive: CiqualArchive) {
     fun read(): CiqualTable {
         verifyConstituents()
-        val groups = readGroups()
-        verifyCategories(groups)
+        val groups = ContentLanguage.entries.associateWith { readGroups(it) }
+        // La verification porte sur les codes et leurs intitules francais : c'est dans
+        // cette langue que CiqualCategories declare ses 45 arbitrages, et une table de
+        // correspondance ne se controle que contre la langue dans laquelle elle a ete
+        // ecrite.
+        verifyCategories(groups.getValue(ContentLanguage.FRENCH))
         val names = readFoods(groups)
         val (nutrients, unrecognised) = readCompositions(names.keys)
 
@@ -30,8 +35,7 @@ internal class CiqualReader(private val archive: CiqualArchive) {
             names.map { (code, identity) ->
                 CiqualFood(
                     code = code,
-                    name = identity.name,
-                    groupName = identity.groupName,
+                    labels = identity.labels,
                     category = identity.category,
                     nutrients = nutrients[code].orEmpty(),
                 )
@@ -78,11 +82,12 @@ internal class CiqualReader(private val archive: CiqualArchive) {
      * homonymes. Le groupe sert de repli pour les aliments qui n'ont pas de
      * sous-groupe renseigné.
      */
-    private fun readGroups(): Map<String, String> {
+    private fun readGroups(language: ContentLanguage): Map<String, String> {
+        val field = language.field
         val names = mutableMapOf<String, String>()
         archive.groups { record ->
-            record["alim_grp_code"]?.let { names.putIfAbsent(it, record["alim_grp_nom_fr"].orEmpty()) }
-            record["alim_ssgrp_code"]?.let { names.putIfAbsent(it, record["alim_ssgrp_nom_fr"].orEmpty()) }
+            record["alim_grp_code"]?.let { names.putIfAbsent(it, record["alim_grp_nom_$field"].orEmpty()) }
+            record["alim_ssgrp_code"]?.let { names.putIfAbsent(it, record["alim_ssgrp_nom_$field"].orEmpty()) }
         }
         return names.filterValues { it.isNotBlank() && it != "-" }
     }
@@ -122,22 +127,58 @@ internal class CiqualReader(private val archive: CiqualArchive) {
         )
     }
 
-    private fun readFoods(groups: Map<String, String>): Map<String, FoodIdentity> {
-        val identities = linkedMapOf<String, FoodIdentity>()
+    /**
+     * Les identités, une passe par langue.
+     *
+     * **Une fiche n'entre que si elle est nommée dans toutes les langues.** Un libellé
+     * manquant dans l'une d'elles rendrait l'aliment introuvable pour qui affiche cette
+     * langue, et introuvable en silence : la recherche ne rendrait rien, et rien ne
+     * dirait pourquoi. L'ANSES nomme ses 3 484 lignes dans les deux, donc le cas
+     * n'arrive pas — et c'est justement pour qu'il ne s'installe pas sans bruit le jour
+     * où elle en oublierait une que la condition est écrite.
+     */
+    private fun readFoods(groups: Map<ContentLanguage, Map<String, String>>): Map<String, FoodIdentity> {
+        val labels = ContentLanguage.entries.associateWith { language ->
+            readLabels(language, groups.getValue(language))
+        }
+        val categories = readCategories()
+        val named = labels.values.map { it.keys }.reduce { shared, next -> shared intersect next }
+
+        return categories
+            .filterKeys { it in named }
+            .mapValues { (code, category) ->
+                FoodIdentity(
+                    labels = labels.mapValues { (_, byCode) -> byCode.getValue(code) },
+                    category = category,
+                )
+            }
+    }
+
+    private fun readLabels(language: ContentLanguage, groups: Map<String, String>): Map<String, CiqualLabel> {
+        val field = language.field
+        val labels = linkedMapOf<String, CiqualLabel>()
         archive.foods { record ->
             val code = record["alim_code"].orEmpty()
-            val name = record["alim_nom_fr"].orEmpty()
+            val name = record["alim_nom_$field"].orEmpty()
             if (code.isBlank() || name.isBlank()) return@foods
-            val subGroup = record["alim_ssgrp_code"]
-            val group = record["alim_grp_code"]
-            identities[code] =
-                FoodIdentity(
+            labels[code] =
+                CiqualLabel(
                     name = name,
-                    groupName = groups[subGroup] ?: groups[group],
-                    category = CiqualCategories.of(subGroup, group),
+                    groupName = groups[record["alim_ssgrp_code"]] ?: groups[record["alim_grp_code"]],
                 )
         }
-        return identities
+        return labels
+    }
+
+    /** Le rayon de chaque aliment : il ne dépend d'aucune langue, seulement des codes. */
+    private fun readCategories(): Map<String, FoodCategory?> {
+        val categories = linkedMapOf<String, FoodCategory?>()
+        archive.foods { record ->
+            val code = record["alim_code"].orEmpty()
+            if (code.isBlank()) return@foods
+            categories[code] = CiqualCategories.of(record["alim_ssgrp_code"], record["alim_grp_code"])
+        }
+        return categories
     }
 
     /**
@@ -168,5 +209,19 @@ internal class CiqualReader(private val archive: CiqualArchive) {
         return values to unrecognised
     }
 
-    private data class FoodIdentity(val name: String, val groupName: String?, val category: FoodCategory?)
+    private data class FoodIdentity(val labels: Map<ContentLanguage, CiqualLabel>, val category: FoodCategory?)
 }
+
+/**
+ * Le suffixe sous lequel l'ANSES publie cette langue.
+ *
+ * `alim_nom_fr` mais `alim_nom_eng` : trois lettres d'un côté, deux de l'autre, et c'est
+ * l'ANSES qui en décide. Le `when` est exhaustif pour que l'ajout d'une langue au domaine
+ * **ne compile pas** tant que personne n'a vérifié que la table la publie : c'est la
+ * seule chose qu'on ne peut pas décider depuis ce dépôt, et la plus facile à supposer.
+ */
+private val ContentLanguage.field: String
+    get() = when (this) {
+        ContentLanguage.FRENCH -> "fr"
+        ContentLanguage.ENGLISH -> "eng"
+    }

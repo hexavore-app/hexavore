@@ -1,6 +1,7 @@
 package app.hexavore.tooling.ciqual
 
 import app.hexavore.domain.food.FoodCategory
+import app.hexavore.domain.language.ContentLanguage
 import app.hexavore.domain.nutrition.Macro
 
 /**
@@ -48,15 +49,36 @@ enum class Nutrient(val constCode: String, val column: String, val expectedLabel
     }
 }
 
+/**
+ * Comment un aliment se nomme dans une langue : son libellé, et le rayon de l'ANSES.
+ *
+ * **Les deux ensemble parce que les deux se traduisent ensemble.** L'ANSES publie
+ * `alim_nom_fr` et `alim_nom_eng`, `alim_ssgrp_nom_fr` et `alim_ssgrp_nom_eng` : ce sont
+ * deux vues de la même ligne, pas deux données. Les séparer aurait laissé un aliment
+ * nommé en anglais sous un rayon écrit en français.
+ */
+data class CiqualLabel(val name: String, val groupName: String?)
+
 /** Un aliment CIQUAL, une fois ses teneurs lues et interprétées. */
 data class CiqualFood(
     val code: String,
-    val name: String,
-    val groupName: String?,
+    /**
+     * Le libellé par langue, tel que l'ANSES le publie.
+     *
+     * **Une carte et non deux champs**, et c'est ce qui fait qu'une troisième langue
+     * n'est que de la donnée : rien ici ne nomme le français ni l'anglais. Toutes les
+     * langues de [ContentLanguage] y sont présentes, et l'import échoue si l'une manque
+     * — un aliment sans nom dans la langue qu'on affiche serait introuvable, et
+     * silencieusement.
+     */
+    val labels: Map<ContentLanguage, CiqualLabel>,
     /** Le rayon du bandeau de recherche, ou `null` s'il n'entre dans aucun. */
     val category: FoodCategory?,
     val nutrients: Map<Nutrient, Double>,
 ) {
+    /** Le libellé dans une langue. Absent, c'est un défaut d'import et non un cas. */
+    fun label(language: ContentLanguage): CiqualLabel = labels.getValue(language)
+
     /**
      * Une teneur, ou `null` si l'ANSES ne l'a pas déterminée.
      *
@@ -67,8 +89,21 @@ data class CiqualFood(
     operator fun get(nutrient: Nutrient): Double? = nutrients[nutrient]
 }
 
-/** Une portion usuelle, lue dans `servings.csv`. */
-data class CiqualServing(val code: String, val label: String, val grams: Double, val isDefault: Boolean)
+/**
+ * Une portion usuelle, lue dans `servings.csv`.
+ *
+ * **Un poids et plusieurs libellés, jamais l'inverse.** « 1 pomme moyenne » et « 1 medium
+ * apple » désignent la même portion de 150 g : une ligne par langue aurait permis aux
+ * deux de dériver, et personne n'aurait su laquelle des deux fait foi.
+ */
+data class CiqualServing(
+    val code: String,
+    val labels: Map<ContentLanguage, String>,
+    val grams: Double,
+    val isDefault: Boolean,
+) {
+    fun label(language: ContentLanguage): String = labels.getValue(language)
+}
 
 /**
  * La colonne CIQUAL que chacun des six compteurs de l'application désigne.

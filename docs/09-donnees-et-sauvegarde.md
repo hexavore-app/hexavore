@@ -214,6 +214,8 @@ Déclaration prévue, cohérente avec ce qui précède :
 
 ### Politique de confidentialité
 
+**La langue ne voyage pas non plus**, et pour une raison de plus que le thème : ce n'est même pas nous qui la détenons. C'est la plateforme qui applique une langue et, depuis Android 13, qui la retient ; notre fichier de préférences n'en garde qu'un cahier de rappel pour les versions plus anciennes ([D129](11-decisions.md#d129--langlais-est-le-repli-le-français-une-traduction-et-la-langue-est-une-donnée---validée)).
+
 Obligatoire pour le Play Store, pour toute application, même une qui ne collecte rien — avec un lien dans la console **et** dans l'application. ~~Un fichier Markdown dans le dépôt, publié via GitHub Pages~~ **Deux fichiers Markdown dans ce dépôt, [`confidentialite/fr.md`](../confidentialite/fr.md) et [`confidentialite/en.md`](../confidentialite/en.md), publiés par le site `hexavore-app/hexavore-site`** ([D124](11-decisions.md#d124--la-politique-de-confidentialité-vit-à-côté-du-code-et-le-site-ailleurs---validée)), rédigés dans la même langue que le reste : courte, factuelle, sans clause décorative. Elle dit ce que le tableau ci-dessus dit, et rien de plus.
 
 **Elle change dans le même PR que le flux qu'elle décrit.** C'est pour ça qu'elle vit ici et non dans le dépôt du site : un flux ajouté sans elle la rend fausse, et une politique fausse ment avec autorité à ceux qui la lisent. Un workflow demande au site de se republier dès qu'elle change sur `main`.

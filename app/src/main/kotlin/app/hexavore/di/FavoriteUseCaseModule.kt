@@ -7,6 +7,7 @@ import app.hexavore.domain.diary.FavoriteDishes
 import app.hexavore.domain.food.FoodLookup
 import app.hexavore.domain.food.FoodSearch
 import app.hexavore.domain.identity.IdGenerator
+import app.hexavore.domain.language.ContentLanguages
 import app.hexavore.domain.usecase.AddFoodLine
 import app.hexavore.domain.usecase.CreateDraft
 import app.hexavore.domain.usecase.GetDishDraft
@@ -63,10 +64,12 @@ object FavoriteUseCaseModule {
         resolve: ResolveFoodLabel,
         create: CreateDraft,
         estimate: NutritionEstimator,
-    ): ResolveRecognition = ResolveRecognition(resolve, create, estimate)
+        languages: ContentLanguages,
+    ): ResolveRecognition = ResolveRecognition(resolve, create, estimate, languages)
 
     @Provides
-    fun resolveFoodLabel(foods: FoodSearch): ResolveFoodLabel = ResolveFoodLabel(foods)
+    fun resolveFoodLabel(foods: FoodSearch, languages: ContentLanguages): ResolveFoodLabel =
+        ResolveFoodLabel(foods, languages)
 
     @Provides
     fun addFoodLine(foods: FoodLookup, create: CreateDraft): AddFoodLine = AddFoodLine(foods, create)

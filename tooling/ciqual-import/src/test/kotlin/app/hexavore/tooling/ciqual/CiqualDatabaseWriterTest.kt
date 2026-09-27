@@ -2,6 +2,7 @@ package app.hexavore.tooling.ciqual
 
 import app.hexavore.domain.food.FoodCategory
 import app.hexavore.domain.food.SearchText
+import app.hexavore.domain.language.ContentLanguage
 import app.hexavore.domain.nutrition.Macro
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -83,8 +84,8 @@ class CiqualDatabaseWriterTest {
     fun `les portions suivent leur aliment`() {
         val servings =
             listOf(
-                CiqualServing("13039", "1 pomme moyenne", grams = 150.0, isDefault = true),
-                CiqualServing("13039", "1 quartier", grams = 40.0, isDefault = false),
+                ciqualServing("13039", "1 pomme moyenne", grams = 150.0, isDefault = true),
+                ciqualServing("13039", "1 quartier", grams = 40.0, isDefault = false),
             )
 
         write(foods = listOf(POMME), servings = servings).use { connection ->
@@ -209,6 +210,81 @@ class CiqualDatabaseWriterTest {
 
     // --- Outillage ------------------------------------------------------------
 
+    // ===== Deux langues ========================================================
+
+    @Test
+    fun `une fiche porte une ligne par langue, et un seul jeu de teneurs`() {
+        write(POMME).use { connection ->
+            assertEquals("Pomme, chair et peau, crue", connection.name("13039", FR))
+            assertEquals("Apple, flesh and skin, raw", connection.name("13039", EN))
+            // Un seul jeu de teneurs pour les deux : c'est ce que la separation des deux
+            // tables garantit, et une colonne par langue ne l'aurait pas garanti.
+            assertEquals(1, connection.count("ciqual_food"))
+            assertEquals(2, connection.count("ciqual_name"))
+        }
+    }
+
+    @Test
+    fun `un mot anglais ne trouve que la ligne anglaise`() {
+        // Le defaut que la clause `language` evite : l'index est commun, donc sans elle
+        // « apple » rendrait aussi la ligne francaise, et la liste montrerait deux fois le
+        // meme aliment.
+        write(POMME, CREME).use { connection ->
+            assertEquals(listOf("Apple, flesh and skin, raw"), connection.search("apple", EN))
+            assertTrue(connection.search("apple", FR).isEmpty(), "aucune ligne francaise ne dit apple")
+            assertEquals(listOf("Pomme, chair et peau, crue"), connection.search("pomme", FR))
+            assertTrue(connection.search("pomme", EN).isEmpty(), "aucune ligne anglaise ne dit pomme")
+        }
+    }
+
+    @Test
+    fun `le rayon vaut pour les deux langues, le parcours le rend dans chacune`() {
+        write(POMME).use { connection ->
+            assertEquals(listOf("Pomme, chair et peau, crue"), connection.browse("FRUITS", FR))
+            assertEquals(listOf("Apple, flesh and skin, raw"), connection.browse("FRUITS", EN))
+        }
+    }
+
+    @Test
+    fun `une portion a un poids et deux libelles`() {
+        val portions = listOf(
+            ciqualServing("13039", "1 pomme moyenne", grams = 150.0, isDefault = true, englishLabel = "1 medium apple"),
+        )
+
+        write(foods = listOf(POMME), servings = portions).use { connection ->
+            assertEquals(listOf("1 pomme moyenne" to true), connection.servings("13039", FR))
+            assertEquals(listOf("1 medium apple" to true), connection.servings("13039", EN))
+        }
+    }
+
+    @Test
+    fun `un titre court ecrit en francais ne s attache pas a la ligne anglaise`() {
+        // La passe de raccourcissement n'a tourne qu'en francais. Attacher son resultat aux
+        // deux langues aurait fait apparaitre « Pomme crue » sous un libelle anglais.
+        val titres = listOf(CiqualShortName("13039", "Pomme crue"))
+
+        write(foods = listOf(POMME), shortNames = titres).use { connection ->
+            assertEquals("Pomme crue", connection.shortName("13039", FR))
+            assertNull(connection.shortName("13039", EN), "aucun titre anglais n'a ete ecrit")
+        }
+    }
+
+    @Test
+    fun `le rayon de l ANSES est traduit avec le libelle`() {
+        write(POMME).use { connection ->
+            assertEquals("fruits", connection.groupName("13039", FR))
+            assertEquals("fruits", connection.groupName("13039", EN))
+        }
+    }
+
+    private fun Connection.count(table: String): Int =
+        prepareStatement("SELECT COUNT(*) FROM $table").use { statement ->
+            statement.executeQuery().use { rows ->
+                rows.next()
+                rows.getInt(1)
+            }
+        }
+
     private fun write(vararg foods: CiqualFood): Connection = write(foods.toList(), emptyList())
 
     private fun write(
@@ -218,18 +294,33 @@ class CiqualDatabaseWriterTest {
         completions: List<CiqualCompletion> = emptyList(),
     ): Connection {
         val file = File(directory.toFile(), "ciqual.db")
-        CiqualDatabaseWriter(file).write(foods, servings, shortNames, completions)
+        // Les titres courts passes sont ceux du francais : c'est la langue des decors de
+        // ce fichier, et la seule dont la passe a reellement tourne.
+        CiqualDatabaseWriter(file).write(
+            foods,
+            servings,
+            mapOf(ContentLanguage.FRENCH to shortNames),
+            completions,
+        )
         return DriverManager.getConnection("jdbc:sqlite:${file.absolutePath}")
     }
 
-    private fun Connection.search(query: String): List<String> {
+    /**
+     * La recherche, dans une langue.
+     *
+     * **L'index est commun aux deux langues**, donc la clause `language` n'est pas
+     * decorative : sans elle, chercher « apple » rendrait aussi la ligne francaise de la
+     * pomme, et une liste de resultats montrerait deux fois le meme aliment.
+     */
+    private fun Connection.search(query: String, language: ContentLanguage = FR): List<String> {
         val sql =
             """
-            SELECT f.name FROM ciqual_fts x JOIN ciqual_food f ON f.rowid = x.docid
-            WHERE x.name_search MATCH ? ORDER BY f.code
+            SELECT n.name FROM ciqual_fts x JOIN ciqual_name n ON n.rowid = x.docid
+            WHERE x.name_search MATCH ? AND n.language = ? ORDER BY n.code
             """.trimIndent()
         return prepareStatement(sql).use { statement ->
             statement.setString(1, SearchText.normalise(query))
+            statement.setString(2, language.tag)
             statement.executeQuery().use { rows ->
                 generateSequence { rows.takeIf { it.next() }?.getString(1) }.toList()
             }
@@ -255,14 +346,9 @@ class CiqualDatabaseWriterTest {
             }
         }
 
-    private fun Connection.category(code: String): String? = textColumn("category", code)
-
-    private fun Connection.shortName(code: String): String? = textColumn("short_name", code)
-
-    private fun Connection.name(code: String): String? = textColumn("name", code)
-
-    private fun Connection.textColumn(column: String, code: String): String? =
-        prepareStatement("SELECT $column FROM ciqual_food WHERE code = ?").use { statement ->
+    /** Le rayon ne depend d'aucune langue : il reste sur `ciqual_food`. */
+    private fun Connection.category(code: String): String? =
+        prepareStatement("SELECT category FROM ciqual_food WHERE code = ?").use { statement ->
             statement.setString(1, code)
             statement.executeQuery().use { rows ->
                 rows.next()
@@ -270,29 +356,63 @@ class CiqualDatabaseWriterTest {
             }
         }
 
-    private fun Connection.browse(category: String): List<String> =
-        prepareStatement("SELECT name FROM ciqual_food WHERE category = ? ORDER BY code").use { statement ->
+    private fun Connection.shortName(code: String, language: ContentLanguage = FR): String? =
+        localisedColumn("short_name", code, language)
+
+    private fun Connection.name(code: String, language: ContentLanguage = FR): String? =
+        localisedColumn("name", code, language)
+
+    private fun Connection.groupName(code: String, language: ContentLanguage = FR): String? =
+        localisedColumn("group_name", code, language)
+
+    private fun Connection.localisedColumn(column: String, code: String, language: ContentLanguage): String? =
+        prepareStatement("SELECT $column FROM ciqual_name WHERE code = ? AND language = ?").use { statement ->
+            statement.setString(1, code)
+            statement.setString(2, language.tag)
+            statement.executeQuery().use { rows ->
+                rows.next()
+                rows.getString(1)
+            }
+        }
+
+    private fun Connection.browse(category: String, language: ContentLanguage = FR): List<String> {
+        val sql =
+            """
+            SELECT n.name FROM ciqual_name n JOIN ciqual_food f ON f.code = n.code
+            WHERE f.category = ? AND n.language = ? ORDER BY n.code
+            """.trimIndent()
+        return prepareStatement(sql).use { statement ->
             statement.setString(1, category)
+            statement.setString(2, language.tag)
             statement.executeQuery().use { rows ->
                 generateSequence { rows.takeIf { it.next() }?.getString(1) }.toList()
             }
         }
-
-    private fun Connection.servings(code: String): List<Pair<String, Boolean>> = prepareStatement(
-        "SELECT label, is_default FROM ciqual_serving WHERE code = ? ORDER BY rowid",
-    ).use { statement ->
-        statement.setString(1, code)
-        statement.executeQuery().use { rows ->
-            generateSequence { rows.takeIf { it.next() }?.let { it.getString(1) to (it.getInt(2) == 1) } }.toList()
-        }
     }
 
+    private fun Connection.servings(code: String, language: ContentLanguage = FR): List<Pair<String, Boolean>> =
+        prepareStatement(
+            "SELECT label, is_default FROM ciqual_serving WHERE code = ? AND language = ? ORDER BY rowid",
+        ).use { statement ->
+            statement.setString(1, code)
+            statement.setString(2, language.tag)
+            statement.executeQuery().use { rows ->
+                generateSequence { rows.takeIf { it.next() }?.let { it.getString(1) to (it.getInt(2) == 1) } }.toList()
+            }
+        }
+
     private companion object {
+        /** Les deux langues du catalogue, nommees court : ces cas les citent beaucoup. */
+        val FR = ContentLanguage.FRENCH
+        val EN = ContentLanguage.ENGLISH
+
         val POMME =
-            CiqualFood(
+            ciqualFood(
                 code = "13039",
                 name = "Pomme, chair et peau, crue",
+                englishName = "Apple, flesh and skin, raw",
                 groupName = "fruits",
+                englishGroupName = "fruits",
                 category = FoodCategory.FRUITS,
                 // Pas de fibres : l'inconnu est l'absence de cle, pas une valeur.
                 // Les lipides, eux, sont mesures a zero.
@@ -300,7 +420,7 @@ class CiqualDatabaseWriterTest {
             )
 
         val CREME =
-            CiqualFood(
+            ciqualFood(
                 code = "39213",
                 name = "Crème brûlée",
                 groupName = "desserts",
@@ -310,7 +430,7 @@ class CiqualDatabaseWriterTest {
 
         /** Sans rayon : toutes les fiches n'en ont pas, et la colonne doit rester nulle. */
         val THE =
-            CiqualFood(
+            ciqualFood(
                 code = "18066",
                 name = "Thé infusé",
                 groupName = "boissons",

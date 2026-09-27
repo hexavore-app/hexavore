@@ -2,6 +2,7 @@ package app.hexavore.di
 
 import app.hexavore.domain.ai.CatalogueTool
 import app.hexavore.domain.food.FoodSearch
+import app.hexavore.domain.language.ContentLanguages
 import app.hexavore.domain.usecase.LookUpCandidates
 import dagger.Module
 import dagger.Provides
@@ -19,5 +20,6 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 object ToolingModule {
     @Provides
-    fun catalogueTool(foods: FoodSearch): CatalogueTool = LookUpCandidates(foods)
+    fun catalogueTool(foods: FoodSearch, languages: ContentLanguages): CatalogueTool =
+        LookUpCandidates(foods, languages)
 }

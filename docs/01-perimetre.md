@@ -93,4 +93,5 @@ Formulés pour être vérifiables, pas pour faire joli.
 - **minSdk 26** (Android 8.0, août 2017). Couvre ~99 % du parc actif et évite le désendettement de compatibilité que traînent les API 21-25 (`java.time`, notifications, Keystore).
 - **targetSdk 36** (Android 16). Ce n'est pas un confort : le Play Store l'exige d'une nouvelle application depuis le 31 août 2026, et un bundle qui vise moins est refusé ([D128](11-decisions.md)).
 - Orientation portrait uniquement en v1 ; le paysage n'est pas bloqué mais n'est pas optimisé.
-- Français et anglais. La langue suit le système, forçable dans les réglages.
+- Français et anglais, **livrés** ([D129](11-decisions.md#d129--langlais-est-le-repli-le-français-une-traduction-et-la-langue-est-une-donnée---validée)). **L'anglais est le repli** : c'est lui qu'un appareil réglé dans une langue que l'application ne parle pas reçoit, parce que c'est lui qui occupe le `values/` sans qualificatif. La langue suit le système — la liste entière et dans son ordre, pas seulement sa première entrée — et se force dans *Apparence*.
+- **Les noms d'aliments suivent.** La table de l'ANSES publie ses 3 484 libellés dans les deux langues, et le catalogue embarqué les porte tous les deux : une interface anglaise devant des noms français serait une traduction à moitié faite.

@@ -35,12 +35,14 @@ dependencies {
 // Les chemins sont resolus ici, en configuration, et passes en chaines. Une lambda
 // qui les resoudrait a l'execution capturerait l'objet du script, que le cache de
 // configuration ne sait pas serialiser.
+//
+// **Le dossier et non ses fichiers.** Il y a un fichier de titres courts par langue,
+// et les langues sont declarees dans `ContentLanguage` -- que ce script ne peut pas
+// lire. Les enumerer ici les aurait fait vivre a deux endroits, et une langue ajoutee
+// au domaine aurait laisse son fichier hors des entrees de la tache : Gradle l'aurait
+// declaree a jour, et la nouvelle langue serait sortie sans ses titres courts.
 
-val sourceArchive = layout.projectDirectory.file("../ciqual/ciqual-2025-11-03-xml.zip").asFile
-val servingsTable = layout.projectDirectory.file("../ciqual/servings.csv").asFile
-val shortNamesTable = layout.projectDirectory.file("../ciqual/short-names.csv").asFile
-val completionsTable = layout.projectDirectory.file("../ciqual/completions.csv").asFile
-val sourceChecksums = layout.projectDirectory.file("../ciqual/SOURCE.sha256").asFile
+val catalogueDirectory = layout.projectDirectory.dir("../ciqual").asFile
 val generatedDatabase = rootProject.layout.projectDirectory.file("core/database/src/main/assets/ciqual.db").asFile
 
 tasks.register<JavaExec>("importCiqual") {
@@ -50,17 +52,10 @@ tasks.register<JavaExec>("importCiqual") {
     classpath = sourceSets["main"].runtimeClasspath
     mainClass.set("app.hexavore.tooling.ciqual.CiqualImportKt")
 
-    inputs.files(sourceArchive, servingsTable, shortNamesTable, completionsTable, sourceChecksums)
+    inputs.dir(catalogueDirectory)
     outputs.file(generatedDatabase)
 
-    args(
-        sourceArchive.absolutePath,
-        servingsTable.absolutePath,
-        shortNamesTable.absolutePath,
-        completionsTable.absolutePath,
-        sourceChecksums.absolutePath,
-        generatedDatabase.absolutePath,
-    )
+    args(catalogueDirectory.absolutePath, generatedDatabase.absolutePath)
 }
 
 // --- La tache des titres courts ----------------------------------------------
@@ -73,21 +68,25 @@ tasks.register<JavaExec>("importCiqual") {
 // La cle vient de la ligne de commande et n'est ni lue d'un fichier, ni ecrite dans
 // un fichier, ni conservee. Elle appartient a l'utilisateur.
 //
-//   ./gradlew generateShortNames -PanthropicApiKey=... [-PcatalogueModel=...]
+// La langue se nomme, et vaut le francais par defaut : c'est la passe qui a tourne, et
+// celle qu'on reprend quand l'ANSES republie.
+//
+//   ./gradlew generateShortNames -PanthropicApiKey=... [-Planguage=en] [-PcatalogueModel=...]
 
 val catalogueModel = providers.gradleProperty("catalogueModel").getOrElse("claude-opus-5")
 val anthropicApiKey = providers.gradleProperty("anthropicApiKey").getOrElse("")
+val catalogueLanguage = providers.gradleProperty("language").getOrElse("fr")
 
 tasks.register<JavaExec>("generateShortNames") {
     group = LifecycleBasePlugin.BUILD_GROUP
-    description = "Ecrit tooling/ciqual/short-names.csv. Demande -PanthropicApiKey=... et depense."
+    description = "Ecrit tooling/ciqual/short-names-<langue>.csv. Demande -PanthropicApiKey=... et depense."
 
     classpath = sourceSets["main"].runtimeClasspath
     mainClass.set("app.hexavore.tooling.ciqual.GenerateShortNamesKt")
 
     args(
-        sourceArchive.absolutePath,
-        shortNamesTable.absolutePath,
+        catalogueDirectory.absolutePath,
+        catalogueLanguage,
         catalogueModel,
         anthropicApiKey,
     )
@@ -109,8 +108,7 @@ tasks.register<JavaExec>("generateCompletions") {
     mainClass.set("app.hexavore.tooling.ciqual.GenerateCompletionsKt")
 
     args(
-        sourceArchive.absolutePath,
-        completionsTable.absolutePath,
+        catalogueDirectory.absolutePath,
         catalogueModel,
         anthropicApiKey,
     )

@@ -3,6 +3,7 @@ package app.hexavore.domain.resolution
 import app.hexavore.domain.ai.EstimatedUnit
 import app.hexavore.domain.food.Food
 import app.hexavore.domain.food.SearchText
+import app.hexavore.domain.language.ContentLanguage
 
 /**
  * Des grammes, à partir de ce que le modèle a estimé.
@@ -38,11 +39,12 @@ import app.hexavore.domain.food.SearchText
 fun convertToGrams(
     quantity: Double,
     unit: EstimatedUnit,
+    language: ContentLanguage,
     food: Food? = null,
     density: Double? = null,
     estimated: Double? = null,
 ): ConvertedQuantity {
-    val perUnit = gramsPerUnit(unit, food, density)
+    val perUnit = gramsPerUnit(unit, language, food, density)
 
     // Il reste une estimation -- il n'a rien pesé -- mais une estimation informée, et
     // elle ne remplace jamais qu'un forfait.
@@ -63,16 +65,24 @@ fun convertToGrams(
  * d'en attendre une : une assiette n'est pas une propriété de l'aliment, donc
  * aucune fiche ne peut la mesurer.
  */
-private fun gramsPerUnit(unit: EstimatedUnit, food: Food?, density: Double?): ConvertedQuantity = when (unit) {
-    EstimatedUnit.G -> known(ONE_GRAM)
-    EstimatedUnit.ML -> density?.let(::known) ?: guessed(DEFAULT_DENSITY)
-    EstimatedUnit.PIECE -> food.pieceWeight()
-    EstimatedUnit.SLICE -> food.portionOr(SLICE_LABEL, DEFAULT_SLICE_G)
-    EstimatedUnit.TBSP -> food.portionOr(TBSP_LABEL, DEFAULT_TBSP_G * densityOr(density))
-    EstimatedUnit.TSP -> food.portionOr(TSP_LABEL, DEFAULT_TSP_G * densityOr(density))
-    EstimatedUnit.BOWL -> food.portionOr(BOWL_LABEL, DEFAULT_BOWL_G)
-    EstimatedUnit.PLATE -> guessed(DEFAULT_PLATE_G)
-    EstimatedUnit.GLASS -> food.portionOr(GLASS_LABEL, DEFAULT_GLASS_G * densityOr(density))
+private fun gramsPerUnit(
+    unit: EstimatedUnit,
+    language: ContentLanguage,
+    food: Food?,
+    density: Double?,
+): ConvertedQuantity {
+    val words = language.portionWords
+    return when (unit) {
+        EstimatedUnit.G -> known(ONE_GRAM)
+        EstimatedUnit.ML -> density?.let(::known) ?: guessed(DEFAULT_DENSITY)
+        EstimatedUnit.PIECE -> food.pieceWeight()
+        EstimatedUnit.SLICE -> food.portionOr(words.slice, DEFAULT_SLICE_G)
+        EstimatedUnit.TBSP -> food.portionOr(words.tablespoon, DEFAULT_TBSP_G * densityOr(density))
+        EstimatedUnit.TSP -> food.portionOr(words.teaspoon, DEFAULT_TSP_G * densityOr(density))
+        EstimatedUnit.BOWL -> food.portionOr(words.bowl, DEFAULT_BOWL_G)
+        EstimatedUnit.PLATE -> guessed(DEFAULT_PLATE_G)
+        EstimatedUnit.GLASS -> food.portionOr(words.glass, DEFAULT_GLASS_G * densityOr(density))
+    }
 }
 
 /**
@@ -126,9 +136,56 @@ private const val DEFAULT_BOWL_G = 250.0
 private const val DEFAULT_PLATE_G = 350.0
 private const val DEFAULT_GLASS_G = 200.0
 
+/**
+ * Les cinq mots qu'une portion de fiche peut nommer, dans la langue de la table.
+ *
+ * **Ce ne sont pas des libellés d'interface, et c'est tout ce qu'il faut comprendre
+ * ici.** Personne ne les lit : ils sont comparés à la colonne `label` de
+ * `ciqual_serving`, c'est-à-dire à de la **donnée**. Ils suivent donc la langue du
+ * catalogue — celle dans laquelle `servings.csv` a écrit ses portions — et non celle
+ * des écrans, qui pourrait en différer le temps d'un redémarrage.
+ */
+private data class PortionWords(
+    val slice: String,
+    val tablespoon: String,
+    val teaspoon: String,
+    val bowl: String,
+    val glass: String,
+)
+
+/**
+ * La table par langue, sans branche `else` : une troisième langue ne compile pas tant
+ * qu'elle n'a pas nommé ses cinq portions.
+ */
+private val ContentLanguage.portionWords: PortionWords
+    get() = when (this) {
+        ContentLanguage.FRENCH -> FRENCH_PORTIONS
+        ContentLanguage.ENGLISH -> ENGLISH_PORTIONS
+    }
+
 // Sous leur forme normalisee, celle de l'index de recherche.
-private const val SLICE_LABEL = "tranche"
-private const val TBSP_LABEL = "cuillere a soupe"
-private const val TSP_LABEL = "cuillere a cafe"
-private const val BOWL_LABEL = "bol"
-private const val GLASS_LABEL = "verre"
+private val FRENCH_PORTIONS =
+    PortionWords(
+        slice = "tranche",
+        tablespoon = "cuillere a soupe",
+        teaspoon = "cuillere a cafe",
+        bowl = "bol",
+        glass = "verre",
+    )
+
+/**
+ * Le pendant anglais.
+ *
+ * « tablespoon » et « teaspoon » en un mot, comme `servings.csv` les écrit : la
+ * comparaison porte sur le mot entier, et « spoon » seul confondrait les deux
+ * cuillères — c'est exactement le défaut que la version française évite en cherchant
+ * « cuillere a soupe » plutôt que « cuillere ».
+ */
+private val ENGLISH_PORTIONS =
+    PortionWords(
+        slice = "slice",
+        tablespoon = "tablespoon",
+        teaspoon = "teaspoon",
+        bowl = "bowl",
+        glass = "glass",
+    )

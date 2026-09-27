@@ -1,6 +1,7 @@
 package app.hexavore.tooling.ciqual
 
 import app.hexavore.domain.food.SearchText
+import app.hexavore.domain.language.ContentLanguage
 import app.hexavore.domain.nutrition.Macro
 import java.io.File
 import java.sql.Connection
@@ -16,13 +17,21 @@ import java.sql.Types
  * cérémonie — contrairement à `hexavore.db`, où la moindre colonne demande une
  * migration et son test.
  *
+ * **La langue est une ligne, jamais une colonne.** Les libellés vivent dans
+ * `ciqual_name`, une ligne par aliment et par langue, et les portions portent la même
+ * colonne `language`. Une paire `name_fr` / `name_en` aurait marché aussi — et aurait
+ * fait qu'ajouter une troisième langue change le schéma, le nombre de colonnes liées,
+ * l'ordre des `?` et la révision du fichier. Ici, une langue de plus n'est que des
+ * lignes de plus : c'est ce qui rend [ContentLanguage] extensible sans toucher à ce
+ * fichier.
+ *
  * [modele]: docs/07-modele-de-donnees.md
  */
 internal class CiqualDatabaseWriter(private val target: File) {
     fun write(
         foods: List<CiqualFood>,
         servings: List<CiqualServing>,
-        shortNames: List<CiqualShortName>,
+        shortNames: Map<ContentLanguage, List<CiqualShortName>>,
         completions: List<CiqualCompletion> = emptyList(),
     ) {
         target.parentFile.mkdirs()
@@ -31,10 +40,10 @@ internal class CiqualDatabaseWriter(private val target: File) {
         DriverManager.getConnection("jdbc:sqlite:${target.absolutePath}").use { connection ->
             connection.autoCommit = false
             connection.createSchema()
-            connection.insertFoods(
+            connection.insertFoods(foods, completions.groupBy { it.code })
+            connection.insertNames(
                 foods,
-                shortNames.associate { it.code to it.shortName },
-                completions.groupBy { it.code },
+                shortNames.mapValues { (_, titles) -> titles.associate { it.code to it.shortName } },
             )
             connection.insertServings(servings)
             connection.commit()
@@ -51,31 +60,11 @@ internal class CiqualDatabaseWriter(private val target: File) {
         SCHEMA.forEach(statement::executeUpdate)
     }
 
-    /**
-     * Le `rowid` est attribué **explicitement**, et c'est ce qui relie l'index au
-     * catalogue.
-     *
-     * L'index est sans contenu : il ne stocke que les positions des mots, et rend
-     * un `docid`. Ce `docid` n'a de sens que s'il désigne la même ligne que le
-     * `rowid` de `ciqual_food` — le laisser attribuer par SQLite des deux côtés
-     * marcherait par coïncidence, jusqu'au jour où une insertion échoue au milieu.
-     */
-    private fun Connection.insertFoods(
-        foods: List<CiqualFood>,
-        shortNames: Map<String, String>,
-        completions: Map<String, List<CiqualCompletion>>,
-    ) {
+    /** Ce qui ne dépend d'aucune langue : le code, le rayon, et les teneurs. */
+    private fun Connection.insertFoods(foods: List<CiqualFood>, completions: Map<String, List<CiqualCompletion>>) {
         batch(INSERT_FOOD, foods.withIndex()) { (index, food) ->
             integer(index + 1)
             text(food.code)
-            text(food.name)
-            text(SearchText.normalise(food.name))
-            // `NULL` quand aucun titre court n'a ete ecrit pour ce code, et c'est le
-            // cas courant : un libelle deja lisible n'en recoit pas. L'affichage
-            // retombe alors sur le libelle d'origine, ce qui est le comportement
-            // d'avant cette colonne.
-            text(shortNames[food.code])
-            text(food.groupName)
             // Le nom de l'enumeration du domaine, et non un entier : une
             // renumerotation silencieuse rangerait les poissons dans les desserts,
             // et la base est lue par une version de l'application qui n'est pas
@@ -89,16 +78,67 @@ internal class CiqualDatabaseWriter(private val target: File) {
             val estimated = completions[food.code].orEmpty().associate { it.macro.nutrient to it.value }
             ESTIMATED_NUTRIENTS.forEach { real(estimated[it]) }
         }
-        batch(INSERT_FTS, foods.withIndex()) { (index, food) ->
+    }
+
+    /**
+     * Les libellés, une ligne par aliment et par langue — et l'index qui les trouve.
+     *
+     * Le `rowid` est attribué **explicitement**, et c'est ce qui relie l'index aux
+     * libellés.
+     *
+     * L'index est sans contenu : il ne stocke que les positions des mots, et rend
+     * un `docid`. Ce `docid` n'a de sens que s'il désigne la même ligne que le
+     * `rowid` de `ciqual_name` — le laisser attribuer par SQLite des deux côtés
+     * marcherait par coïncidence, jusqu'au jour où une insertion échoue au milieu.
+     *
+     * **Un seul index pour toutes les langues**, et non un par langue. Un mot anglais
+     * peut donc apparier une ligne anglaise alors qu'on cherche en français : c'est la
+     * clause `language` de la requête qui l'écarte, et elle porte sur une colonne
+     * indexée. Le coût est quelques kilo-octets d'index ; le gain est qu'aucune table
+     * virtuelle ne porte le nom d'une langue.
+     */
+    private fun Connection.insertNames(foods: List<CiqualFood>, shortNames: Map<ContentLanguage, Map<String, String>>) {
+        // Aplati d'abord : le rang doit etre le meme pour la table et pour l'index,
+        // donc les deux parcourent la meme liste et non deux boucles imbriquees.
+        val rows =
+            foods.flatMap { food ->
+                ContentLanguage.entries.map { language ->
+                    Triple(food.code, language, food.label(language))
+                }
+            }
+
+        batch(INSERT_NAME, rows.withIndex()) { (index, row) ->
+            val (code, language, label) = row
             integer(index + 1)
-            text(SearchText.normalise(food.name))
+            text(code)
+            text(language.tag)
+            text(label.name)
+            text(SearchText.normalise(label.name))
+            // `NULL` quand aucun titre court n'a ete ecrit pour ce code dans cette
+            // langue, et c'est le cas courant : un libelle deja lisible n'en recoit
+            // pas, et l'anglais n'a pas encore eu sa passe. L'affichage retombe alors
+            // sur le libelle d'origine, ce qui est le comportement d'avant cette
+            // colonne.
+            text(shortNames[language]?.get(code))
+            text(label.groupName)
+        }
+
+        batch(INSERT_FTS, rows.withIndex()) { (index, row) ->
+            integer(index + 1)
+            text(SearchText.normalise(row.third.name))
         }
     }
 
     private fun Connection.insertServings(servings: List<CiqualServing>) {
-        batch(INSERT_SERVING, servings) { serving ->
+        val rows =
+            servings.flatMap { serving ->
+                ContentLanguage.entries.map { language -> Triple(serving, language, serving.label(language)) }
+            }
+
+        batch(INSERT_SERVING, rows) { (serving, language, label) ->
             text(serving.code)
-            text(serving.label)
+            text(language.tag)
+            text(label)
             real(serving.grams)
             integer(if (serving.isDefault) 1 else 0)
         }
@@ -139,8 +179,8 @@ internal class CiqualDatabaseWriter(private val target: File) {
     }
 
     internal companion object {
-        /** `rowid`, `code`, `name`, `name_search`, `short_name`, `group_name`, `category`, puis les teneurs. */
-        private const val FIXED_COLUMNS = 7
+        /** `rowid`, `code`, `category`, puis les teneurs. */
+        private const val FOOD_FIXED_COLUMNS = 3
 
         /**
          * Les six teneurs qu'une complétion peut porter.
@@ -161,13 +201,6 @@ internal class CiqualDatabaseWriter(private val target: File) {
                 CREATE TABLE ciqual_food (
                     rowid INTEGER PRIMARY KEY,
                     code TEXT NOT NULL UNIQUE,
-                    name TEXT NOT NULL,
-                    name_search TEXT NOT NULL,
-                    -- Le titre court, quand un libelle en valait la peine. NULL
-                    -- signifie « le libelle d'origine suffit », jamais « pas encore
-                    -- traite » : la generation ne demande que les libelles longs.
-                    short_name TEXT,
-                    group_name TEXT,
                     category TEXT,
                     ${Nutrient.entries.joinToString(",\n                    ") { "${it.column} REAL" }},
                     -- Les teneurs completees par un modele, dans leurs propres
@@ -178,10 +211,30 @@ internal class CiqualDatabaseWriter(private val target: File) {
                     ${ESTIMATED_NUTRIENTS.joinToString(",\n                    ") { "${it.column}_est REAL" }}
                 )
                 """.trimIndent(),
+                // Les libelles, une ligne par aliment et par langue. Separes des
+                // teneurs parce qu'ils sont la seule chose qui se traduise : une
+                // langue de plus ajoute des lignes ici, et rien ailleurs.
+                """
+                CREATE TABLE ciqual_name (
+                    rowid INTEGER PRIMARY KEY,
+                    code TEXT NOT NULL,
+                    language TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    name_search TEXT NOT NULL,
+                    -- Le titre court, quand un libelle en valait la peine. NULL
+                    -- signifie « le libelle d'origine suffit », jamais « pas encore
+                    -- traite » : la generation ne demande que les libelles longs.
+                    short_name TEXT,
+                    group_name TEXT
+                )
+                """.trimIndent(),
+                // Unique : un aliment porte un libelle par langue, jamais deux. C'est
+                // aussi l'index que la jointure par code emprunte.
+                "CREATE UNIQUE INDEX index_ciqual_name_code_language ON ciqual_name(code, language)",
                 // Index sans contenu, tokenizer `simple`.
                 //
                 // Sans contenu parce qu'on n'en attend qu'un `docid` : le nom
-                // affiche vient de ciqual_food, et dupliquer 3 484 libelles dans
+                // affiche vient de ciqual_name, et dupliquer 6 968 libelles dans
                 // l'index doublerait sa taille pour rien.
                 //
                 // `simple` parce que name_search est deja de l'ASCII minuscule
@@ -194,12 +247,13 @@ internal class CiqualDatabaseWriter(private val target: File) {
                 """
                 CREATE TABLE ciqual_serving (
                     code TEXT NOT NULL,
+                    language TEXT NOT NULL,
                     label TEXT NOT NULL,
                     grams REAL NOT NULL,
                     is_default INTEGER NOT NULL
                 )
                 """.trimIndent(),
-                "CREATE INDEX index_ciqual_serving_code ON ciqual_serving(code)",
+                "CREATE INDEX index_ciqual_serving_code ON ciqual_serving(code, language)",
                 // Le mode parcours -- une pastille, champ vide -- balaie la table
                 // entiere sans passer par l'index plein texte. Sans cet index, c'est
                 // 3 484 lignes lues pour en rendre trente.
@@ -210,16 +264,23 @@ internal class CiqualDatabaseWriter(private val target: File) {
         // reordonner Nutrient reordonne les deux ensemble, ou aucune des deux.
         val INSERT_FOOD =
             buildString {
-                append("INSERT INTO ciqual_food (rowid, code, name, name_search, short_name, group_name, category")
+                append("INSERT INTO ciqual_food (rowid, code, category")
                 Nutrient.entries.forEach { append(", ").append(it.column) }
                 ESTIMATED_NUTRIENTS.forEach { append(", ").append(it.column).append("_est") }
                 append(") VALUES (")
-                append(List(FIXED_COLUMNS + Nutrient.entries.size + ESTIMATED_NUTRIENTS.size) { "?" }.joinToString())
+                append(
+                    List(FOOD_FIXED_COLUMNS + Nutrient.entries.size + ESTIMATED_NUTRIENTS.size) { "?" }.joinToString(),
+                )
                 append(")")
             }
 
+        const val INSERT_NAME =
+            "INSERT INTO ciqual_name (rowid, code, language, name, name_search, short_name, group_name) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?)"
+
         const val INSERT_FTS = "INSERT INTO ciqual_fts (docid, name_search) VALUES (?, ?)"
 
-        const val INSERT_SERVING = "INSERT INTO ciqual_serving (code, label, grams, is_default) VALUES (?, ?, ?, ?)"
+        const val INSERT_SERVING =
+            "INSERT INTO ciqual_serving (code, language, label, grams, is_default) VALUES (?, ?, ?, ?, ?)"
     }
 }

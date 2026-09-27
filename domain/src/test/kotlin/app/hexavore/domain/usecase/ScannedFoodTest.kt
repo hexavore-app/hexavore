@@ -105,11 +105,12 @@ class ScannedFoodTest {
             foods = catalogue,
             pending = InMemoryPendingRecognition(),
             resolve = ResolveRecognition(
-                ResolveFoodLabel(catalogue),
+                ResolveFoodLabel(catalogue, FRANCAIS),
                 CreateDraft(clock, ids, InMemorySelectedDay(clock.today())),
                 // Aucun repli : ces cas ne parlent pas de l'etape 4, et un estimateur
                 // qui repondrait remplirait des lignes qu'ils veulent vides.
                 estimate = { EstimationOutcome.Estimated(emptyList()) },
+                languages = FRANCAIS,
             ),
         )
     }

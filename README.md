@@ -2,7 +2,7 @@
 
 Suivi alimentaire pour Android. Libre, gratuit, sans compte, sans publicité, sans télémétrie.
 
-On note ce qu'on mange en quelques secondes — scan d'un code-barres, photo de l'assiette, recherche dans une base de 3 500 aliments, ou simple phrase en français — et l'application tient à jour six compteurs : **calories, protéines, glucides, sucres, lipides, fibres**.
+On note ce qu'on mange en quelques secondes — scan d'un code-barres, photo de l'assiette, recherche dans une base de 3 484 aliments, ou simple phrase en français ou en anglais — et l'application tient à jour six compteurs : **calories, protéines, glucides, sucres, lipides, fibres**.
 
 > **Statut** : itération 0 — le socle. Le projet compile, s'installe et affiche une galerie de composants ; il ne suit encore aucun repas. La conception complète est dans `docs/`, le plan de construction dans [12](docs/12-plan-de-developpement.md).
 
@@ -18,6 +18,7 @@ On note ce qu'on mange en quelques secondes — scan d'un code-barres, photo de 
 | **Vue du jour** | Ce qu'il reste à atteindre, repas par repas, en un écran. |
 | **Historique** | Calendrier horizontal, chaque jour coloré selon l'atteinte des objectifs, consultable et modifiable. |
 | **Objectif vivant** | Le poids réel est comparé chaque semaine à la trajectoire visée ; l'app propose un ajustement, l'utilisateur décide. |
+| **Deux langues** | Français et anglais, interface **et** noms d'aliments. La langue suit le téléphone, l'anglais est le repli, et elle se force dans les réglages. |
 | **Vos données restent à vous** | Tout est stocké localement. Sauvegarde optionnelle sur votre Google Drive, ou export dans un fichier. |
 
 ## Ce qu'elle ne fait pas
@@ -47,6 +48,14 @@ La conception est découpée en douze documents. Lisez-les dans l'ordre pour com
 
 Kotlin · Jetpack Compose · Room · Hilt · CameraX + zxing-cpp · Retrofit · WorkManager · minSdk 26.
 
+## Deux langues
+
+L'anglais occupe le `values/` sans qualificatif, le français vit dans `values-fr/`. C'est ce qui rend la détection automatique gratuite : elle n'est écrite nulle part, c'est la résolution de ressources d'Android. Un appareil réglé en allemand reçoit donc de l'anglais, et non du français ([D129](docs/11-decisions.md#d129--langlais-est-le-repli-le-français-une-traduction-et-la-langue-est-une-donnée---validée)).
+
+Ce qu'aucun `values-xx/` ne peut porter — la colonne de libellés lue dans la table de l'ANSES, les articles retirés d'un libellé, les mots de portion, les trois prompts, le champ demandé à Open Food Facts — passe par `ContentLanguage`, dans `:domain`. Les cinq endroits qui la lisent sont des `when` **sans branche `else`** : une troisième langue ne compile pas tant qu'elle n'a pas ses articles, ses pluriels, ses libellés de portion et ses prompts.
+
+Le catalogue est bilingue parce que l'ANSES l'est : `alim_nom_eng` couvre ses 3 484 lignes. Les titres courts, eux, n'existent qu'en français ; `./gradlew generateShortNames -Planguage=en` les demanderait.
+
 ## Construire
 
 JDK 17 et le SDK Android (plateforme 35). Aucune clé, aucun compte, aucun secret n'est nécessaire pour compiler.
@@ -61,7 +70,7 @@ JDK 17 et le SDK Android (plateforme 35). Aucune clé, aucun compte, aucun secre
 
 Le projet est bâti sur Gradle 8.13 et AGP 8.11, et vise Android 16 ([D128](docs/11-decisions.md)) ; le choix du palier et la marche à suivre pour en changer sont expliqués en [D15](docs/11-decisions.md#d15--chaîne-de-construction-alignée-sur-loutillage-installé---par-défaut). Toutes les versions vivent dans `gradle/libs.versions.toml` — aucune n'est écrite dans un `build.gradle.kts`.
 
-Trois règles [detekt](build-logic/detekt-rules) maison font échouer le build sur ce que la relecture laisse passer : une couleur écrite hors du design system, un import Android dans `:domain`, une lecture directe de l'horloge système.
+Trois règles [detekt](build-logic/detekt-rules) maison font échouer le build sur ce que la relecture laisse passer : une couleur écrite hors du design system, un import Android dans `:domain`, une lecture directe de l'horloge système. Android Lint en tient une quatrième sans qu'on l'ait écrite : depuis qu'il y a deux dossiers de ressources à comparer, `MissingTranslation` fait échouer `check` sur une chaîne oubliée dans l'une des deux langues.
 
 ### Modules
 

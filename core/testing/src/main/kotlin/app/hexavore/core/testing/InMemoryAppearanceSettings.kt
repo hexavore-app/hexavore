@@ -11,8 +11,8 @@ import kotlinx.coroutines.flow.map
  * Ce qui a été réglé sur l'apparence, en mémoire.
  *
  * Il part sur les défauts d'une installation neuve — [ThemeMode.SYSTEM] et
- * [DishDisplayStyle.SIMPLE] : un faux qui démarrerait sur un réglage explicite
- * laisserait passer un défaut mal câblé.
+ * [DishDisplayStyle.SIMPLE] : un faux qui démarrerait sur un réglage explicite laisserait
+ * passer un défaut mal câblé.
  */
 class InMemoryAppearanceSettings(
     initial: ThemeMode = ThemeMode.SYSTEM,
