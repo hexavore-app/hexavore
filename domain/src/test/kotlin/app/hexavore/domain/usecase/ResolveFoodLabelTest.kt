@@ -30,7 +30,7 @@ class ResolveFoodLabelTest {
         // s'y trouve tel quel. Depluraliser d'emblee le perdrait.
         val catalogue = RecordingSearch("haricots verts" to listOf(HARICOTS_VERTS))
 
-        ResolveFoodLabel(catalogue)("des haricots verts")
+        ResolveFoodLabel(catalogue, FRANCAIS)("des haricots verts")
 
         assertEquals(listOf("haricots verts"), catalogue.queries)
     }
@@ -39,7 +39,7 @@ class ResolveFoodLabelTest {
     fun `une requete vide se retente au singulier`() = runTest {
         val catalogue = RecordingSearch("pomme" to listOf(POMME))
 
-        ResolveFoodLabel(catalogue)("pommes")
+        ResolveFoodLabel(catalogue, FRANCAIS)("pommes")
 
         assertEquals(listOf("pommes", "pomme"), catalogue.queries)
     }
@@ -48,7 +48,7 @@ class ResolveFoodLabelTest {
     fun `le second essai pese ses candidats contre la requete qui les a trouves`() = runTest {
         // Sans quoi « Pomme » serait juge sur « pommes », dont il n'est ni l'egal ni
         // le prefixe : une correspondance certaine deviendrait une relecture.
-        val rendu = ResolveFoodLabel(RecordingSearch("pomme" to listOf(POMME)))("pommes")
+        val rendu = ResolveFoodLabel(RecordingSearch("pomme" to listOf(POMME)), FRANCAIS)("pommes")
 
         assertEquals(MatchVerdict.AUTOMATIC, rendu.verdict)
         assertEquals(POMME, rendu.food)
@@ -58,7 +58,7 @@ class ResolveFoodLabelTest {
     fun `un mot que la depluralisation ne change pas n est pas redemande`() = runTest {
         val catalogue = RecordingSearch()
 
-        ResolveFoodLabel(catalogue)("riz")
+        ResolveFoodLabel(catalogue, FRANCAIS)("riz")
 
         assertEquals(listOf("riz"), catalogue.queries)
     }
@@ -68,7 +68,7 @@ class ResolveFoodLabelTest {
         // « du pain » ne rendrait rien : les deux recherches sont conjonctives.
         val catalogue = RecordingSearch("pain" to listOf(PAIN))
 
-        ResolveFoodLabel(catalogue)("du pain")
+        ResolveFoodLabel(catalogue, FRANCAIS)("du pain")
 
         assertEquals(listOf("pain"), catalogue.queries)
     }

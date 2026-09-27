@@ -4196,6 +4196,118 @@ AGP a téléchargé `android-36` sans qu'on lui demande, parce que les licences 
 
 ---
 
+## D129 — L'anglais est le repli, le français une traduction, et la langue est une donnée · ✓ validée
+
+**Contexte.** [01](01-perimetre.md#plateforme) promettait « français et anglais, la langue suit le système, forçable dans les réglages » depuis la conception. [02](02-parcours-et-ecrans.md) le répétait sous *Apparence*, avec la mention *reste à faire*. [10](10-qualite-et-livraison.md#feuille-de-route) le rangeait en 1.0. Rien n'existait : 594 chaînes en français dans dix modules, un catalogue de 3 484 libellés français, trois prompts nommés `fr_v2`.
+
+La demande portait sur trois choses, et la troisième est celle qui a dicté le reste : **une détection automatique avec repli sur l'anglais**.
+
+### Le repli n'est pas un `if`, c'est l'arborescence des ressources
+
+Un repli sur l'anglais veut dire qu'un appareil réglé en allemand, en japonais ou en portugais affiche de l'anglais. Android sait déjà le faire, et il ne sait le faire que d'une façon : le dossier **sans qualificatif** porte la langue de repli.
+
+Les 594 chaînes ont donc changé de dossier. `values/` porte l'anglais, `values-fr/` le français. C'est un déplacement et non un ajout, et c'est ce qui rend la détection automatique **gratuite** : elle n'est écrite nulle part, elle est le comportement d'Android. Le contraire — garder le français sans qualificatif et ajouter `values-en/` — aurait donné du français à un téléphone japonais, ce qu'aucune ligne de code n'aurait rattrapé.
+
+Le même choix se lit deux fois ailleurs : `resources.properties` déclare `unqualifiedResLocale=en`, et `ContentLanguage.FALLBACK` vaut `ENGLISH`.
+
+### Ce que les ressources ne couvrent pas : cinq `fr` écrits en dur
+
+Une langue d'interface n'est pas une langue de contenu. Cinq endroits disaient `fr` sans qu'aucun `values-xx/` puisse les atteindre :
+
+| Où | Ce qui était écrit |
+|---|---|
+| `CiqualDatabase` | la colonne `name` de la table de l'ANSES |
+| `LabelNormalisation` | les articles `de du des le la les un une`, les pluriels `-s -x -aux` |
+| `QuantityConversion` | `tranche`, `cuillere a soupe`, `bol`, `verre` |
+| `SystemPrompt` | `prompts/extract_fr_v2.txt` et ses deux voisins |
+| `ProductMapper` | `product_name_fr` d'Open Food Facts |
+
+D'où `ContentLanguage`, une énumération dans `:domain`, et **des `when` sans branche `else`** à ces cinq endroits. C'est la forme déjà retenue pour `ThemeMode.labelRes` et pour `Macro.nutrient` : une troisième langue **ne compile pas** tant qu'elle n'a pas ses articles, ses pluriels, ses libellés de portion et ses trois prompts. Un `else` l'aurait laissée s'ajouter à moitié, et le défaut ne se serait vu que chez quelqu'un — une recherche qui ne rend rien, un modèle qui répond dans la mauvaise langue.
+
+`LanguageMode` est un type **scellé** et non une troisième entrée d'énumération, pour la même raison : `Chosen` porte une `ContentLanguage`, donc la liste des choix se déduit, et une langue de plus apparaît toute seule dans les réglages.
+
+### L'ANSES publie déjà l'anglais, et c'est le fait qui a tout rendu possible
+
+`alim_nom_eng` est présent sur **3 484 lignes sur 3 484**, aucune vide. `alim_grp_nom_eng` et `alim_ssgrp_nom_eng` le sont aussi. Le catalogue anglais ne coûte donc **ni passe d'IA, ni traduction à relire, ni licence nouvelle** : une colonne de plus lue à l'import.
+
+C'est la découverte qui a décidé du périmètre. Sans elle, il aurait fallu choisir entre une interface anglaise devant des noms d'aliments français — une traduction à moitié faite, qui se voit au premier écran — et 3 484 libellés à faire traduire.
+
+**Ce qui n'a pas d'anglais est nommé** : `short-names-en.csv` n'existe pas, la passe de raccourcissement n'a tourné qu'en français. L'affichage retombe alors sur `alim_nom_eng`, qui est en moyenne **plus court** que le français — 39 caractères contre 42. Le manque est donc réel et sans conséquence visible, et la tâche sait déjà le combler : `./gradlew generateShortNames -Planguage=en`.
+
+### La langue est une ligne, jamais une colonne
+
+`ciqual.db` aurait pu porter `name_fr` et `name_en` côte à côte. Elle porte une table `ciqual_name` à une ligne par aliment et par langue, et `ciqual_serving` gagne la même colonne `language`.
+
+La différence se mesure au coût d'une troisième langue. Avec des colonnes : quatre colonnes de plus, une table virtuelle FTS de plus, l'ordre des `?` de chaque requête, la liaison positionnelle de l'écrivain. Avec des lignes : **des lignes de plus, et rien d'autre**. Le schéma ne nomme aucune langue, l'index plein texte est unique, et c'est une clause `language = ?` sur une colonne indexée qui départage.
+
+Elle coûte 668 Ko : la base passe de 992 Ko à 1 660 Ko. Pour un APK, c'est le prix d'une icône.
+
+**`servings.csv` garde un poids et gagne une colonne par libellé**, et c'est l'inverse de la base — délibérément. Une ligne par langue dans un fichier édité à la main aurait permis à « 1 pomme moyenne » et « 1 medium apple » de finir par ne plus peser la même chose, sans que personne sache laquelle fait foi. L'en-tête attendu est **déduit** de `ContentLanguage`, donc une langue ajoutée rend le fichier invalide jusqu'à ce que sa colonne existe, et le message d'erreur dit laquelle manque.
+
+L'écart le plus instructif est une portion : **« 1 noisette »** de beurre et « 1 noisette » du fruit à coque sont le même mot en français et deux mots en anglais — *knob* et *hazelnut*. Une colonne par langue le rend visible ; une traduction automatique aurait produit « 1 hazelnut » de beurre.
+
+### Le nom d'une fiche appartient à la référence, pas à la copie
+
+[D54](#d54-—-un-bandeau-de-rayons-et-deux-familles-qui-ne-se-combinent-pas-pareil-validée) avait déjà sorti le rayon, le titre court et les portions de la copie locale : ce sont des propriétés de la **référence**, relues par le code de la fiche, parce qu'une copie figerait la correspondance du jour où elle a été faite.
+
+Le **nom**, lui, était copié. Une table bilingue a transformé ce détail en défaut : une fiche copiée en français puis relue en anglais portait un titre court anglais sur un nom français. Le nom rejoint donc les trois autres, et `place()` — qui rendait une fiche sans ses annotations — les lui rend maintenant, ce qui corrige au passage un titre court perdu depuis toujours.
+
+**Ce qui reste figé est le journal**, et c'est [D05](#d05-—-les-entrées-de-journal-figent-leurs-valeurs-validée) inchangée : `FoodEntry.displayName` garde ce qui était affiché le jour où la ligne a été écrite. Une ligne notée en français reste en français, exactement comme un plat noté en grammes garde ses grammes ([D114](#d114-—-lonce-est-une-unité-de-saisie-la-livre-un-affichage-validée)). Un journal est un registre d'événements, pas une vue.
+
+### La plateforme détient la réponse, pas notre fichier de préférences
+
+C'est le point qui a changé d'avis en cours de route. Le réglage a d'abord été rangé dans `AppearanceSettings`, à côté du thème : même écran, même fichier de préférences, même raisonnement qu'en [D113](#d113-—-apparence-existe-et-suivre-le-système-est-un-choix-validée).
+
+Il y a une différence, et elle est décisive : **la langue est la seule des quatre préférences que l'application n'applique pas elle-même.** Un thème est un `when` dans une composition. Une langue fait choisir un `values-fr/` par la plateforme — et à partir d'Android 13, cette dernière la *retient* et l'expose dans ses propres réglages, puisque `localeConfig` est déclaré. Il y a donc **deux portes** vers le même réglage.
+
+Lire notre fichier comme vérité aurait laissé l'interface en français et le catalogue en anglais le jour où quelqu'un passe par la porte d'Android. La lecture passe donc par `AppCompatDelegate.getApplicationLocales()`, qui rend ce que la plateforme applique vraiment. `LanguageSettings` est un port à part pour cette raison, et non par symétrie.
+
+**Nos préférences servent encore, et à une seule chose** : un cahier de rappel. En deçà d'Android 13, rien ne réapplique une langue imposée au lancement suivant, et c'est `restore()` qui rattrape, appelé dans `Application.onCreate` — pas dans une coroutine, sinon l'accueil s'ouvrirait dans la langue du système avant de basculer, ce qui se voit exactement comme le clignotement de thème que D113 a évité.
+
+**Et il y a un test de version, après en avoir écarté un.** La première écriture se fiait à la liste rendue par `AppCompatDelegate` : vide, c'était à nous de parler ; pleine, quelqu'un avait déjà parlé. C'était élégant et faux. `getApplicationLocales` délègue bien au framework à partir de 33, mais il lui faut pour cela un `Context` qu'il prend sur une activité vivante — et `restore()` est appelée quand il n'y en a aucune. Il aurait rendu une liste vide voulant dire *je ne sais pas encore*, et on aurait écrasé à chaque lancement un choix fait dans les réglages d'Android.
+
+La lecture interroge donc `LocaleManager` directement à partir de 33, et le délégué en deçà. Ce `Build.VERSION` **décrit** au lieu de parier : il dit lequel des deux mécanismes détient la réponse, ce qui dépend effectivement de la version d'Android. L'écriture, elle, reste sur `AppCompatDelegate.setApplicationLocales` dans les deux cas — c'est l'API documentée, et elle délègue là où le framework existe.
+
+### Ce qu'AppCompat coûte, et pourquoi il est quand même entré
+
+`AppCompatDelegate.setApplicationLocales` est la seule API qui impose une langue **de l'API 26 à l'API 36**. Le framework ne sait le faire qu'à partir de 33 ; `minSdk 26` aurait laissé une part importante du parc devant un réglage sans effet.
+
+Le prix est écrit noir sur blanc dans la documentation d'Android : *« If you're using Compose with `setApplicationLocales`, you must extend your activity from `AppCompatActivity`. »* Donc `MainActivity` et `GalleryActivity` en descendent, et le thème de fenêtre passe de `android:Theme.Material.*` à `Theme.AppCompat.*`. Ce thème ne sert qu'à peindre un fond avant la première image de Compose : ce qu'on y perd est nul.
+
+C'est l'argument de [D93](#d93-—-le-calendrier-vient-dune-bibliothèque-et-la-semaine-est-calendaire-validée) mot pour mot — une bibliothèque entre quand elle apporte ce qu'on croit simple et qu'on corrige trois fois. Un `attachBaseContext` maison aurait été une quarantaine de lignes, sans dépendance, dans un domaine réputé pour ses pièges : la configuration du contexte d'application qui ne suit pas, `Locale.getDefault()` qui ne bouge pas, et deux chemins de code à tenir au-dessus et en dessous de 33.
+
+**`autoStoreLocales` reste à `false`.** La documentation prévient que le mettre à `true` provoque une lecture bloquante sur le fil principal — exactement ce que D113 refuse pour le thème. Le stockage est donc le nôtre, dans le fichier de préférences d'apparence.
+
+### Ce que la langue ne doit pas toucher
+
+Trois choses, et les confondre avec des chaînes d'interface aurait fait des dégâts silencieux :
+
+- **Les libellés de portion** comparés par `QuantityConversion` sont de la **donnée**, pas de l'affichage : personne ne les lit, ils sont comparés à `ciqual_serving.label`. Ils suivent la langue du catalogue.
+- **Les noms d'outils et les clés JSON** de l'analyse approfondie — `chercher_aliments`, `libelle`, `proteines` — sont du **protocole** entre l'application et le modèle. Les traduire aurait fait deux protocoles pour rien, et désaccordé les prompts de leurs outils.
+- **Le refus d'Open Food Facts** garde sa propre phrase, fût-elle en anglais. C'était déjà tranché en [D91](#d91-—-la-contribution-se-propose-au-moment-où-la-fiche-vient-dêtre-écrite-validée).
+
+À l'inverse, **le mot du verrou d'effacement se traduit** : `SUPPRIMER` devient `DELETE`. Un verrou qui demande de lire ne verrouille que dans une langue qu'on lit. La comparaison porte sur la ressource, donc elle suit la traduction toute seule.
+
+### Sept pluriels relus, pas traduits
+
+Les commentaires du dépôt le disaient déjà : « en français, `one` couvre aussi zéro ». En anglais, non — zéro tombe dans `other`. Les sept `<plurals>` ont donc été **relus un par un**, et non passés à la traduction : « 0 lines will be taken out » est juste là où « 0 ligne sera retirée » l'est aussi, mais pour une raison différente et par une autre forme.
+
+### Ce qui garde le vert honnête
+
+Android Lint faisait déjà partie de `check`, et `MissingTranslation` y est une **erreur** par défaut. Dès qu'un module a un `values-fr/`, une chaîne oubliée casse le build. C'est la quatrième règle exécutable du projet, et elle était déjà là : il a suffi de lui donner un second dossier à comparer.
+
+`app_name` porte `translatable="false"` — « Hexavore » est un nom propre — et la galerie debug a reçu ses 31 chaînes anglaises. Son commentaire affirmait que « personne n'aura jamais à les traduire » ; ce n'était plus vrai du jour où `values/` a changé de langue, et trente-une chaînes courtes coûtaient moins qu'une exception.
+
+**Conséquences.** Une énumération et trois ports de plus dans `:domain`. Un magasin de plus dans `:data:settings`. Une dépendance, `appcompat`, dans deux modules et pour une API. Une table de plus dans `ciqual.db`, dont la révision passe à 7 — un appareil déjà installé recopie donc la base. Un fichier `short-names.csv` renommé en `short-names-fr.csv`, deux tâches Gradle qui prennent un dossier au lieu de six chemins, et trois prompts de plus dans les assets. Et une quatrième ligne dans *Apparence*, placée en tête : quelqu'un qui ouvre cet écran sans savoir lire ce qu'il porte cherche celle-là et aucune autre.
+
+**Ce que le vert ne prouve pas.** **Que l'anglais se lise bien.** Les 594 chaînes ont été écrites, pas éprouvées : aucun test ne monte d'écran, et rien ne dit qu'une phrase tient dans sa carte ni qu'un libellé ne déborde. Les tests d'image de la 1.0 sont ce qui le dira, et ils n'existent pas.
+
+**Que la langue s'applique vraiment.** Les cas s'arrêtent à la règle de détection et au catalogue ; rien n'éprouve `AppCompatDelegate`, ni la recréation des activités, ni le sélecteur d'Android 13. Le câblage se vérifie en ouvrant l'application dans les deux langues, sur un appareil, et en passant par les deux portes.
+
+**Et que le modèle réponde en anglais.** Les trois prompts anglais n'ont atteint aucun fournisseur. Ce qui est vérifié est qu'ils partent ; ce qu'un modèle en fait ne se saura qu'avec une clé et une photo.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.
@@ -4221,7 +4333,7 @@ Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la sp
 | 23 | Versions de sauvegarde | 5, en rotation | [09](09-donnees-et-sauvegarde.md#rotation) |
 | 24 | Télémétrie | Aucune, y compris crash reporting | [01](01-perimetre.md#contraintes-fermes) |
 | 26 | Progression | Hexagone en tête, barres pour les valeurs — voir D33 | [08](08-design-system.md#macrohexagon) |
-| 27 | Langues | Français et anglais dès la 1.0 | [01](01-perimetre.md#plateforme) |
+| 27 | Langues | ~~Français et anglais dès la 1.0~~ **Livrées, et l'anglais est le repli** ([D129](#d129--langlais-est-le-repli-le-français-une-traduction-et-la-langue-est-une-donnée---validée)) | [01](01-perimetre.md#plateforme) |
 | 28 | Widget et notifications | Hors v1, widget en tête de la 1.1 | [10](10-qualite-et-livraison.md#feuille-de-route) |
 | 29 | Android minimum | API 26 | [01](01-perimetre.md#plateforme) |
 | 30 | Nom | **Hexavore** — tranché, voir [D105](#d105--le-nom-devient-hexavore-et-le-dépôt-change-dadresse---validée) | — |

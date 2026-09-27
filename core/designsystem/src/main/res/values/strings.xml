@@ -1,100 +1,101 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Libelles du design system.
+  Design system labels.
 
-  Ils vivent ici et non dans les modules appelants : la phrase annoncee par
-  TalkBack fait partie du composant au meme titre que sa geometrie. Un composant
-  dont chaque appelant redige sa propre description finit par en avoir six
-  versions, dont cinq mauvaises.
+  They live here rather than in the calling modules: what TalkBack announces is part of
+  the component, just as much as its geometry. A component whose every caller writes its
+  own description ends up with six versions of it, five of them wrong.
+
+  This file is the unqualified `values/`, which means it is the fallback for every device
+  whose language the application does not speak. The French is in `values-fr/`.
 -->
-<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="fr">
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
 
-    <!-- Jauges : une phrase utile, et non « barre de progression, 60 % ». Les deux
-         formulations disent explicitement s'il s'agit d'atteindre ou de ne pas
-         dépasser : c'est la seule information que la forme de la barre ne peut pas
-         transmettre à un lecteur d'écran. -->
-    <string name="ds_gauge_description">%1$s, %2$d %3$s sur un objectif de %4$d, %5$d %%</string>
-    <string name="ds_gauge_description_cap">%1$s, %2$d %3$s sur une limite de %4$d, %5$d %%</string>
+    <!-- Gauges: a useful sentence, not "progress bar, 60 %". Both wordings say
+         explicitly whether the number is to be reached or not to be exceeded: that is
+         the one thing the shape of the bar cannot convey to a screen reader. -->
+    <string name="ds_gauge_description">%1$s, %2$d %3$s of a %4$d target, %5$d %%</string>
+    <string name="ds_gauge_description_cap">%1$s, %2$d %3$s of a %4$d limit, %5$d %%</string>
 
-    <!-- Valeur affichée à droite d'une barre. Le « max » d'une limite est le
-         signal le plus court qui existe, et il est lu par TalkBack. -->
+    <!-- The value shown to the right of a bar. "max" is the shortest signal there is
+         for a limit, and TalkBack reads it out. -->
     <string name="ds_gauge_value">%1$d / %2$d %3$s</string>
     <string name="ds_gauge_value_limit">%1$d / %2$d %3$s max</string>
 
-    <!-- Lu par TalkBack sur un bouton grisé qui reste tapable : sans cela, il
-         s'annonce comme n'importe quel bouton et l'appui semble sans effet. -->
-    <string name="ds_button_unavailable">indisponible</string>
+    <!-- Read by TalkBack on a dimmed button that still responds to a tap: without it,
+         the button announces itself like any other and the tap seems to do nothing. -->
+    <string name="ds_button_unavailable">unavailable</string>
 
-    <!-- Sélecteur de date. Une date se choisit, elle ne se tape pas : demander
-         « AAAA-MM-JJ » au clavier fait porter à l'utilisateur un format que la
-         machine sait deviner. -->
-    <string name="ds_date_confirm">Valider</string>
-    <string name="ds_date_cancel">Annuler</string>
+    <!-- Date picker. A date is chosen, not typed: asking for "YYYY-MM-DD" on a keyboard
+         puts a format on the user that the machine can work out for itself. -->
+    <string name="ds_date_confirm">Confirm</string>
+    <string name="ds_date_cancel">Cancel</string>
 
-    <!-- Les quatre moments d'une journee, et le rang qui distingue deux plats du
-         meme moment. Ils vivent ici parce que trois surfaces les demandent : la liste
-         des plats, l'ecran de validation et la boite qui propose un nom de favori.
-         Trois copies auraient fini par dire « Gouter » a deux endroits et
-         « Collation » au troisieme. -->
-    <string name="ds_moment_breakfast">Petit-déjeuner</string>
-    <string name="ds_moment_lunch">Déjeuner</string>
-    <string name="ds_moment_snack">Goûter</string>
-    <string name="ds_moment_dinner">Dîner</string>
+    <!-- The four moments of a day, and the rank that tells two dishes of the same moment
+         apart. They live here because three surfaces ask for them: the list of dishes,
+         the review screen, and the dialog that suggests a name for a favourite. Three
+         copies would have ended up saying "Snack" in two places and "Bite" in the
+         third. -->
+    <string name="ds_moment_breakfast">Breakfast</string>
+    <string name="ds_moment_lunch">Lunch</string>
+    <string name="ds_moment_snack">Snack</string>
+    <string name="ds_moment_dinner">Dinner</string>
     <string name="ds_dish_title_ranked">%1$s %2$d</string>
 
-    <!-- Les mots d unite : le composant les porte, l ecran porte ce qu il mesure. -->
+    <!-- The words for units: the component carries them, the screen carries what it
+         measures. -->
     <string name="ds_measure_label">%1$s (%2$s)</string>
     <string name="ds_unit_kg">kg</string>
     <string name="ds_unit_cm">cm</string>
     <string name="ds_unit_pound">lb</string>
-    <string name="ds_unit_feet">pieds</string>
-    <string name="ds_unit_inches">pouces</string>
+    <string name="ds_unit_feet">feet</string>
+    <string name="ds_unit_inches">inches</string>
     <string name="ds_unit_gram_short">g</string>
-    <string name="ds_unit_gram_spoken">grammes</string>
+    <string name="ds_unit_gram_spoken">grams</string>
     <string name="ds_unit_millilitre_short">ml</string>
     <string name="ds_unit_millilitre_spoken">millilitres</string>
     <string name="ds_unit_kcal_short">kcal</string>
     <string name="ds_unit_kcal_spoken">kilocalories</string>
 
-    <!-- Origine d'un plat. Un plat, une source. -->
-    <string name="ds_source_manual">Saisie manuelle</string>
-    <string name="ds_source_barcode">Code-barres</string>
+    <!-- Where a dish came from. One dish, one source. -->
+    <string name="ds_source_manual">Entered by hand</string>
+    <string name="ds_source_barcode">Barcode</string>
     <string name="ds_source_photo">Photo</string>
     <string name="ds_source_text">Description</string>
-    <string name="ds_source_favorite">Favori</string>
-    <!-- Le contour en pointillés et la vague ne se voient pas au lecteur d'écran :
-         c'est cette phrase qui porte l'information à leur place. -->
-    <string name="ds_source_proposed_a11y">%1$s, contenu proposé à vérifier</string>
+    <string name="ds_source_favorite">Favourite</string>
+    <!-- The dashed outline and the wave are invisible to a screen reader: this sentence
+         carries the information in their place. -->
+    <string name="ds_source_proposed_a11y">%1$s, suggested content, worth checking</string>
 
-    <!-- Ce qu'une issue d'IA dit a l'utilisateur. Ici plutot que dans un ecran :
-         docs/02 exige les memes messages pour les deux modales de capture, et le
-         bouton « Tester » des reglages pose la meme question au meme port. Chaque
-         phrase dit ce qui s'est passe et ce qu'on peut faire, jamais un code. -->
-    <string name="ds_ai_error_invalid_key">Votre clé a été refusée. Vérifiez-la, puis testez à nouveau.</string>
-    <string name="ds_ai_error_quota">Le quota ou les crédits de ce compte sont épuisés.</string>
-    <string name="ds_ai_error_network">Pas de connexion. L\'appel n\'est jamais parti.</string>
-    <string name="ds_ai_error_timeout">Le fournisseur n\'a pas répondu à temps.</string>
-    <string name="ds_ai_error_vision">Ce modèle ne lit pas les images.</string>
-    <string name="ds_ai_error_not_configured">Aucun fournisseur n\'est configuré.</string>
-    <string name="ds_ai_error_unreadable">Le fournisseur a répondu quelque chose d\'inattendu.</string>
-    <string name="ds_ai_error_server">Le service est indisponible. Réessayez plus tard.</string>
+    <!-- What an AI outcome tells the user. Here rather than in a screen: docs/02 calls
+         for the same messages in both capture dialogs, and the "Test" button in the
+         settings asks the same question of the same port. Every sentence says what
+         happened and what can be done about it, never a code. -->
+    <string name="ds_ai_error_invalid_key">Your key was refused. Check it, then test again.</string>
+    <string name="ds_ai_error_quota">This account is out of quota or credit.</string>
+    <string name="ds_ai_error_network">No connection. The call never left.</string>
+    <string name="ds_ai_error_timeout">The provider did not answer in time.</string>
+    <string name="ds_ai_error_vision">This model does not read images.</string>
+    <string name="ds_ai_error_not_configured">No provider is configured.</string>
+    <string name="ds_ai_error_unreadable">The provider answered something unexpected.</string>
+    <string name="ds_ai_error_server">The service is unavailable. Try again later.</string>
 
-    <!-- La carte d'ajustement hebdomadaire. Trois issues, et rien n'est jamais
-         appliqué sans accord explicite (docs/02). -->
-    <string name="ds_adjustment_title">Ajuster votre objectif ?</string>
-    <!-- Le rythme est écrit signé plutôt que raconté : « vous perdez 0,2 kg par
-         semaine, pour 0,5 visé » devient faux dès que les deux rythmes n'ont pas le
-         même sens, et se lit alors à l'envers. -->
-    <string name="ds_adjustment_body">Sur les trois dernières semaines : %1$s. L\'objectif visait %2$s.</string>
-    <string name="ds_adjustment_pace_loss">−%1$.1f kg par semaine</string>
-    <string name="ds_adjustment_pace_gain">+%1$.1f kg par semaine</string>
-    <string name="ds_adjustment_pace_steady">poids stable</string>
-    <!-- Le sens de la correction est dit par un verbe, jamais par le signe d'un
-         nombre : c'est la phrase sur laquelle on appuie « Accepter ». -->
-    <string name="ds_adjustment_reduce">Réduire l\'objectif de %1$d kcal ?</string>
-    <string name="ds_adjustment_raise">Augmenter l\'objectif de %1$d kcal ?</string>
-    <string name="ds_adjustment_accept">Accepter</string>
-    <string name="ds_adjustment_ignore">Ignorer</string>
-    <string name="ds_adjustment_stop">Ne plus proposer</string>
+    <!-- The weekly adjustment card. Three outcomes, and nothing is ever applied without
+         explicit agreement (docs/02). -->
+    <string name="ds_adjustment_title">Adjust your target?</string>
+    <!-- The pace is written signed rather than told: "you are losing 0.2 kg a week,
+         against 0.5 aimed for" becomes false as soon as the two paces point in
+         different directions, and then reads backwards. -->
+    <string name="ds_adjustment_body">Over the last three weeks: %1$s. The target was aiming for %2$s.</string>
+    <string name="ds_adjustment_pace_loss">−%1$.1f kg a week</string>
+    <string name="ds_adjustment_pace_gain">+%1$.1f kg a week</string>
+    <string name="ds_adjustment_pace_steady">weight holding steady</string>
+    <!-- The direction of the correction is said with a verb, never with the sign of a
+         number: this is the sentence you tap "Accept" on. -->
+    <string name="ds_adjustment_reduce">Lower the target by %1$d kcal?</string>
+    <string name="ds_adjustment_raise">Raise the target by %1$d kcal?</string>
+    <string name="ds_adjustment_accept">Accept</string>
+    <string name="ds_adjustment_ignore">Ignore</string>
+    <string name="ds_adjustment_stop">Stop suggesting</string>
 
 </resources>

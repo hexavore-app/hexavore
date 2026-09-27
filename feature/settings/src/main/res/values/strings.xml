@@ -1,332 +1,347 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="fr">
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
 
-    <string name="profile_title">Profil et objectifs</string>
-    <string name="profile_close">Retour</string>
-    <!-- On consulte par défaut : le crayon est la seule porte vers la modification. -->
-    <string name="profile_edit">Modifier</string>
-    <string name="profile_cancel">Annuler les modifications</string>
+    <string name="profile_title">Profile and targets</string>
+    <string name="profile_close">Back</string>
+    <!-- Reading is the default: the pencil is the only door to editing. -->
+    <string name="profile_edit">Edit</string>
+    <string name="profile_cancel">Discard changes</string>
 
-    <!-- D04 rendu visible : corriger un objectif n'en modifie aucun, il en ouvre un
-         nouveau. Sans cette phrase, l'utilisateur croirait repeindre son mois. -->
-    <string name="profile_history_note">Corriger vos objectifs ouvre une nouvelle version. Les journées déjà notées restent jugées sur l\'objectif qui courait ce jour-là.</string>
+    <!-- D04 made visible: correcting a target changes none of them, it opens a new one.
+         Without this sentence, the user would think they were repainting their month. -->
+    <string name="profile_history_note">Correcting your targets opens a new version. Days already noted stay judged against the target that was running that day.</string>
 
-    <string name="profile_you_title">Vous</string>
-    <string name="profile_birth_date">Date de naissance</string>
-    <string name="profile_sex_label">Sexe</string>
-    <string name="profile_sex_male">Homme</string>
-    <string name="profile_sex_female">Femme</string>
-    <string name="profile_sex_unspecified">Je préfère ne pas répondre</string>
-    <string name="profile_sex_unspecified_note">Nous utilisons une estimation intermédiaire, moyenne des deux variantes de la formule.</string>
-    <string name="profile_height">Taille (cm)</string>
-    <string name="profile_weight">Poids actuel (kg)</string>
-    <!-- Une pesée est un fait daté : ouvrir cet écran n'en crée pas une. -->
-    <string name="profile_weight_note">Corriger ce poids enregistre une pesée datée d\'aujourd\'hui. Le laisser tel quel n\'en invente aucune.</string>
+    <string name="profile_you_title">You</string>
+    <string name="profile_birth_date">Date of birth</string>
+    <string name="profile_sex_label">Sex</string>
+    <string name="profile_sex_male">Male</string>
+    <string name="profile_sex_female">Female</string>
+    <string name="profile_sex_unspecified">I would rather not say</string>
+    <string name="profile_sex_unspecified_note">We use a middle estimate, the average of the two variants of the formula.</string>
+    <string name="profile_height">Height (cm)</string>
+    <string name="profile_weight">Current weight (kg)</string>
+    <!-- A weight reading is a dated fact: opening this screen does not create one. -->
+    <string name="profile_weight_note">Correcting this weight records a reading dated today. Leaving it as it is invents none.</string>
 
-    <string name="profile_activity_title">Votre activité</string>
-    <string name="profile_activity_body">L\'exercice est compté ici, une fois pour toutes, et jamais ajouté au jour le jour.</string>
-    <string name="profile_activity_sedentary">Travail assis, peu ou pas de sport</string>
-    <string name="profile_activity_light">Sport léger 1 à 3 fois par semaine</string>
-    <string name="profile_activity_moderate">Sport 3 à 5 fois par semaine</string>
-    <string name="profile_activity_active">Sport 6 à 7 fois par semaine</string>
-    <string name="profile_activity_very_active">Métier physique, ou sport biquotidien</string>
+    <string name="profile_activity_title">Your activity</string>
+    <string name="profile_activity_body">Exercise is counted here, once and for all, and never added day by day.</string>
+    <string name="profile_activity_sedentary">Desk job, little or no sport</string>
+    <string name="profile_activity_light">Light sport 1 to 3 times a week</string>
+    <string name="profile_activity_moderate">Sport 3 to 5 times a week</string>
+    <string name="profile_activity_active">Sport 6 to 7 times a week</string>
+    <string name="profile_activity_very_active">Physical job, or sport twice a day</string>
 
-    <string name="profile_objective_title">Votre objectif</string>
-    <string name="profile_strategy_lose">Perdre du poids</string>
-    <string name="profile_strategy_maintain">Maintenir</string>
-    <string name="profile_strategy_gain">Prendre du poids</string>
-    <string name="profile_target_weight">Poids cible (kg)</string>
+    <string name="profile_objective_title">Your goal</string>
+    <string name="profile_strategy_lose">Lose weight</string>
+    <string name="profile_strategy_maintain">Maintain</string>
+    <string name="profile_strategy_gain">Gain weight</string>
+    <string name="profile_target_weight">Target weight (kg)</string>
 
-    <!-- L'échéance en cours est une date précise, choisie un autre jour : elle ne
-         correspond donc pas forcément à l'une des pastilles, et elle s'affiche telle
-         quelle plutôt que d'être arrondie à celle qui lui ressemble le plus. -->
-    <string name="profile_horizon_label">D\'ici quand ?</string>
-    <string name="profile_horizon_current">Échéance en cours : %1$s</string>
-    <string name="profile_horizon_three">Dans 3 mois</string>
-    <string name="profile_horizon_six">Dans 6 mois</string>
-    <string name="profile_horizon_twelve">Dans 12 mois</string>
-    <string name="profile_horizon_reachable">Au rythme sûr : %1$s</string>
-    <string name="profile_pace">Soit environ %1$.2f kg par semaine.</string>
-    <string name="profile_capped">Ce rythme dépasserait les bornes de sécurité. À un rythme sûr, votre poids cible serait atteint vers le %1$s.</string>
-    <string name="profile_carbs_low">À ce niveau de calories, il reste peu de glucides une fois les protéines, les lipides et les fibres couverts. Un objectif plus haut serait plus tenable.</string>
+    <!-- The deadline currently running is a precise date, chosen on another day: it does
+         not necessarily match one of the chips, and it is shown as it is rather than
+         rounded to whichever one looks closest. -->
+    <string name="profile_horizon_label">By when?</string>
+    <string name="profile_horizon_current">Deadline currently set: %1$s</string>
+    <string name="profile_horizon_three">In 3 months</string>
+    <string name="profile_horizon_six">In 6 months</string>
+    <string name="profile_horizon_twelve">In 12 months</string>
+    <string name="profile_horizon_reachable">At a safe pace: %1$s</string>
+    <string name="profile_pace">That is about %1$.2f kg a week.</string>
+    <string name="profile_capped">That pace would go past the safety limits. At a safe pace, you would reach your target weight around %1$s.</string>
+    <string name="profile_carbs_low">At this calorie level there is little room left for carbs once protein, fat and fibre are covered. A higher target would be easier to hold.</string>
 
-    <!-- Le mode. Un objectif est calculé OU saisi à la main, sans entre-deux : c'est
-         ce qui décide si une correction de profil a le droit de déplacer les six. -->
-    <string name="profile_counters_title">Vos six compteurs</string>
-    <string name="profile_mode_switch">Les saisir moi-même</string>
-    <string name="profile_mode_calculated">Calculés à partir de votre profil, de votre poids cible et de votre échéance. Corriger l\'un des trois les déplace.</string>
-    <string name="profile_mode_manual">Vous les fixez. Aucune correction de profil ne les recalculera.</string>
-    <!-- Le poids cible et l'échéance restent enregistrés, mais ils ne pilotent plus
-         rien : le dire vaut mieux que de laisser deux champs faire croire le contraire. -->
-    <string name="profile_manual_horizon_note">En saisie manuelle, votre poids cible et votre échéance n\'entrent plus dans le calcul de vos compteurs. Ils restent enregistrés comme le cap que vous visez.</string>
-    <string name="profile_counters_unavailable">Complétez les champs ci-dessus pour voir vos six compteurs.</string>
-    <string name="profile_counter_line">%1$s : %2$d %3$s</string>
+    <!-- The mode. A target is either worked out or entered by hand, with nothing in
+         between: that is what decides whether a profile correction is allowed to move
+         the six. -->
+    <string name="profile_counters_title">Your six counters</string>
+    <string name="profile_mode_switch">Enter them myself</string>
+    <string name="profile_mode_calculated">Worked out from your profile, your target weight and your deadline. Correcting any of the three moves them.</string>
+    <string name="profile_mode_manual">You set them. No profile correction will work them out again.</string>
+    <!-- The target weight and deadline stay recorded, but they no longer drive anything:
+         saying so is better than letting two fields suggest otherwise. -->
+    <string name="profile_manual_horizon_note">With counters entered by hand, your target weight and deadline no longer enter their calculation. They stay recorded as the course you are steering.</string>
+    <string name="profile_counters_unavailable">Fill in the fields above to see your six counters.</string>
+    <string name="profile_counter_line">%1$s: %2$d %3$s</string>
     <string name="profile_counter_field">%1$s (%2$s)</string>
 
     <string name="profile_unit_kcal">kcal</string>
     <string name="profile_unit_gram">g</string>
 
     <string name="profile_macro_calories">Calories</string>
-    <string name="profile_macro_protein">Protéines</string>
-    <string name="profile_macro_carbs">Glucides</string>
-    <string name="profile_macro_sugars">Sucres</string>
-    <string name="profile_macro_fat">Lipides</string>
-    <string name="profile_macro_fiber">Fibres</string>
+    <string name="profile_macro_protein">Protein</string>
+    <string name="profile_macro_carbs">Carbs</string>
+    <string name="profile_macro_sugars">Sugars</string>
+    <string name="profile_macro_fat">Fat</string>
+    <string name="profile_macro_fiber">Fibre</string>
 
-    <!-- Consultation : une ligne par réponse, sans champ ni bordure. -->
-    <string name="profile_line">%1$s : %2$s</string>
-    <string name="profile_label_birth">Date de naissance</string>
-    <string name="profile_label_sex">Sexe</string>
-    <string name="profile_label_height">Taille</string>
-    <string name="profile_label_weight">Poids actuel</string>
-    <string name="profile_label_activity">Activité</string>
-    <string name="profile_label_strategy">Objectif</string>
-    <string name="profile_label_target">Poids cible</string>
-    <string name="profile_label_horizon">Échéance</string>
+    <!-- Reading: one line per answer, with no field and no border. -->
+    <string name="profile_line">%1$s: %2$s</string>
+    <string name="profile_label_birth">Date of birth</string>
+    <string name="profile_label_sex">Sex</string>
+    <string name="profile_label_height">Height</string>
+    <string name="profile_label_weight">Current weight</string>
+    <string name="profile_label_activity">Activity</string>
+    <string name="profile_label_strategy">Goal</string>
+    <string name="profile_label_target">Target weight</string>
+    <string name="profile_label_horizon">Deadline</string>
     <string name="profile_value_cm">%1$s cm</string>
     <string name="profile_value_kg">%1$s kg</string>
     <string name="profile_value_pound">%1$s lb</string>
-    <string name="profile_value_feet_inches">%1$d pi %2$d po</string>
-    <string name="profile_value_unknown">non renseigné</string>
+    <string name="profile_value_feet_inches">%1$d ft %2$d in</string>
+    <string name="profile_value_unknown">not filled in</string>
 
-    <!-- Ce qui change, montré avant d'écrire. Corriger sa taille de deux centimètres
-         déplace un objectif quotidien : ça ne se découvre pas sur l'accueil. -->
-    <string name="profile_confirm_title">Vos objectifs changent</string>
-    <string name="profile_confirm_body">Ces compteurs remplaceront les vôtres à partir d\'aujourd\'hui. Les journées déjà notées gardent ceux qui couraient ce jour-là.</string>
-    <string name="profile_confirm_line">%1$s : %2$d → %3$d %4$s</string>
-    <string name="profile_confirm_line_new">%1$s : %2$d %3$s</string>
-    <string name="profile_confirm_accept">Enregistrer</string>
-    <string name="profile_confirm_cancel">Revenir</string>
+    <!-- What changes, shown before it is written. Correcting your height by two
+         centimetres moves a daily target: that is not something to discover on the home
+         screen. -->
+    <string name="profile_confirm_title">Your targets are changing</string>
+    <string name="profile_confirm_body">These counters will replace yours from today. Days already noted keep the ones that were running that day.</string>
+    <string name="profile_confirm_line">%1$s: %2$d → %3$d %4$s</string>
+    <string name="profile_confirm_line_new">%1$s: %2$d %3$s</string>
+    <string name="profile_confirm_accept">Save</string>
+    <string name="profile_confirm_cancel">Go back</string>
 
-    <!-- La réponse du bouton indisponible à un appui. Elle dit ce qui manque, pas
-         qu'il manque quelque chose : « complétez le formulaire » n'aide personne. -->
-    <string name="profile_blocked_identity">Renseignez votre date de naissance, votre sexe, votre taille et votre poids.</string>
-    <string name="profile_blocked_activity">Choisissez le niveau qui décrit le mieux vos semaines.</string>
-    <string name="profile_blocked_strategy">Choisissez un objectif : perdre, maintenir ou prendre du poids.</string>
-    <string name="profile_blocked_horizon">Renseignez un poids cible et une échéance.</string>
-    <string name="profile_blocked_macro">Un de vos six compteurs est vide. Renseignez-le, ou revenez aux compteurs calculés.</string>
+    <!-- What a dimmed button answers when tapped. It says what is missing, not that
+         something is missing: "complete the form" helps nobody. -->
+    <string name="profile_blocked_identity">Fill in your date of birth, your sex, your height and your weight.</string>
+    <string name="profile_blocked_activity">Choose the level that best describes your weeks.</string>
+    <string name="profile_blocked_strategy">Choose a goal: lose, maintain or gain weight.</string>
+    <string name="profile_blocked_horizon">Fill in a target weight and a deadline.</string>
+    <string name="profile_blocked_macro">One of your six counters is empty. Fill it in, or go back to worked-out counters.</string>
 
-    <string name="profile_save">Enregistrer</string>
-    <string name="profile_saving">Enregistrement…</string>
-    <string name="profile_save_failed">L\'enregistrement n\'a pas abouti. Vos corrections sont conservées telles quelles.</string>
+    <string name="profile_save">Save</string>
+    <string name="profile_saving">Saving…</string>
+    <string name="profile_save_failed">Saving did not go through. Your corrections are kept exactly as they are.</string>
 
-    <!-- Un échec de lecture se dit, il ne s'affiche pas comme un profil vide : un
-         formulaire vide enregistré écraserait celui qui est en base. -->
-    <string name="profile_unreadable_title">Profil illisible</string>
-    <string name="profile_unreadable_body">La lecture n\'a pas abouti. Rien n\'a été modifié : votre profil et votre objectif sont là où ils étaient.</string>
+    <!-- A failed read is said out loud, it does not show up as an empty profile: an empty
+         form, saved, would overwrite the one in the database. -->
+    <string name="profile_unreadable_title">Profile unreadable</string>
+    <string name="profile_unreadable_body">The read did not go through. Nothing was changed: your profile and your target are where they were.</string>
 
-    <!-- Le hub, qui naît avec sa deuxième section (D59). -->
-    <!-- La croix des deux ecrans dont elle etait muette au lecteur d’ecran. -->
-    <string name="settings_close">Fermer les réglages</string>
-    <string name="ai_close">Fermer</string>
-    <string name="settings_title">Réglages</string>
-    <string name="settings_profile_title">Profil et objectifs</string>
-    <string name="settings_profile_subtitle">Vos mesures, votre objectif et vos six compteurs.</string>
-    <string name="settings_ai_title">Intelligence artificielle</string>
-    <string name="settings_ai_subtitle">Vos clés, vos modèles, et de quoi les éprouver.</string>
+    <!-- The hub, born with its second section (D59). -->
+    <!-- The cross of the two screens that were silent to the screen reader. -->
+    <string name="settings_close">Close the settings</string>
+    <string name="ai_close">Close</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_profile_title">Profile and targets</string>
+    <string name="settings_profile_subtitle">Your measurements, your goal and your six counters.</string>
+    <string name="settings_ai_title">Artificial intelligence</string>
+    <string name="settings_ai_subtitle">Your keys, your models, and a way to try them out.</string>
     <string name="settings_contribution_title">Open Food Facts</string>
-    <string name="settings_contribution_subtitle">Le compte sous lequel reverser vos fiches.</string>
+    <string name="settings_contribution_subtitle">The account to send your entries back under.</string>
 
-    <!-- Le compte de contribution. C'est celui de l'utilisateur, jamais un compte de
-         l'application : le mot de passe de ce dernier vivrait dans un APK publié. -->
+    <!-- The contribution account. It is the user\'s, never the application\'s: the
+         password of the latter would live in a published APK. -->
     <string name="contribution_title">Open Food Facts</string>
-    <string name="contribution_close">Fermer</string>
-    <string name="contribution_account_title">Votre compte</string>
-    <string name="contribution_account_body">Sans compte, aucune contribution n\'est proposée. L\'identifiant est votre nom d\'utilisateur sur openfoodfacts.org, pas votre adresse électronique.</string>
-    <string name="contribution_user_id">Identifiant</string>
-    <string name="contribution_password">Mot de passe</string>
-    <string name="contribution_save">Enregistrer</string>
-    <string name="contribution_forget">Oublier ce compte</string>
+    <string name="contribution_close">Close</string>
+    <string name="contribution_account_title">Your account</string>
+    <string name="contribution_account_body">Without an account, no contribution is offered. The identifier is your username on openfoodfacts.org, not your email address.</string>
+    <string name="contribution_user_id">Username</string>
+    <string name="contribution_password">Password</string>
+    <string name="contribution_save">Save</string>
+    <string name="contribution_forget">Forget this account</string>
 
-    <!-- Le bac à sable : la même API sur des données jetables. Il sert à vérifier
-         qu'un envoi aboutit sans laisser de fiche fautive dans une base publique. -->
-    <string name="contribution_sandbox_title">Serveur de test</string>
-    <string name="contribution_sandbox_body">Envoie vers l\'instance d\'essai plutôt que vers la vraie base. Rien de ce qui part n\'y est public.</string>
+    <!-- The sandbox: the same API on throwaway data. It serves to check that an upload
+         goes through without leaving a faulty entry in a public database. -->
+    <string name="contribution_sandbox_title">Test server</string>
+    <string name="contribution_sandbox_body">Sends to the trial instance rather than to the real database. Nothing that goes there is public.</string>
 
-    <!-- L'écran des fournisseurs. -->
-    <string name="ai_title">Intelligence artificielle</string>
-    <string name="ai_intro">Vos clés restent sur cet appareil, chiffrées par son trousseau. Les appels partent vers votre fournisseur, sans intermédiaire : Hexavore n\'a pas de serveur.</string>
+    <!-- The providers screen. -->
+    <string name="ai_title">Artificial intelligence</string>
+    <string name="ai_intro">Your keys stay on this device, encrypted by its keystore. Calls go to your provider, with nothing in between: Hexavore has no server.</string>
 
-    <!-- Le compteur d'usage. La date du releve accompagne le montant : docs/05 veut
-         que la table de tarifs soit datee et signalee comme indicative, parce qu'une
-         estimation perimee presentee comme exacte serait pire que pas d'estimation. -->
-    <string name="ai_usage_billing">Hexavore n\'estime aucun coût. Seule la facture de votre fournisseur fait foi.</string>
-    <string name="ai_usage_title">Ce que vos analyses ont consommé</string>
+    <!-- The usage counter. The date of the reading accompanies the amount: docs/05 wants
+         the price table dated and flagged as indicative, because an out-of-date estimate
+         presented as exact would be worse than no estimate at all. -->
+    <string name="ai_usage_billing">Hexavore estimates no cost. Only your provider\'s invoice is authoritative.</string>
+    <string name="ai_usage_title">What your analyses have used</string>
     <plurals name="ai_usage_line">
-        <item quantity="one">%1$s · %2$s · %3$d appel, %4$d jetons</item>
-        <item quantity="other">%1$s · %2$s · %3$d appels, %4$d jetons</item>
+        <item quantity="one">%1$s · %2$s · %3$d call, %4$d tokens</item>
+        <item quantity="other">%1$s · %2$s · %3$d calls, %4$d tokens</item>
     </plurals>
-    <string name="ai_active">Utilisé</string>
-    <string name="ai_configured">Clé enregistrée</string>
-    <string name="ai_not_configured">Aucune clé</string>
+    <string name="ai_active">In use</string>
+    <string name="ai_configured">Key saved</string>
+    <string name="ai_not_configured">No key</string>
 
-    <!-- Les quatre fournisseurs ecrits mais pas encore eprouves sur un vrai compte.
-         Leur carte reste visible : la cacher laisserait croire qu'ils n'existent pas,
-         et les proposer ferait payer a quelqu'un la decouverte d'un defaut que
-         personne n'a cherche. -->
-    <string name="ai_provider_soon">Bientôt disponible</string>
-    <string name="ai_provider_recommended">Recommandé</string>
-    <string name="ai_key_label">Clé API</string>
-    <string name="ai_model_label">Modèle</string>
-    <string name="ai_base_url_label">URL de base</string>
-    <string name="ai_reveal">Afficher la clé</string>
-    <string name="ai_hide">Masquer la clé</string>
-    <string name="ai_test">Tester</string>
-    <string name="ai_testing">Essai en cours…</string>
-    <!-- « Utiliser » et non « Enregistrer » : le geste ne range pas une clé, il choisit
-         qui analysera les prochaines photos. -->
-    <string name="ai_use">Utiliser</string>
-    <string name="ai_in_use">Utilisé</string>
+    <!-- The four providers that are written but not yet tried on a real account. Their
+         card stays visible: hiding it would suggest they do not exist, and offering them
+         would make someone pay to discover a flaw nobody has looked for. -->
+    <string name="ai_provider_soon">Coming soon</string>
+    <string name="ai_provider_recommended">Recommended</string>
+    <string name="ai_key_label">API key</string>
+    <string name="ai_model_label">Model</string>
+    <string name="ai_base_url_label">Base URL</string>
+    <string name="ai_reveal">Show the key</string>
+    <string name="ai_hide">Hide the key</string>
+    <string name="ai_test">Test</string>
+    <string name="ai_testing">Testing…</string>
+    <!-- "Use" and not "Save": the gesture does not put a key away, it chooses who will
+         analyse the next photos. -->
+    <string name="ai_use">Use</string>
+    <string name="ai_in_use">In use</string>
 
-    <!-- L’aide à la clé : trois questions qu’on se pose toutes en même temps. -->
-    <string name="ai_key_help_link">Comment obtenir une clé ?</string>
-    <string name="ai_key_help_title">Une clé %1$s</string>
-    <string name="ai_key_help_what">Une clé d\'API est un mot de passe que vous créez chez le fournisseur. Elle autorise Hexavore à lui envoyer vos photos et vos descriptions de repas pour analyse.</string>
-    <string name="ai_key_help_where">Le bouton ci-dessous ouvre la page de %1$s où l\'on crée une clé. Copiez-la, puis revenez la coller ici.</string>
-    <string name="ai_key_help_billing">La clé reste sur cet appareil, chiffrée par son trousseau. Les appels partent en direct, et c\'est votre fournisseur qui les compte et les facture.</string>
-    <string name="ai_key_help_open">Ouvrir la page</string>
-    <string name="ai_key_help_close">Fermer</string>
-    <string name="ai_forget">Effacer la clé</string>
+    <!-- Help with the key: three questions you ask yourself all at once. -->
+    <string name="ai_key_help_link">How do I get a key?</string>
+    <string name="ai_key_help_title">A %1$s key</string>
+    <string name="ai_key_help_what">An API key is a password you create at the provider. It lets Hexavore send them your photos and your meal descriptions for analysis.</string>
+    <string name="ai_key_help_where">The button below opens the %1$s page where a key is created. Copy it, then come back and paste it here.</string>
+    <string name="ai_key_help_billing">The key stays on this device, encrypted by its keystore. Calls go out directly, and it is your provider who counts and bills them.</string>
+    <string name="ai_key_help_open">Open the page</string>
+    <string name="ai_key_help_close">Close</string>
+    <string name="ai_forget">Erase the key</string>
 
-    <!-- Ce que l'essai apprend. Il coûte un appel : son résultat reste affiché. -->
-    <string name="ai_probe_ok_vision">Clé valide. Photo et texte sont disponibles.</string>
-    <string name="ai_probe_ok_text_only">Clé valide. Ce modèle ne lit pas les images : seul le mode texte fonctionnera.</string>
+    <!-- What the test teaches. It costs one call: its result stays on screen. -->
+    <string name="ai_probe_ok_vision">Key valid. Photo and text are both available.</string>
+    <string name="ai_probe_ok_text_only">Key valid. This model does not read images: only text mode will work.</string>
 
-    <!-- Un code HTTP ne remonte jamais à l'écran : chaque issue a son message, et la
-         plupart ont une action. -->
+    <!-- An HTTP code never reaches the screen: every outcome has its message, and most
+         have an action. -->
 
 
-    <!-- ===== Sauvegarde ============================================================
-         La garantie de reversibilite du projet : un format ouvert, un export qui
-         fonctionne, et un effacement qui tient sa promesse (docs/09). -->
-    <string name="settings_backup_title">Sauvegarde</string>
-    <string name="settings_backup_subtitle">Exporter vos données, les restaurer, ou tout effacer</string>
+    <!-- ===== Backup ================================================================
+         The project\'s guarantee of reversibility: an open format, an export that works,
+         and an erase that keeps its promise (docs/09). -->
+    <string name="settings_backup_title">Backup</string>
+    <string name="settings_backup_subtitle">Export your data, restore it, or erase everything</string>
 
-    <string name="backup_title">Sauvegarde</string>
-    <string name="backup_close">Fermer</string>
-    <string name="backup_cancel">Annuler</string>
+    <string name="backup_title">Backup</string>
+    <string name="backup_close">Close</string>
+    <string name="backup_cancel">Cancel</string>
 
-    <string name="backup_export_title">Exporter mes données</string>
-    <string name="backup_export_body">Un fichier qui contient tout : le journal, les objectifs, les pesées, le catalogue et les plats favoris. Vous choisissez où l\'écrire. Ni clé d\'API ni mot de passe n\'y figurent.</string>
-    <string name="backup_export_action">Choisir un emplacement</string>
-    <string name="backup_exported">Exporté, %1$d Ko</string>
-    <!-- Au-dela du megaoctet : une archive qui porte des photos se compte en Mo,
-         et « 214 072 Ko » ne se lit pas. -->
-    <string name="backup_exported_large">Exporté, %1$.1f Mo</string>
-    <string name="backup_export_failed">Le fichier n\'a pas pu être écrit</string>
+    <string name="backup_export_title">Export my data</string>
+    <string name="backup_export_body">A file containing everything: the log, the targets, the weight readings, the catalogue and the favourite dishes. You choose where to write it. Neither API keys nor passwords are in it.</string>
+    <string name="backup_export_action">Choose a location</string>
+    <string name="backup_exported">Exported, %1$d kB</string>
+    <!-- Past the megabyte: an archive carrying photos is counted in MB, and "214,072 kB"
+         does not read. -->
+    <string name="backup_exported_large">Exported, %1$.1f MB</string>
+    <string name="backup_export_failed">The file could not be written</string>
 
-    <string name="backup_import_title">Restaurer une sauvegarde</string>
-    <string name="backup_import_body">Remplace tout ce qui est sur cet appareil par le contenu du fichier. Une copie de ce qui existe est conservée juste avant.</string>
-    <string name="backup_import_action">Choisir un fichier</string>
-    <string name="backup_restore_confirm_title">Remplacer toutes vos données ?</string>
-    <string name="backup_restore_confirm_body">Le contenu du fichier remplacera tout ce qui est sur cet appareil. Les deux ne seront pas fusionnés. Une copie de l\'état actuel est gardée juste avant, pour que vous puissiez revenir en arrière si vous vous êtes trompé de fichier.</string>
-    <string name="backup_restore_confirm_accept">Choisir un fichier</string>
-    <string name="backup_restored">Restauré, %1$d aliments notés</string>
-    <string name="backup_too_recent">Ce fichier vient d\'une version plus récente (format %1$d). Rien n\'a été modifié : mettez l\'application à jour.</string>
-    <string name="backup_unreadable">Fichier illisible. Rien n\'a été modifié.</string>
-    <string name="backup_restore_failed">La restauration a échoué. Une copie de vos données d\'avant est sur l\'appareil.</string>
+    <string name="backup_import_title">Restore a backup</string>
+    <string name="backup_import_body">Replaces everything on this device with the contents of the file. A copy of what exists is kept just beforehand.</string>
+    <string name="backup_import_action">Choose a file</string>
+    <string name="backup_restore_confirm_title">Replace all your data?</string>
+    <string name="backup_restore_confirm_body">The contents of the file will replace everything on this device. The two will not be merged. A copy of the current state is kept just beforehand, so you can go back if you picked the wrong file.</string>
+    <string name="backup_restore_confirm_accept">Choose a file</string>
+    <string name="backup_restored">Restored, %1$d foods noted</string>
+    <string name="backup_too_recent">This file comes from a more recent version (format %1$d). Nothing was changed: update the application.</string>
+    <string name="backup_unreadable">File unreadable. Nothing was changed.</string>
+    <string name="backup_restore_failed">The restore failed. A copy of your data from before is on the device.</string>
 
-    <string name="backup_erase_title">Effacer toutes mes données</string>
-    <string name="backup_erase_body">Supprime le journal, le profil, les objectifs, les pesées, les clés d\'API et les comptes. Les fichiers déjà exportés ne sont pas touchés.</string>
-    <string name="backup_erase_action">Tout effacer</string>
-    <string name="backup_erase_confirm_title">Tout effacer, sans retour possible ?</string>
-    <string name="backup_erase_confirm_body">Cette action ne peut pas être annulée. Pour confirmer, écrivez %1$s ci-dessous.</string>
-    <string name="backup_erase_confirm_accept">Tout effacer</string>
-    <string name="backup_erase_word">SUPPRIMER</string>
-    <string name="backup_erased">Toutes vos données ont été effacées</string>
+    <string name="backup_erase_title">Erase all my data</string>
+    <string name="backup_erase_body">Deletes the log, the profile, the targets, the weight readings, the API keys and the accounts. Files you have already exported are untouched.</string>
+    <string name="backup_erase_action">Erase everything</string>
+    <string name="backup_erase_confirm_title">Erase everything, with no way back?</string>
+    <string name="backup_erase_confirm_body">This action cannot be undone. To confirm, type %1$s below.</string>
+    <string name="backup_erase_confirm_accept">Erase everything</string>
+    <!-- The word to type, and it is translated on purpose: a lock that asks you to read
+         only locks in a language you read. The comparison is made against this resource,
+         so it follows the translation on its own. -->
+    <string name="backup_erase_word">DELETE</string>
+    <string name="backup_erased">All your data has been erased</string>
 
-    <!-- ===== Apparence ===========================================================
-         La section que docs/02 annoncait et qui n ouvrait rien. Elle ouvre le theme ;
-         le systeme d unites la rejoindra. -->
-    <!-- Les photos gardees avec les plats : le reglage, ce qu'elles pesent, et
-         de quoi les effacer. Une section a elles plutot qu'une case dans
-         Apparence : ce qu'elle decide n'est pas ce qu'on voit mais ce qui
-         s'ecrit sur le disque. -->
-    <string name="settings_photos_title">Photos des plats</string>
-    <string name="settings_photos_subtitle">Les garder ou non, et ce qu\'elles occupent</string>
-    <string name="photos_title">Photos des plats</string>
-    <string name="photos_close">Fermer</string>
-    <string name="photos_keeping_title">Garder les photos</string>
-    <string name="photos_keeping_body">Quand vous validez un plat scanné ou analysé, son image reste sur ce téléphone et s\'affiche avec lui. Elle ne part nulle part.</string>
-    <string name="photos_storage_title">Ce qu\'elles occupent</string>
-    <string name="photos_storage_empty">Aucune photo pour l\'instant.</string>
+    <!-- ===== Appearance ===========================================================
+         The section docs/02 announced and that opened nothing. It opens the theme, the
+         units, the dish style and the language. -->
+    <!-- Photos kept with dishes: the setting, what they weigh, and a way to erase them.
+         A section of their own rather than a checkbox in Appearance: what it decides is
+         not what you see but what gets written to disk. -->
+    <string name="settings_photos_title">Dish photos</string>
+    <string name="settings_photos_subtitle">Whether to keep them, and what they take up</string>
+    <string name="photos_title">Dish photos</string>
+    <string name="photos_close">Close</string>
+    <string name="photos_keeping_title">Keep photos</string>
+    <string name="photos_keeping_body">When you confirm a scanned or analysed dish, its image stays on this phone and is shown with it. It goes nowhere.</string>
+    <string name="photos_storage_title">What they take up</string>
+    <string name="photos_storage_empty">No photos for now.</string>
     <plurals name="photos_storage_count">
-        <item quantity="one">%1$d photo, %2$.1f Mo</item>
-        <item quantity="other">%1$d photos, %2$.1f Mo</item>
+        <item quantity="one">%1$d photo, %2$.1f MB</item>
+        <item quantity="other">%1$d photos, %2$.1f MB</item>
     </plurals>
-    <string name="photos_erase_action">Supprimer toutes les photos</string>
-    <string name="photos_erase_title">Supprimer les photos ?</string>
+    <string name="photos_erase_action">Delete all photos</string>
+    <string name="photos_erase_title">Delete the photos?</string>
     <plurals name="photos_erase_body">
-        <item quantity="one">%1$d image sera effacée. Vos plats et leurs valeurs restent intacts.</item>
-        <item quantity="other">%1$d images seront effacées. Vos plats et leurs valeurs restent intacts.</item>
+        <item quantity="one">%1$d image will be erased. Your dishes and their values stay intact.</item>
+        <item quantity="other">%1$d images will be erased. Your dishes and their values stay intact.</item>
     </plurals>
-    <string name="photos_erase_confirm">Supprimer</string>
-    <string name="photos_erase_cancel">Annuler</string>
+    <string name="photos_erase_confirm">Delete</string>
+    <string name="photos_erase_cancel">Cancel</string>
 
-    <string name="settings_appearance_title">Apparence</string>
-    <string name="settings_appearance_subtitle">Le thème, les unités, et l\'affichage des plats</string>
+    <string name="settings_appearance_title">Appearance</string>
+    <string name="settings_appearance_subtitle">The language, the theme, the units, and how dishes are shown</string>
 
-    <string name="appearance_title">Apparence</string>
-    <string name="appearance_close">Fermer</string>
-    <string name="appearance_theme_title">Thème</string>
-    <string name="appearance_theme_light">Clair</string>
-    <string name="appearance_theme_dark">Sombre</string>
-    <string name="appearance_theme_system">Suivre le système</string>
-    <string name="appearance_units_title">Unités</string>
-    <!-- Le style d'affichage des plats. Deux styles et non une densite : ce qui les
-         distingue est ce qu'on lit, pas une hauteur de ligne. -->
-    <string name="appearance_dishes_title">Affichage des plats</string>
-    <string name="appearance_dishes_simple">Simplifié</string>
-    <string name="appearance_dishes_detailed">Détaillé</string>
-    <string name="appearance_dishes_note">Le simplifié donne le titre du plat, son heure, ses calories et ses apports. Le détaillé y ajoute la liste de ses aliments.</string>
+    <string name="appearance_title">Appearance</string>
+    <string name="appearance_close">Close</string>
 
-    <string name="appearance_units_metric">Métrique (g, ml, kg, cm)</string>
-    <string name="appearance_units_imperial">Impérial (oz, fl oz, lb, pieds et pouces)</string>
-    <string name="appearance_units_note">Ce réglage change l\'affichage et la saisie. Vos données ne bougent pas : un plat noté en grammes garde ses grammes.</string>
-    <string name="appearance_theme_note">« Suivre le système » reprend le réglage d\'Android et bascule avec lui.</string>
+    <!-- The language. First of the four, because it is the one that decides how the three
+         others read. -->
+    <string name="appearance_language_title">Language</string>
+    <string name="appearance_language_system">Follow the system</string>
+    <!-- Every language is written in itself, in both files. Someone looking for their own
+         language cannot read the one currently on screen — that is exactly why they are
+         looking — so "Français" says more than "French" ever could. -->
+    <string name="appearance_language_en">English</string>
+    <string name="appearance_language_fr">Français</string>
+    <string name="appearance_language_note">“Follow the system” takes the languages set on your phone, in their order, and uses the first one Hexavore speaks. English otherwise. Food names follow: the ANSES table publishes its 3,484 labels in both languages.</string>
 
-    <!-- ===== Pastilles ============================================================
-         Aucune notification systeme : ce sont des points colorés qu'on voit en ouvrant
-         l'application. Chacune designe une situation, jamais un message empile. -->
+    <string name="appearance_theme_title">Theme</string>
+    <string name="appearance_theme_light">Light</string>
+    <string name="appearance_theme_dark">Dark</string>
+    <string name="appearance_theme_system">Follow the system</string>
+    <string name="appearance_units_title">Units</string>
+    <!-- The dish display style. Two styles rather than a density scale: what tells them
+         apart is what you read, not a line height. -->
+    <string name="appearance_dishes_title">How dishes are shown</string>
+    <string name="appearance_dishes_simple">Simple</string>
+    <string name="appearance_dishes_detailed">Detailed</string>
+    <string name="appearance_dishes_note">Simple gives the dish title, its time, its calories and what it contributes. Detailed adds the list of its foods.</string>
+
+    <string name="appearance_units_metric">Metric (g, ml, kg, cm)</string>
+    <string name="appearance_units_imperial">Imperial (oz, fl oz, lb, feet and inches)</string>
+    <string name="appearance_units_note">This setting changes what is shown and what you type. Your data does not move: a dish noted in grams keeps its grams.</string>
+    <string name="appearance_theme_note">“Follow the system” takes Android\'s setting and switches with it.</string>
+
+    <!-- ===== Notices ==============================================================
+         No system notifications: these are coloured dots you see when you open the
+         application. Each one designates a situation, never a stacked message. -->
     <string name="settings_notices_title">Notifications</string>
-    <string name="settings_notices_subtitle">Les pastilles qui signalent ce qu\'il y a à faire</string>
+    <string name="settings_notices_subtitle">The dots that flag what there is to do</string>
 
     <string name="notices_title">Notifications</string>
-    <string name="notices_close">Fermer</string>
-    <string name="notices_intro">Des points colorés dans l\'application, rien de plus : aucune sonnerie, rien sur l\'écran de verrouillage, aucune permission. Chacune s\'éteint quand la situation qu\'elle signale a cessé.</string>
-    <string name="settings_section_flagged">Quelque chose à régler ici</string>
-    <string name="notices_active_now">Allumée en ce moment</string>
+    <string name="notices_close">Close</string>
+    <string name="notices_intro">Coloured dots inside the application, nothing more: no sound, nothing on the lock screen, no permission. Each one goes out when the situation it flags has ended.</string>
+    <string name="settings_section_flagged">Something to sort out here</string>
+    <string name="notices_active_now">On right now</string>
 
-    <string name="notices_ai_absent_title">Aucune IA configurée</string>
-    <string name="notices_ai_absent_body">Sur l\'icône du profil, tant qu\'aucune clé d\'API ne sert. Les deux boutons d\'analyse restent grisés sans elle.</string>
+    <string name="notices_ai_absent_title">No AI configured</string>
+    <string name="notices_ai_absent_body">On the profile icon, as long as no API key is in use. Both analysis buttons stay dimmed without one.</string>
 
-    <string name="notices_ai_rejected_title">Clé d\'API refusée</string>
-    <string name="notices_ai_rejected_body">Sur l\'icône du profil, quand le dernier appel d\'analyse a été refusé. Sans elle, l\'analyse cesse de fonctionner sans que rien ne le dise.</string>
+    <string name="notices_ai_rejected_title">API key refused</string>
+    <string name="notices_ai_rejected_body">On the profile icon, when the last analysis call was refused. Without it, analysis stops working without anything saying so.</string>
 
-    <string name="notices_weight_title">Pas de pesée depuis une semaine</string>
-    <string name="notices_weight_body">Sur l\'icône du journal de poids. Sans pesées régulières, la tendance se tait et l\'adaptation hebdomadaire ne peut rien proposer.</string>
+    <string name="notices_weight_title">No weight reading for a week</string>
+    <string name="notices_weight_body">On the weight log icon. Without regular readings, the trend falls silent and the weekly adjustment can suggest nothing.</string>
 
-    <string name="notices_yesterday_title">Hier n\'a rien de noté</string>
-    <string name="notices_yesterday_body">Sur la pastille d\'hier dans le calendrier. Toucher cette journée permet d\'y noter le repas oublié.</string>
+    <string name="notices_yesterday_title">Yesterday has nothing noted</string>
+    <string name="notices_yesterday_body">On yesterday\'s dot in the calendar. Touching that day lets you note the meal you forgot.</string>
 
-    <!-- ===== Mise au point ========================================================
-         Un instrument, pas un reglage : il s\'allume le jour où quelque chose ne va
-         pas. Rien n\'est écrit sur le disque, la liste meurt avec le processus. -->
-    <!-- L\'analyse approfondie : le modele interroge le catalogue avant de conclure,
-         au lieu de laisser un score de ressemblance choisir a sa place. -->
-    <string name="ai_deep_title">Analyse approfondie</string>
-    <string name="ai_deep_body">Le modèle interroge le catalogue et choisit lui-même la fiche de chaque aliment. Plus lent et plus cher, mais nettement plus juste quand deux aliments portent des noms voisins.</string>
-    <string name="ai_deep_unavailable">Le fournisseur actif ne sait pas appeler d\'outils. Le réglage est conservé et reprendra effet avec un fournisseur qui le sait.</string>
+    <!-- ===== Diagnostics ==========================================================
+         An instrument, not a setting: it is switched on the day something goes wrong.
+         Nothing is written to disk, the list dies with the process. -->
+    <!-- Deep analysis: the model queries the catalogue before concluding, instead of
+         letting a similarity score choose in its place. -->
+    <string name="ai_deep_title">Deep analysis</string>
+    <string name="ai_deep_body">The model queries the catalogue and picks the entry for each food itself. Slower and more expensive, but markedly more accurate when two foods have similar names.</string>
+    <string name="ai_deep_unavailable">The active provider cannot call tools. The setting is kept and will take effect again with a provider that can.</string>
 
-    <string name="ai_debug_title">Mode debug</string>
-    <string name="ai_debug_body">Garde ce qui part chez le fournisseur et ce qui en revient, pour comprendre une réponse inattendue. Rien n\'est écrit sur le disque, les images sont retirées, et la liste disparaît à la fermeture.</string>
-    <string name="ai_debug_open">Voir les échanges</string>
+    <string name="ai_debug_title">Debug mode</string>
+    <string name="ai_debug_body">Keeps what goes to the provider and what comes back, to make sense of an unexpected answer. Nothing is written to disk, images are stripped out, and the list disappears when you close it.</string>
+    <string name="ai_debug_open">See the exchanges</string>
 
-    <string name="exchanges_title">Échanges avec l\'IA</string>
-    <string name="exchanges_close">Fermer</string>
-    <string name="exchanges_clear">Vider</string>
-    <string name="exchanges_empty">Aucun échange pour l\'instant. Lancez une analyse, puis revenez ici.</string>
-    <string name="exchanges_indent">Mise en page</string>
-    <string name="exchanges_sent">Envoyé</string>
-    <string name="exchanges_received">Reçu</string>
+    <string name="exchanges_title">AI exchanges</string>
+    <string name="exchanges_close">Close</string>
+    <string name="exchanges_clear">Clear</string>
+    <string name="exchanges_empty">No exchanges for now. Run an analysis, then come back here.</string>
+    <string name="exchanges_indent">Layout</string>
+    <string name="exchanges_sent">Sent</string>
+    <string name="exchanges_received">Received</string>
 </resources>

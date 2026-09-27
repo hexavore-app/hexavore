@@ -1,45 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Textes de la seule variante debug. Comme la galerie qu'ils servent, ils sont
-  absents du binaire de release : ce ne sont pas des chaines de production, et
-  personne n'aura jamais a les traduire.
--->
-<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="fr">
+  Texts for the debug variant only. Like the gallery they serve, they are absent from the
+  release binary.
 
-    <string name="gallery_launcher_label">Hexavore — galerie</string>
-    <string name="gallery_title">Galerie des composants</string>
-    <string name="gallery_subtitle">Écran de vérification du design system. Aucune donnée réelle : ces valeurs sont des échantillons.</string>
-    <string name="gallery_today">Horloge injectée : %1$s</string>
-    <string name="gallery_theme_dark">Thème sombre</string>
-    <string name="gallery_theme_light">Thème clair</string>
+  They used to carry a comment saying nobody would ever have to translate them. That
+  stopped being true the day `values/` became English: a French string in the fallback
+  bucket is a lie about the bucket, and Android Lint would have asked for the French
+  anyway. Thirty-one short strings were cheaper than an exception.
+-->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
+
+    <string name="gallery_launcher_label">Hexavore — gallery</string>
+    <string name="gallery_title">Component gallery</string>
+    <string name="gallery_subtitle">Design system check screen. No real data: these values are samples.</string>
+    <string name="gallery_today">Injected clock: %1$s</string>
+    <string name="gallery_theme_dark">Dark theme</string>
+    <string name="gallery_theme_light">Light theme</string>
     <string name="gallery_section_palette">Palette</string>
     <string name="gallery_section_hexagon">MacroHexagon</string>
-    <string name="gallery_hexagon_normal">Journée en cours</string>
-    <string name="gallery_hexagon_over">Deux limites dépassées, dont une au plafond</string>
+    <string name="gallery_hexagon_normal">Day in progress</string>
+    <string name="gallery_hexagon_over">Two limits exceeded, one of them at the ceiling</string>
     <string name="gallery_section_ring">MacroRing</string>
     <string name="gallery_section_bar">MacroBar</string>
-    <string name="gallery_bar_targets">À atteindre</string>
-    <string name="gallery_bar_limits">À ne pas dépasser</string>
-    <string name="gallery_button_unavailable_reason">Aucune clé API configurée. Ce message prouve que l\'appui a bien été reçu.</string>
+    <string name="gallery_bar_targets">To reach</string>
+    <string name="gallery_bar_limits">Not to exceed</string>
+    <string name="gallery_button_unavailable_reason">No API key configured. This message proves the tap was received.</string>
     <string name="gallery_section_button">NeonButton</string>
     <string name="gallery_section_badge">SourceBadge</string>
-    <string name="gallery_section_typography">Typographie</string>
+    <string name="gallery_section_typography">Typography</string>
     <string name="gallery_swatch_base">base</string>
-    <string name="gallery_swatch_glow">lueur</string>
-    <string name="gallery_swatch_muted">éteinte</string>
-    <string name="gallery_animate">Rejouer l\'animation</string>
+    <string name="gallery_swatch_glow">glow</string>
+    <string name="gallery_swatch_muted">muted</string>
+    <string name="gallery_animate">Replay the animation</string>
     <string name="gallery_ring_remaining">780</string>
-    <string name="gallery_ring_label">restantes</string>
-    <string name="gallery_ring_a11y">Calories, 1 220 sur 2 000, 61 %</string>
+    <string name="gallery_ring_label">left</string>
+    <string name="gallery_ring_a11y">Calories, 1,220 of 2,000, 61 %</string>
 
-    <!-- Noms des six macros. Ils ne servent qu'ici : chaque ecran porte les siens,
-         parce qu'une chaine partagee entre deux ecrans finit par etre reecrite pour
-         l'un des deux et par mentir a l'autre. -->
+    <!-- The names of the six macros. They serve only here: each screen carries its own,
+         because a string shared between two screens ends up rewritten for one of them and
+         lying to the other. -->
     <string name="macro_calories">Calories</string>
-    <string name="macro_protein">Protéines</string>
-    <string name="macro_carbs">Glucides</string>
-    <string name="macro_sugars">Sucres</string>
-    <string name="macro_fat">Lipides</string>
-    <string name="macro_fiber">Fibres</string>
+    <string name="macro_protein">Protein</string>
+    <string name="macro_carbs">Carbs</string>
+    <string name="macro_sugars">Sugars</string>
+    <string name="macro_fat">Fat</string>
+    <string name="macro_fiber">Fibre</string>
 
 </resources>

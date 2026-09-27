@@ -6,6 +6,7 @@ import app.hexavore.domain.food.FoodContributionTarget
 import app.hexavore.domain.food.ProductSearch
 import app.hexavore.domain.food.ProductSource
 import app.hexavore.domain.identity.IdGenerator
+import app.hexavore.domain.language.ContentLanguages
 import app.hexavore.domain.time.Clock
 import app.hexavore.integration.openfoodfacts.ClientIdentity
 import app.hexavore.integration.openfoodfacts.ContributionApi
@@ -57,10 +58,11 @@ internal object OpenFoodFactsModule {
     @Singleton
     fun products(
         api: OpenFoodFactsApi,
+        languages: ContentLanguages,
         ids: IdGenerator,
         clock: Clock,
         dispatchers: DispatcherProvider,
-    ): OpenFoodFactsProducts = OpenFoodFactsProducts(api, ids, clock, dispatchers)
+    ): OpenFoodFactsProducts = OpenFoodFactsProducts(api, languages, ids, clock, dispatchers)
 
     @Provides
     fun productSource(products: OpenFoodFactsProducts): ProductSource = products

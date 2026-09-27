@@ -1,26 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
 
-    <string name="scan_title">Scanner un produit</string>
-    <string name="scan_close">Fermer</string>
-    <string name="scan_torch_on">Allumer la lampe</string>
-    <string name="scan_torch_off">Éteindre la lampe</string>
-    <string name="scan_hint">Cadrez le code-barres du produit</string>
-    <string name="scan_looking">Recherche…</string>
+    <string name="scan_title">Scan a product</string>
+    <string name="scan_close">Close</string>
+    <string name="scan_torch_on">Turn the light on</string>
+    <string name="scan_torch_off">Turn the light off</string>
+    <string name="scan_hint">Frame the product barcode</string>
+    <string name="scan_looking">Searching…</string>
 
-    <string name="scan_unknown_title">Produit inconnu</string>
-    <string name="scan_unknown_body">Open Food Facts ne connaît pas le code %1$s. Vous pouvez créer cet aliment : il gardera son code-barres et sera reconnu au prochain scan.</string>
+    <string name="scan_unknown_title">Unknown product</string>
+    <string name="scan_unknown_body">Open Food Facts does not know the code %1$s. You can create this food: it will keep its barcode and be recognised the next time you scan it.</string>
 
-    <string name="scan_offline_title">Pas de connexion</string>
-    <string name="scan_offline_body">Le code %1$s a été lu, mais Open Food Facts n\'a pas pu être joint. Créez l\'aliment à la main : le code reste associé.</string>
+    <string name="scan_offline_title">No connection</string>
+    <string name="scan_offline_body">The code %1$s was read, but Open Food Facts could not be reached. Create the food by hand: the code stays attached to it.</string>
 
-    <string name="scan_create">Créer cet aliment</string>
-    <string name="scan_search_by_name">Chercher par nom</string>
-    <string name="scan_retry">Scanner à nouveau</string>
+    <string name="scan_create">Create this food</string>
+    <string name="scan_search_by_name">Search by name</string>
+    <string name="scan_retry">Scan again</string>
 
-    <string name="scan_permission_title">Hexavore a besoin de la caméra</string>
-    <string name="scan_permission_body">Le scan lit le code-barres sur le téléphone : aucune image ne part. Celle qui a porté la lecture reste avec le plat si vous le validez, et se retire d\'un geste. Les trois autres façons d\'ajouter un aliment restent disponibles.</string>
-    <string name="scan_permission_grant">Autoriser la caméra</string>
-    <string name="scan_permission_settings">Ouvrir les réglages</string>
+    <string name="scan_permission_title">Hexavore needs the camera</string>
+    <string name="scan_permission_body">Scanning reads the barcode on the phone: no image leaves it. The one that carried the reading stays with the dish if you confirm it, and can be removed in a single gesture. The three other ways of adding a food remain available.</string>
+    <string name="scan_permission_grant">Allow the camera</string>
+    <string name="scan_permission_settings">Open settings</string>
 
 </resources>

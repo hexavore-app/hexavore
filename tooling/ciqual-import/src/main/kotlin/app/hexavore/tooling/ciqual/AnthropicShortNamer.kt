@@ -1,5 +1,6 @@
 package app.hexavore.tooling.ciqual
 
+import app.hexavore.domain.language.ContentLanguage
 import com.anthropic.client.AnthropicClient
 import com.anthropic.client.okhttp.AnthropicOkHttpClient
 import com.anthropic.models.messages.MessageCreateParams
@@ -19,17 +20,21 @@ import com.anthropic.models.messages.MessageCreateParams
  * comme dans l'application.
  *
  * @param model l'identifiant du modèle. Relevé, jamais écrit de mémoire.
+ * @param language la langue des libellés reçus, **et** celle des titres attendus. La
+ *   consigne est écrite dans cette langue : une consigne française devant des libellés
+ *   anglais rend des titres français, que le contrôle de longueur laisse passer.
  */
 internal class AnthropicShortNamer(
     apiKey: String,
     private val model: String,
+    private val language: ContentLanguage,
     private val client: AnthropicClient = AnthropicOkHttpClient.builder().apiKey(apiKey).build(),
 ) : ShortNamer {
     override fun shorten(labels: List<LongLabel>): Map<String, String> {
         val params = MessageCreateParams.builder()
             .model(model)
             .maxTokens(MAX_TOKENS)
-            .system(SYSTEM_PROMPT)
+            .system(language.systemPrompt)
             .addUserMessage(labels.joinToString("\n") { "${it.code}\t${it.name}" })
             .build()
 
@@ -56,7 +61,7 @@ internal class AnthropicShortNamer(
          * recompiler ; celui-ci ne sert qu'à une tâche d'outillage lancée à la main,
          * et l'y mettre l'aurait fait entrer dans l'APK sans jamais y servir.
          */
-        val SYSTEM_PROMPT =
+        val FRENCH_PROMPT =
             """
             Tu raccourcis des libelles d'aliments de la table CIQUAL de l'ANSES.
 
@@ -82,6 +87,47 @@ internal class AnthropicShortNamer(
             Une omission se corrige a la main ; un titre qui designe un autre aliment
             passe inapercu.
             """.trimIndent()
+
+        /**
+         * Le pendant anglais, ecrit et non traduit.
+         *
+         * Les exemples sont ceux de l'ANSES, qui publie ses propres libelles anglais :
+         * ils sont deja plus courts que les francais, donc la consigne insiste moins sur
+         * l'abandon et davantage sur ce qu'il faut garder.
+         */
+        val ENGLISH_PROMPT =
+            """
+            You shorten food labels from the French ANSES CIQUAL table, whose English
+            labels you are given.
+
+            Each line you receive carries a code, a tab, then the published label.
+            Answer one line per food: the same code, a tab, the short title.
+            Nothing else -- no preamble, no numbering, no comment line.
+
+            The short title must:
+            - name the food the way someone would say it at the table;
+            - fit in ${'$'}{ShortNamesCsv.MAX_LENGTH} characters, and stay shorter than the label;
+            - keep what tells this entry apart from another of the same food -- how it is
+              cooked, its fat content, whether it is raw, canned or sweetened;
+            - drop what tells nothing apart: "unspecified", "average food",
+              "all types of", repetitions of the generic name;
+            - start with a capital letter.
+
+            Examples:
+            Chicken, breast, skinless, oven-cooked, without added fat -> Oven-cooked chicken breast
+            Fruit preparation, all types of fruit, no added sugar, prepacked -> Fruit preparation, no sugar
+            Yoghurt or dairy speciality, plain, whole milk -> Plain whole-milk yoghurt
+
+            If a label cannot be shortened without lying, omit its line.
+            An omission is fixed by hand; a title that names another food goes unnoticed.
+            """.trimIndent()
+
+        /** Sans branche `else` : une langue de plus ne compile pas sans sa consigne. */
+        val ContentLanguage.systemPrompt: String
+            get() = when (this) {
+                ContentLanguage.FRENCH -> FRENCH_PROMPT
+                ContentLanguage.ENGLISH -> ENGLISH_PROMPT
+            }
     }
 }
 

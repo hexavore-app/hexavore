@@ -4,6 +4,7 @@ import app.hexavore.domain.food.Barcode
 import app.hexavore.domain.food.Food
 import app.hexavore.domain.food.FoodId
 import app.hexavore.domain.food.FoodSource
+import app.hexavore.domain.language.ContentLanguage
 import app.hexavore.domain.nutrition.NutrientValues
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
@@ -40,23 +41,24 @@ private const val KJ_PER_KCAL = 4.184
  * [sources]: docs/04-sources-de-donnees.md
  * [decisions]: docs/11-decisions.md
  */
-internal fun ProductDto.toFood(barcode: Barcode, id: FoodId, fetchedAt: Instant): Food? = displayName()?.let { name ->
-    Food(
-        id = id,
-        source = FoodSource.OFF,
-        sourceRef = barcode.value,
-        name = name,
-        brand = firstBrand(),
-        // Un produit emballe n'a pas de rayon : les huit du bandeau viennent des
-        // groupes de la table de l'ANSES, et « ne pas avoir de rayon » est une
-        // reponse legitime que Food documente deja.
-        category = null,
-        per100g = nutriments.toNutrientValues(),
-        defaultServingG = defaultServing(),
-        isLiquid = servingOf(servingSize)?.liquid,
-        fetchedAt = fetchedAt,
-    )
-}
+internal fun ProductDto.toFood(barcode: Barcode, id: FoodId, fetchedAt: Instant, language: ContentLanguage): Food? =
+    displayName(language)?.let { name ->
+        Food(
+            id = id,
+            source = FoodSource.OFF,
+            sourceRef = barcode.value,
+            name = name,
+            brand = firstBrand(),
+            // Un produit emballe n'a pas de rayon : les huit du bandeau viennent des
+            // groupes de la table de l'ANSES, et « ne pas avoir de rayon » est une
+            // reponse legitime que Food documente deja.
+            category = null,
+            per100g = nutriments.toNutrientValues(),
+            defaultServingG = defaultServing(),
+            isLiquid = servingOf(servingSize)?.liquid,
+            fetchedAt = fetchedAt,
+        )
+    }
 
 /**
  * La même fiche, mais dont le code vient de la **réponse** et non de la demande.
@@ -66,17 +68,30 @@ internal fun ProductDto.toFood(barcode: Barcode, id: FoodId, fetchedAt: Instant)
  * ni être mise en cache sans doublon ni être retrouvée par un scan, et elle
  * reviendrait du réseau à chaque recherche.
  */
-internal fun ProductDto.toFound(id: FoodId, fetchedAt: Instant): Food? =
-    code?.let(Barcode::of)?.let { barcode -> toFood(barcode, id, fetchedAt) }
+internal fun ProductDto.toFound(id: FoodId, fetchedAt: Instant, language: ContentLanguage): Food? =
+    code?.let(Barcode::of)?.let { barcode -> toFood(barcode, id, fetchedAt, language) }
 
 /**
- * Le nom français d'abord, l'international ensuite.
+ * Le nom dans la langue en cours d'abord, l'international ensuite.
  *
  * Une chaîne vide compte comme absente : la base en contient, et « " " » afficherait
  * une ligne sans titre au lieu d'ouvrir le formulaire de création.
+ *
+ * **Le repli est `product_name` et non l'anglais.** Ce champ-là est celui que le
+ * contributeur a rempli dans la langue du paquet qu'il tenait : pour un produit vendu en
+ * France, c'est du français, et c'est le nom écrit sur la boîte qu'on a scannée. Il aide
+ * davantage à reconnaître une fiche qu'une traduction absente.
  */
-private fun ProductDto.displayName(): String? =
-    nameFr?.trim()?.takeIf(String::isNotEmpty) ?: name?.trim()?.takeIf(String::isNotEmpty)
+private fun ProductDto.displayName(language: ContentLanguage): String? = localisedName(language)
+    ?.trim()
+    ?.takeIf(String::isNotEmpty)
+    ?: name?.trim()?.takeIf(String::isNotEmpty)
+
+/** Sans branche `else` : une langue de plus ne compile pas sans son champ dans le DTO. */
+private fun ProductDto.localisedName(language: ContentLanguage): String? = when (language) {
+    ContentLanguage.FRENCH -> nameFr
+    ContentLanguage.ENGLISH -> nameEn
+}
 
 /**
  * La première marque déclarée.

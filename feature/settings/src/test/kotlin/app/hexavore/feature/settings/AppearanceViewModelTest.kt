@@ -1,6 +1,7 @@
 package app.hexavore.feature.settings
 
 import app.hexavore.core.testing.InMemoryAppearanceSettings
+import app.hexavore.core.testing.InMemoryLanguageSettings
 import app.hexavore.core.testing.InMemoryProfiles
 import app.hexavore.domain.appearance.DishDisplayStyle
 import app.hexavore.domain.appearance.ThemeMode
@@ -156,9 +157,16 @@ internal class AppearanceViewModelTest {
         assertEquals(DishDisplayStyle.SIMPLE, modeleDe(abime).uiState.value.dishStyle)
     }
 
-    /** Le profil porte les unites, le magasin porte le theme et le style : deux sources, un ecran. */
-    private fun modeleDe(apparence: InMemoryAppearanceSettings) = AppearanceViewModel(
+    /**
+     * Trois sources pour un ecran : le profil porte les unites, le magasin d'apparence le
+     * theme et le style, et la plateforme la langue.
+     */
+    private fun modeleDe(
+        apparence: InMemoryAppearanceSettings,
+        langues: InMemoryLanguageSettings = InMemoryLanguageSettings(),
+    ) = AppearanceViewModel(
         settings = apparence,
+        languages = langues,
         chooseUnits = ChooseUnitSystem(profils),
         observeUnits = ObserveUnitSystem(profils),
         observeDishStyle = ObserveDishStyle(apparence),

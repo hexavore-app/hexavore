@@ -5,10 +5,12 @@ import androidx.test.core.app.ApplicationProvider
 import app.hexavore.core.database.HexavoreDatabase
 import app.hexavore.core.database.ciqual.CiqualDatabase
 import app.hexavore.core.testing.FixedClock
+import app.hexavore.core.testing.FixedLanguage
 import app.hexavore.core.testing.SequentialIdGenerator
 import app.hexavore.core.testing.TestDispatchers
 import app.hexavore.domain.food.Food
 import app.hexavore.domain.food.FoodId
+import app.hexavore.domain.language.ContentLanguage
 import app.hexavore.domain.nutrition.Macro
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -56,6 +58,9 @@ class RoomFoodCatalogTest : FoodCatalogContract() {
             dao = base.foodDao(),
             marks = base.foodMarksDao(),
             ciqual = ciqual,
+            // Le francais : les fiches de reference de ce fichier portent les libelles
+            // de l'ANSES en francais, et c'est sur eux que le contrat compare.
+            languages = FixedLanguage(),
             ids = SequentialIdGenerator("provisoire"),
             clock = FixedClock(MAINTENANT),
             dispatchers = TestDispatchers(Dispatchers.IO),
@@ -74,7 +79,7 @@ class RoomFoodCatalogTest : FoodCatalogContract() {
      */
     private fun CiqualDatabase.verifier(attendu: Food) {
         val code = checkNotNull(attendu.sourceRef) { "une fiche de reference porte un code CIQUAL" }
-        val ligne = byCode(code)
+        val ligne = byCode(code, ContentLanguage.FRENCH.tag)
         checkNotNull(ligne) { "le code $code n'est plus dans la table livree : la fixture est perimee" }
         check(ligne.name == attendu.name) {
             "l intitule du code $code a change : attendu [${attendu.name}], lu [${ligne.name}]"
@@ -101,7 +106,7 @@ class RoomFoodCatalogTest : FoodCatalogContract() {
      */
     @Test
     fun `un titre court du fichier livre remonte jusqu au modele`() {
-        val ligne = CiqualDatabase(ApplicationProvider.getApplicationContext()).byCode(CODE_AVEC_TITRE)
+        val ligne = livree(CODE_AVEC_TITRE)
 
         checkNotNull(ligne) { "le code $CODE_AVEC_TITRE n'est plus dans la table livree : la fixture est perimee" }
         assertEquals("Cuisse de poulet rotie", ligne.shortName)
@@ -116,7 +121,7 @@ class RoomFoodCatalogTest : FoodCatalogContract() {
      */
     @Test
     fun `une fiche sans titre court en rend aucun`() {
-        val ligne = CiqualDatabase(ApplicationProvider.getApplicationContext()).byCode(CODE_SANS_TITRE)
+        val ligne = livree(CODE_SANS_TITRE)
 
         checkNotNull(ligne) { "le code $CODE_SANS_TITRE n'est plus dans la table livree : la fixture est perimee" }
         assertNull(ligne.shortName)
@@ -134,7 +139,7 @@ class RoomFoodCatalogTest : FoodCatalogContract() {
      */
     @Test
     fun `une teneur completee du fichier livre remonte marquee`() {
-        val ligne = CiqualDatabase(ApplicationProvider.getApplicationContext()).byCode(CODE_COMPLETE)
+        val ligne = livree(CODE_COMPLETE)
 
         checkNotNull(ligne) { "le code $CODE_COMPLETE n'est plus dans la table livree : la fixture est perimee" }
         assertNull("l ANSES ne determine pas cette energie", ligne.kcal100)
@@ -153,7 +158,7 @@ class RoomFoodCatalogTest : FoodCatalogContract() {
      */
     @Test
     fun `une teneur mesuree n est ni marquee ni remplacee`() {
-        val ligne = CiqualDatabase(ApplicationProvider.getApplicationContext()).byCode(CODE_COMPLETE)!!
+        val ligne = livree(CODE_COMPLETE)!!
 
         val food = ligne.toDomain(FoodId("provisoire"), emptyList())
 
@@ -161,8 +166,74 @@ class RoomFoodCatalogTest : FoodCatalogContract() {
         assertEquals("et rien d autre que l energie n est marque", setOf(Macro.CALORIES), food.estimated)
     }
 
+    /**
+     * La table livrée, interrogée en français.
+     *
+     * Une fonction plutôt que la ligne écrite six fois : elle nomme ce que ces cas ont en
+     * commun — la base de l'APK, et la langue dans laquelle les fixtures sont écrites.
+     */
+    private fun livree(code: String, language: ContentLanguage = ContentLanguage.FRENCH) =
+        CiqualDatabase(ApplicationProvider.getApplicationContext()).byCode(code, language.tag)
+
+    /**
+     * La même fiche, dans les deux langues, depuis la base livrée dans l'APK.
+     *
+     * **La couture que rien d'autre n'éprouve.** `alim_nom_eng` est lu par une tâche
+     * Gradle, écrit dans une seconde ligne de `ciqual_name`, et relu ici par le code qui
+     * tourne sur le téléphone. Sans ce cas, une colonne oubliée à l'import rendrait
+     * simplement zéro résultat en anglais — et personne ne le verrait avant d'installer
+     * l'application dans cette langue.
+     *
+     * Les deux libellés sont affirmés en dur : c'est ce qui fait échouer ce cas le jour où
+     * l'ANSES republie en renommant l'un des deux, plutôt que de le laisser passer.
+     */
+    @Test
+    fun `une fiche livree se lit dans les deux langues, avec les memes teneurs`() {
+        val francais = livree(CODE_SANS_TITRE)
+        val anglais = livree(CODE_SANS_TITRE, ContentLanguage.ENGLISH)
+
+        checkNotNull(francais) { "le code $CODE_SANS_TITRE n'est plus dans la table livree" }
+        checkNotNull(anglais) { "la table livree ne porte pas l'anglais : l'import a-t-il tourne ?" }
+        assertEquals("Carotte, crue", francais.name)
+        assertEquals("Carrot, raw", anglais.name)
+        assertEquals("les teneurs ne dependent d aucune langue", francais.kcal100, anglais.kcal100)
+        assertEquals("ni le rayon", francais.category, anglais.category)
+    }
+
+    /**
+     * Le rayon de l'ANSES est traduit, et c'est ce qui départage deux homonymes.
+     *
+     * Il s'affiche sous le nom dans la liste de résultats : le laisser en français sous un
+     * libellé anglais aurait été le détail qui trahit une traduction à moitié faite.
+     */
+    @Test
+    fun `le rayon d une fiche livree suit la langue`() {
+        assertEquals("légumes", livree(CODE_SANS_TITRE)?.groupName)
+        assertEquals("vegetables", livree(CODE_SANS_TITRE, ContentLanguage.ENGLISH)?.groupName)
+    }
+
+    /**
+     * Les portions nommées suivent la langue, et gardent leur poids.
+     *
+     * Le poids est écrit une fois dans `servings.csv` : c'est ce qui rend impossible que
+     * « 1 pomme moyenne » et « 1 medium apple » finissent par ne plus peser la même chose.
+     */
+    @Test
+    fun `une portion livree se lit dans les deux langues, pour un meme poids`() {
+        val ciqual = CiqualDatabase(ApplicationProvider.getApplicationContext())
+        val francaises = ciqual.servings(CODE_AVEC_PORTION, ContentLanguage.FRENCH.tag)
+        val anglaises = ciqual.servings(CODE_AVEC_PORTION, ContentLanguage.ENGLISH.tag)
+
+        assertEquals("1 pomme moyenne", francaises.single().label)
+        assertEquals("1 medium apple", anglaises.single().label)
+        assertEquals(francaises.single().grams, anglaises.single().grams, 0.0)
+    }
+
     private companion object {
         val MAINTENANT: Instant = Instant.parse("2026-08-10T10:00:00Z")
+
+        /** « Pomme, chair et peau, crue » : une portion nommée, écrite à la main. */
+        const val CODE_AVEC_PORTION = "13039"
 
         /** « Câpres, au vinaigre » : sans énergie déterminée, complétée à la main. */
         const val CODE_COMPLETE = "11040"

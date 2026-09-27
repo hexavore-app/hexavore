@@ -15,9 +15,9 @@ import java.io.File
  */
 fun main(args: Array<String>) {
     require(args.size == ARGUMENT_COUNT) {
-        "Usage : generateCompletions <archive.zip> <completions.csv> <modele> <cle>"
+        "Usage : generateCompletions <dossier ciqual> <modele> <cle>"
     }
-    val (archive, target, model) = args.toList()
+    val (directory, model) = args.toList()
     val apiKey = args.last()
 
     // La cle n'est ni journalisee ni ecrite : elle traverse ce point d'entree et
@@ -26,10 +26,11 @@ fun main(args: Array<String>) {
         "Aucune cle. Relancer avec -PanthropicApiKey=... ; elle n'est ni lue d'un fichier ni conservee."
     }
 
-    val table = CiqualArchive(File(archive)).use { CiqualReader(it).read() }
+    val files = CatalogueFiles(directory = File(directory), output = File(directory))
+    val table = CiqualArchive(files.archive).use { CiqualReader(it).read() }
     failOnUnrecognised(table.unrecognised.size)
 
-    val file = File(target)
+    val file = files.completions
     val known = CompletionsCsv.read(file, table.foods.associateBy { it.code })
 
     val completions = Completions(AnthropicCompleter(apiKey = apiKey, model = model))
@@ -54,7 +55,7 @@ fun main(args: Array<String>) {
     report(file, produced, pending)
 }
 
-private const val ARGUMENT_COUNT = 4
+private const val ARGUMENT_COUNT = 3
 
 /**
  * Une ecriture CIQUAL inconnue arrete aussi cette tache.

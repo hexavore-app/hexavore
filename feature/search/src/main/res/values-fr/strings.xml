@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="fr">
+
+    <string name="search_field_label">Chercher un aliment</string>
+
+    <!-- La derniere ligne des resultats : la recherche distante, sur un tap. -->
+    <string name="search_ask_open_food_facts">Chercher dans Open Food Facts</string>
+    <string name="search_open_food_facts_results">Produits Open Food Facts</string>
+    <string name="search_open_food_facts_nothing">Open Food Facts ne connaît pas ce nom.</string>
+    <string name="search_open_food_facts_offline">Open Food Facts n\'a pas pu être joint.</string>
+
+    <!-- Le code lu par le scan, quand le formulaire vient d'un produit introuvable. -->
+    <string name="custom_barcode_kept">Code-barres conservé : %1$s</string>
+
+    <!-- Avant toute frappe : ce qu'on mange souvent, et ce qu'on a épinglé. -->
+    <string name="search_recent">Récents</string>
+    <string name="search_favorites">Favoris</string>
+
+    <!-- Une liste vide dit quoi faire, pas seulement qu'elle est vide. -->
+    <string name="search_first_title">Rien encore</string>
+    <string name="search_first_body">Tapez deux lettres pour chercher parmi 3 484 aliments, hors-ligne. Ce que vous enregistrerez reviendra ici.</string>
+
+    <!-- « — » et non « 0 kcal » : une énergie non déterminée n'est pas zéro. -->
+    <string name="search_kcal_per_100g">%1$d kcal / 100 g</string>
+    <string name="search_unknown_energy">— kcal / 100 g</string>
+
+    <string name="search_pin">Épingler %1$s</string>
+    <string name="search_unpin">Retirer %1$s des favoris</string>
+
+    <!-- Le bandeau de pastilles. Les deux premières sont des qualités et se cumulent
+         en ET ; les huit suivantes sont des rayons et se cumulent en OU. Le trait qui
+         les sépare à l'écran est ce qui le dit. -->
+    <string name="search_tag_favorite">Favori</string>
+    <string name="search_tag_personal">Mon aliment</string>
+    <string name="search_tag_fruits">Fruits</string>
+    <string name="search_tag_vegetables">Légumes</string>
+    <string name="search_tag_starches">Féculents</string>
+    <string name="search_tag_meat_fish">Viandes et poissons</string>
+    <string name="search_tag_dairy">Produits laitiers</string>
+    <string name="search_tag_drinks">Boissons</string>
+    <string name="search_tag_desserts">Desserts</string>
+    <string name="search_tag_snacks">Snacks</string>
+
+    <!-- La famille se lit a la forme, a la position et au trait qui separe : trois
+         canaux visuels, et aucun pour TalkBack. Ces deux phrases sont le quatrieme. -->
+    <string name="search_tag_trait_a11y">%1$s, qualité</string>
+    <string name="search_tag_category_a11y">%1$s, rayon</string>
+
+    <!-- Un filtre qui ne rend rien doit dire que ce sont les pastilles qui l'ont vidé,
+         sinon on croit le catalogue vide. -->
+    <string name="search_no_result_filtered">Aucun aliment ne correspond aux pastilles retenues.</string>
+
+    <!-- La saisie manuelle est permanente, pas un lot de consolation : un reste de
+         la veille n'a pas de nom qu'on aurait envie de chercher. -->
+    <string name="search_manual_entry">Saisie manuelle</string>
+    <string name="search_manual_entry_named">Saisir « %1$s » à la main</string>
+
+    <string name="search_no_result">Aucun aliment ne correspond à « %1$s ».</string>
+
+    <!-- Ce que l'utilisateur a saisi lui-même se voit, et lui seul se supprime. -->
+    <string name="search_own_food">Mon aliment</string>
+    <string name="search_delete">Supprimer %1$s</string>
+    <string name="search_delete_title">Supprimer « %1$s » ?</string>
+    <string name="search_delete_unused">Cet aliment n\'a jamais servi. Sa fiche disparaît du catalogue.</string>
+    <!-- Le nombre figure dans les deux formes : en français, « one » couvre aussi
+         zéro, et un message sans son chiffre y deviendrait faux. -->
+    <plurals name="search_delete_used">
+        <item quantity="one">Cet aliment sert dans %1$d entrée de votre journal. Elle est conservée telle quelle, avec ses valeurs : seule la fiche disparaît.</item>
+        <item quantity="other">Cet aliment sert dans %1$d entrées de votre journal. Elles sont conservées telles quelles, avec leurs valeurs : seule la fiche disparaît.</item>
+    </plurals>
+    <string name="search_delete_confirm">Supprimer</string>
+    <string name="search_delete_cancel">Annuler</string>
+
+    <string name="search_error_title">Recherche impossible</string>
+    <string name="search_error_body">La lecture du catalogue n\'a pas abouti. Rien n\'a été modifié.</string>
+    <string name="search_close">Fermer</string>
+
+    <!-- Formulaire d'aliment personnel. -->
+    <string name="custom_title">Nouvel aliment</string>
+    <!-- Les valeurs se saisissent pour 100 g, comme sur toute fiche : c'est ce qui
+         permet ensuite a la quantite de les recalculer. -->
+    <string name="custom_subtitle">Il rejoindra vos aliments et reviendra dans les recherches.</string>
+    <string name="custom_field_name">Nom</string>
+    <string name="custom_field_brand">Marque (facultatif)</string>
+    <string name="custom_field_serving">Portion habituelle en grammes (facultatif)</string>
+    <string name="custom_per_100g">Valeurs pour 100 g</string>
+    <!-- Chaque champ porte son unité : sans elle, « Protéines 12 » se lit aussi bien
+         comme des grammes que comme un pourcentage. -->
+    <!-- La proposition de reverser la fiche à Open Food Facts, posée au moment où
+         elle vient d'être créée pour un produit que le scan n'a pas trouvé. C'est le
+         seul moment où la question a un sens : le travail vient d'être fait. -->
+    <string name="contribute_title">Contribuer à Open Food Facts</string>
+    <string name="contribute_body">Ce produit manque à la base. Voici ce qui serait envoyé :</string>
+    <string name="contribute_field_barcode">Code-barres</string>
+    <string name="contribute_field_name">Nom</string>
+    <string name="contribute_field_brand">Marque</string>
+    <!-- Public et définitif : le dire avant, pas après. Une contribution ne se
+         reprend pas depuis l'application. -->
+    <string name="contribute_warning">L\'envoi est public et définitif. Il se corrige ensuite sur openfoodfacts.org.</string>
+    <string name="contribute_confirm">Envoyer</string>
+    <string name="contribute_sending">Envoi…</string>
+    <string name="contribute_decline">Pas maintenant</string>
+
+    <string name="contribute_sent">Envoyé, merci. Le prochain qui scannera ce produit le trouvera.</string>
+    <!-- Réessayer n'y changerait rien : c'est le compte qu'il faut corriger. -->
+    <string name="contribute_rejected">Compte refusé. Vérifiez votre identifiant et votre mot de passe dans les réglages.</string>
+    <string name="contribute_unreachable">Open Food Facts n\'a pas répondu. La fiche est enregistrée ici.</string>
+    <!-- Le service garde la parole : sa phrase est reprise telle quelle, en anglais
+         s'il le veut. La traduire demanderait de savoir à l'avance ce qu'il refuse. -->
+    <string name="contribute_refused">Open Food Facts a refusé la fiche : %1$s</string>
+    <string name="contribute_retry">Réessayer</string>
+    <string name="contribute_close">Fermer</string>
+
+    <string name="custom_field_calories">Calories (kcal)</string>
+    <string name="custom_field_protein">Protéines (g)</string>
+    <string name="custom_field_carbs">Glucides (g)</string>
+    <string name="custom_field_sugars">Sucres (g)</string>
+    <string name="custom_field_fat">Lipides (g)</string>
+    <string name="custom_field_fiber">Fibres (g)</string>
+    <string name="custom_save">Enregistrer l\'aliment</string>
+    <string name="custom_cancel">Annuler</string>
+    <!-- Le bouton indisponible répond à l'appui ; cette phrase est ce qu'il répond. -->
+    <string name="custom_incomplete_hint">Un aliment demande un nom et des calories pour 100 g. Les cinq autres valeurs restent facultatives : un champ laissé vide veut dire « inconnu », pas « zéro ».</string>
+
+    <string name="custom_error_title">Enregistrement impossible</string>
+    <string name="custom_error_body">L\'écriture n\'a pas abouti. Votre saisie est conservée telle quelle.</string>
+    <string name="custom_error_retry">Réessayer</string>
+
+    <!-- Les plats favoris. Cette liste ne sert qu'à choisir : retirer un favori se
+         fait par l'étoile de l'écran de validation, là où on l'a mis. -->
+    <string name="favorites_title">Vos plats favoris</string>
+    <string name="favorites_search">Chercher un plat</string>
+    <!-- L'appui long ouvre les deux gestes, comme sur un plat de l'accueil. La
+         liste est le seul endroit ou l'on regarde ses favoris en tant que liste,
+         donc le seul ou l'on voit qu'il y en a un de trop. -->
+    <string name="favorites_menu">Modifier ou supprimer</string>
+    <string name="favorites_menu_edit">Modifier</string>
+    <string name="favorites_menu_delete">Supprimer</string>
+    <string name="favorites_pick">rejouer ce plat</string>
+    <string name="favorites_close">Retour</string>
+    <string name="favorites_empty">Aucun plat favori pour l\'instant. Composez un plat, puis touchez l\'étoile en haut de l\'écran pour le retrouver ici.</string>
+    <string name="favorites_none_matching">Aucun favori ne porte ce nom.</string>
+    <string name="favorites_error">La lecture de vos favoris n\'a pas abouti. Rien n\'a été modifié.</string>
+
+</resources>

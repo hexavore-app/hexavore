@@ -15,6 +15,8 @@ import app.hexavore.domain.ai.RecognitionInput
 import app.hexavore.domain.ai.RecognitionOutcome
 import app.hexavore.domain.ai.TokenUsage
 import app.hexavore.domain.ai.VisionSupport
+import app.hexavore.domain.language.ContentLanguage
+import app.hexavore.domain.language.ContentLanguages
 
 /**
  * La fabrique : le seul endroit du projet qui sache qu'il existe plusieurs
@@ -40,12 +42,10 @@ import app.hexavore.domain.ai.VisionSupport
  */
 internal class ConfiguredRecognizer(
     private val settings: AiSettings,
+    private val languages: ContentLanguages,
     private val usage: AiUsageLog,
     private val catalogue: CatalogueTool,
-    private val anthropic: ProviderRecognizer,
-    private val gemini: ProviderRecognizer,
-    private val openAi: ProviderRecognizer,
-    private val compatible: ProviderRecognizer,
+    private val providers: ProviderRecognizers,
 ) : FoodRecognizer,
     NutritionEstimator,
     AiProbe {
@@ -123,11 +123,13 @@ internal class ConfiguredRecognizer(
      * tester après avoir écrit reviendrait à enregistrer une clé fausse pour découvrir
      * qu'elle est fausse.
      */
-    override suspend fun probe(configuration: AiConfiguration): ProbeOutcome =
-        when (val outcome = configuration.provider.recognizer().recognize(PROBE, configuration)) {
+    override suspend fun probe(configuration: AiConfiguration): ProbeOutcome {
+        val probe = RecognitionInput.Text(languages.current().probe)
+        return when (val outcome = configuration.provider.recognizer().recognize(probe, configuration)) {
             is RecognitionOutcome.Recognized -> configuration.provider.reachable()
             is RecognitionOutcome.Failed -> outcome.error.toProbe(configuration.provider)
         }
+    }
 
     /**
      * **Six entrées, quatre implémentations.** Les quatre derniers fournisseurs
@@ -136,10 +138,10 @@ internal class ConfiguredRecognizer(
      * classe. C'est ici, et nulle part ailleurs, qu'on sait laquelle va à qui.
      */
     private fun AiProvider.recognizer(): ProviderRecognizer = when (this) {
-        AiProvider.ANTHROPIC -> anthropic
-        AiProvider.GEMINI -> gemini
-        AiProvider.OPENAI -> openAi
-        AiProvider.DEEPSEEK, AiProvider.MISTRAL, AiProvider.COMPATIBLE -> compatible
+        AiProvider.ANTHROPIC -> providers.anthropic
+        AiProvider.GEMINI -> providers.gemini
+        AiProvider.OPENAI -> providers.openAi
+        AiProvider.DEEPSEEK, AiProvider.MISTRAL, AiProvider.COMPATIBLE -> providers.compatible
     }
 }
 
@@ -158,6 +160,26 @@ private fun AiError.toProbe(provider: AiProvider): ProbeOutcome = when (this) {
 }
 
 /**
+ * Les quatre implémentations, en un objet.
+ *
+ * **Le même remède que pour [AiPrompts] et les trois interfaces Retrofit**, et pour la
+ * même raison : passées une par une, elles poussaient le constructeur au-delà du seuil de
+ * paramètres le jour où la langue s'y est ajoutée. Le regroupement dit en outre quelque
+ * chose de vrai — ce sont les quatre classes qui savent parler à un fournisseur, là où le
+ * reste de ce constructeur est ce qui décide **lequel** et **comment**.
+ *
+ * Quatre et non six : les quatre derniers fournisseurs parlent le même protocole, et
+ * `compatible` les sert tous. C'est [ConfiguredRecognizer] qui sait qui va à qui, et c'est
+ * le seul endroit qui le sache.
+ */
+internal data class ProviderRecognizers(
+    val anthropic: ProviderRecognizer,
+    val gemini: ProviderRecognizer,
+    val openAi: ProviderRecognizer,
+    val compatible: ProviderRecognizer,
+)
+
+/**
  * La capacité vision, telle qu'on la connaît.
  *
  * Pour les fournisseurs dont toute la gamme lit les images, elle est **su** et non
@@ -167,8 +189,21 @@ private fun AiError.toProbe(provider: AiProvider): ProbeOutcome = when (this) {
  */
 private fun AiProvider.reachable() = ProbeOutcome.Reachable(vision = vision == VisionSupport.ALWAYS)
 
-/** Aussi court que possible : le sondage se paie, et il se paie souvent. */
-private val PROBE = RecognitionInput.Text("un verre d'eau")
+/**
+ * Aussi court que possible : le sondage se paie, et il se paie souvent.
+ *
+ * **Dans la langue en vigueur**, comme le prompt qui l'accompagne. Une phrase française
+ * envoyée avec une consigne anglaise est exactement le cas que le bouton **Tester** est
+ * censé écarter : il éprouve le chemin réel de la première photo ([D77][decisions]), et
+ * un chemin qui mélange deux langues n'est pas le chemin réel.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+private val ContentLanguage.probe: String
+    get() = when (this) {
+        ContentLanguage.FRENCH -> "un verre d'eau"
+        ContentLanguage.ENGLISH -> "a glass of water"
+    }
 
 /**
  * Ce qu'un appel a coûté, quand il a coûté quelque chose.

@@ -1,119 +1,119 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="fr">
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
 
-    <!-- Aucune chaîne ne mentionne un mode de saisie. C'est la même règle que dans
-         le code : cet écran est le point de convergence des quatre modes, et un
-         texte qui dirait « saisie manuelle » serait la première chose à réécrire
-         quand la recherche puis l'IA arriveront. -->
-    <!-- Le jour visé, affiché seulement quand ce n'est pas aujourd'hui. Depuis qu'on
-         peut rattraper un repas oublié, le brouillon peut viser un jour passé — et
-         c'est ici, juste avant l'écriture, qu'il faut le dire. -->
-    <string name="entry_other_day">Sera noté sur le %1$s</string>
+    <!-- No string mentions an entry mode. It is the same rule as in the code: this
+         screen is where the four modes converge, and a text saying "entered by hand"
+         would be the first thing to rewrite when search and then AI arrived. -->
+    <!-- The day aimed at, shown only when it is not today. Now that a forgotten meal
+         can be caught up, a draft can aim at a past day — and it is here, just before
+         the write, that this has to be said. -->
+    <string name="entry_other_day">Will be noted on %1$s</string>
 
-    <string name="entry_title_new">Nouvelle saisie</string>
-    <string name="entry_title_edit">Modifier le plat</string>
-    <!-- Le meme ecran sert d'editeur au favori lui-meme. Il doit le dire : un titre
-         qui annonce « nouvelle saisie » alors qu'on reecrit un modele ment sur ce que
-         l'appui va faire. -->
-    <string name="entry_title_favorite">Modifier le favori</string>
+    <string name="entry_title_new">New entry</string>
+    <string name="entry_title_edit">Edit the dish</string>
+    <!-- The same screen edits the favourite itself. It has to say so: a title
+         announcing "new entry" while you are rewriting a template lies about what the
+         next tap will do. -->
+    <string name="entry_title_favorite">Edit the favourite</string>
 
-    <string name="entry_field_name">Aliment</string>
+    <string name="entry_field_name">Food</string>
 
-    <!-- Ce qu'une ligne proposee par un modele annonce d'elle-meme. Deux
-         incertitudes distinctes : ce que le modele a compris, et le fait que la
-         quantite vienne d'un forfait plutot que d'une portion mesuree (docs/04). -->
-    <string name="entry_suggestion">Proposé par l\'IA · confiance %1$d %%</string>
-    <string name="entry_suggestion_quantity">quantité estimée</string>
-    <!-- Le badge que docs/04 exige sur le repli de l'etape 4 : ces chiffres ne
-         viennent d'aucune base, et le dire est ce qui les rend utilisables. -->
-    <string name="entry_suggestion_macros">valeurs estimées par l\'IA</string>
-    <string name="entry_alternatives">Ou peut-être :</string>
-    <string name="entry_field_quantity">Quantité</string>
+    <!-- What a line suggested by a model says about itself. Two distinct uncertainties:
+         what the model understood, and the fact that the quantity comes from a fallback
+         rather than from a measured portion (docs/04). -->
+    <string name="entry_suggestion">Suggested by AI · %1$d %% confidence</string>
+    <string name="entry_suggestion_quantity">estimated quantity</string>
+    <!-- The badge docs/04 requires on the step 4 fallback: these figures come from no
+         database, and saying so is what makes them usable. -->
+    <string name="entry_suggestion_macros">values estimated by AI</string>
+    <string name="entry_alternatives">Or maybe:</string>
+    <string name="entry_field_quantity">Quantity</string>
 
-    <!-- Chaque champ porte son unité : sans elle, « Protéines 12 » se lit aussi bien
-         comme des grammes que comme un pourcentage. -->
+    <!-- Every field carries its unit: without it, "Protein 12" reads just as well as
+         grams or as a percentage. -->
     <string name="entry_field_calories">Calories (kcal)</string>
-    <string name="entry_field_protein">Protéines (g)</string>
-    <string name="entry_field_carbs">Glucides (g)</string>
-    <string name="entry_field_sugars">Sucres (g)</string>
-    <string name="entry_field_fat">Lipides (g)</string>
-    <string name="entry_field_fiber">Fibres (g)</string>
+    <string name="entry_field_protein">Protein (g)</string>
+    <string name="entry_field_carbs">Carbs (g)</string>
+    <string name="entry_field_sugars">Sugars (g)</string>
+    <string name="entry_field_fat">Fat (g)</string>
+    <string name="entry_field_fiber">Fibre (g)</string>
 
-    <!-- L'énergie déduite des quatre autres valeurs, selon le règlement UE 1169/2011.
-         Le libellé dit d'où vient le chiffre : « Calculer » laisserait croire que rien
-         n'est encore fait, alors que le calcul est déjà là et n'attend qu'un accord. -->
-    <string name="entry_energy_proposal">D\'après les macros : %1$d kcal</string>
-    <!-- Ce que l'appui va faire. « 297 kcal » annoncé seul ne laisse pas deviner que
-         la valeur en remplace une autre. -->
-    <string name="entry_energy_proposal_a11y">Remplacer les calories par %1$d, calculées d\'après les macros</string>
-    <!-- Les fibres n'étaient pas renseignées : elles n'ont rien apporté au calcul, qui
-         est donc minoré. Une valeur minorée qui s'annonce débloque la ligne ; la même
-         valeur silencieuse serait un chiffre inventé de plus. -->
-    <string name="entry_energy_without_fiber">Hors fibres, non renseignées</string>
+    <!-- The energy worked out from the four other values, under EU regulation 1169/2011.
+         The label says where the figure comes from: "Calculate" would suggest nothing
+         has been done yet, when the calculation is already there and only waits for
+         agreement. -->
+    <string name="entry_energy_proposal">From the macros: %1$d kcal</string>
+    <!-- What the tap will do. "297 kcal" on its own does not let you guess that the
+         value replaces another. -->
+    <string name="entry_energy_proposal_a11y">Replace the calories with %1$d, worked out from the macros</string>
+    <!-- Fibre was not filled in: it contributed nothing to the calculation, which is
+         therefore an undercount. An undercount that announces itself unblocks the line;
+         the same value in silence would be one more invented figure. -->
+    <string name="entry_energy_without_fiber">Fibre not filled in, so not counted</string>
 
-    <string name="entry_add_line">Ajouter un aliment</string>
-    <string name="entry_remove_line">Supprimer</string>
+    <string name="entry_add_line">Add a food</string>
+    <string name="entry_remove_line">Remove</string>
 
-    <!-- Le nom propose. Les libelles de l'ANSES sont a rallonge : trois d'entre
-         eux faisaient un titre de cinquante caracteres qu'on efface au lieu de le
-         corriger. Un numero se garde ou se remplace, il ne se subit pas. -->
-    <!-- Le titre d'un plat : propose depuis l'heure, corrigeable, et repris tel quel
-         quand on met le plat en favori. Le rang distingue deux plats du meme moment,
-         et sert aussi a proposer « Dejeuner 2 » quand « Dejeuner » est deja pris. -->
-    <string name="entry_dish_title">Titre du plat</string>
+    <!-- The suggested name. ANSES labels run long: three of them made a fifty-character
+         title that you erase instead of correcting. A number is kept or replaced, it is
+         not endured. -->
+    <!-- A dish title: suggested from the time of day, correctable, and taken as-is when
+         the dish becomes a favourite. The rank tells two dishes of the same moment
+         apart, and also serves to suggest "Lunch 2" when "Lunch" is taken. -->
+    <string name="entry_dish_title">Dish title</string>
     <string name="entry_title_ranked">%1$s %2$d</string>
-    <!-- Le balayage n'est pas le seul chemin : un geste sans représentation visible
-         est introuvable pour qui ne le connaît pas, et hors d'atteinte au lecteur
-         d'écran. Le nom est repris pour que « Supprimer » désigne quelque chose. -->
-    <string name="entry_remove_line_a11y">Supprimer la ligne %1$s</string>
+    <!-- The swipe is not the only path: a gesture with no visible representation cannot
+         be found by someone who does not know it, and is out of reach of a screen
+         reader. The name is repeated so that "Remove" designates something. -->
+    <string name="entry_remove_line_a11y">Remove the line %1$s</string>
 
-    <string name="entry_total_label">Total de la saisie</string>
+    <string name="entry_total_label">Entry total</string>
     <string name="entry_kcal">%1$d kcal</string>
-    <string name="entry_remaining">Il vous restera %1$d kcal aujourd\'hui</string>
-    <string name="entry_over">Vous dépasserez de %1$d kcal aujourd\'hui</string>
+    <string name="entry_remaining">You will have %1$d kcal left today</string>
+    <string name="entry_over">You will go %1$d kcal over today</string>
 
-    <string name="entry_save">Enregistrer</string>
-    <string name="entry_save_favorite">Enregistrer le favori</string>
-    <string name="entry_saving">Enregistrement…</string>
-    <!-- Un plat relu et vidé de ses lignes se supprime : le bouton le dit, plutôt
-         que de laisser le plat disparaître sous le libellé « Enregistrer ». -->
-    <string name="entry_delete_dish">Supprimer ce plat</string>
+    <string name="entry_save">Save</string>
+    <string name="entry_save_favorite">Save the favourite</string>
+    <string name="entry_saving">Saving…</string>
+    <!-- A dish reopened and emptied of its lines is deleted: the button says so, rather
+         than letting the dish disappear under a "Save" label. -->
+    <string name="entry_delete_dish">Delete this dish</string>
 
-    <!-- L'étoile met le plat en favori. Une seule icône pour les deux états :
-         material-icons-core n'a pas de contour, et la teinte ne travaille jamais
-         seule — l'état est annoncé à TalkBack. -->
-    <string name="entry_favorite">Plat favori</string>
-    <string name="entry_favorite_on">dans vos favoris</string>
-    <string name="entry_favorite_off">pas dans vos favoris</string>
-    <string name="entry_favorite_title">Enregistrer comme favori</string>
-    <string name="entry_favorite_body">Vous le retrouverez sous ce nom, prêt à rejouer. Modifier une ligne l\'en retirera.</string>
-    <string name="entry_favorite_name">Nom du plat</string>
-    <string name="entry_favorite_name_taken">Un plat en favori porte déjà ce nom.</string>
-    <string name="entry_favorite_confirm">Enregistrer</string>
-    <string name="entry_favorite_cancel">Annuler</string>
-    <!-- Le pendant d'Enregistrer, et le double du retour arrière. Pas « Fermer » :
-         cette paire de boutons se lit ensemble, et « Annuler » dit ce qu'il advient
-         de la saisie là où « Fermer » ne dit que ce qu'il advient de l'écran. -->
-    <string name="entry_cancel">Annuler</string>
-    <!-- Le bouton indisponible répond à l'appui ; cette phrase est ce qu'il répond. -->
-    <!-- Ce qui manque, nomme, et de quel aliment. « Un champ est vide » n'aide
-         personne devant vingt-quatre champs : l'ecran designe le premier et y va. -->
-    <string name="entry_missing_name">Il manque le nom de cet aliment</string>
-    <string name="entry_missing_quantity">Il manque la quantité</string>
-    <string name="entry_missing_calories">Il manque les calories</string>
+    <!-- The star makes the dish a favourite. A single icon for both states:
+         material-icons-core has no outline, and the tint never works alone — the state
+         is announced to TalkBack. -->
+    <string name="entry_favorite">Favourite dish</string>
+    <string name="entry_favorite_on">in your favourites</string>
+    <string name="entry_favorite_off">not in your favourites</string>
+    <string name="entry_favorite_title">Save as a favourite</string>
+    <string name="entry_favorite_body">You will find it under this name, ready to replay. Editing a line takes it out.</string>
+    <string name="entry_favorite_name">Dish name</string>
+    <string name="entry_favorite_name_taken">A favourite dish already has this name.</string>
+    <string name="entry_favorite_confirm">Save</string>
+    <string name="entry_favorite_cancel">Cancel</string>
+    <!-- The counterpart of Save, and the twin of the back gesture. Not "Close": this
+         pair of buttons reads together, and "Cancel" says what becomes of the entry
+         where "Close" only says what becomes of the screen. -->
+    <string name="entry_cancel">Cancel</string>
+    <!-- A dimmed button answers the tap; this sentence is what it answers. -->
+    <!-- What is missing, named, and for which food. "A field is empty" helps nobody in
+         front of twenty-four fields: the screen points at the first one and goes there. -->
+    <string name="entry_missing_name">This food is missing its name</string>
+    <string name="entry_missing_quantity">The quantity is missing</string>
+    <string name="entry_missing_calories">The calories are missing</string>
 
-    <string name="entry_close">Fermer</string>
+    <string name="entry_close">Close</string>
 
-    <!-- La photo gardee avec le plat. Decorative a l'accueil, nommee ici :
-         c'est le seul ecran ou l'on peut agir dessus. -->
-    <string name="entry_photo_a11y">La photo de ce plat</string>
-    <string name="entry_photo_remove">Retirer la photo</string>
+    <!-- The photo kept with the dish. Decorative on the home screen, named here: this is
+         the only screen where you can act on it. -->
+    <string name="entry_photo_a11y">The photo of this dish</string>
+    <string name="entry_photo_remove">Remove the photo</string>
 
-    <string name="entry_unavailable_title">Plat inaccessible</string>
-    <string name="entry_unavailable_body">Ce plat n\'a pas pu être rouvert. Il a peut-être été supprimé depuis un autre écran.</string>
+    <string name="entry_unavailable_title">Dish unreachable</string>
+    <string name="entry_unavailable_body">This dish could not be reopened. It may have been deleted from another screen.</string>
 
-    <string name="entry_error_title">Enregistrement impossible</string>
-    <string name="entry_error_body">L\'écriture n\'a pas abouti. Votre saisie est conservée telle quelle.</string>
-    <string name="entry_error_retry">Réessayer</string>
+    <string name="entry_error_title">Cannot save</string>
+    <string name="entry_error_body">The write did not go through. Your entry is kept exactly as it is.</string>
+    <string name="entry_error_retry">Try again</string>
 
 </resources>

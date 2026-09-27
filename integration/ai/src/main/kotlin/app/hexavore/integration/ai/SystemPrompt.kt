@@ -1,6 +1,9 @@
 package app.hexavore.integration.ai
 
 import android.content.Context
+import app.hexavore.domain.language.ContentLanguage
+import app.hexavore.domain.language.ContentLanguages
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Le prompt système, tel qu'il part au modèle.
@@ -10,6 +13,11 @@ import android.content.Context
  * fournisseur n'a envie de monter ; et les six fournisseurs partagent le **même**
  * prompt, donc le point de lecture doit être unique. Un `assets.open()` recopié dans
  * chaque implémentation aurait fini par diverger d'une version.
+ *
+ * **La langue n'apparaît pas dans ce contrat, et c'est voulu.** Un fournisseur ne
+ * choisit pas la langue dans laquelle on lui parle : il demande le texte, et ce texte
+ * est celui de la langue en vigueur. Ajouter un paramètre aurait donné à six
+ * implémentations l'occasion de le remplir différemment.
  *
  * @see docs/05-ia.md § Prompt
  */
@@ -30,12 +38,24 @@ fun interface SystemPrompt {
  *
  * [ia]: docs/05-ia.md
  */
-internal class AssetSystemPrompt(private val context: Context, private val asset: String) : SystemPrompt {
-    private val cached: String by lazy {
-        context.assets.open(asset).use { it.readBytes().decodeToString() }
-    }
+internal class AssetSystemPrompt(
+    private val context: Context,
+    private val languages: ContentLanguages,
+    private val asset: (ContentLanguage) -> String,
+) : SystemPrompt {
+    /**
+     * Un texte par langue, lu une fois chacun.
+     *
+     * `ConcurrentHashMap` et non un `by lazy` : il y a désormais un texte **par langue**
+     * plutôt qu'un seul, et l'analyse part sur un dispatcher d'entrées-sorties. Deux
+     * analyses lancées ensemble liraient l'asset en même temps, et une `HashMap` nue s'y
+     * casse. Relire le fichier à chaque appel aurait coûté un accès disque par analyse.
+     */
+    private val cached = ConcurrentHashMap<ContentLanguage, String>()
 
-    override fun text(): String = cached
+    override fun text(): String = cached.computeIfAbsent(languages.current()) { language ->
+        context.assets.open(asset(language)).use { it.readBytes().decodeToString() }
+    }
 }
 
 /**
@@ -49,8 +69,17 @@ internal class AssetSystemPrompt(private val context: Context, private val asset
  * répondent à deux questions et qui bougent séparément : corriger l'estimation a
  * renuméroté l'extraction quand ils partageaient un compteur, ce qui aurait fait croire
  * à un changement là où il n'y en avait pas.
+ *
+ * **La langue est déjà dans la version**, et elle l'était avant qu'il y en ait deux :
+ * `fr_v2` le disait sans que personne s'en serve. Une analyse notée sous `en_v1` se
+ * retrouve donc sans qu'aucune colonne de plus ne soit nécessaire — c'est la raison pour
+ * laquelle ce format est conservé tel quel plutôt que scindé en deux champs.
  */
-const val EXTRACT_PROMPT_VERSION: String = "fr_v2"
+val ContentLanguage.extractPromptVersion: String
+    get() = when (this) {
+        ContentLanguage.FRENCH -> "fr_v2"
+        ContentLanguage.ENGLISH -> "en_v1"
+    }
 
 /**
  * L'estimation en est à sa deuxième version.
@@ -62,10 +91,14 @@ const val EXTRACT_PROMPT_VERSION: String = "fr_v2"
  *
  * [decisions]: docs/11-decisions.md
  */
-const val ESTIMATE_PROMPT_VERSION: String = "fr_v2"
+val ContentLanguage.estimatePromptVersion: String
+    get() = when (this) {
+        ContentLanguage.FRENCH -> "fr_v2"
+        ContentLanguage.ENGLISH -> "en_v1"
+    }
 
 /** Le prompt d'extraction : identifier des aliments et estimer des quantités. */
-internal const val EXTRACT_PROMPT_ASSET = "prompts/extract_$EXTRACT_PROMPT_VERSION.txt"
+internal fun extractPromptAsset(language: ContentLanguage) = "prompts/extract_${language.extractPromptVersion}.txt"
 
 /**
  * Le prompt d'estimation — l'étape 4 de [docs/04][sources].
@@ -76,7 +109,7 @@ internal const val EXTRACT_PROMPT_ASSET = "prompts/extract_$EXTRACT_PROMPT_VERSI
  *
  * [sources]: docs/04-sources-de-donnees.md
  */
-internal const val ESTIMATE_PROMPT_ASSET = "prompts/estimate_$ESTIMATE_PROMPT_VERSION.txt"
+internal fun estimatePromptAsset(language: ContentLanguage) = "prompts/estimate_${language.estimatePromptVersion}.txt"
 
 /**
  * Le prompt de l'analyse approfondie.
@@ -92,9 +125,13 @@ internal const val ESTIMATE_PROMPT_ASSET = "prompts/estimate_$ESTIMATE_PROMPT_VE
  * factoriser dans un fragment commun rendrait chacun illisible pour économiser des
  * lignes que personne ne compte.
  */
-internal const val DEEP_PROMPT_VERSION: String = "fr_v2"
+internal val ContentLanguage.deepPromptVersion: String
+    get() = when (this) {
+        ContentLanguage.FRENCH -> "fr_v2"
+        ContentLanguage.ENGLISH -> "en_v1"
+    }
 
-internal const val DEEP_PROMPT_ASSET = "prompts/deep_$DEEP_PROMPT_VERSION.txt"
+internal fun deepPromptAsset(language: ContentLanguage) = "prompts/deep_${language.deepPromptVersion}.txt"
 
 /**
  * Les trois textes que les fournisseurs se partagent.

@@ -5,9 +5,14 @@
   Il ne sert qu'a une chose : le fond affiche entre le lancement de l'activite et
   la premiere image de Compose. Sans lui, l'application demarre sur un aplat blanc,
   ce qui se voit beaucoup sur une interface sombre.
+
+  **Parent AppCompat depuis D129**, et c'est le prix du reglage de langue :
+  `AppCompatActivity` refuse de demarrer sous un theme qui ne descend pas de
+  `Theme.AppCompat`. Ce qu'on perd est nul, ce theme ne servant qu'a peindre un fond ; ce
+  qu'on gagne est une langue imposable de l'API 26 a l'API 36.
 -->
 <resources>
-    <style name="Theme.Hexavore" parent="android:Theme.Material.Light.NoActionBar">
+    <style name="Theme.Hexavore" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowBackground">@color/neon_background_light</item>
     </style>
 </resources>

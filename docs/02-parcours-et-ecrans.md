@@ -332,7 +332,11 @@ Chaque ligne de l'écran montre si sa pastille est allumée **en ce moment** : u
 
 ~~connexion Google Drive, dernière sauvegarde, bascule automatique, « Sauvegarder maintenant »~~ — **Drive attend que le reste fonctionne en local**, et le port qui l'accueillera est déjà là.
 
-**Apparence** — ~~thème (sombre / clair / système), langue, unités (métrique / impérial), animations réduites~~. **Le thème est livré** ([D113](11-decisions.md#d113--apparence-existe-et-suivre-le-système-est-un-choix---validée)) : trois choix exclusifs, « suivre le système » par défaut et par continuité — c'est ce que l'application faisait avant que le réglage existe. Un interrupteur n'aurait pas su dire « suivre », et le troisième état se serait deviné.
+**Apparence** — ~~thème (sombre / clair / système), langue, unités (métrique / impérial), animations réduites~~. **La langue est livrée** ([D129](11-decisions.md#d129--langlais-est-le-repli-le-français-une-traduction-et-la-langue-est-une-donnée---validée)) : « suivre le système », *English*, *Français* — trois choix exclusifs, et **en tête de l'écran**, parce que quelqu'un qui l'ouvre sans savoir lire ce qu'il porte cherche cette ligne-là et aucune autre. Chaque langue y est écrite dans elle-même : « Français » dit plus que « French » ne le dirait jamais à qui le cherche. À partir d'Android 13, le sélecteur du système propose la même chose, et les deux portes disent la même chose parce que c'est la plateforme qui détient la réponse.
+
+Changer de langue **recrée les écrans** — c'est ce qui fait relire chaque texte — et l'écran revient donc sur lui-même, dans la nouvelle langue. Rien n'est perdu : le modèle survit à la recréation.
+
+**Le thème est livré** ([D113](11-decisions.md#d113--apparence-existe-et-suivre-le-système-est-un-choix---validée)) : trois choix exclusifs, « suivre le système » par défaut et par continuité — c'est ce que l'application faisait avant que le réglage existe. Un interrupteur n'aurait pas su dire « suivre », et le troisième état se serait deviné.
 
 Le réglage vit dans **son propre fichier** — effacer ses clés d'IA n'a aucune raison de changer les couleurs — et **ne part pas dans la sauvegarde** : c'est une préférence d'appareil, là où le système d'unités est une propriété du profil et voyage avec lui.
 
@@ -344,7 +348,7 @@ En impérial, une ligne se saisit en **oz** ou **fl oz** — une unité de plus 
 
 **Affichage des plats** — simplifié ou détaillé ([D119](11-decisions.md)). Le simplifié donne le titre du plat, son heure, ses calories et ses apports ; le détaillé y ajoute la liste de ses aliments. Deux styles et non une échelle de densité : ce qui les distingue n'est pas une hauteur de ligne, c'est ce qu'on lit — *qu'est-ce que j'ai mangé et combien ça pèse* d'un côté, *de quoi était-ce fait* de l'autre. Comme le thème, c'est une préférence d'appareil, et elle ne voyage pas dans la sauvegarde.
 
-*La langue et les animations réduites restent à faire. L'onboarding reste métrique : le réglage vit sur le profil qu'il crée, donc il n'existe pas encore quand ses questions se posent.*
+*Les animations réduites restent à faire. L'onboarding reste métrique : le réglage vit sur le profil qu'il crée, donc il n'existe pas encore quand ses questions se posent.*
 
 **À propos** — version, lien du dépôt, licence, attributions CIQUAL et Open Food Facts, avertissement médical, lien de don *(variante hors Play Store uniquement, voir [10](10-qualite-et-livraison.md#variantes-de-build))*.
 

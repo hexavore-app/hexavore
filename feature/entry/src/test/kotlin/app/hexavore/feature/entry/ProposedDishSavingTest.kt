@@ -1,6 +1,7 @@
 package app.hexavore.feature.entry
 
 import app.hexavore.core.testing.FixedClock
+import app.hexavore.core.testing.FixedLanguage
 import app.hexavore.core.testing.InMemoryDiaryRepository
 import app.hexavore.core.testing.InMemoryFavoriteDishes
 import app.hexavore.core.testing.InMemoryFoodCatalog
@@ -110,9 +111,10 @@ class ProposedDishSavingTest {
     }
 
     private suspend fun resolved(vararg items: RecognizedItem) = ResolveRecognition(
-        resolve = ResolveFoodLabel(catalogue),
+        resolve = ResolveFoodLabel(catalogue, FixedLanguage()),
         create = CreateDraft(clock, ids, InMemorySelectedDay(FixedClock.atNoon(JOUR).today())),
         estimate = { EstimationOutcome.Estimated(emptyList()) },
+        languages = FixedLanguage(),
     )(Recognition(items.toList()), EntrySource.TEXT_AI)
 
     private fun item(label: String) =

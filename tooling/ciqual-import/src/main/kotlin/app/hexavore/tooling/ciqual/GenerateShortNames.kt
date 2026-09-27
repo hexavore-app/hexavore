@@ -1,9 +1,15 @@
 package app.hexavore.tooling.ciqual
 
+import app.hexavore.domain.language.ContentLanguage
 import java.io.File
 
 /**
- * La tache `generateShortNames` : les libelles de l'ANSES vers `ciqual/short-names.csv`.
+ * La tache `generateShortNames` : les libelles de l'ANSES vers
+ * `ciqual/short-names-<langue>.csv`.
+ *
+ * **Une langue par passe, et elle se nomme.** Raccourcir des libelles anglais avec la
+ * consigne francaise produirait des titres francais pour des fiches anglaises, et rien
+ * ne l'aurait signale : le controle d'import ne verifie que la longueur.
  *
  * Elle n'est branchee sur aucun cycle de vie de Gradle, comme `importCiqual` : elle
  * coute de l'argent et un compte, et rien de tout cela n'a sa place dans un build.
@@ -18,10 +24,15 @@ import java.io.File
  */
 fun main(args: Array<String>) {
     require(args.size == ARGUMENT_COUNT) {
-        "Usage : generateShortNames <archive.zip> <short-names.csv> <modele> <cle>"
+        "Usage : generateShortNames <dossier ciqual> <langue> <modele> <cle>"
     }
-    val (archive, target, model) = args.toList()
+    val (directory, tag, model) = args.toList()
     val apiKey = args.last()
+
+    val language = ContentLanguage.ofTag(tag)
+    requireNotNull(language) {
+        "Langue [$tag] inconnue. Attendu : ${ContentLanguage.entries.joinToString { it.tag }}."
+    }
 
     // La cle n'est ni journalisee ni ecrite : elle traverse ce point d'entree et
     // s'arrete au client. Un message d'erreur qui la citerait la ferait entrer dans
@@ -30,14 +41,15 @@ fun main(args: Array<String>) {
         "Aucune cle. Relancer avec -PanthropicApiKey=... ; elle n'est ni lue d'un fichier ni conservee."
     }
 
-    val table = CiqualArchive(File(archive)).use { CiqualReader(it).read() }
-    val labels = table.foods.map { LongLabel(code = it.code, name = it.name) }
-    val file = File(target)
-    val known = ShortNamesCsv.read(file, table.foods.associate { it.code to it.name })
+    val files = CatalogueFiles(directory = File(directory), output = File(directory))
+    val table = CiqualArchive(files.archive).use { CiqualReader(it).read() }
+    val labels = table.foods.map { LongLabel(code = it.code, name = it.label(language).name) }
+    val file = files.shortNames(language)
+    val known = ShortNamesCsv.read(file, labels.associate { it.code to it.name })
 
-    val names = ShortNames(AnthropicShortNamer(apiKey = apiKey, model = model))
+    val names = ShortNames(AnthropicShortNamer(apiKey = apiKey, model = model, language = language))
     val pending = names.pending(labels, known)
-    announce(labels, known, pending, model)
+    announce(labels, known, pending, model, language)
     if (pending.isEmpty()) return
 
     val produced = names.generate(labels, known) { acquired ->
@@ -53,9 +65,15 @@ fun main(args: Array<String>) {
 
 private const val ARGUMENT_COUNT = 4
 
-private fun announce(labels: List<LongLabel>, known: List<CiqualShortName>, pending: List<LongLabel>, model: String) {
+private fun announce(
+    labels: List<LongLabel>,
+    known: List<CiqualShortName>,
+    pending: List<LongLabel>,
+    model: String,
+    language: ContentLanguage,
+) {
     val worth = labels.count { it.name.length > ShortNamesCsv.WORTH_SHORTENING }
-    println("Titres courts, modele $model")
+    println("Titres courts en ${language.tag}, modele $model")
     println("  ${labels.size} aliments, dont $worth libelles de plus de ${ShortNamesCsv.WORTH_SHORTENING} caracteres")
     println("  ${known.size} titres deja ecrits, ${pending.size} a demander")
     if (pending.isEmpty()) {

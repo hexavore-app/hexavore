@@ -293,20 +293,18 @@ class CompletionsTest {
      * Une fiche sans aucune teneur en porterait six, et le compte des lots ne dirait
      * plus rien du decoupage -- cinq fiches feraient trente demandes.
      */
-    private fun troue(code: String) = CiqualFood(
+    private fun troue(code: String) = ciqualFood(
         code = code,
         name = "Aliment $code",
-        groupName = null,
         category = null,
         nutrients = Macro.entries.filterNot { it == Macro.CALORIES }.associate { it.nutrient to 1.0 },
     )
 
     private companion object {
         /** Sans énergie, le reste publié : le cas type d'une fiche à combler. */
-        val CAPRES = CiqualFood(
+        val CAPRES = ciqualFood(
             code = "11040",
             name = "Capres, au vinaigre",
-            groupName = null,
             category = null,
             nutrients = mapOf(
                 Nutrient.PROTEIN to 2.18,
@@ -318,37 +316,33 @@ class CompletionsTest {
         )
 
         /** Les six teneurs publiées : rien à demander. */
-        val CAROTTE = CiqualFood(
+        val CAROTTE = ciqualFood(
             code = "20009",
             name = "Carotte, crue",
-            groupName = null,
             category = null,
             nutrients = Macro.entries.associate { it.nutrient to 1.0 },
         )
 
         /** Tout est publié sauf les fibres. */
-        val HUILE = CiqualFood(
+        val HUILE = ciqualFood(
             code = "17270",
             name = "Huile d'olive vierge extra",
-            groupName = null,
             category = null,
             nutrients = Macro.entries.filterNot { it == Macro.FIBER }.associate { it.nutrient to 1.0 },
         )
 
         /** Dense, et sans energie determinee : le cas ou le plafond des grammes ne vaut pas. */
-        val HUILE_SANS_ENERGIE = CiqualFood(
+        val HUILE_SANS_ENERGIE = ciqualFood(
             code = "17271",
             name = "Huile de tournesol",
-            groupName = null,
             category = null,
             nutrients = mapOf(Nutrient.PROTEIN to 0.0, Nutrient.CARB to 0.0, Nutrient.FAT to 100.0),
         )
 
         /** Aucune teneur : six trous. */
-        val SANS_RIEN = CiqualFood(
+        val SANS_RIEN = ciqualFood(
             code = "00001",
             name = "Aliment sans aucune teneur",
-            groupName = null,
             category = null,
             nutrients = emptyMap(),
         )

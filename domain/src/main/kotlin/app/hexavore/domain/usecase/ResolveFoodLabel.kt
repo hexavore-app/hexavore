@@ -2,6 +2,7 @@ package app.hexavore.domain.usecase
 
 import app.hexavore.domain.food.Food
 import app.hexavore.domain.food.FoodSearch
+import app.hexavore.domain.language.ContentLanguages
 import app.hexavore.domain.resolution.LabelMatch
 import app.hexavore.domain.resolution.depluralise
 import app.hexavore.domain.resolution.matchFor
@@ -34,13 +35,17 @@ import kotlinx.coroutines.flow.first
  * [decisions]: docs/11-decisions.md
  * [sources]: docs/04-sources-de-donnees.md
  */
-class ResolveFoodLabel(private val foods: FoodSearch) {
+class ResolveFoodLabel(private val foods: FoodSearch, private val languages: ContentLanguages) {
     suspend operator fun invoke(label: String): LabelMatch {
-        val normalised = normaliseLabel(label)
+        // Relue a chaque appel : un changement de langue ne recree pas les `ViewModel`
+        // qui portent ce cas d'usage, et une langue retenue a la construction ferait
+        // retirer des articles francais d'un libelle anglais.
+        val language = languages.current()
+        val normalised = normaliseLabel(label, language)
         val direct = candidates(normalised)
         if (direct.isNotEmpty()) return matchFor(direct, normalised)
 
-        val singular = depluralise(normalised)
+        val singular = depluralise(normalised, language)
         // Un second essai identique au premier rendrait la meme chose : la
         // depluralisation n'a pas toujours de quoi mordre.
         val retried = if (singular == normalised) emptyList() else candidates(singular)

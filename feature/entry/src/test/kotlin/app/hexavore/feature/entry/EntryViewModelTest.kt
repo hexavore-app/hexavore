@@ -2,6 +2,7 @@ package app.hexavore.feature.entry
 
 import androidx.lifecycle.SavedStateHandle
 import app.hexavore.core.testing.FixedClock
+import app.hexavore.core.testing.FixedLanguage
 import app.hexavore.core.testing.InMemoryDiaryRepository
 import app.hexavore.core.testing.InMemoryDishPhotos
 import app.hexavore.core.testing.InMemoryFavoriteDishes
@@ -524,11 +525,13 @@ class EntryViewModelTest {
                 foods = catalogue,
                 pending = pending,
                 resolve = ResolveRecognition(
-                    ResolveFoodLabel(catalogue),
+                    ResolveFoodLabel(catalogue, FixedLanguage()),
                     create,
                     // Aucun repli : ces cas ne parlent pas de l'etape 4, et un estimateur
                     // qui repondrait remplirait des lignes qu'ils veulent vides.
                     estimate = { EstimationOutcome.Estimated(emptyList()) },
+                    // Le francais : les libelles des decors de ce fichier le sont.
+                    languages = FixedLanguage(),
                 ),
             ),
             addFoodLine = AddFoodLine(catalogue, create),

@@ -1,6 +1,7 @@
 package app.hexavore.tooling.ciqual
 
 import app.hexavore.domain.food.FoodCategory
+import app.hexavore.domain.language.ContentLanguage
 import java.io.File
 import java.security.MessageDigest
 
@@ -16,7 +17,7 @@ import java.security.MessageDigest
  * et un message d'erreur illisible est un message perdu.
  */
 fun main(args: Array<String>) {
-    val paths = ImportPaths.of(args)
+    val paths = CatalogueFiles.of(args)
 
     verifyChecksum(paths.archive, paths.checksums)
 
@@ -24,9 +25,15 @@ fun main(args: Array<String>) {
     failOnUnrecognisedValues(table.unrecognised)
 
     val portions = ServingsCsv.read(paths.servings, table.foods.map { it.code }.toSet())
-    // Les libelles servent a valider : un titre court doit designer un code qui
-    // existe, et etre plus court que ce qu'il remplace.
-    val titles = ShortNamesCsv.read(paths.shortNames, table.foods.associate { it.code to it.name })
+    // Un fichier de titres courts par langue, et chacun valide contre les libelles de
+    // **sa** langue : un titre doit designer un code qui existe, et etre plus court que
+    // ce qu'il remplace -- ce qui n'a aucun sens compare a un libelle d'une autre langue.
+    val titles = ContentLanguage.entries.associateWith { language ->
+        ShortNamesCsv.read(
+            paths.shortNames(language),
+            table.foods.associate { it.code to it.label(language).name },
+        )
+    }
     // La table entiere, cette fois : une completion doit viser un trou qui existe
     // encore, et c'est la seule facon de le savoir.
     val completions = CompletionsCsv.read(paths.completions, table.foods.associateBy { it.code })
@@ -36,40 +43,51 @@ fun main(args: Array<String>) {
 }
 
 /**
- * Les cinq chemins de l'import, nommes.
+ * Ou vivent les fichiers du catalogue, et sous quels noms.
  *
- * Un type plutot qu'une deconstruction : a cinq elements, l'ordre ne se lit plus, et
- * intervertir servings.csv et short-names.csv produirait une erreur d'en-tete qui
- * parle d'autre chose que du vrai probleme.
+ * **Un dossier plutot que six chemins.** L'import prenait ses cinq entrees une par une,
+ * ce qui obligeait le script Gradle a les nommer toutes -- et donc a apprendre qu'il
+ * existe un fichier de titres courts **par langue**. Il aurait fallu l'y enumerer, dans
+ * un script qui ne peut pas lire [ContentLanguage]. Le dossier est la seule chose que
+ * Gradle a besoin de savoir ; les noms sont ici, avec le code qui les lit.
  */
-private data class ImportPaths(
-    val archive: File,
-    val servings: File,
-    val shortNames: File,
-    val completions: File,
-    val checksums: File,
-    val output: File,
-) {
+internal data class CatalogueFiles(val directory: File, val output: File) {
+    val archive: File get() = directory.resolve(ARCHIVE)
+
+    val servings: File get() = directory.resolve("servings.csv")
+
+    val completions: File get() = directory.resolve("completions.csv")
+
+    val checksums: File get() = directory.resolve("SOURCE.sha256")
+
+    /**
+     * Les titres courts d'une langue.
+     *
+     * Un fichier par langue et non une colonne de plus, contrairement aux portions : un
+     * titre court n'a rien de commun d'une langue a l'autre -- ni le mot, ni la decision
+     * d'en avoir un. C'est la forme deja retenue pour les prompts et pour la politique
+     * de confidentialite. Le fichier peut manquer, et c'est l'etat de depart d'une
+     * langue dont la passe n'a pas tourne.
+     */
+    fun shortNames(language: ContentLanguage): File = directory.resolve("short-names-${language.tag}.csv")
+
     companion object {
-        fun of(args: Array<String>): ImportPaths {
-            require(args.size == ARGUMENT_COUNT) {
-                "Usage : importCiqual <archive.zip> <servings.csv> <short-names.csv> " +
-                    "<completions.csv> <SOURCE.sha256> <sortie.db>"
-            }
-            val files = args.map(::File)
-            return ImportPaths(
-                archive = files[0],
-                servings = files[1],
-                shortNames = files[2],
-                completions = files[3],
-                checksums = files[4],
-                output = files[5],
-            )
+        /**
+         * L'archive de l'ANSES, datee comme elle la publie.
+         *
+         * Nommee ici et non devinee par un motif : une seconde archive laissee dans le
+         * dossier choisirait alors l'edition au hasard de l'ordre du systeme de fichiers.
+         */
+        const val ARCHIVE = "ciqual-2025-11-03-xml.zip"
+
+        fun of(args: Array<String>): CatalogueFiles {
+            require(args.size == ARGUMENT_COUNT) { "Usage : importCiqual <dossier ciqual> <sortie.db>" }
+            return CatalogueFiles(directory = File(args[0]), output = File(args[1]))
         }
+
+        private const val ARGUMENT_COUNT = 2
     }
 }
-
-private const val ARGUMENT_COUNT = 6
 
 /**
  * Le controle d'empreinte demande par docs/04.
@@ -141,20 +159,16 @@ private const val SHOWN_SAMPLES = 20
 private fun report(
     foods: List<CiqualFood>,
     servings: List<CiqualServing>,
-    titles: List<CiqualShortName>,
+    titles: Map<ContentLanguage, List<CiqualShortName>>,
     completions: List<CiqualCompletion>,
     output: File,
 ) {
     val missing = Nutrient.entries.associateWith { nutrient -> foods.count { it[nutrient] == null } }
-    val worthShortening = foods.count { it.name.length > ShortNamesCsv.WORTH_SHORTENING }
 
     println("ciqual.db ecrite : ${output.absolutePath}")
     println("  ${foods.size} aliments, ${servings.size} portions, ${output.length() / KILOBYTE} Ko")
-    // Le second chiffre est celui qui informe : un titre court manquant sur un
-    // libelle deja lisible n'est pas un trou, un titre manquant sur un libelle a
-    // rallonge en est un.
-    println("  ${titles.size} titres courts, sur $worthShortening libelles qui en valent la peine")
-    reportAmbiguousTitles(titles)
+    println("  langues : ${ContentLanguage.entries.joinToString { it.tag }}")
+    reportShortNames(foods, titles)
     println("  valeurs inconnues, par colonne (NULL, jamais zero) :")
     val completed = completions.groupingBy { it.macro.nutrient }.eachCount()
     missing.forEach { (nutrient, count) ->
@@ -164,6 +178,23 @@ private fun report(
         println("    ${nutrient.column.padEnd(NUTRIENT_COLUMN_WIDTH)} $count / ${foods.size}$estimated")
     }
     reportCategories(foods)
+}
+
+/**
+ * Les titres courts, langue par langue.
+ *
+ * **Le second chiffre est celui qui informe** : un titre court manquant sur un libelle
+ * deja lisible n'est pas un trou, un titre manquant sur un libelle a rallonge en est un.
+ * Et il differe d'une langue a l'autre -- l'ANSES ecrit ses libelles anglais un peu plus
+ * courts que ses francais, donc moins d'entre eux en valent la peine.
+ */
+private fun reportShortNames(foods: List<CiqualFood>, titles: Map<ContentLanguage, List<CiqualShortName>>) {
+    ContentLanguage.entries.forEach { language ->
+        val written = titles[language].orEmpty()
+        val worth = foods.count { it.label(language).name.length > ShortNamesCsv.WORTH_SHORTENING }
+        println("  ${language.tag} : ${written.size} titres courts, sur $worth libelles qui en valent la peine")
+        reportAmbiguousTitles(language, written)
+    }
 }
 
 /**
@@ -179,16 +210,16 @@ private fun report(
  * condition d'import rendrait la table impossible a produire. Ce qui est possible,
  * c'est de nommer les collisions pour qu'on les corrige a la main dans le CSV.
  */
-private fun reportAmbiguousTitles(titles: List<CiqualShortName>) {
+private fun reportAmbiguousTitles(language: ContentLanguage, titles: List<CiqualShortName>) {
     val collisions = titles.groupBy { it.shortName.lowercase() }.filterValues { it.size > 1 }
     if (collisions.isEmpty()) return
 
-    println("  ${collisions.size} titre(s) court(s) porte(s) par plusieurs fiches :")
+    println("    ${collisions.size} titre(s) court(s) porte(s) par plusieurs fiches :")
     collisions.entries.take(SHOWN_SAMPLES).forEach { (title, duplicates) ->
-        println("    $title : ${duplicates.joinToString { it.code }}")
+        println("      $title : ${duplicates.joinToString { it.code }}")
     }
-    if (collisions.size > SHOWN_SAMPLES) println("    ... et ${collisions.size - SHOWN_SAMPLES} autre(s).")
-    println("    Une liste de recherche ne les distinguera pas. A departager dans short-names.csv.")
+    if (collisions.size > SHOWN_SAMPLES) println("      ... et ${collisions.size - SHOWN_SAMPLES} autre(s).")
+    println("      A departager dans short-names-${language.tag}.csv : une liste ne les distinguera pas.")
 }
 
 /**

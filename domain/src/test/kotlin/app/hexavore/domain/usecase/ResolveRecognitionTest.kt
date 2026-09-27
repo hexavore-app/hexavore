@@ -150,12 +150,13 @@ class ResolveRecognitionTest {
     private val demandes = mutableListOf<List<String>>()
 
     private suspend fun resolve(vararg items: RecognizedItem) = ResolveRecognition(
-        resolve = ResolveFoodLabel(CATALOGUE),
+        resolve = ResolveFoodLabel(CATALOGUE, FRANCAIS),
         create = CreateDraft(FixedClock.atNoon(JOUR), ids, InMemorySelectedDay(FixedClock.atNoon(JOUR).today())),
         estimate = { labels ->
             demandes += labels
             estimation
         },
+        languages = FRANCAIS,
     )(Recognition(items.toList()), EntrySource.TEXT_AI)
 
     @Test

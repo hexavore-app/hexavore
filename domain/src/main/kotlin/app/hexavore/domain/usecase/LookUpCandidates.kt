@@ -6,6 +6,7 @@ import app.hexavore.domain.ai.LabelCandidates
 import app.hexavore.domain.ai.TOOL_CANDIDATES
 import app.hexavore.domain.food.Food
 import app.hexavore.domain.food.FoodSearch
+import app.hexavore.domain.language.ContentLanguages
 import app.hexavore.domain.resolution.depluralise
 import app.hexavore.domain.resolution.normaliseLabel
 import kotlinx.coroutines.flow.first
@@ -27,16 +28,17 @@ import kotlinx.coroutines.flow.first
  * **Rien n'est écrit.** Comme la résolution, c'est une lecture : c'est l'enregistrement
  * du brouillon qui verse une fiche au catalogue.
  */
-class LookUpCandidates(private val foods: FoodSearch) : CatalogueTool {
+class LookUpCandidates(private val foods: FoodSearch, private val languages: ContentLanguages) : CatalogueTool {
     override suspend fun candidatesFor(labels: List<String>): List<LabelCandidates> =
         labels.map { label -> LabelCandidates(label = label, candidates = search(label)) }
 
     private suspend fun search(label: String): List<FoodCandidate> {
-        val normalised = normaliseLabel(label)
+        val language = languages.current()
+        val normalised = normaliseLabel(label, language)
         val direct = candidates(normalised)
         if (direct.isNotEmpty()) return direct
 
-        val singular = depluralise(normalised)
+        val singular = depluralise(normalised, language)
         // Un second essai identique au premier rendrait la meme chose : la
         // depluralisation n'a pas toujours de quoi mordre.
         return if (singular == normalised) emptyList() else candidates(singular)

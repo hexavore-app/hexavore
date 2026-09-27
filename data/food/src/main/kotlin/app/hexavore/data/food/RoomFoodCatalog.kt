@@ -1,6 +1,5 @@
 package app.hexavore.data.food
 
-import app.hexavore.core.database.ciqual.CiqualAnnotations
 import app.hexavore.core.database.ciqual.CiqualDatabase
 import app.hexavore.core.database.dao.FoodDao
 import app.hexavore.core.database.dao.FoodMarksDao
@@ -19,6 +18,8 @@ import app.hexavore.domain.food.FoodUsage
 import app.hexavore.domain.food.RecentFoods
 import app.hexavore.domain.food.SearchText
 import app.hexavore.domain.identity.IdGenerator
+import app.hexavore.domain.language.ContentLanguage
+import app.hexavore.domain.language.ContentLanguages
 import app.hexavore.domain.time.Clock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -41,7 +42,7 @@ import javax.inject.Singleton
  * qui ait à savoir que `source_ref` range deux espaces de noms dans une même colonne.
  *
  * **Une seule instance.** L'ouverture de la base de l'ANSES recopie un asset de
- * 824 Ko au premier appel ; cinq instances feraient cinq copies concurrentes du
+ * 1,6 Mo au premier appel ; cinq instances feraient cinq copies concurrentes du
  * même fichier.
  *
  * [archi]: docs/06-architecture.md
@@ -51,6 +52,7 @@ class RoomFoodCatalog @Inject constructor(
     private val dao: FoodDao,
     private val marks: FoodMarksDao,
     private val ciqual: CiqualDatabase,
+    private val languages: ContentLanguages,
     private val ids: IdGenerator,
     private val clock: Clock,
     private val dispatchers: DispatcherProvider,
@@ -93,24 +95,29 @@ class RoomFoodCatalog @Inject constructor(
 
         return dao
             .observeSearch(normalised)
-            .map { rows -> ciqual.results(rows, normalised, query, filter, limit, ids) }
+            // Relue a chaque emission plutot qu'a la construction du flux : la
+            // recherche reste ouverte pendant qu'on regle la langue, et Room reemet a
+            // chaque ecriture. Une langue capturee une fois laisserait la liste dans
+            // l'ancienne jusqu'a la fermeture de l'ecran.
+            .map { rows -> ciqual.results(rows, normalised, query, filter, limit, ids, languages.current()) }
             // Les lectures de la base de l'ANSES : sans cela, elles se feraient sur
             // le dispatcher de celui qui collecte, c'est-a-dire le fil principal.
             .flowOn(dispatchers.io)
     }
 
     override suspend fun byId(id: FoodId): Food? = withContext(dispatchers.io) {
-        dao.byId(id.value)?.let {
-            val known = ciqual.annotationOf(it)
-            it.toDomain(ciqual.servingsOf(it.source, it.sourceRef), known?.category.toFoodCategory(), known?.shortName)
-        }
+        dao.byId(id.value)?.let { ciqual.withServingsAndAnnotations(listOf(it), languages.current()).single() }
     }
 
-    override fun observeRecent(limit: Int): Flow<List<Food>> =
-        marks.observeRecent(limit).map(ciqual::withServingsAndAnnotations).flowOn(dispatchers.io)
+    override fun observeRecent(limit: Int): Flow<List<Food>> = marks
+        .observeRecent(limit)
+        .map { ciqual.withServingsAndAnnotations(it, languages.current()) }
+        .flowOn(dispatchers.io)
 
-    override fun observeFavorites(): Flow<List<Food>> =
-        marks.observeFavorites().map(ciqual::withServingsAndAnnotations).flowOn(dispatchers.io)
+    override fun observeFavorites(): Flow<List<Food>> = marks
+        .observeFavorites()
+        .map { ciqual.withServingsAndAnnotations(it, languages.current()) }
+        .flowOn(dispatchers.io)
 
     override suspend fun setFavorite(id: FoodId, favorite: Boolean) = withContext(dispatchers.io) {
         marks.setFavorite(id.value, favorite, clock.now().toEpochMilli())
@@ -133,7 +140,12 @@ class RoomFoodCatalog @Inject constructor(
             reference != null -> dao.byReference(food.source.name, reference)
             else -> dao.byId(food.id.value)
         }
-        known?.let { return@withContext it.toDomain(ciqual.servingsOf(it.source, it.sourceRef)) }
+        // Avec ses annotations : sans elles, la fiche rendue perdait son titre court
+        // et, depuis que la table est bilingue, son libelle dans la langue en cours --
+        // au moment precis ou l'ecran de validation va l'afficher.
+        known?.let {
+            return@withContext ciqual.withServingsAndAnnotations(listOf(it), languages.current()).single()
+        }
 
         dao.upsert(food.toEntity(clock.now().toEpochMilli()))
         food
@@ -172,11 +184,13 @@ private fun CiqualDatabase.results(
     filter: FoodFilter,
     limit: Int,
     ids: IdGenerator,
+    language: ContentLanguage,
 ): List<Food> {
-    val local = withAnnotations(rows).filter(filter::matches)
+    val local = withAnnotations(rows, language).filter(filter::matches)
     // Une qualite demandee ecarte la table de l'ANSES : une ligne qui n'a pas ete
     // versee au catalogue n'est ni personnelle ni epinglee.
-    val proposed = if (filter.traits.isEmpty()) notYetCopied(local, normalised, filter, limit, ids) else emptyList()
+    val proposed =
+        if (filter.traits.isEmpty()) notYetCopied(local, normalised, filter, limit, ids, language) else emptyList()
     return FoodRanking.sort(local + proposed, query).take(limit)
 }
 
@@ -199,12 +213,13 @@ private fun CiqualDatabase.notYetCopied(
     filter: FoodFilter,
     limit: Int,
     ids: IdGenerator,
+    language: ContentLanguage,
 ): List<Food> {
     val alreadyCopied = local.mapNotNullTo(mutableSetOf()) { it.sourceRef.takeIf { _ -> it.isFromCiqual } }
 
-    return search(normalised, filter.categories.mapTo(mutableSetOf()) { it.name }, limit)
+    return search(normalised, filter.categories.mapTo(mutableSetOf()) { it.name }, limit, language.tag)
         .filterNot { it.code in alreadyCopied }
-        .map { row -> row.toDomain(FoodId(ids.next()), servings(row.code)) }
+        .map { row -> row.toDomain(FoodId(ids.next()), servings(row.code, language.tag)) }
 }
 
 /**
@@ -221,25 +236,21 @@ private fun CiqualDatabase.notYetCopied(
  *
  * [decisions]: docs/11-decisions.md
  */
-private fun CiqualDatabase.withAnnotations(rows: List<FoodEntity>): List<Food> {
-    val annotations = annotationsOf(rows.mapNotNull { it.ciqualCode })
-    return rows.map {
-        val known = annotations[it.ciqualCode]
-        it.toDomain(category = known?.category.toFoodCategory(), shortName = known?.shortName)
-    }
+private fun CiqualDatabase.withAnnotations(rows: List<FoodEntity>, language: ContentLanguage): List<Food> {
+    val annotations = annotationsOf(rows.mapNotNull { it.ciqualCode }, language.tag)
+    return rows.map { it.toDomain(annotations = annotations[it.ciqualCode]) }
 }
 
 /** Comme [withAnnotations], plus les portions — pour les listes courtes qui les affichent. */
-private fun CiqualDatabase.withServingsAndAnnotations(rows: List<FoodEntity>): List<Food> {
-    val annotations = annotationsOf(rows.mapNotNull { it.ciqualCode })
+private fun CiqualDatabase.withServingsAndAnnotations(rows: List<FoodEntity>, language: ContentLanguage): List<Food> {
+    val annotations = annotationsOf(rows.mapNotNull { it.ciqualCode }, language.tag)
     return rows.map {
-        val known = annotations[it.ciqualCode]
-        it.toDomain(servingsOf(it.source, it.sourceRef), known?.category.toFoodCategory(), known?.shortName)
+        it.toDomain(
+            servings = servingsOf(it.source, it.sourceRef, language),
+            annotations = annotations[it.ciqualCode],
+        )
     }
 }
-
-private fun CiqualDatabase.annotationOf(row: FoodEntity): CiqualAnnotations? =
-    row.ciqualCode?.let { annotationsOf(listOf(it))[it] }
 
 /** Le code de l'ANSES d'une fiche, quand elle en vient. Lui seul désigne un rayon. */
 private val FoodEntity.ciqualCode: String? get() = sourceRef.takeIf { source == FoodSource.CIQUAL.name }
@@ -250,9 +261,9 @@ private val FoodEntity.ciqualCode: String? get() = sourceRef.takeIf { source == 
  * Hors de la classe : c'est une lecture de la base embarquée, pas une des six
  * capacités que le catalogue expose.
  */
-private fun CiqualDatabase.servingsOf(source: String, reference: String?) =
+private fun CiqualDatabase.servingsOf(source: String, reference: String?, language: ContentLanguage) =
     if (source == FoodSource.CIQUAL.name && reference != null) {
-        servings(reference).map { it.toDomain() }
+        servings(reference, language.tag).map { it.toDomain() }
     } else {
         emptyList()
     }

@@ -33,8 +33,8 @@ La flèche du bas remonte : `:data` dépend de `:domain`, jamais l'inverse. Un `
 :app                        Application, graphe Hilt racine, navigation, variantes
 
 :core:model                 Modèles partagés, Kotlin pur
-:core:common                Result, implémentations de Clock, DispatcherProvider et
-                            IdGenerator, extensions de formatage
+:core:common                Result, implémentations de Clock, DispatcherProvider,
+                            IdGenerator et SystemLanguages, extensions de formatage
 :core:designsystem          Thème néon, tokens, composants Compose réutilisables
 :core:database              Room : entités, DAO, migrations, base CIQUAL embarquée
 :core:datastore             Préférences (DataStore) et stockage chiffré des clés
@@ -46,7 +46,8 @@ La flèche du bas remonte : `:data` dépend de `:domain`, jamais l'inverse. Un `
 :data:diary                 Journal : plats, entrées, favoris
 :data:food                  Catalogue d'aliments (CIQUAL + cache OFF + personnels)
 :data:profile               Profil, objectifs, poids
-:data:settings              Cles d IA, chiffrees par le Keystore
+:data:settings              Cles d IA chiffrees par le Keystore, preferences
+                            d apparence, et la langue -- que la plateforme applique
 :data:backup                Instantané, sérialisation, planification
 
 :integration:openfoodfacts  Client Retrofit + DTO + correspondances
@@ -70,6 +71,8 @@ La flèche du bas remonte : `:data` dépend de `:domain`, jamais l'inverse. Un `
 Un artefact vit à côté de cette liste sans y figurer : `build-logic/detekt-rules`, qui contient les trois règles d'analyse statique de [10](10-qualite-et-livraison.md#analyse-statique). Ce n'est pas un module du projet mais un **build inclus** : son code tourne sur la JVM de Gradle, pas sur un téléphone, et il n'a rien à faire dans le graphe de dépendances de l'application ([D16](11-decisions.md#d16--les-règles-detekt-vivent-dans-un-build-inclus---par-défaut)).
 
 **Où vivent `Clock` et `DispatcherProvider`.** Les *interfaces* sont dans `:domain` : ce sont des ports, et un port appartient au métier qui l'exige. Les *implémentations* — celles qui lisent vraiment l'horloge de l'appareil — sont dans `:core:common`. La règle detekt qui interdit `LocalDate.now()` ailleurs nomme explicitement les fichiers autorisés.
+
+**Où vit la langue.** `ContentLanguage` et sa règle de détection sont dans `:domain`, et c'est ce qui les rend éprouvables sur la JVM : les langues du système arrivent en paramètre, comme le réglage d'Android arrive en paramètre de `ThemeMode.isDark`. La lecture de ces langues est dans `:core:common`, au même titre que l'horloge. **Ce qui applique la langue, en revanche, est dans `:data:settings`** — et c'est le seul port du projet dont la vérité ne vive pas chez nous : c'est la plateforme qui sélectionne un `values-fr/`, et depuis Android 13 c'est elle qui la retient ([D129](11-decisions.md#d129--langlais-est-le-repli-le-français-une-traduction-et-la-langue-est-une-donnée---validée)).
 
 ### Pourquoi autant de modules
 

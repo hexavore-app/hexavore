@@ -43,6 +43,19 @@ android {
         versionName = libs.versions.versionName.get()
     }
 
+    // La langue par application, declaree au systeme.
+    //
+    // **Genere et non ecrit a la main.** AGP rassemble les `values-<langue>/` de ce
+    // module et de ses quatorze dependances, ecrit `locales_config.xml` et le reference
+    // dans le manifeste. Une liste tenue a la main aurait oublie la troisieme langue le
+    // jour de son ajout, et le selecteur d'Android ne l'aurait simplement pas proposee.
+    //
+    // Le `resources.properties` voisin declare la langue du `values/` sans qualificatif.
+    // Sans lui, AGP ne sait pas quelle langue portent les ressources par defaut.
+    androidResources {
+        generateLocaleConfig = true
+    }
+
     // AGP 8 ne genere plus BuildConfig sans qu'on le demande. Un seul champ y est lu :
     // VERSION_NAME, que le User-Agent d'Open Food Facts exige (D26). C'est aussi la
     // raison pour laquelle il est lu ici et pas dans le module d'integration -- la
@@ -107,6 +120,9 @@ dependencies {
     implementation(projects.data.settings)
     implementation(projects.data.backup)
 
+    // AppCompat pour `setApplicationLocales`, et pour rien d'autre : aucun widget, aucun
+    // fragment, aucune ressource de ce paquet ne sert ici. Voir D129.
+    implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)

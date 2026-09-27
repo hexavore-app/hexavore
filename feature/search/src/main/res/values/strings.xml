@@ -1,145 +1,148 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="fr">
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
 
-    <string name="search_field_label">Chercher un aliment</string>
+    <string name="search_field_label">Search for a food</string>
 
-    <!-- La derniere ligne des resultats : la recherche distante, sur un tap. -->
-    <string name="search_ask_open_food_facts">Chercher dans Open Food Facts</string>
-    <string name="search_open_food_facts_results">Produits Open Food Facts</string>
-    <string name="search_open_food_facts_nothing">Open Food Facts ne connaît pas ce nom.</string>
-    <string name="search_open_food_facts_offline">Open Food Facts n\'a pas pu être joint.</string>
+    <!-- The last row of the results: the remote search, on a tap. -->
+    <string name="search_ask_open_food_facts">Search Open Food Facts</string>
+    <string name="search_open_food_facts_results">Open Food Facts products</string>
+    <string name="search_open_food_facts_nothing">Open Food Facts does not know this name.</string>
+    <string name="search_open_food_facts_offline">Open Food Facts could not be reached.</string>
 
-    <!-- Le code lu par le scan, quand le formulaire vient d'un produit introuvable. -->
-    <string name="custom_barcode_kept">Code-barres conservé : %1$s</string>
+    <!-- The code read by the scanner, when the form comes from a product that was not
+         found. -->
+    <string name="custom_barcode_kept">Barcode kept: %1$s</string>
 
-    <!-- Avant toute frappe : ce qu'on mange souvent, et ce qu'on a épinglé. -->
-    <string name="search_recent">Récents</string>
-    <string name="search_favorites">Favoris</string>
+    <!-- Before any keystroke: what you eat often, and what you pinned. -->
+    <string name="search_recent">Recent</string>
+    <string name="search_favorites">Favourites</string>
 
-    <!-- Une liste vide dit quoi faire, pas seulement qu'elle est vide. -->
-    <string name="search_first_title">Rien encore</string>
-    <string name="search_first_body">Tapez deux lettres pour chercher parmi 3 484 aliments, hors-ligne. Ce que vous enregistrerez reviendra ici.</string>
+    <!-- An empty list says what to do, not just that it is empty. -->
+    <string name="search_first_title">Nothing yet</string>
+    <string name="search_first_body">Type two letters to search 3,484 foods, offline. Whatever you save will come back here.</string>
 
-    <!-- « — » et non « 0 kcal » : une énergie non déterminée n'est pas zéro. -->
+    <!-- "—" and not "0 kcal": an undetermined energy is not zero. -->
     <string name="search_kcal_per_100g">%1$d kcal / 100 g</string>
     <string name="search_unknown_energy">— kcal / 100 g</string>
 
-    <string name="search_pin">Épingler %1$s</string>
-    <string name="search_unpin">Retirer %1$s des favoris</string>
+    <string name="search_pin">Pin %1$s</string>
+    <string name="search_unpin">Remove %1$s from favourites</string>
 
-    <!-- Le bandeau de pastilles. Les deux premières sont des qualités et se cumulent
-         en ET ; les huit suivantes sont des rayons et se cumulent en OU. Le trait qui
-         les sépare à l'écran est ce qui le dit. -->
-    <string name="search_tag_favorite">Favori</string>
-    <string name="search_tag_personal">Mon aliment</string>
-    <string name="search_tag_fruits">Fruits</string>
-    <string name="search_tag_vegetables">Légumes</string>
-    <string name="search_tag_starches">Féculents</string>
-    <string name="search_tag_meat_fish">Viandes et poissons</string>
-    <string name="search_tag_dairy">Produits laitiers</string>
-    <string name="search_tag_drinks">Boissons</string>
+    <!-- The chip strip. The first two are qualities and stack with AND; the eight that
+         follow are aisles and stack with OR. The line that separates them on screen is
+         what says so. -->
+    <string name="search_tag_favorite">Favourite</string>
+    <string name="search_tag_personal">My food</string>
+    <string name="search_tag_fruits">Fruit</string>
+    <string name="search_tag_vegetables">Vegetables</string>
+    <string name="search_tag_starches">Starches</string>
+    <string name="search_tag_meat_fish">Meat and fish</string>
+    <string name="search_tag_dairy">Dairy</string>
+    <string name="search_tag_drinks">Drinks</string>
     <string name="search_tag_desserts">Desserts</string>
     <string name="search_tag_snacks">Snacks</string>
 
-    <!-- La famille se lit a la forme, a la position et au trait qui separe : trois
-         canaux visuels, et aucun pour TalkBack. Ces deux phrases sont le quatrieme. -->
-    <string name="search_tag_trait_a11y">%1$s, qualité</string>
-    <string name="search_tag_category_a11y">%1$s, rayon</string>
+    <!-- The family can be read from the shape, the position and the separating line:
+         three visual channels, and none for TalkBack. These two sentences are the
+         fourth. -->
+    <string name="search_tag_trait_a11y">%1$s, quality</string>
+    <string name="search_tag_category_a11y">%1$s, aisle</string>
 
-    <!-- Un filtre qui ne rend rien doit dire que ce sont les pastilles qui l'ont vidé,
-         sinon on croit le catalogue vide. -->
-    <string name="search_no_result_filtered">Aucun aliment ne correspond aux pastilles retenues.</string>
+    <!-- A filter that returns nothing must say it is the chips that emptied it,
+         otherwise you think the catalogue is empty. -->
+    <string name="search_no_result_filtered">No food matches the chips you selected.</string>
 
-    <!-- La saisie manuelle est permanente, pas un lot de consolation : un reste de
-         la veille n'a pas de nom qu'on aurait envie de chercher. -->
-    <string name="search_manual_entry">Saisie manuelle</string>
-    <string name="search_manual_entry_named">Saisir « %1$s » à la main</string>
+    <!-- Entry by hand is permanent, not a consolation prize: yesterday\'s leftovers have
+         no name you would want to search for. -->
+    <string name="search_manual_entry">Enter by hand</string>
+    <string name="search_manual_entry_named">Enter “%1$s” by hand</string>
 
-    <string name="search_no_result">Aucun aliment ne correspond à « %1$s ».</string>
+    <string name="search_no_result">No food matches “%1$s”.</string>
 
-    <!-- Ce que l'utilisateur a saisi lui-même se voit, et lui seul se supprime. -->
-    <string name="search_own_food">Mon aliment</string>
-    <string name="search_delete">Supprimer %1$s</string>
-    <string name="search_delete_title">Supprimer « %1$s » ?</string>
-    <string name="search_delete_unused">Cet aliment n\'a jamais servi. Sa fiche disparaît du catalogue.</string>
-    <!-- Le nombre figure dans les deux formes : en français, « one » couvre aussi
-         zéro, et un message sans son chiffre y deviendrait faux. -->
+    <!-- What the user entered themselves is visible, and only that can be deleted. -->
+    <string name="search_own_food">My food</string>
+    <string name="search_delete">Delete %1$s</string>
+    <string name="search_delete_title">Delete “%1$s”?</string>
+    <string name="search_delete_unused">This food has never been used. Its entry disappears from the catalogue.</string>
+    <!-- In English "one" means exactly one, and zero falls into "other". The figure stays
+         in both forms all the same: a message without it would say nothing about how
+         much is at stake. -->
     <plurals name="search_delete_used">
-        <item quantity="one">Cet aliment sert dans %1$d entrée de votre journal. Elle est conservée telle quelle, avec ses valeurs : seule la fiche disparaît.</item>
-        <item quantity="other">Cet aliment sert dans %1$d entrées de votre journal. Elles sont conservées telles quelles, avec leurs valeurs : seule la fiche disparaît.</item>
+        <item quantity="one">This food is used in %1$d entry in your log. It is kept exactly as it is, with its values: only the catalogue entry disappears.</item>
+        <item quantity="other">This food is used in %1$d entries in your log. They are kept exactly as they are, with their values: only the catalogue entry disappears.</item>
     </plurals>
-    <string name="search_delete_confirm">Supprimer</string>
-    <string name="search_delete_cancel">Annuler</string>
+    <string name="search_delete_confirm">Delete</string>
+    <string name="search_delete_cancel">Cancel</string>
 
-    <string name="search_error_title">Recherche impossible</string>
-    <string name="search_error_body">La lecture du catalogue n\'a pas abouti. Rien n\'a été modifié.</string>
-    <string name="search_close">Fermer</string>
+    <string name="search_error_title">Search unavailable</string>
+    <string name="search_error_body">The catalogue could not be read. Nothing was changed.</string>
+    <string name="search_close">Close</string>
 
-    <!-- Formulaire d'aliment personnel. -->
-    <string name="custom_title">Nouvel aliment</string>
-    <!-- Les valeurs se saisissent pour 100 g, comme sur toute fiche : c'est ce qui
-         permet ensuite a la quantite de les recalculer. -->
-    <string name="custom_subtitle">Il rejoindra vos aliments et reviendra dans les recherches.</string>
-    <string name="custom_field_name">Nom</string>
-    <string name="custom_field_brand">Marque (facultatif)</string>
-    <string name="custom_field_serving">Portion habituelle en grammes (facultatif)</string>
-    <string name="custom_per_100g">Valeurs pour 100 g</string>
-    <!-- Chaque champ porte son unité : sans elle, « Protéines 12 » se lit aussi bien
-         comme des grammes que comme un pourcentage. -->
-    <!-- La proposition de reverser la fiche à Open Food Facts, posée au moment où
-         elle vient d'être créée pour un produit que le scan n'a pas trouvé. C'est le
-         seul moment où la question a un sens : le travail vient d'être fait. -->
-    <string name="contribute_title">Contribuer à Open Food Facts</string>
-    <string name="contribute_body">Ce produit manque à la base. Voici ce qui serait envoyé :</string>
-    <string name="contribute_field_barcode">Code-barres</string>
-    <string name="contribute_field_name">Nom</string>
-    <string name="contribute_field_brand">Marque</string>
-    <!-- Public et définitif : le dire avant, pas après. Une contribution ne se
-         reprend pas depuis l'application. -->
-    <string name="contribute_warning">L\'envoi est public et définitif. Il se corrige ensuite sur openfoodfacts.org.</string>
-    <string name="contribute_confirm">Envoyer</string>
-    <string name="contribute_sending">Envoi…</string>
-    <string name="contribute_decline">Pas maintenant</string>
+    <!-- The form for a food of your own. -->
+    <string name="custom_title">New food</string>
+    <!-- Values are entered per 100 g, as on any entry: that is what lets the quantity
+         work them out afterwards. -->
+    <string name="custom_subtitle">It will join your foods and come back in searches.</string>
+    <string name="custom_field_name">Name</string>
+    <string name="custom_field_brand">Brand (optional)</string>
+    <string name="custom_field_serving">Usual portion in grams (optional)</string>
+    <string name="custom_per_100g">Values per 100 g</string>
+    <!-- Every field carries its unit: without it, "Protein 12" reads just as well as
+         grams or as a percentage. -->
+    <!-- The offer to send the entry back to Open Food Facts, put at the moment it has
+         just been created for a product the scanner did not find. It is the only moment
+         when the question makes sense: the work has just been done. -->
+    <string name="contribute_title">Contribute to Open Food Facts</string>
+    <string name="contribute_body">This product is missing from the database. Here is what would be sent:</string>
+    <string name="contribute_field_barcode">Barcode</string>
+    <string name="contribute_field_name">Name</string>
+    <string name="contribute_field_brand">Brand</string>
+    <!-- Public and final: say it before, not after. A contribution cannot be taken back
+         from the application. -->
+    <string name="contribute_warning">The upload is public and final. It can be corrected afterwards on openfoodfacts.org.</string>
+    <string name="contribute_confirm">Send</string>
+    <string name="contribute_sending">Sending…</string>
+    <string name="contribute_decline">Not now</string>
 
-    <string name="contribute_sent">Envoyé, merci. Le prochain qui scannera ce produit le trouvera.</string>
-    <!-- Réessayer n'y changerait rien : c'est le compte qu'il faut corriger. -->
-    <string name="contribute_rejected">Compte refusé. Vérifiez votre identifiant et votre mot de passe dans les réglages.</string>
-    <string name="contribute_unreachable">Open Food Facts n\'a pas répondu. La fiche est enregistrée ici.</string>
-    <!-- Le service garde la parole : sa phrase est reprise telle quelle, en anglais
-         s'il le veut. La traduire demanderait de savoir à l'avance ce qu'il refuse. -->
-    <string name="contribute_refused">Open Food Facts a refusé la fiche : %1$s</string>
-    <string name="contribute_retry">Réessayer</string>
-    <string name="contribute_close">Fermer</string>
+    <string name="contribute_sent">Sent, thank you. The next person to scan this product will find it.</string>
+    <!-- Trying again would change nothing: it is the account that needs fixing. -->
+    <string name="contribute_rejected">Account refused. Check your username and password in the settings.</string>
+    <string name="contribute_unreachable">Open Food Facts did not answer. The entry is saved here.</string>
+    <!-- The service keeps the floor: its sentence is repeated as-is, in whatever language
+         it chooses. Translating it would mean knowing in advance what it refuses. -->
+    <string name="contribute_refused">Open Food Facts refused the entry: %1$s</string>
+    <string name="contribute_retry">Try again</string>
+    <string name="contribute_close">Close</string>
 
     <string name="custom_field_calories">Calories (kcal)</string>
-    <string name="custom_field_protein">Protéines (g)</string>
-    <string name="custom_field_carbs">Glucides (g)</string>
-    <string name="custom_field_sugars">Sucres (g)</string>
-    <string name="custom_field_fat">Lipides (g)</string>
-    <string name="custom_field_fiber">Fibres (g)</string>
-    <string name="custom_save">Enregistrer l\'aliment</string>
-    <string name="custom_cancel">Annuler</string>
-    <!-- Le bouton indisponible répond à l'appui ; cette phrase est ce qu'il répond. -->
-    <string name="custom_incomplete_hint">Un aliment demande un nom et des calories pour 100 g. Les cinq autres valeurs restent facultatives : un champ laissé vide veut dire « inconnu », pas « zéro ».</string>
+    <string name="custom_field_protein">Protein (g)</string>
+    <string name="custom_field_carbs">Carbs (g)</string>
+    <string name="custom_field_sugars">Sugars (g)</string>
+    <string name="custom_field_fat">Fat (g)</string>
+    <string name="custom_field_fiber">Fibre (g)</string>
+    <string name="custom_save">Save the food</string>
+    <string name="custom_cancel">Cancel</string>
+    <!-- A dimmed button answers the tap; this sentence is what it answers. -->
+    <string name="custom_incomplete_hint">A food needs a name and its calories per 100 g. The five other values stay optional: a field left blank means “unknown”, not “zero”.</string>
 
-    <string name="custom_error_title">Enregistrement impossible</string>
-    <string name="custom_error_body">L\'écriture n\'a pas abouti. Votre saisie est conservée telle quelle.</string>
-    <string name="custom_error_retry">Réessayer</string>
+    <string name="custom_error_title">Cannot save</string>
+    <string name="custom_error_body">The write did not go through. Your entry is kept exactly as it is.</string>
+    <string name="custom_error_retry">Try again</string>
 
-    <!-- Les plats favoris. Cette liste ne sert qu'à choisir : retirer un favori se
-         fait par l'étoile de l'écran de validation, là où on l'a mis. -->
-    <string name="favorites_title">Vos plats favoris</string>
-    <string name="favorites_search">Chercher un plat</string>
-    <!-- L'appui long ouvre les deux gestes, comme sur un plat de l'accueil. La
-         liste est le seul endroit ou l'on regarde ses favoris en tant que liste,
-         donc le seul ou l'on voit qu'il y en a un de trop. -->
-    <string name="favorites_menu">Modifier ou supprimer</string>
-    <string name="favorites_menu_edit">Modifier</string>
-    <string name="favorites_menu_delete">Supprimer</string>
-    <string name="favorites_pick">rejouer ce plat</string>
-    <string name="favorites_close">Retour</string>
-    <string name="favorites_empty">Aucun plat favori pour l\'instant. Composez un plat, puis touchez l\'étoile en haut de l\'écran pour le retrouver ici.</string>
-    <string name="favorites_none_matching">Aucun favori ne porte ce nom.</string>
-    <string name="favorites_error">La lecture de vos favoris n\'a pas abouti. Rien n\'a été modifié.</string>
+    <!-- Favourite dishes. This list is only for choosing: removing a favourite is done
+         with the star on the review screen, where you put it. -->
+    <string name="favorites_title">Your favourite dishes</string>
+    <string name="favorites_search">Search for a dish</string>
+    <!-- The long press opens both gestures, as on a dish on the home screen. The list is
+         the only place where you look at your favourites as a list, so the only place
+         where you can see there is one too many. -->
+    <string name="favorites_menu">Edit or delete</string>
+    <string name="favorites_menu_edit">Edit</string>
+    <string name="favorites_menu_delete">Delete</string>
+    <string name="favorites_pick">replay this dish</string>
+    <string name="favorites_close">Back</string>
+    <string name="favorites_empty">No favourite dishes yet. Put a dish together, then tap the star at the top of the screen to find it here.</string>
+    <string name="favorites_none_matching">No favourite has this name.</string>
+    <string name="favorites_error">Your favourites could not be read. Nothing was changed.</string>
 
 </resources>

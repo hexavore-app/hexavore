@@ -10,6 +10,8 @@ import app.hexavore.domain.diary.EntrySource
 import app.hexavore.domain.diary.QuantityUnit
 import app.hexavore.domain.diary.Suggestion
 import app.hexavore.domain.food.Food
+import app.hexavore.domain.language.ContentLanguage
+import app.hexavore.domain.language.ContentLanguages
 import app.hexavore.domain.nutrition.NutrientValues
 import app.hexavore.domain.resolution.MatchVerdict
 import app.hexavore.domain.resolution.convertToGrams
@@ -45,9 +47,14 @@ class ResolveRecognition(
     private val resolve: ResolveFoodLabel,
     private val create: CreateDraft,
     private val estimate: NutritionEstimator,
+    private val languages: ContentLanguages,
 ) {
     suspend operator fun invoke(recognition: Recognition, source: EntrySource): EntryDraft {
-        val resolved = recognition.items.map { resolveLine(it) }
+        // Lue une fois pour toute la reconnaissance, et passee aux lignes : les cinq
+        // lignes d'un plat viennent du meme appel et de la meme table, donc de la meme
+        // langue. La relire par ligne laisserait un plat moitie francais.
+        val language = languages.current()
+        val resolved = recognition.items.map { resolveLine(it, language) }
         return create(source, resolved.completedByEstimate())
     }
 
@@ -58,16 +65,16 @@ class ResolveRecognition(
      * quantité. L'écarter silencieusement ferait disparaître un aliment que
      * l'utilisateur a bel et bien mangé — et il ne saurait pas lequel.
      */
-    private suspend fun resolveLine(item: RecognizedItem): DraftLine {
+    private suspend fun resolveLine(item: RecognizedItem, language: ContentLanguage): DraftLine {
         // **Le choix du modèle l'emporte, et ne se relit pas.** Il a vu l'assiette, il
         // a écrit le libellé, et on lui a montré ce que le catalogue propose : c'est
         // mieux informé qu'un score de ressemblance de chaînes. Rechercher malgré tout
         // pour comparer ferait deux juges qui se contredisent, et il faudrait alors
         // décider lequel a tort — ce que rien ne permet de faire.
-        item.chosen?.let { return chosenLine(item, it) }
+        item.chosen?.let { return chosenLine(item, it, language) }
 
         val match = resolve(item.label)
-        val converted = convertToGrams(item.quantity, item.unit, match.food, estimated = item.grams)
+        val converted = convertToGrams(item.quantity, item.unit, language, match.food, estimated = item.grams)
         val line = match.food?.let(create::line) ?: create.line().copy(name = item.label)
 
         return line
@@ -94,8 +101,8 @@ class ResolveRecognition(
      * ce que l'écran montre ligne par ligne. Elle ne devient pas 1 sous prétexte qu'il
      * a choisi dans une liste : il a pu choisir le moins mauvais.
      */
-    private fun chosenLine(item: RecognizedItem, food: Food): DraftLine {
-        val converted = convertToGrams(item.quantity, item.unit, food, estimated = item.grams)
+    private fun chosenLine(item: RecognizedItem, food: Food, language: ContentLanguage): DraftLine {
+        val converted = convertToGrams(item.quantity, item.unit, language, food, estimated = item.grams)
         return create.line(food)
             .measured(converted.grams, QuantityUnit.Gram)
             .copy(

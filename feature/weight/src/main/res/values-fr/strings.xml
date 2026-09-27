@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="fr">
+
+    <string name="weight_title">Journal de poids</string>
+    <string name="weight_close">Fermer</string>
+
+    <!-- Poids et masses sont toujours stockés en kilogrammes ; l'impérial est une
+         conversion d'affichage, jamais de stockage (docs/07). -->
+    <string name="weight_kg">%1$.1f kg</string>
+    <string name="weight_pound">%1$.1f lb</string>
+
+    <!-- Une courbe ne se lit pas au doigt : le lecteur d'écran reçoit le nombre de
+         mesures, et la liste en dessous porte les chiffres. -->
+    <plurals name="weight_chart_a11y">
+        <item quantity="one">Courbe de poids, %1$d pesée</item>
+        <item quantity="other">Courbe de poids, %1$d pesées</item>
+    </plurals>
+    <string name="weight_axis_label">%1$s · %2$.1f kg</string>
+
+    <!-- Une ligne est un seul nœud d'accessibilité : date, poids, tendance, en une
+         phrase plutôt qu'en trois arrêts. -->
+    <string name="weight_row_a11y">%1$s, %2$.1f kilogrammes</string>
+    <string name="weight_row_smoothed_a11y">%1$s, %2$.1f kilogrammes, tendance %3$.1f</string>
+
+    <!-- Sous trois pesées dans les sept jours, il n'y a rien à lisser. Le dire évite
+         de chercher pourquoi le tracé en évidence manque. -->
+    <string name="weight_trend_missing">La tendance apparaît à partir de trois pesées dans la même semaine.</string>
+
+    <!-- Une liste vide dit quoi faire, pas seulement qu'elle est vide. -->
+    <string name="weight_empty_title">Aucune pesée</string>
+    <string name="weight_empty_body">Notez votre poids quand vous voulez. Le poids brut varie de deux kilos avec l\'hydratation ; c\'est la moyenne sur sept jours qui dit où vous allez.</string>
+
+    <!-- Un échec de lecture se dit, il ne s'affiche pas comme un journal vide : un
+         journal vide est une affirmation, pas une absence de réponse. -->
+    <string name="weight_error_title">Journal illisible</string>
+    <string name="weight_error_body">La lecture n\'a pas abouti. Rien n\'a été modifié : vos pesées sont là où elles étaient.</string>
+
+    <!-- Ajout d'une pesée : poids et date, c'est tout (docs/02). -->
+    <string name="weight_add">Ajouter une pesée</string>
+    <string name="weight_add_title">Nouvelle pesée</string>
+    <string name="weight_field">Poids en kilogrammes</string>
+    <string name="weight_field_pound">Poids en livres</string>
+    <string name="weight_date_field">Date de la pesée</string>
+    <string name="weight_add_confirm">Enregistrer</string>
+    <string name="weight_add_cancel">Annuler</string>
+
+</resources>

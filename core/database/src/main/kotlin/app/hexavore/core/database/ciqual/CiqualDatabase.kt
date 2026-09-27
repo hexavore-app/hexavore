@@ -65,11 +65,20 @@ data class CiqualServingRow(val label: String, val grams: Double, val isDefault:
 /**
  * Ce que la table de l'ANSES sait d'une fiche que le catalogue a copiée.
  *
- * Deux informations qui n'appartiennent pas à la copie : le rayon du bandeau et le
- * titre court. `null` des deux côtés est une réponse — une huile n'a pas de rayon,
- * un libellé déjà lisible n'a pas de titre court.
+ * Trois informations qui n'appartiennent pas à la copie : le **libellé**, le rayon du
+ * bandeau et le titre court. `null` sur les deux derniers est une réponse — une huile
+ * n'a pas de rayon, un libellé déjà lisible n'a pas de titre court.
+ *
+ * **Le libellé en fait partie depuis que la table est bilingue**, et c'est [D54][decisions]
+ * poussée d'un cran : la copie fige le nom du jour où elle a été faite, donc de la langue
+ * de ce jour-là. Une fiche copiée en français puis relue en anglais portait un titre court
+ * anglais sur un nom français. Le nom est une propriété de la **référence** ; ce que la
+ * copie garde est le lien, et ce que le journal fige est ce qui était affiché quand on l'a
+ * écrit ([D05][decisions]).
+ *
+ * [decisions]: docs/11-decisions.md
  */
-data class CiqualAnnotations(val category: String?, val shortName: String?)
+data class CiqualAnnotations(val name: String, val category: String?, val shortName: String?)
 
 /**
  * La table de l'ANSES, embarquée en lecture seule.
@@ -109,7 +118,20 @@ class CiqualDatabase(private val context: Context) {
      * reste celle du domaine — c'est `FoodFilter` qui la porte, et le contrat de
      * `FoodSearch` vérifie que les deux disent la même chose.
      */
-    fun search(normalisedQuery: String, categories: Set<String>, limit: Int): List<CiqualFoodRow> {
+    fun search(
+        normalisedQuery: String,
+        categories: Set<String>,
+        limit: Int,
+        /**
+         * L'étiquette de la langue — `fr`, `en` —, et non l'énumération du domaine.
+         *
+         * Ce module ne connaît pas `:domain`, exactement comme pour le rayon, qu'il
+         * reçoit sous le nom de son énumération et rend sous forme de chaîne. La règle
+         * est la même et pour la même raison : une base de données ne décide pas de ce
+         * qu'une langue ou un rayon veut dire.
+         */
+        language: String,
+    ): List<CiqualFoodRow> {
         val browsing = normalisedQuery.isBlank()
         if (browsing && categories.isEmpty()) return emptyList()
 
@@ -120,6 +142,11 @@ class CiqualDatabase(private val context: Context) {
             // avant que le second mot soit fini, sinon la recherche ne rend rien
             // pendant qu'on ecrit.
             if (!browsing) add(normalisedQuery.split(' ').filter { it.isNotBlank() }.joinToString(" ") { "$it*" })
+            // La langue **apres** le MATCH et avant les rayons : l'ordre des `?` est
+            // celui du SQL, et l'index plein texte est commun aux langues -- un mot
+            // anglais peut apparier une ligne anglaise alors qu'on cherche en francais,
+            // et c'est cette clause qui l'ecarte.
+            add(language)
             addAll(categories)
             add(limit.toString())
         }
@@ -127,9 +154,9 @@ class CiqualDatabase(private val context: Context) {
         return database.rawQuery(sql, arguments.toTypedArray()).use { cursor -> cursor.map { it.toFoodRow() } }
     }
 
-    /** Une fiche par son code CIQUAL. */
-    fun byCode(code: String): CiqualFoodRow? =
-        database.rawQuery("$SELECT_COLUMNS FROM ciqual_food WHERE code = ?", arrayOf(code)).use { cursor ->
+    /** Une fiche par son code CIQUAL, dans une langue. */
+    fun byCode(code: String, language: String): CiqualFoodRow? =
+        database.rawQuery(BY_CODE_SQL, arrayOf(code, language)).use { cursor ->
             cursor.map { it.toFoodRow() }.firstOrNull()
         }
 
@@ -150,31 +177,33 @@ class CiqualDatabase(private val context: Context) {
      *
      * [decisions]: docs/11-decisions.md
      */
-    fun annotationsOf(codes: Collection<String>): Map<String, CiqualAnnotations> {
+    fun annotationsOf(codes: Collection<String>, language: String): Map<String, CiqualAnnotations> {
         if (codes.isEmpty()) return emptyMap()
         val distinct = codes.distinct()
-        val sql = "SELECT code, category, short_name FROM ciqual_food WHERE code IN (${distinct.joinToString { "?" }})"
+        val sql =
+            """
+            SELECT n.code, n.name, f.category, n.short_name
+            FROM ciqual_name n
+            JOIN ciqual_food f ON f.code = n.code
+            WHERE n.language = ? AND n.code IN (${distinct.joinToString { "?" }})
+            """
 
-        return database.rawQuery(sql, distinct.toTypedArray()).use { cursor ->
-            cursor
-                .map {
-                    it.getString(0) to
-                        CiqualAnnotations(category = it.optionalString(1), shortName = it.optionalString(2))
-                }
-                .toMap()
+        return database.rawQuery(sql, (listOf(language) + distinct).toTypedArray()).use { cursor ->
+            cursor.map { it.toAnnotatedCode() }.toMap()
         }
     }
 
     /** Les portions usuelles d'un aliment. Vide s'il n'en a aucune : il proposera 100 g. */
-    fun servings(code: String): List<CiqualServingRow> = database.rawQuery(SERVINGS_SQL, arrayOf(code)).use { cursor ->
-        cursor.map {
-            CiqualServingRow(
-                label = it.getString(0),
-                grams = it.getDouble(1),
-                isDefault = it.getInt(2) == 1,
-            )
+    fun servings(code: String, language: String): List<CiqualServingRow> =
+        database.rawQuery(SERVINGS_SQL, arrayOf(code, language)).use { cursor ->
+            cursor.map {
+                CiqualServingRow(
+                    label = it.getString(0),
+                    grams = it.getDouble(1),
+                    isDefault = it.getInt(2) == 1,
+                )
+            }
         }
-    }
 
     private fun open(): SQLiteDatabase {
         val target = File(context.filesDir, FILE_NAME)
@@ -219,23 +248,32 @@ class CiqualDatabase(private val context: Context) {
          * genre de défaut que ce projet paie deux fois, et il se règle par un entier.
          *
          * À incrémenter dès que `CiqualDatabaseWriter.SCHEMA` change, dès que
-         * `CiqualCategories` réarbitre un rayon, **et dès que `short-names.csv` ou
-         * `completions.csv` change**. Ces deux fichiers ne touchent pas au schéma mais
+         * `CiqualCategories` réarbitre un rayon, dès qu'une **langue** s'ajoute au
+         * catalogue, **et dès que `short-names-<langue>.csv`, `servings.csv` ou
+         * `completions.csv` change**. Ces fichiers ne touchent pas au schéma mais
          * au contenu, et la conséquence est la même : un appareil déjà installé
          * garderait une copie sans les titres courts ni les valeurs complétées, et rien
          * ne le dirait. L'oubli est d'autant plus facile que la base se régénère ici
          * sans erreur.
          */
-        const val REVISION = 6
+        const val REVISION = 7
         const val FILE_PREFIX = "ciqual-"
         const val FILE_NAME = "$FILE_PREFIX$EDITION-r$REVISION.db"
 
+        /**
+         * Les colonnes d'une fiche, prises dans les deux tables.
+         *
+         * Les libellés viennent de `ciqual_name`, filtrée par langue ; les teneurs et le
+         * rayon de `ciqual_food`, qui n'en a aucune. C'est ce partage qui fait qu'une
+         * langue de plus n'ajoute que des lignes, jamais une colonne.
+         */
         const val SELECT_COLUMNS =
             """
-            SELECT code, name, short_name, group_name, category, kcal_100, protein_100,
-                   carb_100, sugar_100, fat_100, fiber_100, saturated_fat_100, salt_100,
-                   kcal_100_est, protein_100_est, carb_100_est, sugar_100_est,
-                   fat_100_est, fiber_100_est
+            SELECT n.code, n.name, n.short_name, n.group_name, f.category,
+                   f.kcal_100, f.protein_100, f.carb_100, f.sugar_100, f.fat_100,
+                   f.fiber_100, f.saturated_fat_100, f.salt_100,
+                   f.kcal_100_est, f.protein_100_est, f.carb_100_est, f.sugar_100_est,
+                   f.fat_100_est, f.fiber_100_est
             """
 
         /**
@@ -246,14 +284,15 @@ class CiqualDatabase(private val context: Context) {
          * l'habitude est ce qui compte, pas le fait que celles-ci viennent d'une
          * énumération fermée.
          */
-        fun Set<String>.placeholders(): String = if (isEmpty()) "" else " AND category IN (${joinToString { "?" }})"
+        fun Set<String>.placeholders(): String = if (isEmpty()) "" else " AND f.category IN (${joinToString { "?" }})"
 
         fun searchSql(filter: String) =
             """
             $SELECT_COLUMNS
-            FROM ciqual_food
-            JOIN ciqual_fts ON ciqual_food.rowid = ciqual_fts.docid
-            WHERE ciqual_fts MATCH ?$filter
+            FROM ciqual_fts
+            JOIN ciqual_name n ON n.rowid = ciqual_fts.docid
+            JOIN ciqual_food f ON f.code = n.code
+            WHERE ciqual_fts MATCH ? AND n.language = ?$filter
             LIMIT ?
             """
 
@@ -268,19 +307,45 @@ class CiqualDatabase(private val context: Context) {
         fun browseSql(filter: String) =
             """
             $SELECT_COLUMNS
-            FROM ciqual_food
-            WHERE 1 = 1$filter
-            ORDER BY LENGTH(name_search), name_search
+            FROM ciqual_name n
+            JOIN ciqual_food f ON f.code = n.code
+            WHERE n.language = ?$filter
+            ORDER BY LENGTH(n.name_search), n.name_search
             LIMIT ?
             """
 
-        const val SERVINGS_SQL = "SELECT label, grams, is_default FROM ciqual_serving WHERE code = ? ORDER BY rowid"
+        const val BY_CODE_SQL =
+            """
+            $SELECT_COLUMNS
+            FROM ciqual_name n
+            JOIN ciqual_food f ON f.code = n.code
+            WHERE n.code = ? AND n.language = ?
+            """
+
+        const val SERVINGS_SQL =
+            "SELECT label, grams, is_default FROM ciqual_serving WHERE code = ? AND language = ? ORDER BY rowid"
     }
 }
 
 /** Parcourt un curseur et le referme, ce qu'aucune API d'Android ne fait pour nous. */
 private fun <T> Cursor.map(transform: (Cursor) -> T): List<T> =
     generateSequence { takeIf { it.moveToNext() } }.map(transform).toList()
+
+/**
+ * Un code et ce que la table de reference en sait, dans l'ordre du `SELECT`.
+ *
+ * Le rang est compte plutot qu'ecrit, comme dans [toFoodRow] et pour la meme raison : une
+ * colonne ajoutee au milieu decalerait sinon toutes celles qui suivent.
+ */
+private fun Cursor.toAnnotatedCode(): Pair<String, CiqualAnnotations> {
+    var column = 0
+    return getString(column++) to
+        CiqualAnnotations(
+            name = getString(column++),
+            category = optionalString(column++),
+            shortName = optionalString(column),
+        )
+}
 
 private fun Cursor.toFoodRow(): CiqualFoodRow {
     var column = 0

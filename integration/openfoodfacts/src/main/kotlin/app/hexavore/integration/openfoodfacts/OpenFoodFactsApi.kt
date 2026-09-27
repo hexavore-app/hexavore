@@ -1,5 +1,6 @@
 package app.hexavore.integration.openfoodfacts
 
+import app.hexavore.domain.language.ContentLanguage
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -43,8 +44,12 @@ internal interface OpenFoodFactsApi {
  * absents du modèle : en demander un que rien ne lit serait le même travers qu'une
  * colonne que rien ne remplit.
  */
-internal const val PRODUCT_FIELDS =
-    "code,product_name,product_name_fr,brands,serving_size,serving_quantity,nutriments"
+internal val PRODUCT_FIELDS =
+    (
+        listOf("code", "product_name") +
+            ContentLanguage.entries.map { "product_name_${it.tag}" } +
+            listOf("brands", "serving_size", "serving_quantity", "nutriments")
+        ).joinToString(",")
 
-/** L'instance publique, la francophone. */
+/** L'instance publique, celle qui sert toutes les langues. */
 internal const val OPEN_FOOD_FACTS_BASE_URL = "https://world.openfoodfacts.org/"

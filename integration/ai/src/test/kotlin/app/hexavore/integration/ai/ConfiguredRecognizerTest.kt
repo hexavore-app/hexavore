@@ -1,5 +1,6 @@
 package app.hexavore.integration.ai
 
+import app.hexavore.core.testing.FixedLanguage
 import app.hexavore.core.testing.InMemoryAiUsage
 import app.hexavore.domain.ai.AiConfiguration
 import app.hexavore.domain.ai.AiError
@@ -379,7 +380,13 @@ class ConfiguredRecognizerTest {
         gemini: ProviderRecognizer = unused(),
         openAi: ProviderRecognizer = unused(),
         compatible: ProviderRecognizer = unused(),
-    ) = ConfiguredRecognizer(settings, usage, catalogue, anthropic, gemini, openAi, compatible)
+    ) = ConfiguredRecognizer(
+        settings,
+        FixedLanguage(),
+        usage,
+        catalogue,
+        ProviderRecognizers(anthropic, gemini, openAi, compatible),
+    )
 
     /** Le compteur, inspecte par les cas qui parlent de ce qui est facture. */
     private val usage = InMemoryAiUsage()

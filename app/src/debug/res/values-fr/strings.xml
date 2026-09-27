@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Textes de la seule variante debug. Comme la galerie qu'ils servent, ils sont
+  absents du binaire de release.
+
+  Ce commentaire disait que personne n'aurait jamais a les traduire. Ce n'est plus vrai
+  depuis que `values/` porte l'anglais : une chaine francaise dans le bucket de repli
+  mentirait sur ce bucket, et Android Lint aurait reclame le francais de toute facon.
+-->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="fr">
+
+    <string name="gallery_launcher_label">Hexavore — galerie</string>
+    <string name="gallery_title">Galerie des composants</string>
+    <string name="gallery_subtitle">Écran de vérification du design system. Aucune donnée réelle : ces valeurs sont des échantillons.</string>
+    <string name="gallery_today">Horloge injectée : %1$s</string>
+    <string name="gallery_theme_dark">Thème sombre</string>
+    <string name="gallery_theme_light">Thème clair</string>
+    <string name="gallery_section_palette">Palette</string>
+    <string name="gallery_section_hexagon">MacroHexagon</string>
+    <string name="gallery_hexagon_normal">Journée en cours</string>
+    <string name="gallery_hexagon_over">Deux limites dépassées, dont une au plafond</string>
+    <string name="gallery_section_ring">MacroRing</string>
+    <string name="gallery_section_bar">MacroBar</string>
+    <string name="gallery_bar_targets">À atteindre</string>
+    <string name="gallery_bar_limits">À ne pas dépasser</string>
+    <string name="gallery_button_unavailable_reason">Aucune clé API configurée. Ce message prouve que l\'appui a bien été reçu.</string>
+    <string name="gallery_section_button">NeonButton</string>
+    <string name="gallery_section_badge">SourceBadge</string>
+    <string name="gallery_section_typography">Typographie</string>
+    <string name="gallery_swatch_base">base</string>
+    <string name="gallery_swatch_glow">lueur</string>
+    <string name="gallery_swatch_muted">éteinte</string>
+    <string name="gallery_animate">Rejouer l\'animation</string>
+    <string name="gallery_ring_remaining">780</string>
+    <string name="gallery_ring_label">restantes</string>
+    <string name="gallery_ring_a11y">Calories, 1 220 sur 2 000, 61 %</string>
+
+    <!-- Noms des six macros. Ils ne servent qu'ici : chaque ecran porte les siens,
+         parce qu'une chaine partagee entre deux ecrans finit par etre reecrite pour
+         l'un des deux et par mentir a l'autre. -->
+    <string name="macro_calories">Calories</string>
+    <string name="macro_protein">Protéines</string>
+    <string name="macro_carbs">Glucides</string>
+    <string name="macro_sugars">Sucres</string>
+    <string name="macro_fat">Lipides</string>
+    <string name="macro_fiber">Fibres</string>
+
+</resources>

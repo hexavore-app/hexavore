@@ -1,6 +1,7 @@
 package app.hexavore.integration.openfoodfacts
 
 import app.hexavore.core.testing.FixedClock
+import app.hexavore.core.testing.FixedLanguage
 import app.hexavore.core.testing.SequentialIdGenerator
 import app.hexavore.core.testing.TestDispatchers
 import app.hexavore.domain.food.Barcode
@@ -309,6 +310,8 @@ class OpenFoodFactsProductsTest {
     /** La vraie pile HTTP, montée devant le serveur local — pas une copie. */
     private fun TestScope.products() = OpenFoodFactsProducts(
         api = openFoodFactsApi(baseUrl, openFoodFactsClient(ClientIdentity(USER_AGENT))),
+        // Le francais : les fiches de ce fichier portent `product_name_fr`.
+        languages = FixedLanguage(),
         ids = SequentialIdGenerator(),
         clock = FixedClock(RECUPERE_LE),
         dispatchers = TestDispatchers(UnconfinedTestDispatcher(testScheduler)),

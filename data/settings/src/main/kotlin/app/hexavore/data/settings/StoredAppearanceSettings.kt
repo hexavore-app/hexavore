@@ -21,6 +21,13 @@ import kotlinx.coroutines.withContext
  * **Un nom inconnu retombe sur le défaut** plutôt que de faire tomber le démarrage. Le
  * fichier n'est pas contrôlé par l'application seule, et une valeur qu'on ne sait pas
  * lire se lit comme « on n'a rien choisi ».
+ *
+ * **La langue n'est pas ici**, alors qu'elle se règle sur le même écran. Elle vit dans
+ * [StoredLanguageSettings], parce qu'elle est la seule des quatre préférences que
+ * l'application n'applique pas elle-même : c'est la plateforme qui sélectionne un
+ * `values-fr/`, et c'est donc elle qui doit détenir la réponse ([D129][decisions]).
+ *
+ * [decisions]: docs/11-decisions.md
  */
 internal class StoredAppearanceSettings(
     private val preferences: SharedPreferences,

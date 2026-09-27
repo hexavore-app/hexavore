@@ -1,9 +1,21 @@
 package app.hexavore.tooling.ciqual
 
+import app.hexavore.domain.language.ContentLanguage
 import app.hexavore.domain.nutrition.Macro
 
 /** Un trou à combler : une fiche, son libellé, et la teneur que l'ANSES ne publie pas. */
 internal data class Gap(val code: String, val name: String, val macro: Macro)
+
+/**
+ * La langue du libellé montré au modèle quand on lui demande une teneur.
+ *
+ * **Celle de la consigne d'[AnthropicCompleter], et c'est tout ce qui la détermine.** Ce
+ * que cette passe produit est un nombre, qui n'a pas de langue ; le libellé n'est là que
+ * pour dire de quel aliment il s'agit, et il doit être écrit dans la langue où la
+ * question est posée. Le jour où la consigne est traduite, cette constante suit — et pas
+ * avant, sinon on demanderait en français ce qu'on nomme en anglais.
+ */
+internal val COMPLETION_LANGUAGE = ContentLanguage.FRENCH
 
 /**
  * Qui sait estimer une teneur manquante. Une interface, pour que la règle se teste
@@ -84,7 +96,7 @@ internal class Completions(private val completer: NutritionCompleter, private va
     fun gaps(foods: List<CiqualFood>): List<Gap> = foods.flatMap { food ->
         Macro.entries
             .filter { food[it.nutrient] == null }
-            .map { Gap(code = food.code, name = food.name, macro = it) }
+            .map { Gap(code = food.code, name = food.label(COMPLETION_LANGUAGE).name, macro = it) }
     }
 
     /**
