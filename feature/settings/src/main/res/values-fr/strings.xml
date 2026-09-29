@@ -344,4 +344,17 @@
     <string name="exchanges_indent">Mise en page</string>
     <string name="exchanges_sent">Envoyé</string>
     <string name="exchanges_received">Reçu</string>
+
+    <!-- Les rappels : la seconde moitie de cet ecran. Ils sonnent dehors, la ou les
+         pastilles se voient en ouvrant l'application. -->
+    <string name="reminders_title">Rappels</string>
+    <string name="reminders_intro">Ceux-là sonnent vraiment, hors de l\'application. Chacun se tait quand il n\'a rien à dire : le rappel du déjeuner saute une journée dont le déjeuner est déjà noté.</string>
+    <string name="reminders_blocked">Android bloque les notifications d\'Hexavore. Les rappels sont réglés, mais rien ne sonnera.</string>
+    <string name="reminders_allow">Autoriser les notifications</string>
+    <string name="reminders_breakfast_title">Petit-déjeuner</string>
+    <string name="reminders_lunch_title">Déjeuner</string>
+    <string name="reminders_dinner_title">Dîner</string>
+    <string name="reminders_streak_title">Série en jeu</string>
+    <string name="reminders_meal_body">Muet dès que ce repas est noté.</string>
+    <string name="reminders_streak_body">Le soir, quand rien n\'est noté et qu\'une série court.</string>
 </resources>

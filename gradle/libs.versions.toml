@@ -55,6 +55,14 @@ room = "2.6.1"
 hilt = "2.53.1"
 hiltNavigationCompose = "1.2.0"
 
+# Le travail planifie des rappels (D134). WorkManager et non AlarmManager : un
+# rappel de repas n'a pas besoin d'etre a la minute, et l'alarme exacte demande
+# depuis Android 12 une permission speciale que le Play Store n'accorde pas a une
+# application de nutrition. `hilt-work` est ce qui permet a un worker de recevoir
+# ses cas d'usage par injection, comme n'importe quelle autre classe du projet.
+work = "2.9.1"
+hiltWork = "1.2.0"
+
 # Retrofit 2 et OkHttp 4, pas les paliers 3 et 5 : ces deux-la vont ensemble et
 # demandent une chaine de construction plus recente que celle que D15 a fixee sur
 # l'IDE installe. Le client n'a qu'un GET a passer ; rien dans ce module ne motive
@@ -160,6 +168,10 @@ androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hilt-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+androidx-work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
+androidx-work-testing = { module = "androidx.work:work-testing", version.ref = "work" }
+androidx-hilt-work = { module = "androidx.hilt:hilt-work", version.ref = "hiltWork" }
+androidx-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "hiltWork" }
 
 # Les plugins de convention de build-logic compilent contre l'API d'AGP, du plugin
 # Kotlin, de KSP et de Hilt : pour eux, ce sont des dependances de compilation et

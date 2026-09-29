@@ -60,8 +60,12 @@ class ErasablePreferencesTest {
     private val debug = StoredDebugSettings(aiFile, dispatchers)
     private val consent = StoredPhotoConsent(aiFile, dispatchers)
 
+    // Les rappels partagent le fichier des pastilles : la meme question posee a
+    // l'utilisateur, donc le meme endroit a vider.
+    private val reminders = StoredReminderSettings(noticeFile, dispatchers)
+
     private val erasable = ErasablePreferences(
-        stores = FlowBackedStores(credentials, contribution, adjustment, notices, debug, deep),
+        stores = FlowBackedStores(credentials, contribution, adjustment, notices, debug, deep, reminders),
         files = listOf(aiFile, adjustmentFile, contributionFile, noticeFile),
         dispatchers = dispatchers,
     )

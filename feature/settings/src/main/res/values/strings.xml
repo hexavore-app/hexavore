@@ -344,4 +344,17 @@
     <string name="exchanges_indent">Layout</string>
     <string name="exchanges_sent">Sent</string>
     <string name="exchanges_received">Received</string>
+
+    <!-- Les rappels : la seconde moitie de cet ecran. Ils sonnent dehors, la ou les
+         pastilles se voient en ouvrant l'application. -->
+    <string name="reminders_title">Reminders</string>
+    <string name="reminders_intro">These ones do ring, outside the application. Each stays quiet when it has nothing to say: the lunch reminder skips a day whose lunch is already logged.</string>
+    <string name="reminders_blocked">Android is blocking notifications for Hexavore. Reminders are set, but nothing will ring.</string>
+    <string name="reminders_allow">Allow notifications</string>
+    <string name="reminders_breakfast_title">Breakfast</string>
+    <string name="reminders_lunch_title">Lunch</string>
+    <string name="reminders_dinner_title">Dinner</string>
+    <string name="reminders_streak_title">Streak at stake</string>
+    <string name="reminders_meal_body">Quiet once this meal is logged.</string>
+    <string name="reminders_streak_body">In the evening, when nothing is logged and a streak is running.</string>
 </resources>

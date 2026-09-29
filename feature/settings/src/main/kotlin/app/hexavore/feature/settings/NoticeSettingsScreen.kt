@@ -24,14 +24,20 @@ import app.hexavore.core.designsystem.component.NoticeDot
 import app.hexavore.core.designsystem.component.ScreenTopBar
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.domain.notice.Notice
+import app.hexavore.domain.reminder.Reminder
+import java.time.LocalTime
 
 /**
  * Les quatre pastilles, et leur interrupteur.
  *
- * **Aucune notification système ici.** Ce que l'écran règle sont des points colorés que
- * l'on voit en ouvrant l'application — pas des messages qui sonnent, pas de permission
- * demandée, pas de travail de fond. Le titre le dit, parce que « Notifications » fait
- * naturellement penser au contraire.
+ * **Deux sortes, et l'écran dit laquelle est laquelle** ([D134][decisions]). Les
+ * **pastilles** sont des points colorés que l'on voit en ouvrant l'application ; les
+ * **rappels** sonnent dehors, demandent une permission et un travail de fond. Ils
+ * partagent cet écran parce qu'ils répondent à la même question — de quoi l'application
+ * a-t-elle le droit de me parler — et les séparer obligerait à chercher dans deux
+ * endroits pour faire taire ce qui agace.
+ *
+ * [decisions]: docs/11-decisions.md
  *
  * **Chaque ligne montre si sa pastille est allumée *maintenant*.** Un interrupteur seul
  * laisse celui qui vient de l'activer se demander ce qu'il surveille ; le point à côté
@@ -42,11 +48,23 @@ import app.hexavore.domain.notice.Notice
 internal fun NoticeSettingsRoute(onClose: () -> Unit, viewModel: NoticeSettingsViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    NoticeSettingsScreen(state = state, onToggle = viewModel::onToggle, onClose = onClose)
+    NoticeSettingsScreen(
+        state = state,
+        onToggle = viewModel::onToggle,
+        onToggleReminder = viewModel::onToggleReminder,
+        onReminderTime = viewModel::onReminderTime,
+        onClose = onClose,
+    )
 }
 
 @Composable
-private fun NoticeSettingsScreen(state: NoticeUiState, onToggle: (Notice, Boolean) -> Unit, onClose: () -> Unit) {
+private fun NoticeSettingsScreen(
+    state: NoticeUiState,
+    onToggle: (Notice, Boolean) -> Unit,
+    onToggleReminder: (Reminder, Boolean) -> Unit,
+    onReminderTime: (Reminder, LocalTime) -> Unit,
+    onClose: () -> Unit,
+) {
     Scaffold(
         topBar = {
             ScreenTopBar(
@@ -80,6 +98,10 @@ private fun NoticeSettingsScreen(state: NoticeUiState, onToggle: (Notice, Boolea
                     onToggle = { onToggle(notice, it) },
                 )
             }
+
+            // Les rappels viennent apres les pastilles, et l'ordre dit leur cout :
+            // les unes se voient en ouvrant l'application, les autres sonnent dehors.
+            ReminderSection(setup = state.reminders, onToggle = onToggleReminder, onTime = onReminderTime)
         }
     }
 }

@@ -119,8 +119,15 @@ dependencies {
     implementation(projects.data.progress)
     implementation(projects.integration.openfoodfacts)
     implementation(projects.integration.ai)
+    implementation(projects.integration.reminders)
     implementation(projects.data.settings)
     implementation(projects.data.backup)
+
+    // La fabrique de travailleurs de Hilt, et le `Configuration.Provider` que
+    // `HexavoreApplication` implemente : c'est `:app` qui assemble les deux (D134).
+    implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
 
     // AppCompat pour `setApplicationLocales`, et pour rien d'autre : aucun widget, aucun
     // fragment, aucune ressource de ce paquet ne sert ici. Voir D129.

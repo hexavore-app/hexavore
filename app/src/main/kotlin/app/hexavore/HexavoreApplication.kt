@@ -1,8 +1,12 @@
 package app.hexavore
 
 import android.app.Application
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
 import app.hexavore.domain.concurrency.DispatcherProvider
 import app.hexavore.domain.language.LanguageSettings
+import app.hexavore.domain.reminder.ReminderScheduler
+import app.hexavore.domain.reminder.ReminderSettings
 import app.hexavore.domain.usecase.SweepDishPhotos
 import app.hexavore.feature.capture.sweepCapturePhotos
 import dagger.hilt.android.HiltAndroidApp
@@ -21,7 +25,9 @@ import javax.inject.Inject
  * @see docs/06-architecture.md
  */
 @HiltAndroidApp
-class HexavoreApplication : Application() {
+class HexavoreApplication :
+    Application(),
+    Configuration.Provider {
     @Inject
     lateinit var dispatchers: DispatcherProvider
 
@@ -30,6 +36,25 @@ class HexavoreApplication : Application() {
 
     @Inject
     lateinit var languages: LanguageSettings
+
+    @Inject
+    lateinit var reminders: ReminderSettings
+
+    @Inject
+    lateinit var scheduler: ReminderScheduler
+
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
+
+    /**
+     * La fabrique de travailleurs, pour que `WorkManager` passe par Hilt.
+     *
+     * Sans elle, un `@HiltWorker` est instancié par la fabrique par défaut, qui ne sait
+     * rien de ses dépendances : le rappel échouerait à chaque exécution, dans un
+     * journal que personne ne lit.
+     */
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder().setWorkerFactory(workerFactory).build()
 
     /**
      * Les deux ménages du démarrage, et ils ne ramassent pas la même chose.
@@ -62,6 +87,12 @@ class HexavoreApplication : Application() {
         CoroutineScope(SupervisorJob() + dispatchers.io).launch {
             sweepCapturePhotos(this@HexavoreApplication)
             sweepPhotos()
+            // Les rappels se reposent a chaque lancement. C'est ce qui les fait
+            // survivre a un redemarrage du telephone : `WorkManager` garde ses
+            // travaux, mais un travail unique deja passe ne se replanifie pas tout
+            // seul si le processus a ete tue avant qu'il s'execute. Replacer ce qui
+            // est deja place ne coute rien -- `REPLACE` y pourvoit (D134).
+            runCatching { scheduler.reschedule(reminders.current()) }
         }
     }
 }

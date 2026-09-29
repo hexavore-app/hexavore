@@ -158,3 +158,10 @@ include(":data:progress")
 // lignes et rien de plus -- c'est ce qui le garde lisible -- la ou cet ecran deploie
 // dix-huit paliers et leur histoire. Les deux lisent le meme cas d'usage.
 include(":feature:progress")
+
+// Addictive update. Les rappels : le travail planifie et la notification.
+//
+// Un :integration parce que c'est ce qu'il est -- un adaptateur vers le systeme, au
+// meme titre que la camera ou le reseau. Le domaine dit quels rappels courent et a
+// quelle heure ; comment cela survit a un redemarrage ne le regarde pas.
+include(":integration:reminders")
