@@ -27,7 +27,10 @@ jvmToolchain = "17"
 # --- Identite de l'application ------------------------------------------------
 # applicationId verrouille a la premiere publication Play : docs/10-qualite-et-livraison.md.
 versionName = "0.6.0"
-versionCode = "1"
+# 2 et non 1 : le code 1 est parti a la Console par erreur, et un code televerse ne se
+# reprend pas, meme sur une release qu'on supprime. Le nom de version, lui, ne bouge
+# pas -- c'est le meme contenu.
+versionCode = "2"
 
 # --- Bibliotheques ------------------------------------------------------------
 androidxCore = "1.15.0"
