@@ -86,6 +86,14 @@ private fun HexavoreNavHost(startDestination: Any, modifier: Modifier = Modifier
                 // Les deux modes d'IA, et les premiers gestes qui coutent de l'argent :
                 // l'accueil les grise tant qu'aucune cle n'est configuree.
                 onAnalyse = { navController.navigateToAnalyse() },
+                // La meme destination, mais l'appareil photo s'y ouvre tout seul :
+                // appuyer sur l'appareil photo de la barre du bas *est* la demande de
+                // photographier, et un cadre vide la ferait refaire (D131).
+                onShoot = { navController.navigateToAnalyse(shoot = true) },
+                // L'accueil est desormais un ecran de capture : ce que la barre du bas
+                // a obtenu attend dans le depot, et la validation va l'y chercher. Rien
+                // a depiler ici -- on n'a jamais quitte l'accueil.
+                onProposal = { navController.navigateToEntryForProposal() },
                 onEditDish = { dishId -> navController.navigateToEntry(dishId) },
                 onSetUpGoal = { navController.navigate(OnboardingDestination) },
                 // Le hub existe desormais : sa deuxieme section est arrivee, ce qui est

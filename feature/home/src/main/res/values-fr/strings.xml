@@ -45,11 +45,6 @@
          une valeur non renseignée s'y lit comme zéro (D119). -->
     <string name="home_total_line">%1$s : %2$d</string>
 
-    <!-- Un seul bouton : il ouvre la recherche, qui porte aussi la saisie manuelle.
-         Le scan et l'IA n'existent pas encore, et un bouton qui n'ouvre rien n'est
-         pas une avance. -->
-    <string name="home_add_dish">Ajouter</string>
-
     <!-- Aucune suppression n'est immédiatement définitive. La barre parle du plat :
          c'est la seule chose que l'accueil supprime depuis que le balayage sert à
          changer de jour, et son libellé annonçait une ligne même pour un plat entier. -->
@@ -74,15 +69,31 @@
     <string name="home_dish_menu_favorite">Mettre en favori</string>
     <string name="home_dish_menu_unfavorite">Retirer des favoris</string>
 
-    <!-- L'étoile ouvre les plats déjà composés. Une icône seule : « Ajouter » reste
-         le geste principal, et c'est lui qui porte un libellé. -->
-    <string name="home_open_favorites">Vos plats favoris</string>
-    <string name="home_scan">Scanner un code-barres</string>
+    <!-- Les trois autres façons d'ajouter, sous le « + ». Chacune porte son nom et une
+         ligne qui dit ce qu'elle ouvre : un glyphe seul se reconnaît, jamais ne
+         s'explique. -->
+    <string name="home_open_favorites">Favoris</string>
+    <string name="home_open_favorites_hint">Rejouer un plat enregistré</string>
+    <string name="home_scan">Scanner</string>
+    <string name="home_scan_hint">Un code-barres, et la fiche du produit avec</string>
+    <string name="home_add_by_hand">Ajouter à la main</string>
+    <string name="home_add_by_hand_hint">Chercher dans le catalogue, ou créer la fiche soi-même</string>
+    <string name="home_more_ways">Autres façons d\'ajouter</string>
 
-    <!-- Un seul bouton d'IA depuis D120 : les deux ecrans n'en font plus qu'un. Il
-         reste visible sans cle, et grise : cache, il ne s'apprend jamais ; inerte, il
-         n'apprend rien non plus. L'appui ouvre l'explication. -->
-    <string name="home_analyse">Analyser un repas avec l\'IA</string>
+    <!-- La barre du bas. Écrire ce qu'on a mangé est le geste le plus fréquent de
+         l'application : c'est donc la barre elle-même, et non un bouton qui ouvre un
+         écran. -->
+    <string name="home_describe_label">Qu\'avez-vous mangé ?</string>
+    <string name="home_send_description">Analyser ce repas</string>
+    <string name="home_shoot">Photographier le repas</string>
+    <string name="home_analysing">Analyse en cours…</string>
+    <string name="home_analyse_cancel">Annuler</string>
+    <!-- Un fournisseur en panne ne doit jamais empêcher de noter son repas. -->
+    <string name="home_analyse_manual">Ajouter à la main</string>
+
+    <!-- Sans cle, le champ et l'appareil photo restent visibles et expliquent a l'appui :
+         caches, ils ne s'apprennent jamais ; inertes, ils n'apprennent rien non plus
+         (D73). Le grise ne se voit pas au lecteur d'ecran, d'ou cette phrase. -->
     <string name="home_analyse_unavailable">indisponible, aucune clé d\'IA</string>
 
     <!-- Ce qui manque, ce que ça coûte, et où aller. Le bouton ouvre la section d'IA

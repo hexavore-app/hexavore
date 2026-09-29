@@ -3,6 +3,7 @@ package app.hexavore.feature.capture
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import kotlinx.serialization.Serializable
 
 /**
@@ -13,16 +14,33 @@ import kotlinx.serialization.Serializable
  * ou une phrase à écrire — et par rien d'autre : même reconnaissance, même dépôt,
  * mêmes erreurs, même sortie. On arrive maintenant avec l'un ou l'autre.
  *
- * Aucun argument : l'intention se lit sur l'écran, pas dans la route.
+ * **Un seul argument, et il ne dit pas ce qu'on envoie** : il dit par quoi on commence
+ * ([D131][decisions]). L'intention se lit toujours sur l'écran — une photo, une phrase,
+ * ou les deux — mais quelqu'un qui vient d'appuyer sur l'appareil photo de la barre du
+ * bas a déjà fait son geste, et lui présenter un cadre vide le lui ferait refaire.
  *
  * [decisions]: docs/11-decisions.md
  */
 @Serializable
-data object AnalyseDestination
+data class AnalyseDestination(
+    /**
+     * `true` quand l'appareil photo doit s'ouvrir sans qu'on le redemande.
+     *
+     * **Une seule fois par arrivée**, et l'écran s'en charge : rouvrir l'appareil au
+     * retour de la prise de vue ferait une boucle dont on ne sortirait que par le
+     * bouton « retour ».
+     */
+    val shoot: Boolean = false,
+)
 
-/** Ouvre l'écran d'IA. */
-fun NavController.navigateToAnalyse() {
-    navigate(AnalyseDestination)
+/**
+ * Ouvre l'écran d'IA.
+ *
+ * @param shoot vrai pour que l'appareil photo s'ouvre dans la foulée — le geste de la
+ *   barre du bas, où l'appui sur l'appareil photo *est* la demande de photographier.
+ */
+fun NavController.navigateToAnalyse(shoot: Boolean = false) {
+    navigate(AnalyseDestination(shoot = shoot))
 }
 
 /**
@@ -37,7 +55,12 @@ fun NavController.navigateToAnalyse() {
  * [parcours]: docs/02-parcours-et-ecrans.md
  */
 fun NavGraphBuilder.analyseScreen(onProposal: () -> Unit, onManual: () -> Unit, onClose: () -> Unit) {
-    composable<AnalyseDestination> {
-        AnalyseRoute(onProposal = onProposal, onManual = onManual, onClose = onClose)
+    composable<AnalyseDestination> { entry ->
+        AnalyseRoute(
+            shoot = entry.toRoute<AnalyseDestination>().shoot,
+            onProposal = onProposal,
+            onManual = onManual,
+            onClose = onClose,
+        )
     }
 }

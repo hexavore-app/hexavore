@@ -19,6 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -40,10 +43,13 @@ internal fun AnalyseRoute(
     onProposal: () -> Unit,
     onManual: () -> Unit,
     onClose: () -> Unit,
+    shoot: Boolean = false,
     viewModel: AnalyseViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val capture = rememberMealCapture(onJpeg = viewModel::onPhoto)
+
+    ShootOnArrival(shoot, capture)
 
     // La proposition est deposee : l'ecran cede la place. `onNavigated` referme le
     // drapeau, sans quoi revenir corriger une phrase repartirait aussitot vers une
@@ -69,6 +75,31 @@ internal fun AnalyseRoute(
             onClose = onClose,
         ),
     )
+}
+
+/**
+ * L'appareil photo s'ouvre tout seul quand c'est par lui qu'on est venu.
+ *
+ * **Une fois par arrivée, et pas une de plus** ([D131][decisions]). Le déclencheur du
+ * système rend la main à cet écran, qui se recompose : sans ce garde-fou, l'appareil
+ * photo se rouvrirait sur sa propre sortie et on ne quitterait plus la boucle qu'en
+ * appuyant sur « retour ». Le drapeau survit à la rotation, parce que la rotation est
+ * exactement le cas où l'écran se reconstruit sans qu'on soit arrivé une seconde fois.
+ *
+ * Il tient compte du retour de l'appareil, quel qu'il soit : une photo annulée laisse
+ * le cadre vide, et c'est un écran utilisable — on reprend une photo, ou on décrit.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+@Composable
+private fun ShootOnArrival(shoot: Boolean, capture: MealCapture) {
+    var shot by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(shoot) {
+        if (!shoot || shot) return@LaunchedEffect
+        shot = true
+        capture.shoot()
+    }
 }
 
 /**

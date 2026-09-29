@@ -1,5 +1,6 @@
 package app.hexavore.core.designsystem.component
 
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -116,6 +117,27 @@ fun DraftTextField(
      * [decisions]: docs/11-decisions.md
      */
     estimated: Boolean = false,
+    /**
+     * Ce que porte la touche d'action du clavier, quand ce n'est pas « suivant ».
+     *
+     * **Le défaut reste une règle et non un choix** : un champ d'une ligne emmène au
+     * champ suivant, un champ qui en tolère plusieurs saute une ligne. Ce paramètre
+     * existe pour le seul cas où la touche a quelque chose à déclencher — la barre du
+     * bas, où écrire *est* l'action ([D131][decisions]) — et il vient toujours avec
+     * [onImeAction], sans quoi la touche promettrait ce qu'elle ne fait pas.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    imeAction: ImeAction? = null,
+    onImeAction: () -> Unit = {},
+    /**
+     * Ce qui se pose **dans** le champ, à droite.
+     *
+     * Le bouton d'envoi de la barre du bas y vit plutôt qu'à côté : une cible posée à
+     * l'extérieur ajoute une colonne à une ligne qui en compte déjà trois, et le geste
+     * — écrire, puis envoyer — se fait alors sans que le doigt quitte le champ.
+     */
+    trailingIcon: @Composable (() -> Unit)? = null,
     accept: (String) -> Boolean = { true },
 ) {
     var value by remember { mutableStateOf(TextFieldValue(initial, TextRange(initial.length))) }
@@ -143,8 +165,16 @@ fun DraftTextField(
         // la virgule est ce que produit un clavier en francais.
         keyboardOptions = KeyboardOptions(
             keyboardType = keyboardType,
-            imeAction = if (minLines == 1) ImeAction.Next else ImeAction.Default,
+            imeAction = imeAction ?: if (minLines == 1) ImeAction.Next else ImeAction.Default,
         ),
+        // Les trois memes gestes : la touche du clavier fait ce que fait le bouton,
+        // quelle que soit celle que l'appelant a demandee.
+        keyboardActions = KeyboardActions(
+            onSend = { onImeAction() },
+            onDone = { onImeAction() },
+            onGo = { onImeAction() },
+        ),
+        trailingIcon = trailingIcon,
         visualTransformation = visualTransformation,
         modifier = if (estimated) modifier.dashedOutline(ink) else modifier,
     )
