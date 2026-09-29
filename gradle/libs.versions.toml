@@ -26,11 +26,15 @@ jvmToolchain = "17"
 
 # --- Identite de l'application ------------------------------------------------
 # applicationId verrouille a la premiere publication Play : docs/10-qualite-et-livraison.md.
-versionName = "0.6.0"
-# 2 et non 1 : le code 1 est parti a la Console par erreur, et un code televerse ne se
-# reprend pas, meme sur une release qu'on supprime. Le nom de version, lui, ne bouge
-# pas -- c'est le meme contenu.
-versionCode = "2"
+versionName = "0.7.0"
+# Un code televerse ne se reprend jamais, meme sur une release supprimee : la Console
+# refuse tout bundle qui ne monte pas. Le 1 et le 2 sont donc partis pour de bon -- le
+# premier par erreur, le second avec le contenu de la 0.6.0.
+#
+# 3 porte l'Addictive update : la barre du bas, la progression et les rappels (D131 a
+# D135). Le nom de version monte avec lui, parce que le contenu change, la ou la 0.6.0
+# avait garde le sien pour un simple changement de code.
+versionCode = "3"
 
 # --- Bibliotheques ------------------------------------------------------------
 androidxCore = "1.15.0"
