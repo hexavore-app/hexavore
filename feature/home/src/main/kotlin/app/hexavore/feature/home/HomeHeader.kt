@@ -60,7 +60,19 @@ internal fun DayHeader(
     swipe: DaySwipeState,
     onBackToToday: () -> Unit,
     notices: Set<Notice> = emptySet(),
-    progress: ProgressPanel = ProgressPanel(),
+    /**
+     * La progression, pour l'anneau de niveau.
+     *
+     * **Sans valeur par défaut, et c'est délibéré.** Elle en avait une — une progression
+     * vide —, et l'unique appelant l'a oubliée : l'anneau affichait le niveau 1 et ne
+     * répondait pas au doigt, parce qu'il montrait `Progress.NONE` et son `onOpen` vide.
+     * Rien ne le signalait, ni le compilateur ni un test d'écran qui n'existe pas. Un
+     * défaut sur un paramètre que tout appelant doit fournir ne protège de rien : il
+     * transforme un oubli en écran silencieusement faux ([D135][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    progress: ProgressPanel,
 ) {
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
         DayTitle(actions, day, today, swipe, notices, progress)

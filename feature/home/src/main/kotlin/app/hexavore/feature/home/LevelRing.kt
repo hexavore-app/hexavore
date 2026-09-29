@@ -21,10 +21,8 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.hexavore.core.designsystem.theme.NeonTheme
@@ -81,10 +79,12 @@ internal fun LevelRing(progress: Progress, onOpen: () -> Unit, modifier: Modifie
             .size(RingSize)
             .clip(CircleShape)
             .clickable(onClick = onOpen)
-            .clearAndSetSemantics {
-                contentDescription = label
-                role = Role.Button
-            },
+            // `semantics` et non `clearAndSetSemantics` : celui-ci efface aussi
+            // **l'action** que `clickable` vient de poser, et le lecteur d'ecran se
+            // retrouvait devant un bouton qu'il annonce sans pouvoir l'activer. La
+            // fusion suffit a ce qu'on voulait -- une seule phrase a la place du
+            // chiffre nu du centre.
+            .semantics(mergeDescendants = true) { contentDescription = label },
         contentAlignment = Alignment.Center,
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {

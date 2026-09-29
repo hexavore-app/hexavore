@@ -234,7 +234,7 @@ fun HomeScreen(
             // Le titre et le calendrier ne defilent pas : docs/02 les veut fixes en
             // haut, et c'est aussi ce qui permet au mois deplie de defiler pour son
             // propre compte -- il n'est plus sous la connexion qui replie.
-            DayHeader(actions, day, today, swipe, onBackToToday, notices)
+            DayHeader(actions, day, today, swipe, onBackToToday, notices, progress)
             calendar(calendarExpanded) { calendarExpanded = it }
 
             // Le glissement porte sur ce qui defile, jamais sur le calendrier : celui-ci
