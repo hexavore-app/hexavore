@@ -207,7 +207,7 @@ Diamètre de référence 180 dp.
 
 - Piste : `outline`, 8 dp.
 - Progression : dégradé de `base` vers `base` éclairci de 20 %, extrémités arrondies.
-- Lueur : `glow`, flou 16 dp, opacité proportionnelle à l'avancement — l'anneau s'allume à mesure qu'on approche de l'objectif. C'est la seule récompense visuelle de l'application, et elle suffit.
+- Lueur : `glow`, flou 16 dp, opacité proportionnelle à l'avancement — l'anneau s'allume à mesure qu'on approche de l'objectif. ~~C'est la seule récompense visuelle de l'application, et elle suffit.~~ **Elle ne suffit plus pour une chose, et une seule** ([D133](11-decisions.md)) : elle est *continue*. Une lueur qui monte avec la journée ne peut pas dire « il vient de se passer quelque chose », parce qu'elle dit déjà autre chose en permanence. Un palier est un événement, et c'est [`Celebration`](#celebration) qui le marque — le reste du temps, la lueur reste la seule.
 - Dépassement : un second arc se superpose, teinte `base` saturée, épaisseur 4 dp.
 - Centre : emplacement libre, laissé à l'appelant — le numéro du jour dans une pastille de calendrier.
 
@@ -327,6 +327,25 @@ La barre d'ajout de l'accueil ([D131](11-decisions.md)) : un champ de texte, un 
 - **Sans clé d'IA**, le champ est remplacé par une surface de même forme, en `surfaceVariant`, cliquable et annoncée comme indisponible. Pas de pointillés : la forme en pointillés appartient à ce qui a été estimé ([D25](11-decisions.md#d25--lestimation-ia-se-signale-par-une-forme-pas-par-une-couleur---validée)), et un champ verrouillé n'est pas une valeur incertaine.
 
 ---
+
+### `Celebration`
+
+Ce qui passe à l'écran quand un palier tombe ([D133](11-decisions.md)).
+
+- **Elle ne bloque rien** : aucun voile, aucun bouton à fermer. Elle passe, et on continue à noter dessous. Une boîte de félicitations à valider transformerait la récompense en interruption.
+- **Elle ne dure pas** : sept fois la durée d'entrée d'un contenu, soit environ une seconde et demie. Ce qui a été obtenu reste lisible dans l'écran de progression ; l'animation n'est pas l'endroit où l'on lit.
+- **Vingt-quatre particules**, tirées **une fois** avec une graine fixe : le même palier produit la même gerbe, ce qui la rend reproductible sur une capture. Les retirer à chaque image ferait vibrer les particules sur place au lieu de les envoyer.
+- **Les six teintes de macro**, dans l'ordre angulaire. Inventer une couleur de fête aurait été une septième teinte dans une palette qui en réserve six — le raisonnement de [D25](11-decisions.md#d25--lestimation-ia-se-signale-par-une-forme-pas-par-une-couleur---validée), appliqué à une animation.
+- Elles s'écartent du centre en ralentissant, et s'effacent sur la fin : une gerbe qui disparaîtrait d'un coup se lirait comme un défaut d'affichage. Le texte monte d'un cheveu et part avec elles.
+- **Supprimée, et non raccourcie**, quand l'appareil demande moins de mouvement — la règle de la pulsation du titre ([D121](11-decisions.md#d121--le-changement-de-jour-se-voit---validée)) : des particules instantanées seraient un clignotement. Le texte reste, seul.
+
+### `ProgressStrip`
+
+Le bandeau de tête de l'accueil : la série en cours, le niveau, et la jauge du suivant.
+
+- **Trois choses sur une ligne**, dans une `surfaceContainerLow` à 16 dp de rayon. L'accueil répond déjà à une question ; ce bandeau en pose une seconde, et il doit se lire sans la disputer.
+- **La jauge glisse** jusqu'à sa nouvelle valeur, à la durée et à la courbe des autres jauges. C'est le seul endroit de l'écran où un progrès se voit *arriver*, et un saut le ferait manquer.
+- **Un seul nœud d'accessibilité** : la ligne annonce « 7 jours. Niveau 4 », et non trois arrêts pour une seule action.
 
 ---
 

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="progress_title">Progress</string>
+    <string name="progress_close">Close progress</string>
+
+    <!-- Two streaks, and they do not measure the same thing: one says you are logging,
+         the other says you are holding your range. -->
+    <string name="progress_streak_logging">Logging streak</string>
+    <string name="progress_streak_logging_hint">Days in a row with at least one dish</string>
+    <string name="progress_streak_perfect">Perfect streak</string>
+    <string name="progress_streak_perfect_hint">Days in a row spent inside your range</string>
+
+    <plurals name="progress_days">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
+
+    <string name="progress_level">Level %1$d</string>
+    <string name="progress_level_points">%1$d of %2$d points towards the next level</string>
+
+    <!-- Every milestone is shown, taken or not: a hidden one makes nobody want
+         anything. Those not taken are dimmed and carry no date. -->
+    <string name="progress_badges">Milestones</string>
+    <string name="progress_family_streak">Regularity</string>
+    <string name="progress_family_volume">Volume</string>
+    <string name="progress_family_perfect">Accuracy</string>
+    <string name="progress_family_discovery">First times</string>
+
+    <string name="progress_name_streak">%1$d days in a row</string>
+    <string name="progress_name_volume">%1$d dishes logged</string>
+    <string name="progress_name_perfect">%1$d perfect days in a row</string>
+    <string name="progress_name_first_scan">First scan</string>
+    <string name="progress_name_first_photo">First photo</string>
+    <string name="progress_name_first_text">First description</string>
+    <string name="progress_name_first_favorite">First favourite</string>
+
+    <string name="progress_hint_streak">Log something %1$d days running</string>
+    <string name="progress_hint_volume">Log %1$d dishes</string>
+    <string name="progress_hint_perfect">Stay inside your range %1$d days running</string>
+    <string name="progress_hint_first_scan">Scan a barcode</string>
+    <string name="progress_hint_first_photo">Photograph a meal</string>
+    <string name="progress_hint_first_text">Describe a meal in one sentence</string>
+    <string name="progress_hint_first_favorite">Save a dish as a favourite</string>
+
+    <!-- Once taken, the date replaces the description: it turns a catalogue into a
+         history. -->
+    <string name="progress_badge_on">Earned on %1$s</string>
+
+</resources>

@@ -4402,6 +4402,108 @@ Une phrase part **sans avertissement**, comme avant : [05](05-ia.md) ne demande 
 
 ---
 
+## D132 — La progression se dérive du journal, et ne range que ce qu'il ne peut pas redire · ✓ validée
+
+**Contexte.** L'*Addictive update* ajoute une série de jours, des paliers, des points et des niveaux. Tout cela se calcule depuis le journal : les jours notés sont dans la base, les objectifs versionnés aussi. La question n'était donc pas *comment calculer*, mais **ce qu'il faut ranger**.
+
+Deux réponses simples existaient, et toutes les deux sont fausses.
+
+*Tout dériver.* Zéro migration, zéro format à faire évoluer, et une progression toujours exacte par rapport au journal. Mais supprimer un plat de l'an dernier retire un palier obtenu il y a huit mois, et fait redescendre un niveau. **Corriger une erreur devient une punition**, et plus personne ne corrige rien — ce qui est le contraire de ce que [01](01-perimetre.md) promet à chaque ligne du journal : *toujours corrigeable*.
+
+*Tout ranger.* Chaque plat noté incrémente un compteur, chaque journée close en incrémente un autre. Mais alors la progression est une seconde vérité à côté du journal, qui dérive à la première écriture manquée — une transaction interrompue, une restauration, un bug — et rien ne la rattrape jamais.
+
+**Choix.** Le journal reste la seule source, et le rangement est **un plancher**.
+
+| | D'où ça vient |
+|---|---|
+| Série en cours, série parfaite | Dérivées du journal, à chaque changement |
+| Nombre de plats, points, modes essayés | Dérivés du journal |
+| Meilleures séries, total de points | `max(ce que le journal donne, ce qui est rangé)` |
+| Paliers franchis, et leur date | Rangés, jamais recalculés |
+
+`ObserveProgress` lit et ne range rien. `AdvanceProgress` range et ne lit pas le journal. Le dépôt n'écrit **que si un plancher monte**, et c'est ce qui ferme la boucle : faire avancer réémet le dépôt, ce qui relance le calcul, ce qui ferait avancer de nouveau — le second tour n'a plus rien à monter, et s'arrête.
+
+**Raison.** Les points montent dans la seconde où un plat est noté, parce qu'ils sont dérivés — une récompense qui attendrait une écriture réussie ne serait pas une récompense. Et ils ne redescendent jamais, parce qu'ils sont plancherés. Les deux propriétés qu'on voulait, et aucune des deux ne se paie par l'autre.
+
+**La date d'un palier est un fait, pas un calcul.** Elle est rangée à son déblocage et ne bouge plus, `INSERT OR IGNORE` la protégeant en base. Un `REPLACE` la réécrirait à chaque relevé, et l'écran finirait par annoncer que la série de cent jours a été obtenue ce matin.
+
+**La fenêtre de relecture est de 400 jours**, un peu plus d'un an : assez pour que le palier des 365 se constate sur le journal seul, assez court pour qu'une lecture reste une lecture. Au-delà, le dérivé sous-estime — et c'est exactement là que le plancher reprend la main, puisqu'il retient ce que la fenêtre a vu quand elle le voyait encore.
+
+**Écarté.** *Incrémenter les points dans `LogDish`.* Il y a plusieurs chemins d'écriture d'un plat, et chacun aurait dû penser à créditer. Le premier qui l'oublie produit une progression qui ne remonte jamais.
+
+*Un travail de fond qui clôt la journée à minuit.* Il faudrait un `WorkManager`, donc du travail planifié, ce que [D107](#d107--une-pastille-désigne-une-situation-jamais-un-message---validée) refusait jusqu'ici. Et il ne servirait à rien : une journée close se reconnaît à sa date, et l'application la reconnaîtra à la prochaine ouverture aussi bien qu'à minuit.
+
+*Ranger la série en cours.* Elle se dérive exactement, et une valeur rangée qui se dérive exactement est une valeur qui finira par ne plus correspondre.
+
+**Conséquences.** Deux tables — `progress`, trois planchers en une ligne comme `profile`, et `unlocked_badge`, un palier par ligne. La base passe en version 8 ; la migration **ne remplit rien**, et c'est exact : la progression qu'une base existante vaut se recalcule au premier affichage, et l'écrire ici la referait faux — cet endroit n'a ni les objectifs versionnés ni la règle de la journée parfaite.
+
+La progression entre dans la sauvegarde **sans incrémenter la version du format** : tous ses champs ont un défaut, donc un fichier écrit avant elle se relit sans elle. `SECTIONS_ATTENDUES` du test de garde la voit arriver — c'est exactement ce pour quoi ce test existe.
+
+`eraseUserData` l'emporte : « effacer mes données » qui laisserait les paliers rendrait une application à moitié neuve, où l'on repart de zéro avec le niveau de quelqu'un d'autre.
+
+Un quinzième module, `:data:progress`. Un module à lui plutôt qu'une section de `:data:profile` : celui-ci range ce que l'utilisateur **est** — son âge, son poids, son objectif — celui-là ce qu'il a **traversé**. Le seuil de fonctions a mordu deux fois au passage (`DatabaseModule` perd un DAO au profit d'un `ProgressDaoModule`, et `HomeScreen` regroupe ses paramètres comme `HomeActions` le faisait déjà) ; `HexavoreDatabase` reçoit la première suppression de règle du projet, parce que Room veut une seule `@Database` et qu'une classe de onze accès n'a pas de couture.
+
+**Ce que le vert ne prouve pas.** **Que 400 jours suffisent.** Personne n'a encore de journal aussi long. Le jour où quelqu'un en aura un et réinstallera l'application sans sauvegarde, sa série repartira de ce que la fenêtre voit.
+
+**Que les barèmes soient justes.** Dix points par plat, trente par journée close, cent par journée parfaite : ce sont des nombres choisis pour que les premiers niveaux tombent en quelques jours. Ils se règlent en changeant trois constantes, et rien dans le code ne dépend de leur valeur.
+
+---
+
+## D133 — Une journée parfaite penche du côté de l'objectif, et la lueur ne suffisait plus · ✓ validée
+
+**Contexte.** La série de saisie récompense le fait de noter : un plat suffit, et c'est ce qui combat l'abandon. Il en fallait une seconde, qui dise quelque chose de l'alimentation elle-même — sans quoi noter trois cafés par jour pendant six mois produirait la même série que suivre un objectif.
+
+Une journée « réussie » ne peut pas être une journée exacte au gramme : la série serait inatteignable, donc décorative. Il faut une fourchette. La question est de savoir **où elle se place**.
+
+**Choix.** Elle n'est pas symétrique, et elle penche selon la stratégie de l'objectif qui courait ce jour-là.
+
+| Stratégie | Plancher | Plafond |
+|---|---|---|
+| **Perdre** | −25 % | +10 % |
+| **Maintenir** | −10 % | +10 % |
+| **Prendre** | −10 % | +25 % |
+
+**Raison.** Se tromper dans un sens ne coûte pas ce que coûte se tromper dans l'autre. En perte, manger moins que prévu ne compromet rien ; manger plus efface le déficit qui fait tout le travail. En prise, c'est l'inverse exactement : le surplus est ce qui construit, et le manquer est ce qui coûte. En maintien, rester sur place demande justement de ne dériver ni d'un côté ni de l'autre.
+
+Une fourchette symétrique aurait traité ces trois cas de la même façon. Elle aurait passé la moitié des journées qu'il fallait refuser et refusé la moitié de celles qu'il fallait passer — sans que rien ne le signale, puisque les deux produisent un booléen.
+
+**Deux compteurs sur six.** Les calories et les protéines : le budget, et la masse maigre qu'il préserve. Juger les six rendrait la série si rare qu'elle ne récompenserait plus rien — les fibres, en particulier, ne se tiennent pas sans y penser toute la journée. Les quatre autres restent lisibles sur l'hexagone, où ils n'ont jamais cessé d'être.
+
+**Une limite ne se rate que par le haut.** Le plancher ne s'applique qu'aux cibles (`MacroGoalKind`) : 20 g de sucres sur une limite à 50 g reste une bonne journée, et en exiger 37 serait demander d'en manger davantage. Aucune limite n'entre aujourd'hui dans les deux compteurs jugés ; la règle est écrite entière parce qu'elle est une règle **sur une macro**, pas sur la liste du jour.
+
+**Une journée sans objectif n'est jamais parfaite.** Elle n'a rien à quoi se comparer ([D04](#d04--objectifs-versionnés-plutôt-que-mis-à-jour-en-place---validée)), et « parfaite par défaut » donnerait une série à qui n'a pas encore répondu aux cinq questions. Elle n'est pas ratée pour autant : elle **interrompt** la série, ce qu'une série interrompue est par définition.
+
+**Le jour en cours ne se juge pas.** Une journée n'est pas finie tant qu'elle dure. La juger ferait passer chaque matin par « parfaite » — rien de noté, donc rien au-dessus du plafond — puis par « ratée » au premier repas un peu large, et la série clignoterait toute la journée. Même raisonnement que la série de saisie, prise par l'autre bout : celle-là **ne casse pas** tant que la journée court, parce qu'à huit heures personne n'a encore noté son petit-déjeuner.
+
+### La lueur ne suffisait plus
+
+[08](08-design-system.md#macroring) disait de la lueur des jauges qu'elle était *« la seule récompense visuelle de l'application, et elle suffit »*. Elle ne suffisait pas pour une chose, et une seule : elle est **continue**. Une lueur qui monte avec la journée ne peut pas dire « il vient de se passer quelque chose », parce qu'elle dit déjà autre chose en permanence. Un palier est un événement.
+
+`Celebration` est donc née, et elle est aussi discrète qu'un événement peut l'être :
+
+- **Elle ne bloque rien.** Aucun voile, aucun bouton à fermer : elle passe, et on continue à noter dessous. Une boîte de félicitations à valider transformerait la récompense en interruption.
+- **Elle ne dure pas.** Ce qui a été obtenu reste lisible dans l'écran de progression ; l'animation n'est pas l'endroit où l'on lit.
+- **Elle disparaît entièrement** quand l'appareil demande moins de mouvement — supprimée, pas raccourcie, comme la pulsation du titre de [D121](#d121--le-changement-de-jour-se-voit---validée) : des particules instantanées seraient un clignotement.
+- **Elle emprunte les six teintes de macro**, dans l'ordre angulaire. Inventer une couleur de fête aurait été une septième teinte dans une palette qui en réserve six — le raisonnement de [D25](#d25--lestimation-ia-se-signale-par-une-forme-pas-par-une-couleur---validée), appliqué à une animation.
+
+**Ce qui ne change pas : aucun chiffre n'est un jugement.** [02](02-parcours-et-ecrans.md) l'écrit de l'accueil depuis toujours, et cela vaut pour la progression. Pas de rouge sur une série cassée, pas de message sur une journée ratée, pas de rappel de ce qu'on a manqué. Une série à zéro se lit « 0 jour », et c'est tout ce qu'il y a à en dire. La gamification ajoute une récompense ; elle n'ajoute pas de reproche.
+
+**Écarté.** *Une seule série.* Celle de saisie seule ne dit rien de l'alimentation ; celle de justesse seule casse trop souvent et décourage. Les deux côte à côte disent deux choses différentes, et l'écran a la place de les montrer.
+
+*Compter les journées parfaites plutôt que la suite.* Trente journées parfaites éparpillées sur un an ne valent pas trente d'affilée : c'est la suite qui est difficile, et c'est elle que le palier nomme.
+
+*Des points pour avoir ouvert l'application.* C'est la mécanique dont ce projet ne veut pas. Chaque source de points correspond à un acte réel — un plat noté, une journée suivie jusqu'au bout, une journée tenue.
+
+**Conséquences.** `:domain` gagne un paquet `progress` : la règle de la fourchette, les deux séries, dix-huit paliers, et la courbe des niveaux. Tout y est du Kotlin pur et s'éprouve en millisecondes — c'est ce que la pureté du domaine achète, et la fourchette asymétrique est exactement le genre de règle qui en avait besoin.
+
+Un seizième module, `:feature:progress`, pour l'écran qui déplie les paliers. L'accueil n'en montre que trois choses sur une ligne : il répond déjà à une question — comment va ma journée — et deux questions en pleine page rendraient la première moins nette.
+
+**Ce que le vert ne prouve pas.** **Que ces pourcentages soient les bons.** Ils viennent d'un raisonnement sur ce que coûte chaque erreur, pas d'une étude. Ils se changent en deux constantes.
+
+**Que la gamification serve ce projet.** C'est le pari de cette version. Ce qui la contredirait — quelqu'un qui note n'importe quoi pour tenir sa série — ne se mesurera jamais ici, faute de télémétrie, et c'est un choix qu'on assume depuis [01](01-perimetre.md#contraintes-fermes).
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

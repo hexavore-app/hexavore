@@ -499,6 +499,58 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun `une base migree n a aucune progression, et c est exact`() {
+        // Une base existante porte peut-etre des mois de journal ; la progression
+        // qu'elle vaut se recalcule au premier affichage, depuis les plats eux-memes.
+        // Ecrire ici des valeurs deduites referait ce calcul dans un endroit qui n'a
+        // ni les objectifs versionnes ni la regle de la journee parfaite -- donc le
+        // referait faux.
+        helper.createDatabase(TEST_DATABASE, 1).use { it.seedVersionOne() }
+
+        migrate().use { database ->
+            assertEquals(0, database.count("progress"))
+            assertEquals(0, database.count("unlocked_badge"))
+        }
+    }
+
+    @Test
+    fun `un palier ne se range qu une fois, et garde sa date`() {
+        // C'est ce qui empeche l'ecran d'annoncer que la serie de cent jours a ete
+        // obtenue ce matin. La clef primaire porte la regle ; le DAO l'applique avec
+        // un IGNORE, et ce cas verifie que la table le permet.
+        helper.createDatabase(TEST_DATABASE, 1).close()
+
+        migrate().use { database ->
+            database.execSQL("INSERT INTO unlocked_badge VALUES ('STREAK_7', '2026-03-03')")
+            database.execSQL("INSERT OR IGNORE INTO unlocked_badge VALUES ('STREAK_7', '2026-09-29')")
+
+            database.query("SELECT unlocked_on FROM unlocked_badge WHERE badge = 'STREAK_7'").use { row ->
+                assertTrue("le palier a disparu", row.moveToFirst())
+                assertEquals("2026-03-03", row.getString(0))
+            }
+            assertEquals(1, database.count("unlocked_badge"))
+        }
+    }
+
+    @Test
+    fun `effacer les donnees emporte la progression`() {
+        // « Effacer mes donnees » qui laisserait les paliers en place rendrait une
+        // application a moitie neuve, ou l'on repart de zero avec le niveau de
+        // quelqu'un d'autre.
+        helper.createDatabase(TEST_DATABASE, 1).close()
+
+        migrate().use { database ->
+            database.execSQL("INSERT INTO progress VALUES ('singleton', 4200, 31, 4)")
+            database.execSQL("INSERT INTO unlocked_badge VALUES ('STREAK_30', '2026-09-01')")
+
+            listOf("progress", "unlocked_badge").forEach { database.execSQL("DELETE FROM $it") }
+
+            assertEquals(0, database.count("progress"))
+            assertEquals(0, database.count("unlocked_badge"))
+        }
+    }
+
     // --- Outillage ------------------------------------------------------------
 
     /**

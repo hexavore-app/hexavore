@@ -39,6 +39,13 @@ Adulte en bonne santé qui suit son alimentation pour une raison personnelle : p
 - Édition manuelle intégrale de toute ligne enregistrée.
 - Création d'un aliment personnel de toutes pièces.
 
+### Progression
+- **Série de saisie** : jours consécutifs portant au moins un plat.
+- **Série parfaite** : jours consécutifs passés dans la fourchette de son objectif ([D133](11-decisions.md)).
+- **Paliers** : dix-huit, en quatre familles — régularité, volume, justesse, premières fois.
+- **Points et niveaux**, dérivés de ce qui a été noté et jamais redescendus ([D132](11-decisions.md)).
+- Écran **Progression** dédié, et trois lignes en tête de l'accueil.
+
 ### Consultation
 - Écran du jour : restant sur les six compteurs, plats et leurs apports.
 - Bande calendrier horizontale, coloration selon l'atteinte, extensible en vue mensuelle.
@@ -60,7 +67,7 @@ Adulte en bonne santé qui suit son alimentation pour une raison personnelle : p
 | Sucres ajoutés | La donnée n'existe quasiment pas, ni dans Open Food Facts ni dans CIQUAL. Afficher un compteur vide à 95 % serait pire que ne rien afficher. |
 | Suivi de l'exercice, import de podomètre | Le niveau d'activité couvre 90 % du besoin. Une intégration Health Connect est une fonctionnalité à part entière. |
 | ~~Contribution de produits à Open Food Facts~~ | **Rentrée dans le périmètre**, en tranche 6 ([D70](11-decisions.md#d70--contribuer-à-open-food-facts-entre-en-tranche-6-parce-que-la-couverture-nest-pas-la-même-partout---validée)). Le travail reste réel — compte OFF, champs obligatoires, conflits — mais la couverture d'Open Food Facts s'effondre hors d'Europe : 10 911 produits en Thaïlande contre 1 257 548 en France. Là-bas, la saisie manuelle est la route principale, et ne pas la reverser condamne chaque utilisateur à la refaire seul. |
-| Partage social, communauté, défis | Hors intention. |
+| Partage social, communauté, défis | Hors intention. **La progression n'en est pas** ([D132](11-decisions.md)) : elle est locale, elle ne se compare à personne, et rien n'en sort. Ce qui reste écarté est ce qui suppose des autres — un classement, un mur, un défi collectif —, donc un serveur, donc la première contrainte ferme de cette page. |
 | iOS, Wear OS, widget | Le widget est le premier candidat pour la v1.1. |
 | Codes-barres de restaurants, menus de chaînes | Dépend de bases commerciales. |
 | Jeûne intermittent, fenêtres alimentaires | Fonctionnalité distincte, mérite sa propre conception. |

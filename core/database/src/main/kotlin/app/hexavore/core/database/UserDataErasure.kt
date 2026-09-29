@@ -29,4 +29,16 @@ fun HexavoreDatabase.eraseUserData() {
  * marcherait, mais laisserait croire que la cascade n'existe pas — et le jour où
  * quelqu'un la retirerait, rien ne le dirait.
  */
-private val USER_TABLES = listOf("favorite_dish", "dish", "food", "weight_entry", "goal", "profile")
+private val USER_TABLES = listOf(
+    "favorite_dish",
+    "dish",
+    "food",
+    "weight_entry",
+    "goal",
+    "profile",
+    // La progression est du contenu utilisateur comme le reste : « effacer mes
+    // donnees » qui laisserait les paliers en place rendrait une application a moitie
+    // neuve, ou l'on repart de zero avec le niveau de quelqu'un d'autre.
+    "progress",
+    "unlocked_badge",
+)

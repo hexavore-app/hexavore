@@ -7,6 +7,7 @@ import app.hexavore.domain.goal.AdjustmentSetup
 import app.hexavore.domain.goal.Goal
 import app.hexavore.domain.profile.UserProfile
 import app.hexavore.domain.profile.WeightEntry
+import app.hexavore.domain.progress.StoredProgress
 import java.time.Instant
 
 /**
@@ -64,6 +65,20 @@ data class Snapshot(
      * de téléphone. C'est une décision de l'utilisateur, pas un réglage d'appareil.
      */
     val adjustment: AdjustmentSetup = AdjustmentSetup(),
+    /**
+     * Ce que la progression a figé : trois planchers et les paliers franchis.
+     *
+     * **Restaurée avec le reste, et pour la raison qui l'a fait ranger en base** : une
+     * série de deux cents jours et les paliers qui vont avec ne se retrouvent pas en
+     * relisant un journal qu'on vient tout juste de réimporter. Changer de téléphone ne
+     * doit pas coûter ce qu'on a traversé ([D132][decisions]).
+     *
+     * Vide dans un fichier écrit par une version antérieure, ce qui est exact : elle ne
+     * connaissait pas de progression, et les planchers se reposeront au premier relevé.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val progress: StoredProgress = StoredProgress(),
 ) {
     /** De quoi reconnaître un fichier sans l'ouvrir entièrement. */
     val entryCount: Int get() = dishes.sumOf { it.entries.size }

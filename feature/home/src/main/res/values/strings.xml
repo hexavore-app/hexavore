@@ -186,4 +186,25 @@
     <string name="notice_ai_rejected">Your API key was refused</string>
     <string name="notice_weight_stale">No weight reading for a week</string>
     <string name="notice_yesterday_empty">Yesterday has nothing noted</string>
+
+    <!-- La progression, en trois choses sur une ligne. L'ecran qui la deplie est a un
+         tap : l'accueil repond deja a une question, et deux en pleine page rendraient
+         la premiere moins nette. -->
+    <plurals name="home_streak_days">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
+    <string name="home_level">Level %1$d</string>
+    <string name="home_open_progress">Your progress</string>
+
+    <!-- Ce qui passe a l'ecran quand un palier tombe. Rien a fermer : l'animation
+         passe, et on continue a noter dessous. -->
+    <string name="home_celebration_title">Milestone reached</string>
+    <string name="home_badge_streak">%1$d days in a row</string>
+    <string name="home_badge_volume">%1$d dishes logged</string>
+    <string name="home_badge_perfect">%1$d perfect days in a row</string>
+    <string name="home_badge_first_scan">First scan</string>
+    <string name="home_badge_first_photo">First photo</string>
+    <string name="home_badge_first_text">First description</string>
+    <string name="home_badge_first_favorite">First favourite</string>
 </resources>

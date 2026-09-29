@@ -220,6 +220,35 @@ Un favori référence des aliments **vivants** : « mes flocons du matin » doit
 
 `dish.favorite_id` relie un plat du journal au favori dont il a été rejoué, en `SET NULL`. C'est lui qui rallume l'étoile en rouvrant un plat, et il **tombe dès qu'une ligne est modifiée** : le plat n'est plus celui que le favori décrit.
 
+### `progress` et `unlocked_badge`
+
+Ce que la progression a **figé**, et rien de ce qui se dérive ([D132](11-decisions.md)).
+
+```sql
+CREATE TABLE progress (
+    id TEXT PRIMARY KEY,              -- toujours 'singleton', comme profile
+    points INTEGER NOT NULL,
+    best_streak INTEGER NOT NULL,
+    best_perfect_streak INTEGER NOT NULL
+);
+CREATE TABLE unlocked_badge (
+    badge TEXT PRIMARY KEY,           -- le nom de l'énumération, écrit tel quel
+    unlocked_on TEXT NOT NULL         -- ISO-8601, comme partout ici
+);
+```
+
+**Les trois nombres sont des planchers, pas des totaux.** Ils ne descendent jamais : la lecture prend toujours le plus grand des deux — ce que le journal donne, et ce qui est rangé. Un plat supprimé l'an dernier ne doit pas coûter un niveau, sans quoi corriger une erreur serait puni et plus personne ne corrigerait rien.
+
+**Ce qui n'y est pas.** La série en cours, le nombre de plats, les points du jour, les modes de saisie déjà essayés : tout cela se recalcule depuis les plats eux-mêmes, qui sont la seule vérité de ce qui a été mangé. Une valeur rangée qui se dérive exactement est une valeur qui finira par ne plus correspondre.
+
+**`badge` est la clé primaire** : un palier ne se franchit qu'une fois, et une table qui pourrait en porter deux exemplaires obligerait chaque lecture à choisir lequel croire. L'insertion est en `IGNORE` et non en `REPLACE` — la date est celle du jour où le palier est tombé, et la réécrire à chaque relevé ferait annoncer que la série de cent jours a été obtenue ce matin.
+
+**Une ligne absente vaut trois zéros**, et c'est le cas normal d'une installation neuve comme d'une base migrée : la migration 7 → 8 crée les tables et ne remplit rien. L'absence **est** la valeur de départ, ce qui évite d'avoir deux façons de dire la même chose.
+
+Un palier retiré du code laisse sa ligne : la supprimer effacerait la date à laquelle quelqu'un l'a obtenu, et une restauration sur une version plus ancienne la retrouverait. La relecture l'ignore, comme elle ignore une source d'entrée qu'elle ne connaît pas.
+
+---
+
 ### `app_state`
 
 Table clé-valeur pour ce qui ne mérite pas sa table : date de dernière sauvegarde, dernière suggestion d'ajustement présentée, version de prompt en cours, drapeau d'onboarding.
