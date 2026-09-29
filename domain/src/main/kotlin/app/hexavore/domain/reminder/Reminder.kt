@@ -107,6 +107,24 @@ interface ReminderSettings {
     suspend fun setEnabled(reminder: Reminder, enabled: Boolean)
 
     suspend fun setTime(reminder: Reminder, time: LocalTime)
+
+    /**
+     * A-t-on déjà demandé la permission de notifier ?
+     *
+     * **Une fois, et une seule.** Android ne montre sa boîte que deux fois ; au-delà,
+     * `launch` rend « refusé » sans rien afficher. Redemander à chaque lancement ne
+     * ferait donc rien de visible, mais ce serait une demande qu'on ne contrôle plus —
+     * et le jour où le système changerait d'avis, l'application harcèlerait.
+     *
+     * Elle se pose au dernier geste de l'onboarding, et **à la première ouverture de
+     * l'accueil** pour qui avait déjà installé l'application avant que les rappels
+     * existent ([D135][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    suspend fun permissionAsked(): Boolean
+
+    suspend fun markPermissionAsked()
 }
 
 /**

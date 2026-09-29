@@ -14,5 +14,7 @@ dependencies {
 
     // `BackHandler` : le bouton retour du systeme ramene a aujourd'hui quand un jour
     // passe est affiche. Sans lui, il quitterait l'application depuis l'historique.
+    // `rememberLauncherForActivityResult` vient du meme module : c'est lui qui pose la
+    // question des notifications a la premiere ouverture (D135).
     implementation(libs.androidx.activity.compose)
 }

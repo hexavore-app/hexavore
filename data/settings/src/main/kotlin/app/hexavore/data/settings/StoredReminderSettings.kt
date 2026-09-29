@@ -48,6 +48,14 @@ internal class StoredReminderSettings(
         reread()
     }
 
+    override suspend fun permissionAsked(): Boolean = withContext(dispatchers.io) {
+        preferences.getBoolean(PERMISSION_ASKED, false)
+    }
+
+    override suspend fun markPermissionAsked() = withContext(dispatchers.io) {
+        preferences.edit { putBoolean(PERMISSION_ASKED, true) }
+    }
+
     /** Oublie les huit réglages. Appelé par l'effacement, comme les autres magasins. */
     internal suspend fun forget() = withContext(dispatchers.io) {
         preferences.edit {
@@ -55,6 +63,9 @@ internal class StoredReminderSettings(
                 remove(it.key())
                 remove(it.timeKey())
             }
+            // Le souvenir de la demande part avec le reste : effacer ses donnees rend
+            // une application neuve, et une application neuve demande.
+            remove(PERMISSION_ASKED)
         }
         reread()
     }
@@ -85,6 +96,8 @@ private fun SharedPreferences.readSetup(): ReminderSetup = ReminderSetup(
         }
     }.toMap(),
 )
+
+private const val PERMISSION_ASKED = "reminder.permission_asked"
 
 /** Personne n'a déplacé ce rappel : son défaut s'applique. */
 private const val UNSET = -1

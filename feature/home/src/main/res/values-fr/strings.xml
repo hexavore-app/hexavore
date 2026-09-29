@@ -192,6 +192,7 @@
     </plurals>
     <string name="home_level">Niveau %1$d</string>
     <string name="home_open_progress">Votre progression</string>
+    <string name="home_level_a11y">Niveau %1$d, %2$s de suite. Ouvrir votre progression.</string>
 
     <!-- Ce qui passe a l’ecran quand un palier tombe. Rien a fermer : l’animation
          passe, et on continue a noter dessous. -->

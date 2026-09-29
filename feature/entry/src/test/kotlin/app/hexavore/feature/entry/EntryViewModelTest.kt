@@ -281,6 +281,49 @@ class EntryViewModelTest {
     }
 
     @Test
+    fun `modifier un favori enregistre, meme apres avoir touche une ligne`() = runTest(dispatcher) {
+        // **Le cas qui echouait a tous les coups** (D135). Le lien qu'un brouillon porte
+        // vers son favori tombe des qu'une ligne bouge (D62) -- ce qui est juste pour un
+        // plat rejoue, et faux ici : toucher une ligne *est* le geste qu'on vient faire.
+        // L'ecran repondait « ecriture non aboutie » a quiconque modifiait quoi que ce
+        // soit, c'est-a-dire a tout le monde.
+        val premier = viewModel()
+        remplir(premier, premier.content().form.lines.single().id)
+        premier.favorite.propose("Flocons") { nom, rang -> "$nom $rang" }
+        advanceUntilIdle()
+        premier.favorite.save("Flocons")
+        advanceUntilIdle()
+        val id = favoris.all.single().id
+
+        val editeur = viewModel(favoriteId = id.value, editingFavorite = true)
+        remplir(editeur, editeur.content().form.lines.single().id, nom = "Flocons complets", kcal = "220")
+        editeur.onSave()
+        advanceUntilIdle()
+
+        assertTrue(editeur.uiState.value is EntryUiState.Saved, "la modification doit aboutir")
+        assertEquals("Flocons complets", favoris.all.single().components.single().name)
+    }
+
+    @Test
+    fun `modifier un favori ne note aucun plat`() = runTest(dispatcher) {
+        // On est venu corriger un modele, pas manger.
+        val premier = viewModel()
+        remplir(premier, premier.content().form.lines.single().id)
+        premier.favorite.propose("Flocons") { nom, rang -> "$nom $rang" }
+        advanceUntilIdle()
+        premier.favorite.save("Flocons")
+        advanceUntilIdle()
+        val plats = diary.dishes.size
+
+        val editeur = viewModel(favoriteId = favoris.all.single().id.value, editingFavorite = true)
+        remplir(editeur, editeur.content().form.lines.single().id, kcal = "220")
+        editeur.onSave()
+        advanceUntilIdle()
+
+        assertEquals(plats, diary.dishes.size)
+    }
+
+    @Test
     fun `la boite se referme quand le favori est enregistre`() = runTest(dispatcher) {
         // Sur l'ecriture aboutie et sur elle seule : c'est le seul signal fiable.
         val viewModel = viewModel()
@@ -508,6 +551,7 @@ class EntryViewModelTest {
         favoriteId: String? = null,
         scannedFoodId: String? = null,
         proposal: Boolean = false,
+        editingFavorite: Boolean = false,
     ) = EntryViewModel(
         savedStateHandle = SavedStateHandle(
             listOfNotNull(
@@ -515,6 +559,7 @@ class EntryViewModelTest {
                 favoriteId?.let { "favoriteId" to it },
                 scannedFoodId?.let { "scannedFoodId" to it },
                 "proposal" to proposal,
+                "editingFavorite" to editingFavorite,
             ).toMap(),
         ),
         composition = DraftComposition(

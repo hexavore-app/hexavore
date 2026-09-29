@@ -7,12 +7,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -154,9 +157,13 @@ private fun BarSurface(content: @Composable ColumnScope.() -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .imePadding()
-                .navigationBarsPadding()
-                .padding(horizontal = Spacing.md, vertical = Spacing.sm),
+                // **Les deux ensemble, et non l'une puis l'autre.** Empilees, elles
+                // s'additionnent : la barre montait de la hauteur du clavier **plus**
+                // celle de la barre de navigation, qui est pourtant dessous. `union`
+                // prend la plus grande des deux, ce qui est exactement ce qu'on veut a
+                // chaque instant -- le clavier ouvert, ou rien (D135).
+                .windowInsetsPadding(WindowInsets.ime.union(WindowInsets.navigationBars))
+                .padding(horizontal = Spacing.md, vertical = Spacing.xs),
             verticalArrangement = Arrangement.spacedBy(Spacing.xs),
             content = content,
         )
@@ -243,6 +250,11 @@ private fun MealField(initial: String, analysing: Boolean, onValueChange: (Strin
         },
         label = stringResource(R.string.home_describe_label),
         modifier = Modifier.fillMaxWidth(),
+        // **Une ligne au repos, quatre au plus.** Une phrase de repas en fait souvent
+        // deux ou trois, et un champ d'une seule ligne les faisait defiler
+        // horizontalement : on ecrivait sans voir le debut de ce qu'on ecrivait. Il
+        // grandit donc avec le texte, et s'arrete avant de manger l'ecran (D135).
+        maxLines = TEXT_LINES,
         imeAction = ImeAction.Send,
         onImeAction = onSend,
         trailingIcon = {
@@ -386,10 +398,20 @@ private fun Failure(state: QuickEntryUiState, onDismiss: () -> Unit, onManual: (
     }
 }
 
-/** Assez pour un pouce, et de la hauteur d'un champ : les trois éléments s'alignent. */
-private val ActionSize: Dp = 56.dp
+/**
+ * Assez pour un pouce, et **plus bas qu'un champ**.
+ *
+ * 48 dp et non 56 : c'est la cible tactile minimale du projet, et la barre au repos est
+ * ce qu'on voit en permanence au-dessus du pouce. Les huit dp gagnes sur chaque bouton
+ * et sur les marges rendent a la page une ligne de plat entiere (D135).
+ */
+private val ActionSize: Dp = 48.dp
 
+/** La hauteur d'un champ d'une ligne : le faux champ a la même, pour ne pas sauter. */
 private val FieldHeight: Dp = 56.dp
+
+/** Assez pour une phrase de repas, pas assez pour manger l'écran. */
+private const val TEXT_LINES = 4
 
 /** Plus petit que le standard : il partage une ligne avec du texte, pas un écran. */
 private val SpinnerSize: Dp = 18.dp
