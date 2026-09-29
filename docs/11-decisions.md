@@ -4585,7 +4585,13 @@ Il ne paraît plus que sur aujourd'hui, et il a changé de forme : un **anneau d
 
 ### La barre du bas montait deux fois sous le clavier
 
-`imePadding()` puis `navigationBarsPadding()`, empilés, **s'additionnent** : la barre montait de la hauteur du clavier **plus** celle de la barre de navigation, qui est pourtant dessous. `windowInsetsPadding(ime union navigationBars)` prend la plus grande des deux, ce qui est exactement ce qu'on veut à chaque instant.
+`imePadding()` puis `navigationBarsPadding()`, empilés, **s'additionnent** : la barre montait de la hauteur du clavier **plus** celle de la barre de navigation, qui est pourtant dessous.
+
+La première correction — prendre la plus grande des deux — n'a pas suffi, et l'essai sur l'appareil l'a montré : la barre restait bien trop haute. La marge du clavier posée sur la **seule barre** s'ajoute au rétrécissement que la fenêtre a déjà appliqué, et la barre monte alors d'une hauteur de clavier **au-dessus** de celui-ci.
+
+C'est donc **l'écran** qui remonte, d'un seul `imePadding()` sur le `Scaffold` — un seul endroit connaît le clavier, et le contenu suit la barre. Celle-ci ne garde que la marge de la barre de navigation, `exclude(ime)` la retranchant quand le clavier la recouvre.
+
+**Et le champ descend à 48 dp.** Material en réserve 56, dont le haut est occupé par le libellé flottant : juste dans un formulaire, où il dit ce que la ligne attend une fois remplie ; de trop dans une barre qui n'a qu'un champ et qu'on voit en permanence. Il devient un texte d'invite qui s'efface à la première lettre. Le champ compact est bâti sur `BasicTextField` et la boîte de décoration de Material — `OutlinedTextField` n'expose pas sa marge intérieure, et son plancher est justement ce qu'on cherchait à descendre.
 
 **Le champ passe à quatre lignes.** Une phrase de repas en fait souvent deux ou trois, et un champ d'une seule ligne les faisait défiler horizontalement : on écrivait sans voir le début de ce qu'on écrivait.
 

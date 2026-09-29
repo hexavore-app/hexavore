@@ -8,13 +8,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -141,10 +141,13 @@ internal fun QuickEntryBar(actions: HomeActions, aiConfigured: Boolean, entry: Q
 /**
  * Le contenant de la barre : sa forme, sa teinte, et **ce qu'elle laisse au système**.
  *
- * L'ordre des deux marges n'est pas indifférent. `imePadding` d'abord, pour que la
- * barre monte avec le clavier ; `navigationBarsPadding` ensuite, pour qu'elle ne garde
- * la marge de la barre de navigation que tant que le clavier est fermé — inversées,
- * elles ajoutent une bande vide sous un clavier ouvert.
+ * **Elle ne connaît pas le clavier**, et c'est ce qui la remet d'aplomb : c'est l'écran
+ * qui remonte, d'un seul `imePadding` posé sur le `Scaffold`. La barre ne garde que la
+ * marge de la barre de navigation, **retranchée de celle du clavier** : quand celui-ci
+ * est ouvert, la barre de navigation est dessous, et lui réserver de la place y
+ * ajouterait une bande vide ([D135][decisions]).
+ *
+ * [decisions]: docs/11-decisions.md
  */
 @Composable
 private fun BarSurface(content: @Composable ColumnScope.() -> Unit) {
@@ -162,7 +165,7 @@ private fun BarSurface(content: @Composable ColumnScope.() -> Unit) {
                 // celle de la barre de navigation, qui est pourtant dessous. `union`
                 // prend la plus grande des deux, ce qui est exactement ce qu'on veut a
                 // chaque instant -- le clavier ouvert, ou rien (D135).
-                .windowInsetsPadding(WindowInsets.ime.union(WindowInsets.navigationBars))
+                .windowInsetsPadding(WindowInsets.navigationBars.exclude(WindowInsets.ime))
                 .padding(horizontal = Spacing.md, vertical = Spacing.xs),
             verticalArrangement = Arrangement.spacedBy(Spacing.xs),
             content = content,
@@ -257,6 +260,9 @@ private fun MealField(initial: String, analysing: Boolean, onValueChange: (Strin
         maxLines = TEXT_LINES,
         imeAction = ImeAction.Send,
         onImeAction = onSend,
+        // Une barre, pas un formulaire : le libelle devient une invite qui s'efface a
+        // la premiere lettre, et le champ descend a 48 dp (D135).
+        compact = true,
         trailingIcon = {
             // Rien tant qu'il n'y a rien a envoyer : un bouton grise dans un champ vide
             // occupe la place et ne dit pas ce qui le reveillerait.
@@ -407,8 +413,8 @@ private fun Failure(state: QuickEntryUiState, onDismiss: () -> Unit, onManual: (
  */
 private val ActionSize: Dp = 48.dp
 
-/** La hauteur d'un champ d'une ligne : le faux champ a la même, pour ne pas sauter. */
-private val FieldHeight: Dp = 56.dp
+/** La hauteur du champ compact : le faux champ a la même, pour que la barre ne saute pas. */
+private val FieldHeight: Dp = 48.dp
 
 /** Assez pour une phrase de repas, pas assez pour manger l'écran. */
 private const val TEXT_LINES = 4

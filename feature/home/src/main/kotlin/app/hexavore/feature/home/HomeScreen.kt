@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -211,7 +212,12 @@ fun HomeScreen(
     val snackbarHostState = rememberUndoBar(pendingUndo, actions.onUndo, actions.onUndoExpired)
 
     Scaffold(
-        modifier = modifier.fillMaxSize(),
+        // **C'est l'ecran entier qui remonte, pas la barre.** Poser la marge du clavier
+        // sur la seule barre la faisait monter d'une hauteur de clavier **au-dessus**
+        // de celui-ci : la fenetre s'etait deja retrecie, et la marge s'ajoutait a ce
+        // retrecissement. Ici, le contenu suit la barre, et il n'y a plus qu'un seul
+        // endroit qui connaisse le clavier (D135).
+        modifier = modifier.fillMaxSize().imePadding(),
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         // **Une barre du bas et non une couche flottante** (D131). Le `Scaffold` lui

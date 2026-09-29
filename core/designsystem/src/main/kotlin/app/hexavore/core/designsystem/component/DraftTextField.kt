@@ -1,11 +1,19 @@
 package app.hexavore.core.designsystem.component
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -17,6 +25,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
@@ -138,10 +147,51 @@ fun DraftTextField(
      * — écrire, puis envoyer — se fait alors sans que le doigt quitte le champ.
      */
     trailingIcon: @Composable (() -> Unit)? = null,
+    /**
+     * `true` pour un champ **posé dans une barre**, et non dans un formulaire.
+     *
+     * Material réserve 56 dp à un champ, et son libellé flottant occupe le haut de
+     * cette hauteur. C'est juste dans un formulaire, où le libellé dit ce que la ligne
+     * attend une fois remplie ; c'est trop dans une barre qu'on voit en permanence
+     * au-dessus du pouce ([D135][decisions]).
+     *
+     * Le libellé devient alors un **texte d'invite** — il ne sert qu'à vide, puisque la
+     * barre n'a qu'un champ et qu'on ne se demande pas ce qu'il attend — et la marge
+     * intérieure se resserre. Le champ descend à [CompactHeight].
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    compact: Boolean = false,
     accept: (String) -> Boolean = { true },
 ) {
     var value by remember { mutableStateOf(TextFieldValue(initial, TextRange(initial.length))) }
     val ink = MaterialTheme.colorScheme.onSurfaceVariant
+
+    if (compact) {
+        CompactField(
+            value = value,
+            onValueChange = { candidate ->
+                if (accept(candidate.text) && (minLines > 1 || candidate.text.isSingleLine())) {
+                    value = candidate
+                    onValueChange(candidate.text)
+                }
+            },
+            modifier = modifier,
+            maxLines = maxOf(minLines, maxLines),
+            keyboard = FieldKeyboard(
+                type = keyboardType,
+                action = imeAction ?: ImeAction.Default,
+                onAction = onImeAction,
+            ),
+            decoration = FieldDecoration(
+                hint = label,
+                hintColor = labelColor,
+                visualTransformation = visualTransformation,
+                trailingIcon = trailingIcon,
+            ),
+        )
+        return
+    }
 
     OutlinedTextField(
         value = value,
@@ -179,6 +229,97 @@ fun DraftTextField(
         modifier = if (estimated) modifier.dashedOutline(ink) else modifier,
     )
 }
+
+/**
+ * Le même champ, **plus bas**, pour une barre.
+ *
+ * Il est bâti sur `BasicTextField` et la boîte de décoration de Material plutôt que sur
+ * `OutlinedTextField` : celui-ci n'expose pas sa marge intérieure, et son plancher de
+ * 56 dp est ce qu'on cherche justement à descendre. Tout le reste — le contour, l'état
+ * de focus, l'icône de droite — vient de Material, donc le champ reste celui du système
+ * et ne dérive pas au prochain palier.
+ *
+ * **Le texte d'invite disparaît dès la première lettre**, contrairement au libellé
+ * flottant qui garde sa place en haut. C'est ce qui rend la hauteur possible.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CompactField(
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    modifier: Modifier,
+    maxLines: Int,
+    keyboard: FieldKeyboard,
+    decoration: FieldDecoration,
+) {
+    val interactions = remember { MutableInteractionSource() }
+
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier.heightIn(min = CompactHeight),
+        textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+        keyboardOptions = KeyboardOptions(keyboardType = keyboard.type, imeAction = keyboard.action),
+        keyboardActions = KeyboardActions(
+            onSend = { keyboard.onAction() },
+            onDone = { keyboard.onAction() },
+            onGo = { keyboard.onAction() },
+        ),
+        maxLines = maxLines,
+        interactionSource = interactions,
+        decorationBox = { field ->
+            OutlinedTextFieldDefaults.DecorationBox(
+                value = value.text,
+                innerTextField = field,
+                enabled = true,
+                singleLine = maxLines == 1,
+                visualTransformation = decoration.visualTransformation,
+                interactionSource = interactions,
+                placeholder = { Text(text = decoration.hint, color = decoration.hintColor) },
+                trailingIcon = decoration.trailingIcon,
+                contentPadding = PaddingValues(horizontal = CompactPadding, vertical = CompactPadding),
+                container = {
+                    OutlinedTextFieldDefaults.Container(
+                        enabled = true,
+                        isError = false,
+                        interactionSource = interactions,
+                        shape = RoundedCornerShape(Radius.field),
+                    )
+                },
+            )
+        },
+    )
+}
+
+/**
+ * Ce que la frappe déclenche : le clavier demandé, et ce que fait sa touche d'action.
+ *
+ * Les trois vont ensemble — un type de clavier sans sa touche, ou une touche sans ce
+ * qu'elle appelle, ne veulent rien dire séparément.
+ */
+@Immutable
+private data class FieldKeyboard(val type: KeyboardType, val action: ImeAction, val onAction: () -> Unit)
+
+/**
+ * Ce qui habille un champ compact, en un objet.
+ *
+ * Regroupés plutôt que passés un par un : le seuil de paramètres a mordu, et le
+ * découpage suit ce que les choses sont — d'un côté ce qui reçoit la frappe, de l'autre
+ * ce qui l'entoure.
+ */
+@Immutable
+private data class FieldDecoration(
+    val hint: String,
+    val hintColor: Color,
+    val visualTransformation: VisualTransformation,
+    val trailingIcon: (@Composable () -> Unit)?,
+)
+
+/** Huit dp sous le plancher de Material, et toujours au-dessus de la cible tactile. */
+private val CompactHeight: Dp = 48.dp
+
+private val CompactPadding: Dp = 12.dp
 
 /**
  * Le contour en pointillés d'une valeur estimée, dessiné **par-dessus** celui du champ.
