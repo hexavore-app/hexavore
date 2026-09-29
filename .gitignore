@@ -61,3 +61,9 @@ desktop.ini
 # mais pas les fichiers intermediaires de conversion.
 tooling/ciqual/tmp/
 *.xlsx.tmp
+
+# --- Python ---
+# L'outillage de la fiche (tooling/fiche) tourne sur la machine de developpement.
+# Son cache d'octets n'a rien a faire dans l'historique.
+__pycache__/
+*.pyc

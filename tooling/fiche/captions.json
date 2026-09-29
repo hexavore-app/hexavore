@@ -1,0 +1,28 @@
+{
+  "fr": {
+    "tagline": "Six compteurs.\nPas de compte, pas de publicité.",
+    "captures": [
+      "Six compteurs,\npas seulement les calories",
+      "Chaque quartier dit\nce qui l'a rempli",
+      "La journée se lit\nplat par plat",
+      "La photo reste,\net tout se corrige",
+      "3 484 aliments,\nsans réseau",
+      "Un mois entier,\nd'un coup d'œil",
+      "Le poids,\net sa tendance réelle",
+      "Vos données sont un fichier,\net il reste chez vous"
+    ]
+  },
+  "en": {
+    "tagline": "Six counters.\nNo account, no ads.",
+    "captures": [
+      "Six counters,\nnot just calories",
+      "Each quarter says\nwhat filled it",
+      "The day reads\nmeal by meal",
+      "The photo stays,\nand everything is editable",
+      "3,484 foods,\nno connection needed",
+      "A whole month\nat a glance",
+      "Your weight,\nand its real trend",
+      "Your data is a file,\nand it stays with you"
+    ]
+  }
+}
