@@ -71,19 +71,50 @@ internal fun WeightChart(trend: WeightTrend, modifier: Modifier = Modifier) {
             drawSmoothed(scale, trend.points, palette.calories.base)
             drawMeasures(scale, trend.points, raw)
         }
-        Axis(scale)
+        // `ChartScale.of` a deja refuse une courbe de moins de deux pesees.
+        trend.axisEnds()?.let { (first, last) -> Axis(first, last) }
     }
 }
 
-/** Les bornes, écrites : sans elles, une pente ne dit pas combien de kilos elle vaut. */
+/**
+ * Les deux bouts que l'axe écrit : la première et la dernière pesée.
+ *
+ * **Elle rend des [TrendPoint], et c'est tout l'intérêt.** Un point porte sa date et
+ * son poids ensemble, donc le couple faux que ces libellés affichaient — une date
+ * d'un côté, une borne d'axe de l'autre — ne peut plus s'écrire. C'est le type qui
+ * tient la règle, pas une convention qu'il faudrait se rappeler.
+ *
+ * `null` sans aucune pesée, ce que [WeightChart] a déjà écarté par ailleurs.
+ */
+internal fun WeightTrend.axisEnds(): Pair<TrendPoint, TrendPoint>? = points.firstOrNull()?.let { it to points.last() }
+
+/**
+ * Les deux bouts de la courbe, écrits : sans eux, une pente ne dit pas combien de
+ * kilos elle vaut.
+ *
+ * **Deux vraies pesées, et non les bornes des axes.** Ces libellés associaient la
+ * première date au poids le plus bas de l'axe vertical et la dernière au plus haut.
+ * Ce sont deux plages indépendantes — `span` porte les dates, `bounds` les poids —
+ * mais le format « date · poids » les colle en une mesure, et sur une trajectoire
+ * **descendante**, c'est-à-dire le cas dominant d'une application qui calcule des
+ * objectifs de perte, le résultat annonçait l'inverse de ce que la courbe montrait.
+ * L'écran portait alors trois lectures contradictoires : le tracé qui descend, ces
+ * deux libellés qui montent, et la liste juste en dessous qui donne les vrais
+ * chiffres.
+ *
+ * La première et la dernière pesée disent la même chose que les bornes — la
+ * différence **est** ce que la pente vaut — en le disant juste, et en s'accordant
+ * avec la liste. Les mesures brutes et non les moyennes lissées, pour la même
+ * raison : ce sont elles que la liste montre.
+ */
 @Composable
-private fun Axis(scale: ChartScale) {
+private fun Axis(first: TrendPoint, last: TrendPoint) {
     val style = MaterialTheme.typography.labelSmall
     val ink = MaterialTheme.colorScheme.onSurfaceVariant
 
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(text = label(scale.span.start, scale.bounds.start), style = style, color = ink)
-        Text(text = label(scale.span.endInclusive, scale.bounds.endInclusive), style = style, color = ink)
+        Text(text = label(first.date, first.weightKg), style = style, color = ink)
+        Text(text = label(last.date, last.weightKg), style = style, color = ink)
     }
 }
 

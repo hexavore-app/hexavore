@@ -23,6 +23,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -65,7 +66,12 @@ import app.hexavore.core.designsystem.theme.Spacing
  * [decisions]: docs/11-decisions.md
  */
 @Composable
-internal fun DayActions(actions: HomeActions, aiConfigured: Boolean, visible: Boolean = true) {
+internal fun DayActions(
+    actions: HomeActions,
+    aiConfigured: Boolean,
+    visible: Boolean = true,
+    onHeight: (Int) -> Unit = {},
+) {
     var explaining by rememberSaveable { mutableStateOf(false) }
 
     if (explaining) {
@@ -79,7 +85,20 @@ internal fun DayActions(actions: HomeActions, aiConfigured: Boolean, visible: Bo
     }
 
     AnimatedVisibility(visible = visible, enter = fadeIn(), exit = fadeOut()) {
-        Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+        Column(
+            // **La colonne dit sa hauteur, elle ne la fait pas deviner.** La page
+            // defile sous elle et doit pouvoir amener son dernier chiffre au-dela ;
+            // ecrire cette hauteur en dur ailleurs la ferait mentir au premier bouton
+            // ajoute, au premier changement de taille de police, et personne ne le
+            // verrait avant de compter les pixels sur une capture.
+            //
+            // Rien n'est signale quand la colonne s'efface pour une bulle de sources :
+            // `onSizeChanged` ne se declenche pas a la disparition, donc la derniere
+            // hauteur connue reste, et la page ne se remet pas a sauter.
+            modifier = Modifier.onSizeChanged { onHeight(it.height) },
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.spacedBy(Spacing.sm),
+        ) {
             AiButton(
                 label = stringResource(R.string.home_analyse),
                 configured = aiConfigured,
