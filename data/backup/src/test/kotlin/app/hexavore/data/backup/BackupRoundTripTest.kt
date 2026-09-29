@@ -133,6 +133,26 @@ class BackupRoundTripTest {
     }
 
     @Test
+    fun `le lien vers un plat favori survit au passage`() = runBlocking {
+        // **Le cas qui manquait, et qui rendait la restauration inutilisable.**
+        // `dish.favorite_id` est une cle etrangere vers `favorite_dish`, et `replace`
+        // ecrivait les plats avant les favoris : la contrainte tombait, la transaction
+        // entiere echouait, et l'utilisateur lisait seulement « la restauration a
+        // echoue » -- l'exception etant avalee par le `runCatching` de RestoreArchive.
+        //
+        // Le cas d'aller-retour compare deja le plat entier, donc il couvre ce lien
+        // depuis que le plat en porte un. Celui-ci existe pour **nommer** la panne :
+        // si l'ordre repart de travers, c'est ce nom qui s'affichera.
+        remplir()
+        val fichier = codec.encode(store.capture())
+        store.erase()
+
+        store.replace((codec.decode(fichier) as SnapshotRead.Readable).snapshot)
+
+        assertEquals(FAVORI.id, journal.observeDay(LUNDI).first().single().favoriteId)
+    }
+
+    @Test
     fun `l etat de l adaptation voyage avec le reste`() = runBlocking {
         remplir()
 
@@ -235,8 +255,10 @@ class BackupRoundTripTest {
         profils.save(PROFIL)
         profils.replace(OBJECTIF)
         profils.record(PESEE)
-        journal.save(PLAT)
+        // Le favori avant le plat : c'est lui que le plat cite, et la contrainte vaut
+        // ici comme a la restauration.
         favoris.save(FAVORI)
+        journal.save(PLAT)
     }
 
     private companion object {
@@ -312,6 +334,12 @@ class BackupRoundTripTest {
             // la base tient (D96), et le cas d'aller-retour compare le plat entier.
             title = "Poke bowl",
             moment = MealMoment.DINNER,
+            // **Le plat cite un favori, et c'est le cas qui manquait.** `favorite_id`
+            // est une cle etrangere vers `favorite_dish` : sans ce lien, l'ordre des
+            // insertions de `replace` n'etait contraint par rien, et il etait faux.
+            // Toute restauration d'une sauvegarde ou les plats favoris avaient servi
+            // echouait, sans qu'aucun cas ne tombe.
+            favoriteId = FavoriteDishId("favori"),
         )
 
         val FAVORI = FavoriteDish(

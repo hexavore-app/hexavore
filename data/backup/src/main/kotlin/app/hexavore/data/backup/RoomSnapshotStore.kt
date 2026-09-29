@@ -70,8 +70,18 @@ class RoomSnapshotStore @Inject constructor(
      * Entre les deux, la base serait vide : une lecture concurrente y verrait un
      * journal effacé, et une interruption y laisserait l'application sans rien.
      *
-     * L'ordre des insertions suit les clés étrangères — les aliments avant les lignes
-     * qui les citent, les plats avant leurs lignes, les favoris avant leurs composants.
+     * L'ordre des insertions suit les clés étrangères : les aliments avant tout ce qui
+     * les cite, les favoris avant leurs composants **et avant les plats**, les plats
+     * avant leurs lignes.
+     *
+     * **Ce commentaire disait déjà cela quand le code ne le faisait pas.** Les plats
+     * étaient écrits avant les favoris, alors qu'un plat enregistré depuis un favori
+     * en garde le lien : la contrainte tombait, la transaction entière échouait, et
+     * [app.hexavore.domain.usecase.RestoreArchive] n'en disait rien de plus que « la
+     * restauration a échoué ». Toute personne ayant utilisé les plats favoris ne
+     * pouvait donc plus restaurer sa propre sauvegarde. Le cas manquait aux tests
+     * parce que le plat de l'aller-retour n'avait pas de favori ; il en a un
+     * maintenant.
      */
     override suspend fun replace(snapshot: Snapshot) = withContext(dispatchers.io) {
         val now = clock.now().toEpochMilli()
@@ -84,11 +94,17 @@ class RoomSnapshotStore @Inject constructor(
             // reconnait a sa date, qui porte deja l'index unique. Le derive de la
             // date le rend stable d'une restauration a l'autre.
             writes.insertWeights(snapshot.weights.map { it.toEntity(id = "poids-${it.date}", now = now) })
+            // Les aliments d'abord : les lignes de journal et les composants de
+            // favori les citent tous les deux.
             writes.insertFoods(snapshot.foods.map { it.toEntity(now) })
-            writes.insertDishes(snapshot.dishes.map { it.toEntity(now) })
-            writes.insertEntries(snapshot.dishes.flatMap { dish -> dish.entries.map { it.toEntity(now) } })
+            // Puis les favoris, **avant les plats** : un plat enregistre depuis un
+            // favori garde le lien, et `dish.favorite_id` est une cle etrangere. Les
+            // ecrire dans l'autre sens faisait echouer la transaction entiere, donc
+            // toute restauration d'une sauvegarde ou cette fonctionnalite avait servi.
             writes.insertFavorites(snapshot.favorites.map { it.toEntity(now) })
             writes.insertComponents(snapshot.favorites.flatMap { it.toComponents() })
+            writes.insertDishes(snapshot.dishes.map { it.toEntity(now) })
+            writes.insertEntries(snapshot.dishes.flatMap { dish -> dish.entries.map { it.toEntity(now) } })
         }
 
         // **Hors de la transaction, et il n'y a pas de choix** : l'adaptation est

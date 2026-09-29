@@ -4308,6 +4308,48 @@ Android Lint faisait déjà partie de `check`, et `MissingTranslation` y est une
 
 ---
 
+## D130 — Photographier l'application a trouvé trois défauts que les tests ne voyaient pas · ✓ validée
+
+**Contexte.** La fiche Play Store demandait des captures d'écran. Les fabriquer a demandé de remplir l'application de vraies données — sept semaines de repas, onze semaines de pesées, un objectif qui court — puis de la parcourir écran par écran et de **regarder les images**. Trois défauts sont sortis de là, dont aucun n'était visible depuis les tests ni depuis un écran vide.
+
+C'est le point de cette entrée, plus que les trois correctifs : `./gradlew check` était vert avant, pendant et après. Ce qui a trouvé ces pannes est une application remplie et quelqu'un qui la regarde.
+
+### Un plat favori rendait toute sauvegarde irrestaurable
+
+`RoomSnapshotStore.replace` insérait les plats **avant** les favoris, alors que `dish.favorite_id` est une clé étrangère vers `favorite_dish`. Room active `PRAGMA foreign_keys`, donc la contrainte tombait, la transaction entière échouait, et le `runCatching` de `RestoreArchive` avalait l'exception : l'utilisateur lisait « La restauration a échoué » et rien de plus.
+
+Toute personne ayant utilisé les plats favoris — une fonctionnalité mise en avant — ne pouvait donc plus restaurer sa propre sauvegarde. La restauration étant le filet de sécurité de l'application, le défaut était de ceux qu'on découvre le jour où l'on en a besoin.
+
+**Le commentaire au-dessus de la méthode annonçait déjà l'ordre juste** : « l'ordre des insertions suit les clés étrangères ». C'est le code qui ne le suivait pas, et rien ne les confrontait. Le plat de `BackupRoundTripTest` n'avait pas de favori, ce qui est exactement pourquoi le cas n'a jamais tombé ; il en a un maintenant, et un cas nommé garde la panne.
+
+### Le journal de poids annonçait l'inverse de sa courbe
+
+Les deux libellés sous le tracé associaient la **première date** au poids le plus bas de l'axe vertical et la **dernière** au plus haut. Ce sont deux plages indépendantes — l'une porte les dates, l'autre les poids — mais le format « date · poids » les collait en une mesure. Sur une trajectoire descendante, c'est-à-dire le cas dominant d'une application qui calcule des objectifs de perte, l'écran portait trois lectures contradictoires : la courbe qui descend, ces libellés qui montent, et la liste juste en dessous qui donne les vrais chiffres.
+
+Ils portent désormais la **première et la dernière pesée**. C'est ce que les bornes voulaient dire — la différence *est* ce que la pente vaut — dit juste, et accordé avec la liste.
+
+**Le correctif est un type, pas une convention.** `axisEnds()` rend deux `TrendPoint`, et un point porte sa date et son poids ensemble : le couple faux ne peut plus s'écrire. Une règle qu'on doit se rappeler finit par s'oublier ; une règle que le compilateur tient, non.
+
+### La liste des plats ne pouvait pas sortir de sous les boutons
+
+Les quatre boutons flottants sont une couche du `Scaffold`, dessinés par-dessus la page, et le `Scaffold` ne réserve rien pour eux. La liste des plats défilait dessous, et ses calories — alignées à droite, dans la gouttière même de la colonne — se retrouvaient coupées en deux dès qu'une journée portait des plats.
+
+Qu'un bouton flottant passe au-dessus d'une liste est normal en Material. Ce qui ne l'était pas : **aucun défilement ne pouvait dégager une ligne**, faute de marge en fin de page.
+
+La page se termine maintenant par la hauteur de la colonne, **mesurée par elle**. Écrire cette hauteur en dur ailleurs l'aurait fait mentir au premier bouton ajouté ou au premier changement de taille de police, et personne ne l'aurait vu avant de compter des pixels sur une capture.
+
+**Écarté.** *Rentrer la gouttière des plats* : cela coûterait la largeur sur toute la page pour un recouvrement qui ne concerne que sa fin. *Un `LazyColumn` avec `contentPadding`* : la page n'est pas une liste, c'est une colonne qui porte l'hexagone, six barres et les plats ; la convertir pour une marge serait payer cher une ligne de `Spacer`.
+
+**Conséquences.** Les trois correctifs tiennent en une réécriture d'ordre, une fonction d'extension et un `Spacer`. Ce qu'ils ont coûté, ce n'est pas le code : c'est d'avoir construit de quoi remplir l'application et la regarder ([tooling/fiche](../tooling/fiche/README.md)). Cet outillage reste, et il retire les captures en une commande.
+
+Le semis de démonstration porte de nouveau le lien vers le favori : 14 plats sur 189 le citent, et l'import les repose. C'est le correctif de la restauration éprouvé à chaque génération, sur l'archive même qui échouait.
+
+**Ce que le vert ne prouve pas.** **Que les captures montrent ce qu'un utilisateur verra.** Elles sont prises en 1080×1920, parce que la Console impose du 16:9 quand les téléphones récents sont en 9:20 : l'écran de tir est plus court que tous. Ce qu'un vrai appareil fait de ces écrans reste à regarder.
+
+**Qu'il n'y en ait que trois.** Huit écrans sur deux langues ont été regardés. Le scan, l'analyse par photo et l'onboarding ne l'ont pas été — les deux premiers demandent une caméra réelle et une clé d'IA, le troisième disparaît après la première ouverture.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

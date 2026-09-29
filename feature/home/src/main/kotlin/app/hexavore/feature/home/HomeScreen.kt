@@ -6,7 +6,9 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -33,6 +35,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.hexavore.core.designsystem.component.AdjustmentCard
@@ -201,12 +204,13 @@ fun HomeScreen(
     // voisins, le calendrier etant entre les deux.
     val swipe = rememberDaySwipe()
     val snackbarHostState = rememberUndoBar(pendingUndo, actions.onUndo, actions.onUndoExpired)
+    var actionsPx by remember { mutableStateOf(0) }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        floatingActionButton = { DayActions(actions, aiConfigured, visible = focus.macro == null) },
+        floatingActionButton = { DayActions(actions, aiConfigured, visible = focus.macro == null) { actionsPx = it } },
     ) { padding ->
         Column(
             modifier = Modifier
@@ -233,7 +237,7 @@ fun HomeScreen(
                 onDay = onSelectDay,
                 modifier = Modifier.weight(1f),
             ) {
-                DayScroll(collapseOnScroll, dayScroll) {
+                DayScroll(collapseOnScroll, dayScroll, with(LocalDensity.current) { actionsPx.toDp() }) {
                     suggestion?.let {
                         AdjustmentCard(
                             suggestion = it,
@@ -372,11 +376,24 @@ private fun rememberCalendarScroll(
  * du parent vers l'enfant : une connexion qui englobait le calendrier voyait le geste
  * avant lui et le refermait, alors que défiler *dans* le mois déplié doit le faire
  * défiler. La portée du geste est une affaire de disposition, pas de condition.
+ *
+ * **La page se termine par la place qu'occupent les boutons flottants.** Ils sont une
+ * couche du `Scaffold`, donc dessinés par-dessus elle, et le `Scaffold` ne réserve
+ * rien pour eux : la liste des plats défilait dessous, et leurs calories — alignées à
+ * droite, dans la gouttière même de la colonne — se retrouvaient coupées en deux dès
+ * qu'une journée portait des plats. Un bouton flottant qui passe au-dessus d'une liste
+ * est normal ; une ligne qu'aucun défilement ne peut dégager ne l'est pas.
+ *
+ * L'écart vient de [DayActions], qui mesure sa propre colonne. Il vaut zéro au
+ * premier passage, avant que la mesure n'arrive, et la page n'en souffre pas : elle
+ * est plus haute que l'écran de toute façon, donc ce qui change est la course du
+ * défilement, jamais la position de ce qu'on lit.
  */
 @Composable
 private fun DayScroll(
     collapseOnScroll: NestedScrollConnection,
     scroll: ScrollState,
+    bottomInset: Dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
@@ -387,8 +404,13 @@ private fun DayScroll(
             .nestedScroll(collapseOnScroll)
             .verticalScroll(scroll),
         verticalArrangement = Arrangement.spacedBy(Spacing.xl),
-        content = content,
-    )
+    ) {
+        content()
+        // A la fin du contenu et non en marge du conteneur : une marge posee apres
+        // `verticalScroll` retrecirait la fenetre au lieu d'allonger ce qui defile,
+        // et le dernier chiffre resterait sous les boutons.
+        Spacer(modifier = Modifier.height(bottomInset))
+    }
 }
 
 /**
