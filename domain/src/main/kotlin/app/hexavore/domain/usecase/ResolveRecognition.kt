@@ -14,6 +14,7 @@ import app.hexavore.domain.language.ContentLanguage
 import app.hexavore.domain.language.ContentLanguages
 import app.hexavore.domain.nutrition.NutrientValues
 import app.hexavore.domain.resolution.MatchVerdict
+import app.hexavore.domain.resolution.PlausibleLine
 import app.hexavore.domain.resolution.convertToGrams
 
 /**
@@ -77,17 +78,29 @@ class ResolveRecognition(
         val converted = convertToGrams(item.quantity, item.unit, language, match.food, estimated = item.grams)
         val line = match.food?.let(create::line) ?: create.line().copy(name = item.label)
 
-        return line
-            .measured(converted.grams, QuantityUnit.Gram)
-            .copy(
-                suggestion = Suggestion(
-                    confidence = item.confidence,
-                    verdict = match.verdict,
-                    alternatives = match.alternatives,
-                    estimated = converted.guessed,
-                ),
-            )
+        val measured = line.measured(converted.grams, QuantityUnit.Gram)
+
+        return measured.copy(
+            suggestion = Suggestion(
+                confidence = item.confidence,
+                verdict = match.verdict,
+                alternatives = match.alternatives,
+                estimated = converted.guessed || measured.implausible(converted.grams),
+            ),
+        )
     }
+
+    /**
+     * Cette ligne est-elle de celles qu'il faut aller regarder ?
+     *
+     * Un poids qui ne décrit aucune portion, ou six valeurs à zéro là où il devrait y
+     * avoir un aliment ([D138][decisions]). Elle prend alors le marqueur de ce qui a été
+     * estimé — rien n'est rejeté, rien n'est corrigé, et l'œil va droit dessus.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    private fun DraftLine.implausible(grams: Double): Boolean =
+        PlausibleLine.suspiciousWeight(grams) || PlausibleLine.emptyValues(values)
 
     /**
      * La ligne d'une fiche que le modèle a désignée.
@@ -103,14 +116,17 @@ class ResolveRecognition(
      */
     private fun chosenLine(item: RecognizedItem, food: Food, language: ContentLanguage): DraftLine {
         val converted = convertToGrams(item.quantity, item.unit, language, food, estimated = item.grams)
-        return create.line(food)
-            .measured(converted.grams, QuantityUnit.Gram)
+        val measured = create.line(food).measured(converted.grams, QuantityUnit.Gram)
+        return measured
             .copy(
                 suggestion = Suggestion(
                     confidence = item.confidence,
                     verdict = MatchVerdict.AUTOMATIC,
                     alternatives = emptyList(),
-                    estimated = converted.guessed,
+                    // Meme sur une fiche choisie par le modele : une brochette a un
+                    // gramme reste une brochette a un gramme, quelle que soit la
+                    // qualite de la fiche qu'il a designee (D138).
+                    estimated = converted.guessed || measured.implausible(converted.grams),
                 ),
             )
     }

@@ -16,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -29,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -37,6 +39,7 @@ import app.hexavore.core.designsystem.component.NeonButton
 import app.hexavore.core.designsystem.component.ScreenTopBar
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.domain.ai.AiProvider
+import app.hexavore.domain.ai.ProviderStatus
 
 /** L'écran des fournisseurs, branché sur le graphe d'injection. */
 @Composable
@@ -113,6 +116,8 @@ internal fun AiSettingsScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
+            FreeTierBanner()
+
             state.rows.forEach { row ->
                 ProviderCard(
                     row = row,
@@ -137,6 +142,55 @@ internal fun AiSettingsScreen(
             // De l'air sous la derniere carte : le clavier remonte le contenu, et un
             // bouton colle au bord bas se manque.
             Spacer(modifier = Modifier.padding(bottom = Spacing.xl))
+        }
+    }
+}
+
+/**
+ * Ce que personne ne lit dans un paragraphe : **c'est gratuit**.
+ *
+ * ### Pourquoi une carte, et pourquoi en gras
+ *
+ * Quelqu'un qui découvre l'écran des fournisseurs ne compare pas des modèles : il se
+ * demande si la fonctionnalité va lui coûter de l'argent, et la réponse décide s'il
+ * configure une clé ou s'il referme l'écran ([D138][decisions]). Cette réponse était
+ * noyée dans une phrase d'introduction qui parlait d'abord de vie privée.
+ *
+ * Elle est donc **seule dans une carte**, en gras, et elle nomme le fournisseur
+ * concerné — une promesse de gratuité qui ne dit pas de qui elle parle n'est pas
+ * vérifiable.
+ *
+ * ### Ce qu'elle ne promet pas
+ *
+ * Ni l'illimité, ni la pérennité. Le palier gratuit de Google a des quotas, et Google
+ * peut le fermer : la carte dit ce qui est vrai aujourd'hui, et le jour où ce ne le
+ * serait plus, `AiProvider.free` change d'un mot et la carte disparaît.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+@Composable
+private fun FreeTierBanner() {
+    val free = AiProvider.entries.firstOrNull { it.free && it.status != ProviderStatus.SUSPENDED } ?: return
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(Spacing.cardPadding),
+            verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+        ) {
+            Text(
+                text = stringResource(R.string.ai_free_title, free.displayName),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+            Text(
+                text = stringResource(R.string.ai_free_body),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
         }
     }
 }

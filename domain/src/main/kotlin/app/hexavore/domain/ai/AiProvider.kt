@@ -75,6 +75,20 @@ enum class AiProvider(
      * mot.
      */
     val status: ProviderStatus = ProviderStatus.READY,
+    /**
+     * Ce fournisseur a-t-il un palier **gratuit** qui suffise à l'usage ?
+     *
+     * **La seule chose qui décide vraiment**, et elle n'était écrite nulle part
+     * ([D138][decisions]). Quelqu'un qui découvre l'application ne compare pas des
+     * fournisseurs : il se demande si la fonctionnalité va lui coûter de l'argent. Le
+     * dire fait la différence entre une clé configurée et un écran qu'on referme.
+     *
+     * C'est une propriété du fournisseur et non un libellé d'écran : le jour où Google
+     * ferme son palier gratuit, un seul mot change ici, et l'écran cesse de le promettre.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val free: Boolean = false,
 ) {
     ANTHROPIC(
         displayName = "Anthropic",
@@ -87,6 +101,9 @@ enum class AiProvider(
 
     GEMINI(
         displayName = "Google Gemini",
+        // Le palier gratuit d'AI Studio : c'est ce qui en fait le fournisseur qu'on
+        // met en tete, et le seul qu'on recommande a qui decouvre (D138).
+        free = true,
         defaultBaseUrl = "https://generativelanguage.googleapis.com/",
         // Releves sur la documentation vivante, pas ecrits de memoire : les
         // identifiants que j'aurais devines n'existaient pas.

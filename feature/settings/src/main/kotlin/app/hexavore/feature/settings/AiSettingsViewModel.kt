@@ -40,6 +40,23 @@ import javax.inject.Inject
  * lier obligerait à écrire une clé fausse pour découvrir qu'elle est fausse, ou à
  * repayer un appel à chaque correction de modèle.
  */
+/**
+ * Les fournisseurs proposés, le gratuit d'abord.
+ *
+ * **Deux et non six.** Le code des six existe et passe ses tests ; ce qui manque aux
+ * quatre autres est un appel réel avec une vraie clé, et leur statut le dit déjà. Les
+ * afficher quand même, grisés, revenait à poser six questions à quelqu'un qui n'en
+ * cherchait aucune — et à noyer le seul qui soit gratuit ([D138][decisions]).
+ *
+ * L'ordre n'est pas celui de l'énumération : le gratuit passe devant, parce que c'est
+ * la seule information qui décide vraiment.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+private val OFFERED = AiProvider.entries
+    .filter { it.status != ProviderStatus.SUSPENDED }
+    .sortedByDescending { it.free }
+
 @HiltViewModel
 class AiSettingsViewModel @Inject constructor(
     private val credentials: AiCredentials,
@@ -73,12 +90,15 @@ class AiSettingsViewModel @Inject constructor(
     val uiState: StateFlow<AiSettingsUiState> =
         combine(setup, editor, usage) { stored, edited, counted ->
             AiSettingsUiState(
-                rows = AiProvider.entries.map {
+                // **Les fournisseurs en reserve ne s'affichent plus** (D138). Les
+                // montrer griss avec « bientot » donnait six choix a faire a qui n'en
+                // cherchait pas un : il en reste deux, le gratuit d'abord.
+                rows = OFFERED.map {
                     ProviderRow(
                         provider = it,
                         configured = it in stored.credentials,
                         active = it == stored.active,
-                        suspended = it.status == ProviderStatus.SUSPENDED,
+                        suspended = false,
                     )
                 },
                 open = edited.open,

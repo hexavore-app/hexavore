@@ -93,8 +93,8 @@ val ContentLanguage.extractPromptVersion: String
  */
 val ContentLanguage.estimatePromptVersion: String
     get() = when (this) {
-        ContentLanguage.FRENCH -> "fr_v2"
-        ContentLanguage.ENGLISH -> "en_v1"
+        ContentLanguage.FRENCH -> "fr_v3"
+        ContentLanguage.ENGLISH -> "en_v2"
     }
 
 /** Le prompt d'extraction : identifier des aliments et estimer des quantités. */

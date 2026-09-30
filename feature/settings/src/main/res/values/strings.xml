@@ -155,6 +155,10 @@
 
     <!-- The providers screen. -->
     <string name="ai_title">Artificial intelligence</string>
+    <!-- Ce que personne ne lit dans un paragraphe : c'est gratuit. La reponse qui
+         decide si quelqu'un configure une cle ou referme l'ecran (D138). -->
+    <string name="ai_free_title">%1$s is free</string>
+    <string name="ai_free_body">A free tier covers everyday use: a few analyses a day cost nothing. You create a key in a few minutes, and no card is asked for.</string>
     <string name="ai_intro">Your keys stay on this device, encrypted by its keystore. Calls go to your provider, with nothing in between: Hexavore has no server.</string>
 
     <!-- The usage counter. The date of the reading accompanies the amount: docs/05 wants
