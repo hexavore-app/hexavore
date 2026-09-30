@@ -67,3 +67,8 @@ tooling/ciqual/tmp/
 # Son cache d'octets n'a rien a faire dans l'historique.
 __pycache__/
 *.pyc
+
+# Les rapports de plantage de la JVM, deposes a la racine par un daemon Gradle qui
+# meurt. Ils ne decrivent pas le projet et changent de nom a chaque fois.
+hs_err_pid*.log
+replay_pid*.log
