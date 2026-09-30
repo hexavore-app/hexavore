@@ -120,6 +120,7 @@ dependencies {
     implementation(projects.integration.openfoodfacts)
     implementation(projects.integration.ai)
     implementation(projects.integration.reminders)
+    implementation(projects.integration.reports)
     implementation(projects.data.settings)
     implementation(projects.data.backup)
 

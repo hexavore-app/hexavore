@@ -51,6 +51,7 @@ internal class EntryViewModel @Inject constructor(
     private val getDaySummary: GetDaySummary,
     private val saveDraft: SaveDraft,
     private val favorites: DraftFavorites,
+    private val reporting: DraftReporting,
     private val clock: Clock,
 ) : ViewModel() {
     private val dishId: DishId? = savedStateHandle.get<String>(EntryDestination.DISH_ID)?.let(::DishId)
@@ -255,6 +256,28 @@ internal class EntryViewModel @Inject constructor(
             // donc ne range aucune image : ce n'est pas un repas.
             written.getOrNull()?.let { dish -> runCatching { composition.attachPhoto(dish, !photoRemoved) } }
             status.value = if (written.isSuccess) Status.SAVED else Status.FAILED
+        }
+    }
+
+    /**
+     * Signale la proposition affichée.
+     *
+     * **Ce qui part est ce que le mode debug montre déjà** : l'échange entier et la
+     * photo ([D138][decisions]). Rien ne part sans un geste — l'application ouvre un
+     * courriel prérempli, et c'est l'utilisateur qui appuie sur « envoyer ».
+     *
+     * **Les libellés viennent de l'écran** : ce `ViewModel` ne connait pas de ressources.
+     *
+     * L'échec est silencieux : sans application de messagerie, il n'y a rien à dire de
+     * plus que ce que le système dira lui-même, et un message d'erreur sur un bouton
+     * d'entraide serait un reproche de plus à quelqu'un qui rendait service.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    fun onReport(subject: String, body: String) {
+        val current = form.value ?: return
+        viewModelScope.launch {
+            runCatching { reporting.report(current.toDraft(), photo.value, subject, body) }
         }
     }
 

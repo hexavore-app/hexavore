@@ -81,7 +81,7 @@ Ces contraintes ne se négocient pas en cours de route ; elles conditionnent l'a
 2. **Utilisable hors-ligne.** Recherche, saisie, consultation, objectifs : tout fonctionne en mode avion. Seuls le scan d'un produit inconnu et l'IA demandent du réseau.
 3. **La clé API ne quitte jamais l'appareil.** Elle n'est ni sauvegardée sur Drive, ni exportée, ni journalisée.
 4. ~~**Aucune photo n'est conservée.** Le fichier temporaire est supprimé dès la réponse du modèle reçue.~~ **Aucune photo ne quitte l'appareil sans un geste** ([D127](11-decisions.md)). La contrainte disait deux choses à la fois, et une seule protégeait quelqu'un : ce qui part chez un tiers ne part que sur demande, et c'est tenu. Ce qui reste sur le téléphone, en revanche, était effacé au nom de la confidentialité alors que l'utilisateur voulait le garder. La photo envoyée à un modèle est toujours supprimée dès la réponse reçue ; celle qui accompagne un plat validé reste sur le téléphone, s'efface d'un geste, et un réglage permet de n'en garder aucune.
-5. **Zéro collecte.** Pas d'analytics, pas de crash reporting automatique, pas d'identifiant publicitaire.
+5. **Zéro collecte.** Pas d'analytics, pas de crash reporting **automatique**, pas d'identifiant publicitaire. L'application sait depuis ([D138](11-decisions.md#d138--lia-se-tient-mieux-et-lapplication-sait-dire-ce-qui-a-raté---validée)) écrire une trace de plantage et préremplir un courriel ; elle n'en envoie aucun. Le destinataire est visible, le corps relisible, la pièce jointe ouvrable, et c'est un doigt humain qui appuie sur « envoyer ». La contrainte porte sur ce qui part **sans qu'on le demande** — et rien ne part d'Hexavore.
 
 ## Critères d'acceptation de la v1
 

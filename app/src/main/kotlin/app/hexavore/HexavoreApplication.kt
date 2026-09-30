@@ -10,6 +10,7 @@ import app.hexavore.domain.reminder.ReminderScheduler
 import app.hexavore.domain.reminder.ReminderSettings
 import app.hexavore.domain.usecase.SweepDishPhotos
 import app.hexavore.feature.capture.sweepCapturePhotos
+import app.hexavore.integration.reports.FileCrashReports
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -50,6 +51,9 @@ class HexavoreApplication :
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
 
+    @Inject
+    lateinit var crashes: FileCrashReports
+
     /**
      * La fabrique de travailleurs, pour que `WorkManager` passe par Hilt.
      *
@@ -85,8 +89,29 @@ class HexavoreApplication :
      *
      * [ia]: docs/05-ia.md
      */
+    /**
+     * Ce qui écrit la trace du prochain plantage.
+     *
+     * **Le gestionnaire précédent est rappelé ensuite**, et ce n'est pas une politesse :
+     * c'est lui qui termine le processus. Le remplacer sans l'appeler laisserait
+     * l'application figée sur un écran mort au lieu de se fermer ([D138][decisions]).
+     *
+     * Posé avant tout le reste, parce qu'un plantage au démarrage est celui qu'on a le
+     * plus besoin de comprendre.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    private fun catchCrashes() {
+        val previous = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, error ->
+            crashes.record(thread, error)
+            previous?.uncaughtException(thread, error)
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
+        catchCrashes()
         languages.restore()
         CoroutineScope(SupervisorJob() + dispatchers.io).launch {
             sweepCapturePhotos(this@HexavoreApplication)

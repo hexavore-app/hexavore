@@ -56,6 +56,9 @@ fun HomeRoute(routes: HomeRoutes) {
     // La question des notifications, une fois, pour qui n'a pas vu l'onboarding la
     // poser -- c'est-a-dire tous ceux qui utilisaient l'application avant (D135).
     FirstRunNotificationRequest()
+    // Au lancement qui suit un plantage, et une seule fois : refuser oublie la trace
+    // autant qu'accepter (D138).
+    CrashReportOffer()
 
     val viewModel: HomeViewModel = hiltViewModel()
     val calendarViewModel: CalendarViewModel = hiltViewModel()

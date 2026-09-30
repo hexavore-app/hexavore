@@ -6,6 +6,10 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,7 +43,6 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 internal fun DraftHeader(state: EntryUiState.Content, actions: EntryActions, dateFormatter: DateTimeFormatter) {
-    val context = LocalContext.current
     val titre = dishTitleText(DishTitle.Moment(state.form.moment, rank = 1))
 
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
@@ -59,23 +62,7 @@ internal fun DraftHeader(state: EntryUiState.Content, actions: EntryActions, dat
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            // L'etoile n'apparait que sur un brouillon complet : un favori sans
-            // ligne enregistrable ne rejouerait rien, et il n'y a rien a expliquer
-            // sur un plat qu'on est en train de remplir.
-            if (state.favoritable) {
-                FavoriteStar(
-                    favorite = state.favorite,
-                    onToggle = {
-                        if (state.favorite) {
-                            actions.onUnfavorite()
-                        } else {
-                            actions.onNaming(state.form.title ?: titre) { base, rank ->
-                                context.getString(R.string.entry_title_ranked, base, rank)
-                            }
-                        }
-                    },
-                )
-            }
+            HeaderActions(state, actions, titre)
         }
 
         // Rien a titrer quand on reecrit un modele : un favori porte deja son nom, et
@@ -95,6 +82,62 @@ internal fun DraftHeader(state: EntryUiState.Content, actions: EntryActions, dat
             )
         }
         SourceAndDay(state, dateFormatter)
+    }
+}
+
+/**
+ * Les deux gestes du coin : signaler, et retenir.
+ *
+ * ### Pourquoi ensemble
+ *
+ * Ce sont les deux choses qu'on fait **a** une proposition plutot qu'avec : dire qu'elle
+ * est fausse, ou dire qu'elle est bonne au point de la rejouer. Elles apparaissent aux
+ * memes moments et disparaissent aux memes moments, et les separer en deux coins
+ * demanderait de lire l'ecran pour les trouver.
+ *
+ * Le decoupage suit aussi un seuil : l'en-tete touchait la longueur maximale au moment
+ * ou le signalement arrivait ([D138][decisions]). La reponse du projet est de sortir ce
+ * qui forme un tout, pas de relever le seuil.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+@Composable
+private fun HeaderActions(state: EntryUiState.Content, actions: EntryActions, titre: String) {
+    val context = LocalContext.current
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        // Le signalement n'apparait que sur ce qu'un modele a propose : il n'y a rien a
+        // signaler d'une saisie qu'on a faite soi-meme (D138).
+        if (state.reportable) {
+            // Les libelles se lisent ici : le ViewModel ne connait pas de ressources,
+            // comme pour la proposition de plantage (D138).
+            val sujet = stringResource(R.string.entry_report_subject)
+            val corps = stringResource(R.string.entry_report_body)
+            IconButton(onClick = { actions.onReport(sujet, corps) }) {
+                Icon(
+                    imageVector = Icons.Filled.Warning,
+                    contentDescription = stringResource(R.string.entry_report),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        // L'etoile n'apparait que sur un brouillon complet : un favori sans ligne
+        // enregistrable ne rejouerait rien, et il n'y a rien a expliquer sur un plat
+        // qu'on est en train de remplir.
+        if (state.favoritable) {
+            FavoriteStar(
+                favorite = state.favorite,
+                onToggle = {
+                    if (state.favorite) {
+                        actions.onUnfavorite()
+                    } else {
+                        actions.onNaming(state.form.title ?: titre) { base, rank ->
+                            context.getString(R.string.entry_title_ranked, base, rank)
+                        }
+                    }
+                },
+            )
+        }
     }
 }
 

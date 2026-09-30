@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Un seul chemin partage, dans le cache de l'application. Le fournisseur ne peut
+    donc remettre a une autre application que les fichiers d'un rapport en cours.
+-->
+<paths>
+    <cache-path
+        name="reports"
+        path="reports/" />
+</paths>

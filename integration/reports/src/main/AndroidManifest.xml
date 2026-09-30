@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Le fournisseur par lequel une piece jointe traverse jusqu'a l'application de
+    courriel.
+
+    Il ne donne acces qu'a `cache/reports/`, et a rien d'autre : ni la base du
+    journal, ni les photos des plats. C'est la regle que :feature:capture applique
+    deja a son propre dossier.
+
+    L'autorite derive de l'applicationId, donc elle differe entre debug et release :
+    deux variantes installees cote a cote ne peuvent pas se disputer la meme.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <provider
+            android:name="app.hexavore.integration.reports.ReportFiles"
+            android:authorities="${applicationId}.reports"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/report_paths" />
+        </provider>
+    </application>
+
+</manifest>

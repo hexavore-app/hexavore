@@ -37,6 +37,16 @@ internal data class EntryActions(
     val onMoment: (MealMoment) -> Unit,
     /** La boîte de nom s'ouvre : l'écran donne le titre, le modèle cherche un nom libre. */
     val onNaming: (String, (String, Int) -> String) -> Unit,
+    /**
+     * Signale une proposition d'IA incorrecte.
+     *
+     * **Seulement sur un plat proposé par un modèle** : il n'y a rien à signaler d'une
+     * saisie qu'on a faite soi-même, et un bouton présent partout ne désignerait plus
+     * rien ([D138][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val onReport: (subject: String, body: String) -> Unit,
     /** La boîte de nom se referme sans rien enregistrer. */
     val onDismissNaming: () -> Unit,
     val onFavorite: (String) -> Unit,

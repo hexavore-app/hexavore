@@ -116,4 +116,7 @@
     <string name="entry_error_body">The write did not go through. Your entry is kept exactly as it is.</string>
     <string name="entry_error_retry">Try again</string>
 
+    <string name="entry_report">Report an incorrect suggestion</string>
+    <string name="entry_report_subject">Incorrect AI suggestion</string>
+    <string name="entry_report_body">The suggestion below was wrong. The exchange and the photo are attached.\n\nWhat the screen showed:\n%1$s\n\nWhat was wrong:\n</string>
 </resources>

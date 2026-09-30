@@ -2,6 +2,7 @@ package app.hexavore.core.testing
 
 import app.hexavore.domain.diary.DishId
 import app.hexavore.domain.diary.DishPhotos
+import app.hexavore.domain.diary.PhotoBytes
 import app.hexavore.domain.diary.PhotoFile
 import app.hexavore.domain.diary.PhotoSettings
 import app.hexavore.domain.diary.PhotoWeight
@@ -21,7 +22,14 @@ import kotlinx.coroutines.flow.asStateFlow
  * bien celle d'un plat, jamais à lire quoi que ce soit : ce port désigne un fichier, il
  * ne le lit pas.
  */
-class InMemoryDishPhotos : DishPhotos {
+// Onze methodes, et le seuil en tolere onze : ce faux implemente deux ports a lui
+// seul, comme l'adaptateur qu'il remplace. Le decouper en deux classes obligerait
+// chaque decor a en construire deux et a les tenir d'accord -- une photo rangee dans
+// l'un devrait se lire dans l'autre.
+@Suppress("TooManyFunctions")
+class InMemoryDishPhotos :
+    DishPhotos,
+    PhotoBytes {
     private val kept = MutableStateFlow(emptyMap<DishId, PhotoFile>())
 
     /** Ce que le brouillon en cours a déposé, ou `null`. */
@@ -36,6 +44,11 @@ class InMemoryDishPhotos : DishPhotos {
     override suspend fun photoOf(dish: DishId): PhotoFile? = kept.value[dish]
 
     override suspend fun staged(): PhotoFile? = stagedBytes?.let { PhotoFile(DRAFT_PATH) }
+
+    override suspend fun of(photo: PhotoFile): ByteArray? =
+        stagedBytes.takeIf { photo.path == DRAFT_PATH } ?: kept.value.keys.firstNotNullOfOrNull { dish ->
+            KEPT_BYTES.takeIf { kept.value[dish]?.path == photo.path }
+        }
 
     override suspend fun stage(jpeg: ByteArray) {
         stagedBytes = jpeg
@@ -87,3 +100,6 @@ class InMemoryPhotoSettings(keep: Boolean = true) : PhotoSettings {
 }
 
 private const val DRAFT_PATH = "memoire/brouillon.jpg"
+
+/** Ce qu'une photo rangee rend : de quoi verifier qu'elle voyage, sans fichier. */
+private val KEPT_BYTES = byteArrayOf(1, 2, 3)

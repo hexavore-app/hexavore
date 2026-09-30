@@ -4,6 +4,7 @@ import android.content.Context
 import app.hexavore.domain.concurrency.DispatcherProvider
 import app.hexavore.domain.diary.DishId
 import app.hexavore.domain.diary.DishPhotos
+import app.hexavore.domain.diary.PhotoBytes
 import app.hexavore.domain.diary.PhotoFile
 import app.hexavore.domain.diary.PhotoWeight
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -38,10 +39,16 @@ import javax.inject.Singleton
  * @see app.hexavore.domain.diary.DishPhotos
  */
 @Singleton
+// Onze methodes, et le seuil en tolere onze : cette classe porte deux ports, comme
+// RoomProfileStore en porte trois. La separation existe pour que les appelants ne
+// dependent que de ce qu'ils utilisent, pas pour forcer deux objets -- deux
+// adaptateurs sur le meme dossier auraient deux fois la meme regle de chemin.
+@Suppress("TooManyFunctions")
 class DishPhotoFiles @Inject constructor(
     @ApplicationContext private val context: Context,
     private val dispatchers: DispatcherProvider,
-) : DishPhotos {
+) : DishPhotos,
+    PhotoBytes {
     private val folder: File by lazy { File(context.filesDir, DIRECTORY) }
 
     // La carte est tenue en memoire et reecrite apres chaque ecriture : l'accueil s'y
@@ -63,6 +70,12 @@ class DishPhotoFiles @Inject constructor(
 
     override suspend fun staged(): PhotoFile? = withContext(dispatchers.io) {
         folder.draft().takeIf { it.exists() }?.let { PhotoFile(it.path) }
+    }
+
+    override suspend fun of(photo: PhotoFile): ByteArray? = withContext(dispatchers.io) {
+        // Le chemin vient de ce meme port : il est dans notre dossier, ou il n'existe
+        // plus. Rien a valider de plus, et une lecture qui echoue rend null.
+        runCatching { File(photo.path).takeIf { it.exists() }?.readBytes() }.getOrNull()
     }
 
     override suspend fun stage(jpeg: ByteArray) {

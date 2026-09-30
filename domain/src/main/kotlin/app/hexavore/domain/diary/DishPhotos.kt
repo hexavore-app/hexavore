@@ -118,3 +118,34 @@ interface PhotoSettings {
 
     suspend fun setKeeping(keep: Boolean)
 }
+
+/**
+ * Les octets d'une photo, pour ce qui doit la **transporter**.
+ *
+ * ### Un port à part, et non une méthode de plus
+ *
+ * [DishPhotos] range, retrouve et balaie des photos ; il les désigne par un chemin et
+ * ne les lit jamais. Lire les octets est une autre chose — c'est ce que fait celui qui
+ * doit les **faire sortir** de l'application ([D138][decisions]) — et le seuil de
+ * méthodes l'a rappelé au moment où la onzième arrivait.
+ *
+ * Le même adaptateur porte les deux, comme `RoomProfileStore` en porte trois : la
+ * séparation existe pour que **les appelants** ne dépendent que de ce qu'ils utilisent,
+ * pas pour forcer deux objets.
+ *
+ * ### Un seul appelant, et c'est voulu
+ *
+ * Le signalement d'une proposition incorrecte, qui joint l'assiette au courriel.
+ * L'affichage ne passe pas par ici : il reçoit un chemin et laisse le chargeur d'images
+ * faire son travail, ce qui évite de tenir une image entière en mémoire pour la
+ * dessiner.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+fun interface PhotoBytes {
+    /**
+     * @return `null` quand le fichier a disparu entre-temps. Une photo effacée ne doit
+     *   pas faire échouer un signalement qui vaut surtout pour son échange.
+     */
+    suspend fun of(photo: PhotoFile): ByteArray?
+}
