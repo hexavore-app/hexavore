@@ -551,6 +551,62 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun `un ancien niveau d activite se traduit en metier et en seances`() {
+        // La traduction est choisie sur le **facteur** : « modere » valait 1,55, et
+        // « debout + trois seances » vaut exactement 1,55. L'objectif calcule ne bouge
+        // donc pas (D137).
+        helper.createDatabase(TEST_DATABASE, BEFORE_ACTIVITY_SPLIT).use { it.seedProfile(level = "MODERATE") }
+
+        migrate().use { database ->
+            database.query("SELECT activity_level, leisure_sessions FROM profile").use { row ->
+                assertTrue("le profil a disparu", row.moveToFirst())
+                assertEquals("ON_FEET", row.getString(0))
+                assertEquals(3, row.getInt(1))
+            }
+        }
+    }
+
+    @Test
+    fun `chaque ancien niveau trouve son couple`() {
+        // Les cinq d'un coup, et **cinq lignes plutot que cinq migrations** : une base
+        // ne se recree pas apres avoir ete migree, et la cle primaire de `profile`
+        // porte sur l'identifiant -- rien n'interdit d'en ecrire cinq le temps d'un cas.
+        val attendus = mapOf(
+            "SEDENTARY" to ("DESK" to 0),
+            "LIGHT" to ("DESK" to 3),
+            "MODERATE" to ("ON_FEET" to 3),
+            "ACTIVE" to ("PHYSICAL" to 2),
+            "VERY_ACTIVE" to ("PHYSICAL" to 5),
+        )
+        helper.createDatabase(TEST_DATABASE, BEFORE_ACTIVITY_SPLIT).use { database ->
+            attendus.keys.forEach { database.seedProfile(level = it, id = it) }
+        }
+
+        migrate().use { database ->
+            attendus.forEach { (ancien, attendu) ->
+                database.query("SELECT activity_level, leisure_sessions FROM profile WHERE id = '$ancien'").use {
+                    assertTrue("le profil $ancien a disparu", it.moveToFirst())
+                    assertEquals("metier de $ancien", attendu.first, it.getString(0))
+                    assertEquals("seances de $ancien", attendu.second, it.getInt(1))
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `un niveau inconnu retombe sur le socle le plus bas`() {
+        helper.createDatabase(TEST_DATABASE, BEFORE_ACTIVITY_SPLIT).use { it.seedProfile(level = "ATHLETE_OLYMPIQUE") }
+
+        migrate().use { database ->
+            database.query("SELECT activity_level, leisure_sessions FROM profile").use { row ->
+                row.moveToFirst()
+                assertEquals("DESK", row.getString(0))
+                assertEquals(0, row.getInt(1))
+            }
+        }
+    }
+
     // --- Outillage ------------------------------------------------------------
 
     /**
@@ -568,6 +624,22 @@ class MigrationTest {
         true,
         *HexavoreDatabase.MIGRATIONS.toTypedArray(),
     )
+
+    /**
+     * Un profil, ecrit comme les versions anterieures a 9 l'ecrivaient.
+     *
+     * **Depuis la version 8 et non la 1** : la table `profile` n'existe qu'a partir de
+     * la 4, et une base v1 n'a nulle part ou l'ecrire. Les cas qui parlent du journal
+     * partent de la 1, parce que lui existe depuis toujours.
+     */
+    private fun SupportSQLiteDatabase.seedProfile(level: String, id: String = "singleton") {
+        execSQL(
+            """
+            INSERT INTO profile (id, birth_date, sex, height_cm, activity_level, unit_system, created_at, updated_at)
+            VALUES ('$id', '1991-03-04', 'MALE', 182.0, '$level', 'METRIC', 1000, 1000)
+            """.trimIndent(),
+        )
+    }
 
     /** Un plat et sa ligne, écrits comme la version 1 les écrivait. */
     private fun SupportSQLiteDatabase.seedVersionOne() {
@@ -723,4 +795,7 @@ class MigrationTest {
  * `compileSdk` : ce test porte sur SQLite et sur le schéma, pas sur une API dont la
  * version importerait.
  */
+/** La derniere version qui portait un niveau d'activite unique (D137). */
+private const val BEFORE_ACTIVITY_SPLIT = 8
+
 internal const val ROBOLECTRIC_SDK = 33

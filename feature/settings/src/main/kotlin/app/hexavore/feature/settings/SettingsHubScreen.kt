@@ -8,7 +8,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -17,6 +26,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -105,52 +115,86 @@ internal fun SettingsHubScreen(
                 .padding(horizontal = Spacing.screenMargin),
             verticalArrangement = Arrangement.spacedBy(Spacing.betweenCards),
         ) {
-            SectionCard(
-                titleRes = R.string.settings_profile_title,
-                subtitleRes = R.string.settings_profile_subtitle,
-                onClick = sections.onOpenProfile,
-            )
-            SectionCard(
-                titleRes = R.string.settings_ai_title,
-                subtitleRes = R.string.settings_ai_subtitle,
-                onClick = sections.onOpenAi,
-                flagged = aiFlagged,
-            )
-            SectionCard(
-                titleRes = R.string.settings_contribution_title,
-                subtitleRes = R.string.settings_contribution_subtitle,
-                onClick = sections.onOpenContribution,
-            )
-            SectionCard(
-                titleRes = R.string.settings_backup_title,
-                subtitleRes = R.string.settings_backup_subtitle,
-                onClick = sections.onOpenBackup,
-            )
-            // Juste apres la sauvegarde : les deux parlent de ce que l'application
-            // garde sur le telephone, et de ce qu'on peut en effacer.
-            SectionCard(
-                titleRes = R.string.settings_photos_title,
-                subtitleRes = R.string.settings_photos_subtitle,
-                onClick = sections.onOpenPhotos,
-            )
-            SectionCard(
-                titleRes = R.string.settings_notices_title,
-                subtitleRes = R.string.settings_notices_subtitle,
-                onClick = sections.onOpenNotices,
-            )
-            SectionCard(
-                titleRes = R.string.settings_appearance_title,
-                subtitleRes = R.string.settings_appearance_subtitle,
-                onClick = sections.onOpenAppearance,
-            )
+            HubSections(sections = sections, aiFlagged = aiFlagged)
         }
     }
 }
 
+/**
+ * Les sept entrées, dans l'ordre où l'on va les chercher.
+ *
+ * Sortie du corps de l'écran quand le seuil de longueur a mordu, et le découpage suit
+ * ce que les choses sont : une liste de destinations, là où ce qui l'entoure est un
+ * écran — une barre, une colonne, des marges.
+ */
+@Composable
+private fun HubSections(sections: SettingsSections, aiFlagged: Boolean) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.betweenCards)) {
+        SectionCard(
+            titleRes = R.string.settings_profile_title,
+            icon = Icons.Filled.Person,
+            subtitleRes = R.string.settings_profile_subtitle,
+            onClick = sections.onOpenProfile,
+        )
+        SectionCard(
+            titleRes = R.string.settings_ai_title,
+            icon = Icons.Filled.Star,
+            subtitleRes = R.string.settings_ai_subtitle,
+            onClick = sections.onOpenAi,
+            flagged = aiFlagged,
+        )
+        SectionCard(
+            titleRes = R.string.settings_contribution_title,
+            icon = Icons.Filled.Share,
+            subtitleRes = R.string.settings_contribution_subtitle,
+            onClick = sections.onOpenContribution,
+        )
+        SectionCard(
+            titleRes = R.string.settings_backup_title,
+            icon = Icons.Filled.Lock,
+            subtitleRes = R.string.settings_backup_subtitle,
+            onClick = sections.onOpenBackup,
+        )
+        // Juste apres la sauvegarde : les deux parlent de ce que l'application
+        // garde sur le telephone, et de ce qu'on peut en effacer.
+        SectionCard(
+            titleRes = R.string.settings_photos_title,
+            icon = Icons.Filled.Face,
+            subtitleRes = R.string.settings_photos_subtitle,
+            onClick = sections.onOpenPhotos,
+        )
+        SectionCard(
+            titleRes = R.string.settings_notices_title,
+            icon = Icons.Filled.Notifications,
+            subtitleRes = R.string.settings_notices_subtitle,
+            onClick = sections.onOpenNotices,
+        )
+        SectionCard(
+            titleRes = R.string.settings_appearance_title,
+            icon = Icons.Filled.Settings,
+            subtitleRes = R.string.settings_appearance_subtitle,
+            onClick = sections.onOpenAppearance,
+        )
+    }
+}
+
+/**
+ * Une section : son icône, son nom, et ce qu'elle règle.
+ *
+ * **L'icône se cherche, le nom se lit.** Sept cartes de texte se parcourent en lisant
+ * les sept titres ; sept icônes se parcourent d'un coup d'œil, et c'est à ce prix
+ * qu'une liste de réglages cesse d'être une liste ([D137][decisions]).
+ *
+ * **Elle est muette pour un lecteur d'écran** : le titre est juste à côté, et une
+ * icône qui répéterait « profil » ferait deux arrêts pour une seule entrée.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
 @Composable
 private fun SectionCard(
     @StringRes titleRes: Int,
     @StringRes subtitleRes: Int,
+    icon: ImageVector,
     onClick: () -> Unit,
     flagged: Boolean = false,
 ) {
@@ -159,7 +203,15 @@ private fun SectionCard(
             modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(Spacing.cardPadding),
             verticalArrangement = Arrangement.spacedBy(Spacing.xs),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.md),
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                )
                 Text(text = stringResource(titleRes), style = MaterialTheme.typography.titleMedium)
                 if (flagged) {
                     NoticeDot(

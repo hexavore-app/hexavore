@@ -34,7 +34,8 @@ internal fun ProfileSummary(state: ProfileUiState) {
             ReadLine(line(R.string.profile_label_sex, form.sex?.let { stringResource(it.labelRes) }))
             ReadLine(line(R.string.profile_label_height, form.heightCm?.let { taille(it, state.units) }))
             ReadLine(line(R.string.profile_label_weight, form.currentWeightKg?.let { poids(it, state.units) }))
-            ReadLine(line(R.string.profile_label_activity, form.activityLevel?.let { stringResource(it.labelRes) }))
+            ReadLine(line(R.string.profile_label_activity, form.work?.let { stringResource(it.labelRes) }))
+            ReadLine(line(R.string.profile_label_sessions, sessionLabel(form.sessions)))
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {

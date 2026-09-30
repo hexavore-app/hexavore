@@ -2,8 +2,9 @@ package app.hexavore.feature.onboarding
 
 import androidx.compose.runtime.Immutable
 import app.hexavore.domain.goal.GoalStrategy
-import app.hexavore.domain.profile.ActivityLevel
 import app.hexavore.domain.profile.Sex
+import app.hexavore.domain.profile.WeeklySessions
+import app.hexavore.domain.profile.WorkActivity
 import app.hexavore.domain.usecase.GoalPlan
 import java.time.LocalDate
 
@@ -65,7 +66,17 @@ data class OnboardingAnswers(
     val sex: Sex? = null,
     val heightCm: Double? = null,
     val currentWeightKg: Double? = null,
-    val activityLevel: ActivityLevel? = null,
+    /**
+     * Le métier, et le sport qui s'y ajoute ([D137][decisions]).
+     *
+     * Le métier est la seule des deux réponses qui bloque : chacun en a un, même « assis
+     * toute la journée ». Les séances valent zéro tant qu'on n'y touche pas, et zéro est
+     * une réponse — la plus fréquente.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val work: WorkActivity? = null,
+    val sessions: WeeklySessions = WeeklySessions.NONE,
     val strategy: GoalStrategy? = null,
     val targetWeightKg: Double? = null,
     val targetDate: LocalDate? = null,
@@ -130,7 +141,7 @@ data class OnboardingUiState(
         get() = when {
             step == OnboardingStep.WELCOME && !answers.disclaimerAccepted -> OnboardingBlocker.DISCLAIMER
             step == OnboardingStep.ABOUT_YOU && !answers.identityComplete -> OnboardingBlocker.IDENTITY
-            step == OnboardingStep.ACTIVITY && answers.activityLevel == null -> OnboardingBlocker.ACTIVITY
+            step == OnboardingStep.ACTIVITY && answers.work == null -> OnboardingBlocker.ACTIVITY
             step == OnboardingStep.OBJECTIVE && !answers.objectiveComplete -> OnboardingBlocker.OBJECTIVE
             else -> null
         }

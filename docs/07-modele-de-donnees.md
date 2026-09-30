@@ -64,6 +64,12 @@ Ligne unique, `id = "singleton"`.
 
 Stocker la date de naissance et non l'âge évite un objectif qui se périme silencieusement.
 
+**`activity_level` porte un métier depuis la version 9** — `DESK`, `ON_FEET` ou
+`PHYSICAL` — et `leisure_sessions` compte les séances de sport ([D137](11-decisions.md)).
+La colonne garde son nom alors que son contenu a changé de sens : la renommer aurait
+demandé de recréer la table pour un mot, et c'est le renommage qui casse les
+sauvegardes.
+
 ### `weight_entry`
 
 | Colonne | Type | Notes |

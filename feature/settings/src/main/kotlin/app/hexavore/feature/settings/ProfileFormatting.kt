@@ -3,11 +3,14 @@ package app.hexavore.feature.settings
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import app.hexavore.domain.goal.GoalHorizon
 import app.hexavore.domain.goal.GoalStrategy
 import app.hexavore.domain.nutrition.Macro
-import app.hexavore.domain.profile.ActivityLevel
 import app.hexavore.domain.profile.Sex
+import app.hexavore.domain.profile.WeeklySessions
+import app.hexavore.domain.profile.WorkActivity
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -49,14 +52,25 @@ internal val Sex.labelRes: Int
         Sex.UNSPECIFIED -> R.string.profile_sex_unspecified
     }
 
-internal val ActivityLevel.labelRes: Int
+internal val WorkActivity.labelRes: Int
     get() = when (this) {
-        ActivityLevel.SEDENTARY -> R.string.profile_activity_sedentary
-        ActivityLevel.LIGHT -> R.string.profile_activity_light
-        ActivityLevel.MODERATE -> R.string.profile_activity_moderate
-        ActivityLevel.ACTIVE -> R.string.profile_activity_active
-        ActivityLevel.VERY_ACTIVE -> R.string.profile_activity_very_active
+        WorkActivity.DESK -> R.string.profile_work_desk
+        WorkActivity.ON_FEET -> R.string.profile_work_on_feet
+        WorkActivity.PHYSICAL -> R.string.profile_work_physical
     }
+
+/**
+ * Le nombre de séances, écrit.
+ *
+ * « 5 et plus » pour la dernière : au-delà, l'écart ne change presque rien au besoin
+ * calculé, et prétendre le contraire donnerait une précision que la formule ne tient pas.
+ */
+@Composable
+internal fun sessionLabel(sessions: WeeklySessions): String = when (sessions.count) {
+    0 -> stringResource(R.string.profile_sessions_none)
+    WeeklySessions.MAX_SESSIONS -> stringResource(R.string.profile_sessions_max, sessions.count)
+    else -> pluralStringResource(R.plurals.profile_sessions, sessions.count, sessions.count)
+}
 
 internal val GoalStrategy.labelRes: Int
     get() = when (this) {

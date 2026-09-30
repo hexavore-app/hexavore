@@ -23,13 +23,21 @@
     <!-- Une pesée est un fait daté : ouvrir cet écran n'en crée pas une. -->
     <string name="profile_weight_note">Corriger ce poids enregistre une pesée datée d\'aujourd\'hui. Le laisser tel quel n\'en invente aucune.</string>
 
-    <string name="profile_activity_title">Votre activité</string>
-    <string name="profile_activity_body">L\'exercice est compté ici, une fois pour toutes, et jamais ajouté au jour le jour.</string>
-    <string name="profile_activity_sedentary">Travail assis, peu ou pas de sport</string>
-    <string name="profile_activity_light">Sport léger 1 à 3 fois par semaine</string>
-    <string name="profile_activity_moderate">Sport 3 à 5 fois par semaine</string>
-    <string name="profile_activity_active">Sport 6 à 7 fois par semaine</string>
-    <string name="profile_activity_very_active">Métier physique, ou sport biquotidien</string>
+    <!-- Deux questions la ou il n'y en avait qu'une (D137). -->
+    <string name="profile_privacy">Tout ce que porte cet écran reste sur ce téléphone. Aucun compte, aucun serveur, rien qui parte chez qui que ce soit.</string>
+    <string name="profile_work_title">Votre journée de travail</string>
+    <string name="profile_work_body">Huit heures par jour, cinq jours sur sept : c\'est le socle. Le sport s\'y ajoute, et se compte ici une fois pour toutes plutôt qu\'au jour le jour.</string>
+    <string name="profile_work_desk">Assis la majeure partie du temps — bureau, conduite, études</string>
+    <string name="profile_work_on_feet">Debout, sans porter de charge — vente, service, enseignement</string>
+    <string name="profile_work_physical">Effort physique soutenu — bâtiment, manutention, agriculture</string>
+    <string name="profile_sessions_title">Séances de sport par semaine</string>
+    <string name="profile_sessions_none">Aucune</string>
+    <string name="profile_sessions_max">%1$d et plus</string>
+    <plurals name="profile_sessions">
+        <item quantity="one">%1$d séance</item>
+        <item quantity="other">%1$d séances</item>
+    </plurals>
+    <string name="profile_label_sessions">Sport</string>
 
     <string name="profile_objective_title">Votre objectif</string>
     <string name="profile_strategy_lose">Perdre du poids</string>
@@ -194,7 +202,6 @@
 
     <!-- Un code HTTP ne remonte jamais à l'écran : chaque issue a son message, et la
          plupart ont une action. -->
-
 
     <!-- ===== Sauvegarde ============================================================
          La garantie de reversibilite du projet : un format ouvert, un export qui

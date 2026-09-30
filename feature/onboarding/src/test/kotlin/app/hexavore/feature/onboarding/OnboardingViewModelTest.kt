@@ -8,8 +8,9 @@ import app.hexavore.core.testing.SequentialIdGenerator
 import app.hexavore.domain.goal.GoalHorizon
 import app.hexavore.domain.goal.GoalOrigin
 import app.hexavore.domain.goal.GoalStrategy
-import app.hexavore.domain.profile.ActivityLevel
 import app.hexavore.domain.profile.Sex
+import app.hexavore.domain.profile.WeeklySessions
+import app.hexavore.domain.profile.WorkActivity
 import app.hexavore.domain.usecase.CalculateDailyGoal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -84,7 +85,7 @@ class OnboardingViewModelTest {
     fun `l identite complete debloque l etape suivante, et ainsi de suite`() = runTest(dispatcher) {
         val viewModel = viewModel()
 
-        viewModel.onAnswers(REPONSES.copy(activityLevel = null, strategy = null))
+        viewModel.onAnswers(REPONSES.copy(work = null, strategy = null))
         viewModel.onNext()
         viewModel.onNext()
 
@@ -234,7 +235,8 @@ class OnboardingViewModelTest {
             sex = Sex.MALE,
             heightCm = 182.0,
             currentWeightKg = 88.0,
-            activityLevel = ActivityLevel.MODERATE,
+            work = WorkActivity.ON_FEET,
+            sessions = WeeklySessions(3),
             strategy = GoalStrategy.LOSE,
             targetWeightKg = 80.0,
             targetDate = AUJOURD_HUI.plusDays(182),

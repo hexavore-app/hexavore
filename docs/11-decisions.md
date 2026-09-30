@@ -4659,6 +4659,64 @@ Ils passent en **rouge**, avec le texte qui dit quoi faire : « Configurez l'IA 
 
 ---
 
+## D137 — L'activité se dit en deux réponses, et le profil dit où il reste · ✓ validée
+
+**Contexte.** Une seule question — « quel est votre niveau d'activité », cinq réponses de « sédentaire » à « très actif » — mélange deux choses qui n'ont ni la même nature ni la même ampleur.
+
+Un maçon qui ne fait aucun sport dépense davantage qu'un cadre qui court trois fois par semaine. Les deux se reconnaissaient dans « modérément actif », et chacun choisissait au jugé : l'objectif calculé valait ce que valait ce jugement.
+
+**Choix.** Deux questions. Le **métier** donne le socle, chaque **séance hebdomadaire** ajoute.
+
+| | Socle | |
+|---|---|---|
+| Assis la majeure partie du temps | 1,20 | bureau, conduite, études |
+| Debout, sans porter de charge | 1,40 | vente, service, enseignement |
+| Effort physique soutenu | 1,60 | bâtiment, manutention, agriculture |
+
+Chaque séance vaut **+0,05**, de zéro à cinq, et le total est plafonné à **1,90**.
+
+**Raison.** Le travail occupe huit heures par jour, cinq jours sur sept : c'est le socle, et il ne se devine pas depuis un nombre de séances. Le sport s'y ajoute, et se compte — « trois fois par semaine » se répond en une seconde et ne demande de se comparer à personne, là où « modérément actif » demande de se situer sur une échelle qu'on ne connaît pas.
+
+**Les trois socles et l'incrément ont été choisis ensemble**, pour que « debout, trois séances » retombe **exactement** sur 1,55 — le facteur de l'exemple de référence de [03](03-nutrition-calculs.md). L'échelle change de forme sans que le chiffre publié bouge, et les cas qui le gardent n'ont pas eu à être réécrits.
+
+**Le plafond n'est pas décoratif** : au-delà de 1,90, Mifflin-St Jeor sort du domaine où elle a été validée, et l'objectif cesserait d'être un objectif pour devenir une extrapolation.
+
+**Au-delà de cinq séances, on ne compte plus.** L'écart entre six et sept ne change presque rien au besoin calculé, et prétendre le contraire donnerait une précision que la formule ne tient pas.
+
+**Écarté.** *Une grille croisée retombant sur les cinq niveaux existants.* Aucun changement de calcul, mais dix-huit cases à justifier une par une — et la même case pour deux personnes que tout sépare.
+
+*Une somme de MET.* Plus juste sur le papier, et il faudrait demander la durée des séances et le type de sport : deux questions de plus à l'onboarding pour une précision qui se perdrait dans l'estimation des portions.
+
+### Les profils existants se traduisent, sans rien demander
+
+La migration réécrit chaque ligne : `activity_level` portait un niveau, il porte un métier, et `leisure_sessions` naît remplie. Les cinq traductions sont choisies **sur le facteur**, à moins de trois centièmes près — l'objectif calculé ne bouge donc pas de façon perceptible, et les objectifs déjà écrits ne bougent pas du tout, puisqu'ils sont versionnés et que personne ne les recalcule ([D04](#d04--objectifs-versionnés-plutôt-que-mis-à-jour-en-place---validée)).
+
+**La traduction est dans la migration, pas dans un mappeur.** Un mappeur qui traduirait à chaque lecture porterait l'ancienne échelle pour toujours, et quiconque ouvrirait `profile` dans un client SQLite y lirait `MODERATE` dans une colonne qui prétend nommer un métier. Le repli du mappeur reste, pour ce qu'aucune migration ne couvre — un fichier bricolé, une base venue d'une version plus récente — et il lit **les deux colonnes ensemble** : un ancien niveau vaut aussi des séances, et n'en traduire que le métier coûterait un dixième de facteur.
+
+**La colonne garde son nom** alors que son contenu change de sens. La renommer aurait demandé de recréer la table pour un mot, et [07](07-modele-de-donnees.md#migrations) préfère une colonne nullable à une table nouvelle, et une table nouvelle à un renommage — c'est le renommage qui casse les sauvegardes.
+
+### Le profil dit où il reste
+
+Une phrase, à l'endroit où l'on commence à saisir : *« Tout ce que vous saisissez reste sur ce téléphone. Aucun compte, aucun serveur, rien qui parte chez qui que ce soit. »* Elle est reprise en tête de **Profil et objectifs**, qui est l'autre endroit où l'on saisit ces mêmes choses.
+
+C'est une **contrainte ferme** de [01](01-perimetre.md#contraintes-fermes) depuis le premier jour, et elle n'était écrite nulle part dans l'application. Quelqu'un à qui l'on demande sa date de naissance, son sexe et son poids a le droit de savoir où tout cela va — et il ne peut pas le deviner.
+
+### Sept icônes plutôt que sept titres
+
+Le hub des réglages était sept cartes de texte, qui se parcourent en lisant sept titres. Chacune porte désormais une icône, en `primary` : une liste d'icônes se parcourt d'un coup d'œil, et c'est à ce prix qu'une liste de réglages cesse d'être une liste.
+
+**Elles sont muettes pour un lecteur d'écran** : le titre est juste à côté, et une icône qui répéterait « profil » ferait deux arrêts pour une seule entrée.
+
+**Conséquences.** `ActivityLevel` disparaît au profit de `WorkActivity`, `WeeklySessions` et `Activity`. La base passe en version 9. Le format de sauvegarde gagne un champ **sans changer de version** : il a un défaut, donc un fichier antérieur se relit sans lui — son `activityLevel` porte alors un ancien niveau, que le domaine sait traduire.
+
+Le seuil de longueur a mordu deux fois, et le découpage suit ce que les choses sont : le sélecteur de séances sort des étapes de l'onboarding, la liste des sections sort de l'écran des réglages.
+
+**Ce que le vert ne prouve pas.** **Que trois métiers suffisent.** Un infirmier de nuit, un chauffeur-livreur qui porte, un cuisinier : chacun se reconnaîtra dans l'un des trois, mais aucun ne s'y reconnaîtra tout à fait. C'est le prix d'une question qu'on répond en une seconde.
+
+**Que +0,05 par séance soit la bonne pente.** Elle vient d'un raisonnement sur ce que valent cinq séances rapportées à un palier de l'ancienne échelle, pas d'une étude. Elle se change en une constante.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

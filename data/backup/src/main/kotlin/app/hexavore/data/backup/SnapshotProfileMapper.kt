@@ -6,10 +6,12 @@ import app.hexavore.domain.goal.Goal
 import app.hexavore.domain.goal.GoalId
 import app.hexavore.domain.goal.GoalOrigin
 import app.hexavore.domain.goal.GoalStrategy
-import app.hexavore.domain.profile.ActivityLevel
+import app.hexavore.domain.profile.Activity
 import app.hexavore.domain.profile.Sex
 import app.hexavore.domain.profile.UnitSystem
 import app.hexavore.domain.profile.UserProfile
+import app.hexavore.domain.profile.WeeklySessions
+import app.hexavore.domain.profile.WorkActivity
 import java.time.LocalDate
 
 /**
@@ -23,7 +25,8 @@ internal fun UserProfile.toDto() = ProfileDto(
     birthDate = birthDate.toString(),
     sex = sex.name,
     heightCm = heightCm,
-    activityLevel = activityLevel.name,
+    activityLevel = activity.work.name,
+    leisureSessions = activity.sessions.count,
     unitSystem = unitSystem.name,
 )
 
@@ -31,7 +34,19 @@ internal fun ProfileDto.toDomain() = UserProfile(
     birthDate = LocalDate.parse(birthDate),
     sex = Sex.entries.firstOrNull { it.name == sex } ?: Sex.UNSPECIFIED,
     heightCm = heightCm,
-    activityLevel = ActivityLevel.entries.firstOrNull { it.name == activityLevel } ?: ActivityLevel.MODERATE,
+    // Un fichier ecrit avant D137 porte un niveau unique et aucune seance : le
+    // domaine sait le traduire, et c'est lui qui le sait -- deux endroits qui
+    // porteraient cette regle finiraient par en donner deux versions.
+    activity = leisureSessions
+        ?.let {
+            Activity(
+                WorkActivity.entries.firstOrNull { w ->
+                    w.name == activityLevel
+                } ?: WorkActivity.DESK,
+                WeeklySessions(it.coerceIn(0, WeeklySessions.MAX_SESSIONS)),
+            )
+        }
+        ?: Activity.ofLegacy(activityLevel),
     unitSystem = UnitSystem.entries.firstOrNull { it.name == unitSystem } ?: UnitSystem.METRIC,
 )
 

@@ -26,13 +26,35 @@ Marge d'erreur intrinsèque : ±10 % environ sur un individu donné. C'est préc
 TDEE = BMR × facteur d'activité
 ```
 
-| Niveau | Libellé affiché | Facteur |
+~~Cinq niveaux, d'un seul tenant.~~ **Le facteur se compose de deux réponses**
+([D137](11-decisions.md)) : le métier donne le socle, chaque séance de sport ajoute.
+
+```
+facteur = socle du métier + 0,05 × séances hebdomadaires, plafonné à 1,90
+```
+
+| Métier | Libellé affiché | Socle |
 |---|---|---|
-| `SEDENTARY` | Travail assis, peu ou pas de sport | 1,20 |
-| `LIGHT` | Sport léger 1 à 3 fois par semaine | 1,375 |
-| `MODERATE` | Sport 3 à 5 fois par semaine | 1,55 |
-| `ACTIVE` | Sport 6 à 7 fois par semaine | 1,725 |
-| `VERY_ACTIVE` | Métier physique, ou sport biquotidien | 1,90 |
+| `DESK` | Assis la majeure partie du temps — bureau, conduite, études | 1,20 |
+| `ON_FEET` | Debout, sans porter de charge — vente, service, enseignement | 1,40 |
+| `PHYSICAL` | Effort physique soutenu — bâtiment, manutention, agriculture | 1,60 |
+
+Les séances vont de 0 à 5. Au-delà, l'écart entre six et sept ne change presque rien au
+besoin calculé, et prétendre le contraire donnerait une précision que la formule ne
+tient pas. Le plafond de 1,90 n'est pas décoratif : au-delà, Mifflin-St Jeor sort du
+domaine où elle a été validée.
+
+**Une seule question mélangeait deux choses.** Un maçon sans sport dépense davantage
+qu'un cadre qui court trois fois par semaine, et les deux se reconnaissaient dans
+« modérément actif ». Le travail occupe huit heures par jour : c'est un socle, et il ne
+se devine pas depuis un nombre de séances.
+
+**Les trois socles et l'incrément ont été choisis ensemble** pour que « debout, trois
+séances » retombe exactement sur **1,55** — le facteur de l'exemple de référence plus
+bas, qui n'a donc pas bougé.
+
+Un profil écrit avant cette version se traduit à la migration, à moins de trois
+centièmes de facteur près.
 
 L'exercice est intégré ici, pas ajouté au jour le jour. Un utilisateur qui note ses séances finit systématiquement par surestimer sa dépense et par « manger ses calories brûlées » — les montres et les applications de sport surévaluent la dépense de 20 à 90 % selon les études. Un multiplicateur stable est moins précis un jour donné, mais plus juste sur un mois.
 

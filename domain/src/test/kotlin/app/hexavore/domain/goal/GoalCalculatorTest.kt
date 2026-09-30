@@ -1,9 +1,11 @@
 package app.hexavore.domain.goal
 
 import app.hexavore.core.testing.FixedClock
-import app.hexavore.domain.profile.ActivityLevel
+import app.hexavore.domain.profile.Activity
 import app.hexavore.domain.profile.Sex
 import app.hexavore.domain.profile.UserProfile
+import app.hexavore.domain.profile.WeeklySessions
+import app.hexavore.domain.profile.WorkActivity
 import app.hexavore.domain.usecase.CalculateDailyGoal
 import app.hexavore.domain.usecase.GoalRequest
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -149,7 +151,7 @@ class GoalCalculatorTest {
             birthDate = LocalDate.of(1991, 3, 4),
             sex = Sex.MALE,
             heightCm = 182.0,
-            activityLevel = ActivityLevel.MODERATE,
+            activity = Activity(WorkActivity.ON_FEET, WeeklySessions(3)),
         )
 
         /** 88 → 80 kg en 6 mois, soit 182 jours. */

@@ -5,10 +5,12 @@ import app.hexavore.core.testing.InMemoryLanguageSettings
 import app.hexavore.core.testing.InMemoryProfiles
 import app.hexavore.domain.appearance.DishDisplayStyle
 import app.hexavore.domain.appearance.ThemeMode
-import app.hexavore.domain.profile.ActivityLevel
+import app.hexavore.domain.profile.Activity
 import app.hexavore.domain.profile.Sex
 import app.hexavore.domain.profile.UnitSystem
 import app.hexavore.domain.profile.UserProfile
+import app.hexavore.domain.profile.WeeklySessions
+import app.hexavore.domain.profile.WorkActivity
 import app.hexavore.domain.usecase.ChooseUnitSystem
 import app.hexavore.domain.usecase.ObserveDishStyle
 import app.hexavore.domain.usecase.ObserveUnitSystem
@@ -177,7 +179,7 @@ internal class AppearanceViewModelTest {
             birthDate = LocalDate.of(1990, 5, 4),
             sex = Sex.MALE,
             heightCm = 178.0,
-            activityLevel = ActivityLevel.MODERATE,
+            activity = Activity(WorkActivity.ON_FEET, WeeklySessions(3)),
         )
     }
 }

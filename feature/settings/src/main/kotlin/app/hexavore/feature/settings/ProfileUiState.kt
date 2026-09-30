@@ -5,10 +5,12 @@ import app.hexavore.domain.goal.DailyGoal
 import app.hexavore.domain.goal.GoalOrigin
 import app.hexavore.domain.goal.GoalStrategy
 import app.hexavore.domain.nutrition.Macro
-import app.hexavore.domain.profile.ActivityLevel
+import app.hexavore.domain.profile.Activity
 import app.hexavore.domain.profile.Sex
 import app.hexavore.domain.profile.UnitSystem
 import app.hexavore.domain.profile.UserProfile
+import app.hexavore.domain.profile.WeeklySessions
+import app.hexavore.domain.profile.WorkActivity
 import app.hexavore.domain.usecase.GoalPlan
 import app.hexavore.domain.usecase.GoalRequest
 import java.time.LocalDate
@@ -32,7 +34,12 @@ internal data class ProfileForm(
     val sex: Sex? = null,
     val heightCm: Double? = null,
     val currentWeightKg: Double? = null,
-    val activityLevel: ActivityLevel? = null,
+    /** Le métier, et le sport qui s'y ajoute ([D137][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val work: WorkActivity? = null,
+    val sessions: WeeklySessions = WeeklySessions.NONE,
     val strategy: GoalStrategy? = null,
     val targetWeightKg: Double? = null,
     val targetDate: LocalDate? = null,
@@ -133,7 +140,7 @@ internal data class ProfileUiState(
     val blocker: ProfileBlocker?
         get() = when {
             !form.identityComplete -> ProfileBlocker.IDENTITY
-            form.activityLevel == null -> ProfileBlocker.ACTIVITY
+            form.work == null -> ProfileBlocker.ACTIVITY
             form.strategy == null -> ProfileBlocker.STRATEGY
             !form.horizonComplete -> ProfileBlocker.HORIZON
             form.manual && form.typedGoal() == null -> ProfileBlocker.EMPTY_MACRO
@@ -164,12 +171,12 @@ internal data class ProfileUiState(
  */
 internal fun ProfileForm.toProfile(): UserProfile? = when {
     birthDate == null || sex == null -> null
-    heightCm == null || activityLevel == null -> null
+    heightCm == null || work == null -> null
     else -> UserProfile(
         birthDate = birthDate,
         sex = sex,
         heightCm = heightCm,
-        activityLevel = activityLevel,
+        activity = Activity(work = work, sessions = sessions),
     )
 }
 

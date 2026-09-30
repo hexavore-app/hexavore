@@ -32,8 +32,22 @@ data class ProfileEntity(
     val sex: String,
     @ColumnInfo(name = "height_cm")
     val heightCm: Double,
+    /**
+     * Le métier, désormais : `DESK`, `ON_FEET` ou `PHYSICAL`.
+     *
+     * **La colonne garde son nom** alors que son contenu a changé de sens
+     * ([D137][decisions]). La renommer aurait demandé de recréer la table pour un mot,
+     * et [docs/07][modele] préfère une colonne nullable à une table nouvelle, et une
+     * table nouvelle à un renommage — c'est le renommage qui casse les sauvegardes.
+     *
+     * [decisions]: docs/11-decisions.md
+     * [modele]: docs/07-modele-de-donnees.md
+     */
     @ColumnInfo(name = "activity_level")
     val activityLevel: String,
+    /** Les séances de sport par semaine, de 0 à 5. */
+    @ColumnInfo(name = "leisure_sessions")
+    val leisureSessions: Int,
     /** Affichage seulement. Le stockage est **toujours** métrique. */
     @ColumnInfo(name = "unit_system")
     val unitSystem: String,

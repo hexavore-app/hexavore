@@ -11,10 +11,12 @@ import app.hexavore.domain.goal.GoalId
 import app.hexavore.domain.goal.GoalOrigin
 import app.hexavore.domain.goal.GoalStrategy
 import app.hexavore.domain.nutrition.Macro
-import app.hexavore.domain.profile.ActivityLevel
+import app.hexavore.domain.profile.Activity
 import app.hexavore.domain.profile.Sex
 import app.hexavore.domain.profile.UserProfile
+import app.hexavore.domain.profile.WeeklySessions
 import app.hexavore.domain.profile.WeightEntry
+import app.hexavore.domain.profile.WorkActivity
 import app.hexavore.domain.usecase.CalculateDailyGoal
 import app.hexavore.domain.usecase.GoalRequest
 import app.hexavore.domain.usecase.ReviseGoal
@@ -309,7 +311,7 @@ internal class ProfileViewModelTest {
             birthDate = LocalDate.of(1991, 3, 4),
             sex = Sex.MALE,
             heightCm = 182.0,
-            activityLevel = ActivityLevel.MODERATE,
+            activity = Activity(WorkActivity.ON_FEET, WeeklySessions(3)),
         )
 
         val DEMANDE = GoalRequest(

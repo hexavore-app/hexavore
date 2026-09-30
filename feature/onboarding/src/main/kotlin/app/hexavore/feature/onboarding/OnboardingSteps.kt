@@ -24,8 +24,8 @@ import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.domain.goal.GoalHorizon
 import app.hexavore.domain.goal.GoalStrategy
 import app.hexavore.domain.nutrition.Macro
-import app.hexavore.domain.profile.ActivityLevel
 import app.hexavore.domain.profile.Sex
+import app.hexavore.domain.profile.WorkActivity
 import app.hexavore.domain.usecase.GoalPlan
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -89,6 +89,9 @@ internal fun WelcomeStep(answers: OnboardingAnswers, onAnswers: (OnboardingAnswe
 internal fun AboutYouStep(answers: OnboardingAnswers, today: LocalDate, onAnswers: (OnboardingAnswers) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
         StepTitle(stringResource(R.string.onboarding_you_title))
+        // **A l'endroit ou l'on commence a saisir**, et une seule fois : ce qu'on
+        // demande ici ne part nulle part, et personne n'a a le deviner (D137).
+        Body(stringResource(R.string.onboarding_privacy))
 
         NeonDateField(
             value = answers.birthDate,
@@ -127,24 +130,39 @@ internal fun AboutYouStep(answers: OnboardingAnswers, today: LocalDate, onAnswer
 }
 
 /**
- * **3. Activité.** Cinq niveaux, chacun décrit par un exemple concret.
+ * **3. Activité.** Deux questions : le métier, puis le sport.
  *
- * « Modérément actif » ne veut rien dire ; « sport 3 à 5 fois par semaine » se répond
- * en une seconde.
+ * **Une seule question mélangeait deux choses** ([D137][decisions]). Un maçon qui ne
+ * fait aucun sport dépense davantage qu'un cadre qui court trois fois par semaine, et
+ * les deux se reconnaissaient dans « modérément actif » : chacun choisissait au jugé.
+ *
+ * Le métier se dit par un exemple concret et non par un adjectif — « debout, sans
+ * porter de charge » se répond en une seconde. Le sport se compte en séances, ce qui
+ * ne demande de se comparer à personne.
+ *
+ * [decisions]: docs/11-decisions.md
  */
 @Composable
 internal fun ActivityStep(answers: OnboardingAnswers, onAnswers: (OnboardingAnswers) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
-        StepTitle(stringResource(R.string.onboarding_activity_title))
-        Body(stringResource(R.string.onboarding_activity_body))
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.xl)) {
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
+            StepTitle(stringResource(R.string.onboarding_work_title))
+            Body(stringResource(R.string.onboarding_work_body))
 
-        ActivityLevel.entries.forEach { level ->
-            NeonChip(
-                label = stringResource(level.labelRes),
-                selected = level == answers.activityLevel,
-                onClick = { onAnswers(answers.copy(activityLevel = level)) },
-                modifier = Modifier.fillMaxWidth(),
-            )
+            WorkActivity.entries.forEach { work ->
+                NeonChip(
+                    label = stringResource(work.labelRes),
+                    selected = work == answers.work,
+                    onClick = { onAnswers(answers.copy(work = work)) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
+            StepTitle(stringResource(R.string.onboarding_sessions_title))
+            Body(stringResource(R.string.onboarding_sessions_body))
+            SessionPicker(answers.sessions, onPick = { onAnswers(answers.copy(sessions = it)) })
         }
     }
 }
@@ -292,13 +310,11 @@ private val Sex.labelRes: Int
         Sex.UNSPECIFIED -> R.string.onboarding_sex_unspecified
     }
 
-private val ActivityLevel.labelRes: Int
+private val WorkActivity.labelRes: Int
     get() = when (this) {
-        ActivityLevel.SEDENTARY -> R.string.onboarding_activity_sedentary
-        ActivityLevel.LIGHT -> R.string.onboarding_activity_light
-        ActivityLevel.MODERATE -> R.string.onboarding_activity_moderate
-        ActivityLevel.ACTIVE -> R.string.onboarding_activity_active
-        ActivityLevel.VERY_ACTIVE -> R.string.onboarding_activity_very_active
+        WorkActivity.DESK -> R.string.onboarding_work_desk
+        WorkActivity.ON_FEET -> R.string.onboarding_work_on_feet
+        WorkActivity.PHYSICAL -> R.string.onboarding_work_physical
     }
 
 private val GoalStrategy.labelRes: Int
