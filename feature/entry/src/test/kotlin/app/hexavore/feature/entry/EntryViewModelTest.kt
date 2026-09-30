@@ -3,6 +3,7 @@ package app.hexavore.feature.entry
 import androidx.lifecycle.SavedStateHandle
 import app.hexavore.core.testing.FixedClock
 import app.hexavore.core.testing.FixedLanguage
+import app.hexavore.core.testing.InMemoryAiExchanges
 import app.hexavore.core.testing.InMemoryDiaryRepository
 import app.hexavore.core.testing.InMemoryDishPhotos
 import app.hexavore.core.testing.InMemoryFavoriteDishes
@@ -10,6 +11,7 @@ import app.hexavore.core.testing.InMemoryFoodCatalog
 import app.hexavore.core.testing.InMemoryGoals
 import app.hexavore.core.testing.InMemoryProfiles
 import app.hexavore.core.testing.InMemorySelectedDay
+import app.hexavore.core.testing.RecordedReports
 import app.hexavore.core.testing.SequentialIdGenerator
 import app.hexavore.domain.ai.EstimatedUnit
 import app.hexavore.domain.ai.EstimationOutcome
@@ -42,6 +44,7 @@ import app.hexavore.domain.usecase.OpenDraft
 import app.hexavore.domain.usecase.OpenDraftPhoto
 import app.hexavore.domain.usecase.ProposeFavoriteName
 import app.hexavore.domain.usecase.RemoveFavoriteDish
+import app.hexavore.domain.usecase.ReportAnalysis
 import app.hexavore.domain.usecase.ResolveFoodLabel
 import app.hexavore.domain.usecase.ResolveRecognition
 import app.hexavore.domain.usecase.SaveDraft
@@ -592,8 +595,13 @@ class EntryViewModelTest {
             proposeFavoriteName = ProposeFavoriteName(favoris),
             updateFavoriteDish = UpdateFavoriteDish(favoris, diary),
         ),
+        reporting = DraftReporting(ReportAnalysis(rapports), echanges, photos),
         clock = clock,
     )
+
+    /** Ce qu'un signalement aurait envoye : le vrai ouvrirait un courriel (D138). */
+    private val rapports = RecordedReports()
+    private val echanges = InMemoryAiExchanges()
 
     private val profils = InMemoryProfiles()
     private val photos = InMemoryDishPhotos()

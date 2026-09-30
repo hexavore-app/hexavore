@@ -153,6 +153,10 @@
 
     <!-- L'écran des fournisseurs. -->
     <string name="ai_title">Intelligence artificielle</string>
+    <!-- Ce que personne ne lit dans un paragraphe : c'est gratuit. La reponse qui
+         decide si quelqu'un configure une cle ou referme l'ecran (D138). -->
+    <string name="ai_free_title">%1$s est gratuit</string>
+    <string name="ai_free_body">Un palier gratuit couvre l\'usage courant : quelques analyses par jour ne coûtent rien. La clé se crée en quelques minutes, et aucune carte n\'est demandée.</string>
     <string name="ai_intro">Vos clés restent sur cet appareil, chiffrées par son trousseau. Les appels partent vers votre fournisseur, sans intermédiaire : Hexavore n\'a pas de serveur.</string>
 
     <!-- Le compteur d'usage. La date du releve accompagne le montant : docs/05 veut

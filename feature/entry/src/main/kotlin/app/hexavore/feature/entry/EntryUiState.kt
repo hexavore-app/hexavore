@@ -1,6 +1,7 @@
 package app.hexavore.feature.entry
 
 import app.hexavore.domain.diary.DraftImpact
+import app.hexavore.domain.diary.EntrySource
 import app.hexavore.domain.diary.PhotoFile
 import app.hexavore.domain.profile.UnitSystem
 import java.time.LocalDate
@@ -98,6 +99,19 @@ internal sealed interface EntryUiState {
             it.lines.isNotEmpty() && it.lines.all { l -> l.complete }
         }
         val saveable: Boolean get() = !saving && form.toDraft().saveable
+
+        /**
+         * Y a-t-il quelque chose à signaler ?
+         *
+         * **Seulement ce qu'un modèle a proposé.** Il n'y a rien à signaler d'une saisie
+         * qu'on a faite soi-même, ni d'un code-barres dont les valeurs viennent d'Open
+         * Food Facts : le bouton désignerait alors n'importe quoi, et il ne désignerait
+         * plus rien ([D138][decisions]).
+         *
+         * [decisions]: docs/11-decisions.md
+         */
+        val reportable: Boolean
+            get() = form.source == EntrySource.PHOTO_AI || form.source == EntrySource.TEXT_AI
 
         /**
          * `true` quand enregistrer **supprimerait** le plat, faute de ligne restante.

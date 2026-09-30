@@ -11,6 +11,7 @@ import app.hexavore.domain.ai.AiProvider
 import app.hexavore.domain.ai.ApiKey
 import app.hexavore.domain.ai.ProbeOutcome
 import app.hexavore.domain.ai.ProviderCredentials
+import app.hexavore.domain.ai.ProviderStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -258,14 +259,37 @@ internal class AiSettingsViewModelTest {
     }
 
     @Test
-    fun `la liste montre chaque fournisseur, configure ou non`() = runTest {
-        // L'ecran est ecrit contre l'enumeration : le deuxieme fournisseur apparaitra
-        // sans qu'une ligne d'affichage bouge.
+    fun `la liste ne montre que les fournisseurs eprouves`() = runTest {
+        // **Deux et non six** (D138). Le code des six existe et passe ses tests ; ce qui
+        // manque aux quatre autres est un appel reel avec une vraie cle. Les afficher
+        // grises revenait a poser six questions a quelqu'un qui n'en cherchait aucune.
         val viewModel = viewModel()
         advanceUntilIdle()
 
-        assertEquals(AiProvider.entries.size, viewModel.uiState.value.rows.size)
+        // Les memes, sans l'ordre : celui-ci a sa propre regle, et son propre cas.
+        val montres = viewModel.uiState.value.rows.map { it.provider }.toSet()
+        assertEquals(AiProvider.entries.filter { it.status != ProviderStatus.SUSPENDED }.toSet(), montres)
+    }
+
+    @Test
+    fun `le fournisseur gratuit vient en premier`() = runTest {
+        // C'est la seule information qui decide vraiment : quelqu'un qui decouvre se
+        // demande si la fonctionnalite va lui couter de l'argent.
+        val viewModel = viewModel()
+        advanceUntilIdle()
+
+        assertEquals(AiProvider.GEMINI, viewModel.uiState.value.rows.first().provider)
         assertNotNull(viewModel.uiState.value.rows.firstOrNull { it.provider == AiProvider.ANTHROPIC })
+    }
+
+    @Test
+    fun `aucun fournisseur affiche n est en reserve`() = runTest {
+        // La consequence du filtre, dite a part : une carte inerte ne peut plus arriver
+        // dans la liste, donc plus personne n'a a la griser.
+        val viewModel = viewModel()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.rows.none { it.suspended })
     }
 
     private fun viewModel() = AiSettingsViewModel(credentials, rejection, probe, usage)

@@ -178,7 +178,6 @@
     <string name="calendar_expand">Show the month</string>
     <string name="calendar_collapse">Back to the week</string>
 
-
     <!-- ===== Notices ==============================================================
          Each one designates a situation, never a message: it goes out when the situation
          ends, and none of them can be dismissed. The label says what there is to do,
@@ -209,4 +208,13 @@
     <string name="home_badge_first_photo">First photo</string>
     <string name="home_badge_first_text">First description</string>
     <string name="home_badge_first_favorite">First favourite</string>
+    <!-- Au lancement qui suit un plantage : sur le moment, la pile se deroule et
+         une boite ouverte depuis un gestionnaire d'exception ne marche qu'une fois
+         sur deux (D138). -->
+    <string name="crash_title">Hexavore closed on its own</string>
+    <string name="crash_body">A technical trace was kept. It holds none of your meals, your weight or your key: class names and line numbers. You can read it before sending it.</string>
+    <string name="crash_send">Send the report</string>
+    <string name="crash_decline">No thanks</string>
+    <string name="crash_subject">Hexavore closed on its own</string>
+    <string name="crash_intro">Here is the trace of the last crash.</string>
 </resources>

@@ -88,6 +88,7 @@ internal fun EntryRoute(
                 onFavorite = viewModel.favorite::save,
                 onUnfavorite = viewModel.favorite::remove,
                 onRemovePhoto = viewModel::onRemovePhoto,
+                onReport = { reportSubject, reportBody -> viewModel.onReport(reportSubject, reportBody) },
                 onRetry = viewModel::onRetry,
                 onClose = onClose,
             )

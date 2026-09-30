@@ -7,6 +7,7 @@ import app.hexavore.data.diary.RoomFoodCitations
 import app.hexavore.domain.diary.DiaryRepository
 import app.hexavore.domain.diary.DishPhotos
 import app.hexavore.domain.diary.FavoriteDishes
+import app.hexavore.domain.diary.PhotoBytes
 import app.hexavore.domain.food.FoodCitations
 import dagger.Module
 import dagger.Provides
@@ -72,4 +73,16 @@ object DiaryModule {
      */
     @Provides
     fun dishPhotos(files: DishPhotoFiles): DishPhotos = files
+
+    /**
+     * Les octets d'une photo, pour ce qui doit la transporter.
+     *
+     * **Le même adaptateur**, un second port : la séparation existe pour que les
+     * appelants ne dépendent que de ce qu'ils utilisent ([D138][decisions]) — le
+     * signalement lit des octets et ne range rien.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    @Provides
+    fun photoBytes(files: DishPhotoFiles): PhotoBytes = files
 }

@@ -4717,6 +4717,68 @@ Le seuil de longueur a mordu deux fois, et le découpage suit ce que les choses 
 
 ---
 
+## D138 — L'IA se tient mieux, et l'application sait dire ce qui a raté · ✓ validée
+
+**Contexte.** Trois défauts, tous constatés à l'usage, et tous du même côté — celui où un modèle rend une réponse dont personne ne peut vérifier la provenance.
+
+Une brochette de poulet, photographiée, commentée « brochette poulet » : le modèle a rendu **un saule**. Des aliments à **1 gramme** là où l'assiette en portait deux cents. Des tableaux nutritionnels **entiers à zéro**, ce qui fait un plat à zéro calorie et un objectif qui ne bouge pas.
+
+Et au-dessus de tout cela, rien pour le dire. Un défaut vu par quelqu'un d'autre que moi restait chez lui.
+
+### Le texte fait foi
+
+Le prompt d'extraction passe en `fr_v3` / `en_v2`, et trois règles s'y ajoutent.
+
+**Ce qui est écrit l'emporte sur ce qui est vu.** Une photo est ambiguë — une brochette de poulet et une brochette de dinde se ressemblent — mais un commentaire ne l'est pas : quelqu'un qui écrit « brochette poulet » *sait* ce qu'il a mangé. Le texte devient la contrainte, l'image le complément.
+
+**Un libellé nomme un aliment, pas une espèce.** Le saule vient de là : « saule » existe dans une table de composition, la ressemblance lexicale a suffi. Le prompt dit désormais que ce qu'on cherche se mange.
+
+**Rien ne reste vide, et une masse est une portion.** En dessous de **5 g**, ce n'est pas un aliment, c'est une erreur d'échelle.
+
+### Un garde-fou au retour, parce qu'un prompt n'est pas un contrat
+
+Le prompt demande ; il n'oblige pas. `PlausibleLine` relit donc ce qui revient, et ce qui est invraisemblable — une masse sous 5 g, un tableau dont **toutes** les valeurs sont à zéro — est marqué `estimated`.
+
+**Marqué, et non rejeté.** Une ligne fausse qu'on supprime laisse un plat incomplet et personne ne sait ce qui manquait ; une ligne fausse qu'on montre en « estimé » se corrige en deux taps. C'est déjà le traitement des valeurs devinées ([D28](#d28--une-valeur-devinée-se-dit---validée)) — il n'y avait rien à inventer, seulement à étendre ce qui déclenche la marque.
+
+### Deux fournisseurs, et le gratuit en premier
+
+Les fournisseurs non implémentés **disparaîssent** de l'écran au lieu d'y être grisés. Restent Gemini, en haut, et Claude en dessous. Un bandeau dit en grand et en gras que **Gemini est gratuit**.
+
+Quatre lignes grisées sur six donnaient l'impression d'une application à moitié finie, et surtout elles noyaient la seule chose à faire. La décision par défaut n° 19 disait « visibles mais grisés avec explication » : elle valait quand les six étaient à venir, elle ne vaut plus quand deux marchent.
+
+**L'ordre vient de `free`, pas d'une liste écrite à la main** : un fournisseur qui deviendrait gratuit remonterait tout seul.
+
+### Envoyer un rapport n'est pas de la télémétrie
+
+C'est le point délicat, parce que [01](01-perimetre.md#contraintes-fermes) interdit la télémétrie **crash reporting compris**, et que la décision par défaut n° 24 le redit.
+
+La contrainte porte sur ce qui part **sans qu'on le demande**. Ici, rien ne part de l'application : elle écrit un fichier, puis **ouvre une application de courriel préremplie**. Le destinataire est visible, le corps est relisible, la pièce jointe s'ouvre — et c'est un doigt humain qui appuie sur « envoyer ». Aucun réseau n'est touché par Hexavore.
+
+**Deux rapports, deux déclencheurs.**
+
+Le **plantage** s'écrit au moment où il arrive, dans `cache/reports/`, et se propose **au lancement suivant**. Pas sur le moment : la pile se déroule, le processus est condamné, et une boîte ouverte depuis un gestionnaire d'exception non rattrapée ne marche qu'une fois sur deux quand elle ne provoque pas un second plantage par-dessus le premier. Ce qui se fait sur le moment tient en une ligne : écrire la trace. La trace porte la version, l'Android, l'appareil et le fil — aucun repas, aucun poids, aucune clé.
+
+La **proposition d'IA incorrecte** se signale depuis l'édition qui suit l'analyse, par un bouton en forme d'insecte. Ce qui part est **ce que le mode debug montre déjà** : l'échange entier et la photo. Le corps du courriel y ajoute les lignes telles que l'écran les montrait, parce que c'est la seule chose que les pièces jointes ne disent pas — elles portent ce que le modèle a rendu, pas ce que la résolution en a fait.
+
+**Le bouton n'apparaît que sur ce qu'un modèle a proposé.** Il n'y a rien à signaler d'une saisie qu'on a faite soi-même.
+
+**La proposition de plantage ne revient pas.** Accepter ou refuser oublie la trace dans les deux cas : une question qui reviendrait à chaque lancement serait une punition pour un plantage dont on n'est pas l'auteur, et l'on finirait par ne plus la lire.
+
+**Le cache est balayé avant chaque rapport.** Des pièces jointes partagées par `FileProvider` restent lisibles tant que la permission court, et une pile de traces d'anciens plantages dans un dossier exposé n'a aucune raison d'exister.
+
+**Conséquences.** Un module `:integration:reports` naît, parce que c'est un adaptateur système — intentions, `FileProvider`, fichiers de cache — et que ni `:data:*` ni `:feature:*` n'en sont le lieu. Il porte sa propre sous-classe de `FileProvider` : deux fournisseurs de la même classe se heurtent à la fusion des manifestes.
+
+`DishPhotos` perd `bytesOf` au profit d'un port `PhotoBytes` : le seuil de méthodes a mordu, et lire des octets pour les faire **sortir** n'est pas la même chose que ranger, retrouver et balayer. Le même adaptateur porte les deux — la séparation existe pour que les appelants ne dépendent que de ce qu'ils utilisent.
+
+**Ce que le vert ne prouve pas.** **Que le saule ne reviendra pas.** Un prompt réduit une tendance, il ne la supprime pas ; c'est pourquoi le garde-fou existe à côté de lui, et pourquoi le bouton insecte existe à côté des deux.
+
+**Que 5 g soit le bon plancher.** Une pincée de safran pèse moins, et sera marquée à tort. Le compromis est assumé : une épice mal marquée coûte un tap, un plat à 1 g coûte une journée de comptage. La constante se change en un endroit.
+
+**Qu'un courriel arrive.** Sans application de messagerie configurée, il n'y a rien à faire, et l'échec est silencieux : un message d'erreur sur un bouton d'entraide serait un reproche de plus à quelqu'un qui rendait service.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.
@@ -4736,11 +4798,11 @@ Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la sp
 | 14 | Quantité par défaut au scan | Portion de l'emballage, sinon 100 g | [02](02-parcours-et-ecrans.md) |
 | 15 | Fournisseurs d'IA | Gemini, OpenAI, Anthropic, DeepSeek, Mistral + compatible | [05](05-ia.md#fournisseurs) |
 | 17 | Compteur de coût | Oui, estimation locale datée | [05](05-ia.md#coût) |
-| 19 | Sans clé API | Modes IA visibles mais grisés, avec explication | [02](02-parcours-et-ecrans.md#écran-dia) |
+| 19 | Sans clé API | ~~Modes IA visibles mais grisés~~ **Les fournisseurs non implémentés disparaîssent** ([D138](#d138--lia-se-tient-mieux-et-lapplication-sait-dire-ce-qui-a-raté---validée)) | [02](02-parcours-et-ecrans.md#écran-dia) |
 | 21 | Sauvegarde Drive | Quotidienne en Wi-Fi, chiffrement optionnel désactivé par défaut | [09](09-donnees-et-sauvegarde.md) |
 | 22 | Export local | JSON complet réimportable + CSV du journal | [09](09-donnees-et-sauvegarde.md#export-et-import-de-fichier) |
 | 23 | Versions de sauvegarde | 5, en rotation | [09](09-donnees-et-sauvegarde.md#rotation) |
-| 24 | Télémétrie | Aucune, y compris crash reporting | [01](01-perimetre.md#contraintes-fermes) |
+| 24 | Télémétrie | Aucune — un rapport ouvert à la main dans un courriel n'en est pas ([D138](#d138--lia-se-tient-mieux-et-lapplication-sait-dire-ce-qui-a-raté---validée)) | [01](01-perimetre.md#contraintes-fermes) |
 | 26 | Progression | Hexagone en tête, barres pour les valeurs — voir D33 | [08](08-design-system.md#macrohexagon) |
 | 27 | Langues | ~~Français et anglais dès la 1.0~~ **Livrées, et l'anglais est le repli** ([D129](#d129--langlais-est-le-repli-le-français-une-traduction-et-la-langue-est-une-donnée---validée)) | [01](01-perimetre.md#plateforme) |
 | 28 | Widget et notifications | Hors v1, widget en tête de la 1.1 | [10](10-qualite-et-livraison.md#feuille-de-route) |

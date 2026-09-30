@@ -116,4 +116,7 @@
     <string name="entry_error_body">L\'écriture n\'a pas abouti. Votre saisie est conservée telle quelle.</string>
     <string name="entry_error_retry">Réessayer</string>
 
+    <string name="entry_report">Signaler une proposition incorrecte</string>
+    <string name="entry_report_subject">Proposition d\'IA incorrecte</string>
+    <string name="entry_report_body">La proposition ci-dessous était fausse. L\'échange et la photo sont en pièce jointe.\n\nCe que l\'écran montrait :\n%1$s\n\nCe qui était faux :\n</string>
 </resources>

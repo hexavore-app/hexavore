@@ -174,7 +174,6 @@
     <string name="calendar_expand">Afficher le mois</string>
     <string name="calendar_collapse">Revenir à la semaine</string>
 
-
     <!-- ===== Pastilles ============================================================
          Chacune designe une situation, jamais un message : elle s'eteint quand la
          situation cesse, et aucune ne se rejette. Le libelle dit ce qu'il y a a faire,
@@ -205,4 +204,13 @@
     <string name="home_badge_first_photo">Première photo</string>
     <string name="home_badge_first_text">Première description</string>
     <string name="home_badge_first_favorite">Premier favori</string>
+    <!-- Au lancement qui suit un plantage : sur le moment, la pile se deroule et
+         une boite ouverte depuis un gestionnaire d'exception ne marche qu'une fois
+         sur deux (D138). -->
+    <string name="crash_title">Hexavore s\'est fermé seul</string>
+    <string name="crash_body">Une trace technique a été gardée. Elle ne contient ni vos repas, ni votre poids, ni votre clé : des noms de classes et des numéros de ligne. Vous pourrez la relire avant de l\'envoyer.</string>
+    <string name="crash_send">Envoyer le rapport</string>
+    <string name="crash_decline">Non merci</string>
+    <string name="crash_subject">Hexavore s\'est fermé seul</string>
+    <string name="crash_intro">Voici la trace du dernier plantage.</string>
 </resources>

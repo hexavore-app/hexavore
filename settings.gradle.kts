@@ -165,3 +165,10 @@ include(":feature:progress")
 // meme titre que la camera ou le reseau. Le domaine dit quels rappels courent et a
 // quelle heure ; comment cela survit a un redemarrage ne le regarde pas.
 include(":integration:reminders")
+
+// Les deux rapports par courriel : un plantage, une proposition d'IA incorrecte.
+//
+// Un :integration parce que c'est ce qu'il est -- une intention Android, un
+// fournisseur de fichiers, un gestionnaire d'exceptions. Le domaine sait seulement
+// qu'un rapport se propose, et que rien ne part sans un geste.
+include(":integration:reports")
