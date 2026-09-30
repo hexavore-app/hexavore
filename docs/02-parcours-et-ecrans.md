@@ -157,7 +157,7 @@ L'ordre est fixe. Un ordre adaptatif « selon vos habitudes » ferait bouger les
 
 **Chaque entrée de la feuille porte son nom et une ligne qui dit ce qu'elle ouvre.** Un glyphe seul se reconnaît, jamais ne s'explique : ★ et ⌗ occupaient la colonne sans dire où ils menaient avant qu'on y soit allé.
 
-**Sans clé d'IA**, le champ et l'appareil photo restent visibles et **expliquent à l'appui**, comme les boutons qu'ils remplacent. Le champ prend alors la forme d'un champ sans en être un : rien ne s'y tape, et le lecteur d'écran l'annonce comme indisponible plutôt que comme un endroit où écrire.
+**Sans clé d'IA**, le champ et l'appareil photo passent en **rouge** et expliquent à l'appui ([D136](11-decisions.md)). ~~Ils étaient gris.~~ Le gris disait « indisponible » sans dire qu'il y a quelque chose à faire, et personne n'allait le chercher. Le champ porte alors le texte qui le dit — « Configurez l'IA pour décrire vos repas » — et une marque d'alerte accompagne les deux, parce qu'une couleur ne travaille jamais seule.
 
 **Une phrase part sans avertissement**, comme depuis toujours : [05](05-ia.md) ne demande le consentement que pour une photo. L'attente se lit sur une ligne au-dessus du champ — la journée reste visible — et **l'annulation coupe réellement la requête**. Un échec laisse la phrase dans le champ et offre la saisie manuelle : un fournisseur en panne ne doit pas empêcher de noter son repas.
 
@@ -232,6 +232,8 @@ Trois zones, de haut en bas :
 **La prise de vue reste celle du système.** Un aperçu CameraX demanderait une seconde implémentation — la première sert le scan, qui analyse un flux en continu — pour un écran dont le seul travail est de remettre un JPEG. L'appareil du système apporte sa mise au point, son flash et son zoom, et il écrit directement dans notre cache. Le fichier temporaire est supprimé dans un bloc `finally`, que l'appel réussisse, échoue ou soit annulé ; il n'entre jamais dans la galerie.
 
 L'image est réduite (1024 px sur le côté long, JPEG qualité 80) avant l'envoi. **Annuler coupe réellement la requête** : ce qui n'est pas parti n'est pas facturé.
+
+**La touche du clavier referme, elle ne saute pas de ligne** ([D136](11-decisions.md)). Le champ en tient trois, mais on y précise une photo en une phrase, et la seule chose qu'on veuille ensuite est de voir le bouton d'analyse — que le clavier recouvre.
 
 **L'avertissement ne concerne que la photo.** Elle envoie une image de votre repas — et de ce qui l'entoure — à un tiers, et cela se dit une fois avant le premier envoi ([05](05-ia.md)). Une phrase tapée part sans avertissement : celui qui l'écrit sait exactement ce qu'il envoie.
 

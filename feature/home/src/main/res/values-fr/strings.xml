@@ -84,6 +84,7 @@
          l'application : c'est donc la barre elle-même, et non un bouton qui ouvre un
          écran. -->
     <string name="home_describe_label">Qu\'avez-vous mangé ?</string>
+    <string name="home_describe_locked">Configurez l\'IA pour décrire vos repas</string>
     <string name="home_send_description">Analyser ce repas</string>
     <string name="home_shoot">Photographier le repas</string>
     <string name="home_analysing">Analyse en cours…</string>

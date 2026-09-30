@@ -5,6 +5,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import app.hexavore.domain.concurrency.DispatcherProvider
 import app.hexavore.domain.language.LanguageSettings
+import app.hexavore.domain.reminder.PostedReminders
 import app.hexavore.domain.reminder.ReminderScheduler
 import app.hexavore.domain.reminder.ReminderSettings
 import app.hexavore.domain.usecase.SweepDishPhotos
@@ -42,6 +43,9 @@ class HexavoreApplication :
 
     @Inject
     lateinit var scheduler: ReminderScheduler
+
+    @Inject
+    lateinit var posted: PostedReminders
 
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
@@ -93,6 +97,9 @@ class HexavoreApplication :
             // seul si le processus a ete tue avant qu'il s'execute. Replacer ce qui
             // est deja place ne coute rien -- `REPLACE` y pourvoit (D134).
             runCatching { scheduler.reschedule(reminders.current()) }
+            // Ouvrir l'application rend caducs les rappels affiches : celui qui est la
+            // pour ouvrir l'ecran ou l'on note l'a entendu (D136).
+            runCatching { posted.clear() }
         }
     }
 }

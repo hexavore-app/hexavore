@@ -128,6 +128,22 @@ interface ReminderSettings {
 }
 
 /**
+ * Les rappels **déjà affichés**, et le seul geste qu'on leur demande.
+ *
+ * **Ouvrir l'application les rend caducs.** Un rappel dit *« il y a quelque chose à
+ * noter »* ; celui qui a ouvert l'écran où l'on note l'a entendu ([D136][decisions]).
+ * Vérifier au moment de sonner ne suffit pas : une notification vit bien plus longtemps
+ * que l'instant où elle est postée, et celle de 8 h avait l'air de se tromper pendant
+ * qu'on notait son petit-déjeuner à 8 h 29.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+fun interface PostedReminders {
+    /** Retire ce qui est affiché. Ne fait rien quand il n'y a rien. */
+    fun clear()
+}
+
+/**
  * Ce qui place les rappels dans le temps, hors de l'application.
  *
  * **Un port et non un appel direct** : planifier demande le système Android, et le

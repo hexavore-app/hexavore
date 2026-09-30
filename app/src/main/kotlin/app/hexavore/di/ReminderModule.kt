@@ -1,12 +1,14 @@
 package app.hexavore.di
 
 import app.hexavore.domain.diary.DiaryRepository
+import app.hexavore.domain.reminder.PostedReminders
 import app.hexavore.domain.reminder.ReminderScheduler
 import app.hexavore.domain.reminder.ReminderSettings
 import app.hexavore.domain.time.Clock
 import app.hexavore.domain.usecase.ChooseReminder
 import app.hexavore.domain.usecase.ObserveReminders
 import app.hexavore.domain.usecase.ShouldRemind
+import app.hexavore.integration.reminders.NotificationTray
 import app.hexavore.integration.reminders.WorkManagerReminders
 import dagger.Module
 import dagger.Provides
@@ -28,6 +30,9 @@ import dagger.hilt.components.SingletonComponent
 object ReminderModule {
     @Provides
     fun reminderScheduler(scheduler: WorkManagerReminders): ReminderScheduler = scheduler
+
+    @Provides
+    fun postedReminders(tray: NotificationTray): PostedReminders = tray
 
     @Provides
     fun observeReminders(settings: ReminderSettings): ObserveReminders = ObserveReminders(settings)
