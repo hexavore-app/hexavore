@@ -1,6 +1,7 @@
 package app.hexavore.feature.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
@@ -125,12 +127,7 @@ internal fun QuickEntryBar(actions: HomeActions, aiConfigured: Boolean, entry: Q
                 onExplain = { explaining = true },
                 modifier = Modifier.weight(1f),
             )
-            BarAction(
-                onClick = { if (aiConfigured) actions.onShoot() else explaining = true },
-                available = aiConfigured,
-            ) {
-                CameraGlyph(contentDescription = stringResource(R.string.home_shoot))
-            }
+            ShootAction(aiConfigured = aiConfigured, onShoot = actions.onShoot, onExplain = { explaining = true })
             BarAction(onClick = onMore, available = true) {
                 Icon(imageVector = Icons.Filled.Add, contentDescription = stringResource(R.string.home_more_ways))
             }
@@ -235,6 +232,32 @@ private fun FieldSlot(
 }
 
 /**
+ * L'appareil photo, et **ce qu'il devient sans clé**.
+ *
+ * Sorti du corps de la barre quand le seuil de longueur a mordu, et le découpage suit
+ * ce que les choses sont : un bouton qui change de sens selon qu'une clé existe, là où
+ * ce qui l'entoure est une ligne de trois éléments.
+ *
+ * La marque d'alerte est le second canal du rouge ([D136][decisions]) : une couleur ne
+ * porte jamais seule une information dans ce projet.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+@Composable
+private fun ShootAction(aiConfigured: Boolean, onShoot: () -> Unit, onExplain: () -> Unit) {
+    BarAction(onClick = { if (aiConfigured) onShoot() else onExplain() }, available = aiConfigured) {
+        CameraGlyph(contentDescription = stringResource(R.string.home_shoot))
+        if (!aiConfigured) {
+            Icon(
+                imageVector = Icons.Filled.Warning,
+                contentDescription = null,
+                modifier = Modifier.size(LockedMark),
+            )
+        }
+    }
+}
+
+/**
  * Le champ, et **la touche qui envoie**.
  *
  * Le clavier porte « envoyer » plutôt que « suivant » : il n'y a pas de champ suivant,
@@ -293,21 +316,31 @@ private fun MealField(initial: String, analysing: Boolean, onValueChange: (Strin
 private fun LockedField(onClick: () -> Unit) {
     val unavailable = stringResource(R.string.home_analyse_unavailable)
 
-    Box(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = FieldHeight)
             .clip(RoundedCornerShape(Radius.field))
-            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .background(MaterialTheme.colorScheme.errorContainer)
+            .border(LockedBorder, MaterialTheme.colorScheme.error, RoundedCornerShape(Radius.field))
             .clickable(onClick = onClick)
             .semantics { stateDescription = unavailable }
-            .padding(horizontal = Spacing.md, vertical = Spacing.md),
-        contentAlignment = Alignment.CenterStart,
+            .padding(horizontal = Spacing.md),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
+        // **La couleur ne travaille jamais seule** : l'icone est le second canal que le
+        // design system exige, et elle dit « il manque quelque chose » a qui ne
+        // distingue pas le rouge du gris (D136).
+        Icon(
+            imageVector = Icons.Filled.Warning,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.error,
+        )
         Text(
-            text = stringResource(R.string.home_describe_label),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            text = stringResource(R.string.home_describe_locked),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onErrorContainer,
         )
     }
 }
@@ -319,7 +352,13 @@ private fun LockedField(onClick: () -> Unit) {
  * s'apprend jamais ; un bouton inerte n'apprend rien non plus. C'est la règle que
  * [docs/02][parcours] pose pour les modes d'IA sans clé.
  *
+ * **Sans clé, il passe en rouge** et non plus en gris ([D136][decisions]). Le gris
+ * disait « indisponible » ; il ne disait pas qu'il manque quelque chose à faire, et
+ * personne n'allait le chercher. Le rouge le dit — et il vient avec une marque, parce
+ * qu'une couleur ne porte jamais seule une information dans ce projet.
+ *
  * [parcours]: docs/02-parcours-et-ecrans.md
+ * [decisions]: docs/11-decisions.md
  */
 @Composable
 private fun BarAction(onClick: () -> Unit, available: Boolean, content: @Composable () -> Unit) {
@@ -330,12 +369,12 @@ private fun BarAction(onClick: () -> Unit, available: Boolean, content: @Composa
             containerColor = if (available) {
                 MaterialTheme.colorScheme.secondaryContainer
             } else {
-                MaterialTheme.colorScheme.surfaceVariant
+                MaterialTheme.colorScheme.errorContainer
             },
             contentColor = if (available) {
                 MaterialTheme.colorScheme.onSecondaryContainer
             } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
+                MaterialTheme.colorScheme.onErrorContainer
             },
         ),
         content = { content() },
@@ -415,6 +454,12 @@ private val ActionSize: Dp = 48.dp
 
 /** La hauteur du champ compact : le faux champ a la même, pour que la barre ne saute pas. */
 private val FieldHeight: Dp = 48.dp
+
+/** Le contour du champ verrouille : assez epais pour se voir, assez fin pour n'etre pas une alarme. */
+private val LockedBorder: Dp = 1.dp
+
+/** La marque d'alerte posee sur le glyphe de l'appareil photo. */
+private val LockedMark: Dp = 14.dp
 
 /** Assez pour une phrase de repas, pas assez pour manger l'écran. */
 private const val TEXT_LINES = 4

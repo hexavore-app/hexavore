@@ -82,6 +82,7 @@
     <!-- The bottom bar. Writing what you ate is the most frequent gesture of the
          application, so it is the bar itself and not a button that opens a screen. -->
     <string name="home_describe_label">What did you eat?</string>
+    <string name="home_describe_locked">Set up AI to describe your meals</string>
     <string name="home_send_description">Analyse this meal</string>
     <string name="home_shoot">Photograph the meal</string>
     <string name="home_analysing">Analysing…</string>

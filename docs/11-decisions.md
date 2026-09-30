@@ -4623,6 +4623,42 @@ C'est la même exigence que [D107](#d107--une-pastille-désigne-une-situation-ja
 
 ---
 
+## D136 — Trois gestes qui manquaient à l'usage · ✓ validée
+
+**Contexte.** Trois défauts rapportés après quelques jours d'usage réel. Aucun n'est une panne ; tous les trois sont des endroits où l'application demande un effort qu'elle pourrait s'épargner.
+
+### La touche du clavier n'avait rien à fermer
+
+Le champ de précision de l'écran d'IA tient trois lignes, et la touche du clavier y sautait donc une ligne — la règle que [D45](#d45--un-champ-de-saisie-tient-son-texte-lui-même---validée) applique à tout champ multiligne du projet.
+
+Elle est juste pour un texte qu'on rédige. Elle ne l'est pas ici : on précise une photo en une phrase, et la seule chose qu'on veuille ensuite est **voir le bouton d'analyse**, que le clavier recouvre. La touche porte donc « terminé » et referme le clavier.
+
+C'est la seconde exception à cette règle, après la barre du bas ([D131](#d131--la-barre-du-bas-remplace-la-colonne-et-écrire-devient-le-geste---validée)) — et les deux disent la même chose : un champ dont on sait ce qui vient **après** doit y mener.
+
+### Une notification qui n'ouvrait rien, et qui avait l'air de se tromper
+
+Les rappels ne portaient aucune intention : les toucher ne faisait rien. Ils en portent une maintenant, et c'est celle du lanceur — demandée au gestionnaire de paquets plutôt qu'écrite en dur, parce que `:integration` ne connaît pas `:app` et qu'un rappel de repas sert à ouvrir l'écran où l'on note, pas à choisir un mode de saisie depuis l'écran de verrouillage.
+
+Le second symptôme paraît un défaut de logique et n'en est pas un : le rappel de 8 h a sonné à 8 h, alors que rien n'était noté. Il avait raison. Mais il **restait affiché** pendant qu'on notait son petit-déjeuner à 8 h 29, et il avait alors l'air de réclamer ce qui venait d'être fait.
+
+Vérifier au moment de sonner ne suffit donc pas : **une notification vit bien plus longtemps que l'instant où elle est postée.** Ouvrir l'application les efface toutes — celui qui a ouvert l'écran où l'on note a entendu le rappel, quoi qu'il vienne y faire.
+
+**Écarté.** *N'effacer que le rappel du moment concerné.* Il n'y en a qu'un à la fois en pratique, et choisir lequel effacer demanderait de savoir lequel a été vu — ce que personne ne sait.
+
+### Le gris ne disait pas qu'il manquait quelque chose
+
+Sans clé d'IA, le champ et l'appareil photo étaient **gris**. Le gris dit « indisponible » ; il ne dit pas *qu'il y a quelque chose à faire*, et personne n'allait le chercher. C'est tout l'échec de [D73](#d73--la-portion-de-la-fiche-lemporte-sur-le-forfait-et-la-densité-attend-son-auteur---validée) et de la décision par défaut n° 19 telles qu'elles étaient appliquées : visibles et tapables, oui — mais muettes.
+
+Ils passent en **rouge**, avec le texte qui dit quoi faire : « Configurez l'IA pour décrire vos repas ». C'est le premier endroit de l'application où le rouge sert à autre chose qu'une erreur de saisie, et c'est assumé : il ne manque pas une valeur, il manque **une capacité entière**.
+
+**La couleur ne travaille pas seule**, comme partout ici ([D25](#d25--lestimation-ia-se-signale-par-une-forme-pas-par-une-couleur---validée)) : une marque d'alerte accompagne le champ et se pose sur le glyphe de l'appareil photo. Quelqu'un qui ne distingue pas le rouge du gris voit la même chose que les autres.
+
+**Écarté.** *Une carte sur l'accueil, ou un bandeau permanent.* La carte s'oublie après la première fermeture ; le bandeau reproche en permanence un choix qu'on a le droit de faire. Le rouge est au seul endroit où il sert : celui où l'on vient d'essayer de s'en servir.
+
+**Ce que le vert ne prouve pas.** **Que le rouge ne soit pas lu comme une panne.** Il dit « il manque quelque chose à faire », et il pourrait se lire « l'application est cassée ». Le texte est ce qui les distingue, et il faudra le vérifier sur quelqu'un qui ouvre l'application pour la première fois.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

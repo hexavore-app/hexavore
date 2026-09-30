@@ -3,6 +3,7 @@ package app.hexavore.integration.reminders
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -84,6 +85,10 @@ internal class ReminderWorker @AssistedInject constructor(
             .setContentTitle(context.getString(reminder.title()))
             .setContentText(context.getString(reminder.body()))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            // **Elle ouvre l'application**, et c'est tout ce qu'on lui demande : un
+            // rappel de repas sert a ouvrir l'ecran ou l'on note, pas a choisir un mode
+            // de saisie depuis l'ecran de verrouillage (D136).
+            .setContentIntent(openApp())
             // Elle disparait quand on la touche : un rappel qu'il faut balayer une
             // seconde fois est un rappel de trop.
             .setAutoCancel(true)
@@ -102,6 +107,22 @@ internal class ReminderWorker @AssistedInject constructor(
                 NotificationManagerCompat.from(context).notify(reminder.ordinal, notification)
             }
         }
+    }
+
+    /**
+     * Ce que la notification ouvre : l'application, telle que le lanceur l'ouvre.
+     *
+     * **L'intention du lanceur plutôt qu'une classe nommée.** Ce module ne connaît pas
+     * `MainActivity` — il est un adaptateur, et `:integration` ne dépend jamais de
+     * `:app` — et la demander au gestionnaire de paquets donne exactement ce qu'un
+     * appui sur l'icône donnerait, y compris si l'activité de départ change un jour.
+     *
+     * `FLAG_IMMUTABLE` parce qu'Android 12 l'exige, et parce que rien ici n'a besoin
+     * que le système complète l'intention.
+     */
+    private fun openApp(): PendingIntent? {
+        val launch = context.packageManager.getLaunchIntentForPackage(context.packageName) ?: return null
+        return PendingIntent.getActivity(context, 0, launch, PendingIntent.FLAG_IMMUTABLE)
     }
 
     /**
