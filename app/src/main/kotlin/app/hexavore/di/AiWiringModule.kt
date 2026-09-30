@@ -2,8 +2,11 @@ package app.hexavore.di
 
 import android.util.Log
 import app.hexavore.BuildConfig
+import app.hexavore.domain.ai.FoodRecognizer
 import app.hexavore.domain.ai.InMemoryPendingRecognition
 import app.hexavore.domain.ai.PendingRecognition
+import app.hexavore.domain.usecase.AnalyseMeal
+import app.hexavore.domain.usecase.StageDishPhoto
 import app.hexavore.integration.ai.NetworkLog
 import dagger.Module
 import dagger.Provides
@@ -46,6 +49,18 @@ internal object AiWiringModule {
     @Provides
     @Singleton
     fun pendingRecognition(): PendingRecognition = InMemoryPendingRecognition()
+
+    /**
+     * L'analyse, **partagee par les deux endroits qui la declenchent**.
+     *
+     * L'ecran d'IA et la barre du bas envoient la meme chose au meme port ; le cas
+     * d'usage est ce qui les empeche de diverger ([D131][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    @Provides
+    fun analyseMeal(recognizer: FoodRecognizer, pending: PendingRecognition, stagePhoto: StageDishPhoto): AnalyseMeal =
+        AnalyseMeal(recognizer, pending, stagePhoto)
 
     @Provides
     @Singleton

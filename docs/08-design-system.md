@@ -315,6 +315,19 @@ Fond `surface` du thème sombre à **92 %**, encre `onSurface` du thème sombre.
 
 La forme appartient à l'appelant : coins hauts en 24 dp pour un panneau au ras du bas, 8 dp pour une pastille de conseil, pleine pour un bouton flottant.
 
+### `QuickEntryBar`
+
+La barre d'ajout de l'accueil ([D131](11-decisions.md)) : un champ de texte, un appareil photo, un « + ».
+
+- **Une `bottomBar` du `Scaffold`**, jamais une couche flottante. C'est ce qui lui fait réserver sa place : la page s'arrête au-dessus d'elle, une fois, pour tout l'écran — là où quatre boutons flottants obligeaient la page à se mesurer elle-même ([D130](11-decisions.md#d130--photographier-lapplication-a-trouvé-trois-défauts-que-les-tests-ne-voyaient-pas---validée)).
+- **Fond `surfaceContainerHigh`**, coins hauts en 16 dp et **carrée en bas** : les deux coins du bas tombent hors de l'écran, et les arrondir n'y découperait que deux triangles de fond.
+- **Trois éléments sur une ligne**, le champ prenant la place restante. Les deux boutons font 56 dp — la hauteur d'un champ, pour que la ligne s'aligne, et plus que la cible minimale parce qu'ils se visent d'un pouce.
+- **`imePadding` puis `navigationBarsPadding`**, dans cet ordre. La barre monte avec le clavier et ne garde la marge de la barre de navigation que tant qu'il est fermé ; inversées, les deux marges ajoutent une bande vide sous un clavier ouvert.
+- **Le champ est un `DraftTextField`** comme tous les champs du projet ([D45](11-decisions.md#d45--un-champ-de-saisie-tient-son-texte-lui-même---validée)). Il porte ici deux choses que le composant a apprises pour lui : la touche d'action du clavier — « envoyer », parce qu'il n'y a pas de champ suivant — et le bouton d'envoi **dans** le champ, qui n'apparaît que lorsqu'il y a quelque chose à envoyer.
+- **Sans clé d'IA**, le champ est remplacé par une surface de même forme, en `surfaceVariant`, cliquable et annoncée comme indisponible. Pas de pointillés : la forme en pointillés appartient à ce qui a été estimé ([D25](11-decisions.md#d25--lestimation-ia-se-signale-par-une-forme-pas-par-une-couleur---validée)), et un champ verrouillé n'est pas une valeur incertaine.
+
+---
+
 ---
 
 ## Espacement et formes

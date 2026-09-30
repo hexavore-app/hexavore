@@ -57,6 +57,17 @@ data class HomeActions(
      * [decisions]: docs/11-decisions.md
      */
     val onAnalyse: () -> Unit,
+    /**
+     * Ouvre l'écran d'IA **avec l'appareil photo déjà déclenché**.
+     *
+     * Distincte de [onAnalyse] malgré la même destination, parce que ce n'est pas la
+     * même intention : celui qui appuie sur l'appareil photo de la barre du bas a déjà
+     * demandé une photo, et lui présenter un cadre vide le lui ferait redemander
+     * ([D131][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val onShoot: () -> Unit,
     /** Ouvre la liste des plats favoris, pour en rejouer un. */
     val onOpenFavorites: () -> Unit,
     val onUndo: () -> Unit,
@@ -95,16 +106,21 @@ data class HomeActions(
 )
 
 /**
- * Les actions d'un ecran de journee, accueil ou jour passe.
+ * Les actions de l'accueil : ce que les routes ouvrent, ce que le modele fait.
  *
- * **Une seule construction pour les deux**, parce que ce sont les memes gestes sur le
- * meme contenu : supprimer une ligne, annuler, mettre en favori. Les recopier aurait
- * laisse les deux ecrans diverger au premier geste ajoute d'un seul cote.
+ * **Ecrite une fois, ici, et pas dans l'ecran qui l'appelle.** Elle datait des deux
+ * ecrans de journee ([D101][decisions] en a supprime un) et avait survecu sans
+ * appelant, pendant que [HomeRoute] en tenait une copie : les deux listes ont diverge
+ * au premier geste ajoute d'un seul cote, ce qui est exactement ce qu'elle existait
+ * pour empecher.
+ *
+ * [decisions]: docs/11-decisions.md
  */
 internal fun HomeRoutes.toActions(viewModel: HomeViewModel) = HomeActions(
     onAddDish = onAddDish,
     onScan = onScan,
     onAnalyse = onAnalyse,
+    onShoot = onShoot,
     onEditDish = onEditDish,
     onDeleteDish = viewModel::onDeleteDish,
     onUndo = viewModel::onUndo,

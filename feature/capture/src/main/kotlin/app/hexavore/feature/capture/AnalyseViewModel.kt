@@ -6,13 +6,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.hexavore.domain.ai.AiError
 import app.hexavore.domain.ai.AiSettings
-import app.hexavore.domain.ai.FoodRecognizer
-import app.hexavore.domain.ai.PendingRecognition
 import app.hexavore.domain.ai.PhotoConsent
 import app.hexavore.domain.ai.RecognitionInput
 import app.hexavore.domain.ai.RecognitionOutcome
-import app.hexavore.domain.diary.EntrySource
-import app.hexavore.domain.usecase.StageDishPhoto
+import app.hexavore.domain.usecase.AnalyseMeal
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -120,11 +117,9 @@ internal data class AnalyseUiState(
  */
 @HiltViewModel
 internal class AnalyseViewModel @Inject constructor(
-    private val recognizer: FoodRecognizer,
-    private val pending: PendingRecognition,
+    private val analyseMeal: AnalyseMeal,
     private val consent: PhotoConsent,
     private val settings: AiSettings,
-    private val stagePhoto: StageDishPhoto,
 ) : ViewModel() {
     private val state = MutableStateFlow(AnalyseUiState())
     val uiState: StateFlow<AnalyseUiState> = state.asStateFlow()
@@ -232,26 +227,17 @@ internal class AnalyseViewModel @Inject constructor(
         // Rien n'entoure cet appel : une annulation doit traverser. `onCancel` a deja
         // remis l'ecran en etat, et l'attraper ici pour ecrire un echec ferait revivre
         // un etat que l'utilisateur vient de quitter.
+        //
+        // Le rangement de la photo et le depot sont dans le cas d'usage, depuis que la
+        // barre du bas envoie la meme chose sans ouvrir d'ecran (D131).
         val outcome = when (val photo = shown.photo) {
-            null -> recognizer.recognize(RecognitionInput.Text(written))
-            else -> recognizer.recognize(RecognitionInput.Photo(photo.jpeg, written.ifBlank { null }))
-        }
-        val source = if (shown.photo == null) EntrySource.TEXT_AI else EntrySource.PHOTO_AI
-
-        if (outcome is RecognitionOutcome.Recognized) {
-            // La photo suit la proposition, et une description seule ecarte celle qui
-            // trainait : le depot n'a qu'un emplacement, et l'ecran de validation le
-            // lit sans savoir laquelle des deux analyses l'a rempli.
-            runCatching { stagePhoto(shown.photo?.jpeg) }
+            null -> analyseMeal(RecognitionInput.Text(written))
+            else -> analyseMeal(RecognitionInput.Photo(photo.jpeg, written.ifBlank { null }))
         }
 
         state.update { current ->
             when (outcome) {
-                is RecognitionOutcome.Recognized -> {
-                    pending.offer(outcome.recognition, source)
-                    current.copy(analysing = false, analysed = true)
-                }
-
+                is RecognitionOutcome.Recognized -> current.copy(analysing = false, analysed = true)
                 is RecognitionOutcome.Failed -> current.copy(analysing = false, error = outcome.error)
             }
         }

@@ -45,10 +45,6 @@
          totals, and a value left blank reads as zero there (D119). -->
     <string name="home_total_line">%1$s: %2$d</string>
 
-    <!-- A single button: it opens search, which also carries entry by hand. Scanning and
-         AI do not exist yet, and a button that opens nothing is not progress. -->
-    <string name="home_add_dish">Add</string>
-
     <!-- No deletion is immediately final. The bar speaks of the dish: it is the only
          thing the home screen deletes now that swiping changes the day, and its label
          announced a row even for a whole dish. -->
@@ -73,15 +69,29 @@
     <string name="home_dish_menu_favorite">Add to favourites</string>
     <string name="home_dish_menu_unfavorite">Remove from favourites</string>
 
-    <!-- The star opens the dishes you have already put together. An icon on its own:
-         "Add" stays the main gesture, and it is the one that carries a label. -->
-    <string name="home_open_favorites">Your favourite dishes</string>
-    <string name="home_scan">Scan a barcode</string>
+    <!-- The three other ways to add, under the "+". Each one carries its name and a
+         line that says what it opens: a glyph alone is recognised, never understood. -->
+    <string name="home_open_favorites">Favourites</string>
+    <string name="home_open_favorites_hint">Replay a dish you saved</string>
+    <string name="home_scan">Scan</string>
+    <string name="home_scan_hint">A barcode, and the product sheet with it</string>
+    <string name="home_add_by_hand">Add by hand</string>
+    <string name="home_add_by_hand_hint">Search the catalogue, or create the food yourself</string>
+    <string name="home_more_ways">Other ways to add</string>
 
-    <!-- A single AI button since D120: the two screens are now one. It stays visible
-         without a key, and dimmed: hidden, it is never learned; inert, it teaches
-         nothing either. Tapping it opens the explanation. -->
-    <string name="home_analyse">Analyse a meal with AI</string>
+    <!-- The bottom bar. Writing what you ate is the most frequent gesture of the
+         application, so it is the bar itself and not a button that opens a screen. -->
+    <string name="home_describe_label">What did you eat?</string>
+    <string name="home_send_description">Analyse this meal</string>
+    <string name="home_shoot">Photograph the meal</string>
+    <string name="home_analysing">Analysing…</string>
+    <string name="home_analyse_cancel">Cancel</string>
+    <!-- A provider that is down must never stop you from logging a meal. -->
+    <string name="home_analyse_manual">Add by hand</string>
+
+    <!-- Without a key, the field and the camera stay visible and explain when tapped:
+         hidden, they are never learned; inert, they teach nothing either (D73). The
+         dimming is invisible to a screen reader, hence this sentence. -->
     <string name="home_analyse_unavailable">unavailable, no AI key</string>
 
     <!-- What is missing, what it costs, and where to go. The button opens the AI section

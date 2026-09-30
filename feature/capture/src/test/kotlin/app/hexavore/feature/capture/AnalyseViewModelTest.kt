@@ -16,6 +16,7 @@ import app.hexavore.domain.ai.RecognitionInput
 import app.hexavore.domain.ai.RecognitionOutcome
 import app.hexavore.domain.ai.RecognizedItem
 import app.hexavore.domain.diary.EntrySource
+import app.hexavore.domain.usecase.AnalyseMeal
 import app.hexavore.domain.usecase.StageDishPhoto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -289,14 +290,16 @@ internal class AnalyseViewModelTest {
     fun `un second appui pendant l analyse ne repaie pas la meme demande`() = runTest {
         // Chaque appel se paie : un double tap acheterait deux fois la meme assiette.
         val viewModel = AnalyseViewModel(
-            recognizer = {
-                sent += it
-                awaitCancellation()
-            },
-            pending = pending,
+            analyseMeal = AnalyseMeal(
+                recognizer = {
+                    sent += it
+                    awaitCancellation()
+                },
+                pending = pending,
+                stagePhoto = stagePhoto,
+            ),
             consent = consent,
             settings = SETTINGS,
-            stagePhoto = stagePhoto,
         )
         viewModel.onText("un bol de riz")
 
@@ -316,17 +319,19 @@ internal class AnalyseViewModelTest {
         consent.given = true
         var coupe = false
         val viewModel = AnalyseViewModel(
-            recognizer = {
-                try {
-                    awaitCancellation()
-                } finally {
-                    coupe = true
-                }
-            },
-            pending = pending,
+            analyseMeal = AnalyseMeal(
+                recognizer = {
+                    try {
+                        awaitCancellation()
+                    } finally {
+                        coupe = true
+                    }
+                },
+                pending = pending,
+                stagePhoto = stagePhoto,
+            ),
             consent = consent,
             settings = SETTINGS,
-            stagePhoto = stagePhoto,
         )
         viewModel.onPhoto(JPEG)
         viewModel.onAnalyse()
@@ -352,11 +357,9 @@ internal class AnalyseViewModelTest {
     // --- Décor ------------------------------------------------------------------
 
     private fun viewModel() = AnalyseViewModel(
-        recognizer = recognizer,
-        pending = pending,
+        analyseMeal = AnalyseMeal(recognizer, pending, stagePhoto),
         consent = consent,
         settings = SETTINGS,
-        stagePhoto = stagePhoto,
     )
 
     /**

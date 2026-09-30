@@ -4350,6 +4350,58 @@ Le semis de démonstration porte de nouveau le lien vers le favori : 14 plats su
 
 ---
 
+## D131 — La barre du bas remplace la colonne, et écrire devient le geste · ✓ validée
+
+**Contexte.** L'accueil portait quatre boutons flottants empilés dans le coin inférieur droit : ✨ pour l'IA, ⌗ pour le scan, ★ pour les favoris, et « Ajouter » en bas. Chacun ouvrait un écran ; c'est l'écran, ensuite, qui demandait ce qu'on avait mangé.
+
+Le chemin le plus fréquent — décrire son repas en une phrase — coûtait donc **quatre gestes** : viser le bon glyphe dans une colonne, attendre l'écran d'IA, taper, appuyer sur « Analyser ». Le premier et le troisième ne décidaient rien. [01](01-perimetre.md#lintention) fait pourtant reposer tout le projet sur une seule question : *est-ce que ça rapproche ou éloigne du « manger noté en cinq secondes » ?*
+
+**Choix.** Une **barre d'ajout ancrée en bas**, sur toute la largeur, en trois éléments :
+
+| | Élément | Ce qu'il fait |
+|---|---|---|
+| — | **Champ de texte** | On écrit ce qu'on a mangé. L'analyse part depuis l'accueil, sans écran intermédiaire, et la validation s'ouvre pré-remplie. |
+| 📷 | **Appareil photo** | L'appareil du système s'ouvre tout de suite. La photo prise arrive dans l'écran d'IA, où une précision reste facultative. |
+| + | **Le reste** | Une feuille venant du bas : **Scanner**, **Ajouter à la main**, **Favoris**. |
+
+« Ajouter à la main » ouvre la recherche, qui porte déjà la création d'un aliment personnel : ce n'est pas un quatrième écran, c'est le nom que prend le repli quand il n'est plus le bouton principal.
+
+**Raison.** Le geste le plus fréquent devient le contenu de la barre, et non ce qu'un bouton ouvre. Décrire un repas passe de quatre gestes à deux — taper, valider — et le critère d'acceptation de [01](01-perimetre.md#critères-dacceptation-de-la-v1) y gagne le seul mode de saisie qui ne l'atteignait pas.
+
+Les trois modes qui restent ne sont pas cachés pour autant : ils sont à un geste, **et c'est le même geste pour les trois**. Ce que la colonne offrait — quatre cibles visibles en permanence — n'était pas gratuit : quatre glyphes empilés au-dessus du pouce, dont deux qu'on ne reconnaît qu'après les avoir essayés.
+
+**Ce qui ne change pas.** Sans clé d'IA, le champ et l'appareil photo restent **visibles et expliquent à l'appui** — ce que [02](02-parcours-et-ecrans.md#écran-dia) demande et que la décision par défaut n° 19 a tranché : caché, un mode ne s'apprend jamais ; inerte, il n'apprend rien non plus. Le champ prend alors la forme d'un champ sans en être un ; rien ne s'y tape, et le lecteur d'écran l'annonce comme indisponible.
+
+Une phrase part **sans avertissement**, comme avant : [05](05-ia.md) ne demande le consentement que pour une photo, parce que celui qui écrit sait exactement ce qu'il envoie. L'annulation coupe vraiment, pour la même raison qu'à l'écran d'IA — une requête abandonnée qu'on laisse courir se paie quand même.
+
+**Trois conséquences que la disposition entraîne d'elle-même.**
+
+*La page n'a plus à se mesurer.* [D130](#d130--photographier-lapplication-a-trouvé-trois-défauts-que-les-tests-ne-voyaient-pas---validée) avait corrigé les calories coupées en deux par les boutons flottants en faisant mesurer la colonne, puis en allongeant la page d'autant. Une `bottomBar` est une pièce de la structure : c'est le `Scaffold` qui lui réserve sa place, une fois, pour tout l'écran. Le `Spacer`, la mesure et le rappel de hauteur disparaissent.
+
+*La bulle des sources n'a plus rien à fuir.* [D122](#d122--un-quartier-touché-dit-ce-qui-la-rempli---validée) effaçait toute la colonne pendant qu'une bulle était ouverte, faute de quoi les boutons se posaient sur ses chiffres. Ancrée en bas, la barre n'est plus sur son chemin : on peut lire d'où vient une macro **et** noter un repas.
+
+*L'analyse descend dans le domaine.* Deux endroits la déclenchent désormais, donc `AnalyseMeal` existe : il reconnaît, range la photo, dépose la proposition, et **déduit la source de ce qui est parti** — une photo donne `PHOTO_AI`, une phrase `TEXT_AI`. Laisser chaque écran la nommer aurait permis à l'un des deux de se tromper, et [D32](#d32--la-source-appartient-au-plat-et-ne-change-jamais---validée) veut que l'origine d'un plat soit un fait, pas une déclaration.
+
+**Écarté.** *Envoyer sans écran de validation.* C'est le geste le plus court possible, et il casse la règle que [01](01-perimetre.md#lintention) pose en tête : l'IA propose, elle ne décide pas. Un plat faux écrit sans avoir été vu coûte plus cher que le tap qu'il économise.
+
+*Un champ qui cherche dans le catalogue quand aucune clé n'existe.* Le même champ ferait alors deux choses selon un état invisible. Il explique, et il n'y a qu'une chose à comprendre.
+
+*Garder « Ajouter » comme bouton étendu à côté de la barre.* C'était rendre à la recherche la place que le champ vient de prendre, pour le mode qui n'est plus le plus fréquent.
+
+*Un aperçu caméra à nous.* [D66](#d66--la-modale-de-scan-et-les-trois-modes-de-saisie-réunis-dans-le-graphe---validée) l'avait déjà écarté pour l'écran d'IA : l'appareil du système apporte sa mise au point, son flash et son zoom, et il écrit dans notre cache. Le bouton de la barre le déclenche à l'arrivée sur l'écran, une seule fois — le déclencheur rend la main à cet écran, qui se recompose, et sans ce garde-fou l'appareil se rouvrirait sur sa propre sortie.
+
+**Conséquences.** `DayActions` disparaît. `HomeRoutes` gagne deux sorties — `onShoot`, qui ouvre l'écran d'IA appareil photo armé, et `onProposal`, parce que **l'accueil est devenu un écran de capture** et qu'il lui faut la sortie que les quatre autres avaient déjà. `AnalyseDestination` porte un argument, et c'est le seul : il ne dit pas ce qu'on envoie, il dit par quoi on commence.
+
+`DraftTextField` apprend deux choses — la touche d'action du clavier, et ce qui se pose dans le champ à droite. Le défaut reste une règle : un champ d'une ligne emmène au champ suivant. La barre est le premier endroit où la touche a quelque chose à déclencher.
+
+`toActions` cesse d'être du code mort. Elle existait depuis les deux écrans de journée, [D101](#d101--laccueil-porte-une-date-et-lécran-journée-disparaît---validée) en a supprimé un, et personne ne l'appelait plus pendant que `HomeRoute` en tenait une copie — les deux listes avaient déjà divergé.
+
+**Ce que le vert ne prouve pas.** **Que la barre monte correctement avec tous les claviers.** `imePadding` puis `navigationBarsPadding` est l'ordre juste, et il se vérifie sur un appareil, pas dans un test JVM.
+
+**Que deux gestes valent mieux que quatre pour tout le monde.** C'est l'hypothèse de cette décision. Elle se juge à l'usage, et ce qui la contredirait — des phrases mal comprises parce qu'on écrit plus vite qu'on ne cadre — se verrait dans le taux de correction à l'écran de validation, qu'aucune télémétrie ne mesurera jamais ici.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

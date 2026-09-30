@@ -6,9 +6,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -35,7 +33,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.Dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.hexavore.core.designsystem.component.AdjustmentCard
@@ -64,6 +61,18 @@ fun HomeRoute(routes: HomeRoutes) {
     val dishStyle by viewModel.dishStyle.collectAsStateWithLifecycle()
     val noticeViewModel: NoticeViewModel = hiltViewModel()
     val notices by noticeViewModel.notices.collectAsStateWithLifecycle()
+    val quickEntry: QuickEntryViewModel = hiltViewModel()
+    val entryState by quickEntry.uiState.collectAsStateWithLifecycle()
+
+    // La proposition est deposee : l'accueil cede la place, exactement comme l'ecran
+    // d'IA le fait pour la sienne. `onNavigated` referme le drapeau, sans quoi revenir
+    // de la validation repartirait aussitot vers un depot qu'elle a vide.
+    LaunchedEffect(entryState.proposed) {
+        if (entryState.proposed) {
+            quickEntry.onNavigated()
+            routes.onProposal()
+        }
+    }
 
     HomeScreen(
         state = state,
@@ -79,6 +88,10 @@ fun HomeRoute(routes: HomeRoutes) {
         onBackToToday = { viewModel.onSelectDay(null) },
         onSelectDay = viewModel::onSelectDay,
         notices = notices,
+        entryState = entryState,
+        onSend = quickEntry::onSend,
+        onCancelEntry = quickEntry::onCancel,
+        onDismissEntryError = quickEntry::onDismissError,
         calendar = { expanded, onExpandedChange ->
             CalendarPane(
                 state = calendar,
@@ -94,24 +107,9 @@ fun HomeRoute(routes: HomeRoutes) {
                 onExpandedChange = onExpandedChange,
             )
         },
-        actions = remember(viewModel, routes) {
-            HomeActions(
-                onAddDish = routes.onAddDish,
-                onScan = routes.onScan,
-                onAnalyse = routes.onAnalyse,
-                onEditDish = routes.onEditDish,
-                onDeleteDish = viewModel::onDeleteDish,
-                onUndo = viewModel::onUndo,
-                onUndoExpired = viewModel::onUndoExpired,
-                onRetry = viewModel::retry,
-                onSetUpGoal = routes.onSetUpGoal,
-                onOpenSettings = routes.onOpenSettings,
-                onConfigureAi = routes.onConfigureAi,
-                onToggleFavorite = viewModel::onToggleFavorite,
-                onOpenFavorites = routes.onOpenFavorites,
-                onOpenWeight = routes.onOpenWeight,
-            )
-        },
+        // Construites la ou elles sont decrites, et non recopiees ici : les deux
+        // listes avaient deja diverge une fois.
+        actions = remember(viewModel, routes) { routes.toActions(viewModel) },
     )
 }
 
@@ -173,6 +171,17 @@ fun HomeScreen(
     /** Ce qui merite une pastille. Vide dans les apercus, qui n'ont rien a signaler. */
     notices: Set<Notice> = emptySet(),
     /**
+     * Ce que la barre du bas a en cours : une analyse, un echec, ou rien.
+     *
+     * L'accueil porte cet etat sans le produire : c'est [QuickEntryViewModel] qui
+     * envoie, et la barre qui l'affiche. L'ecran n'est ici qu'un chemin de passage --
+     * ce qui lui permet de se composer dans un apercu sans modele.
+     */
+    entryState: QuickEntryUiState = QuickEntryUiState(),
+    onSend: (String) -> Unit = {},
+    onCancelEntry: () -> Unit = {},
+    onDismissEntryError: () -> Unit = {},
+    /**
      * L'en-tete escamotable, ou rien.
      *
      * Un emplacement et non un composant : l'accueil n'a pas a connaitre le calendrier
@@ -204,13 +213,26 @@ fun HomeScreen(
     // voisins, le calendrier etant entre les deux.
     val swipe = rememberDaySwipe()
     val snackbarHostState = rememberUndoBar(pendingUndo, actions.onUndo, actions.onUndoExpired)
-    var actionsPx by remember { mutableStateOf(0) }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        floatingActionButton = { DayActions(actions, aiConfigured, visible = focus.macro == null) { actionsPx = it } },
+        // **Une barre du bas et non une couche flottante** (D131). Le `Scaffold` lui
+        // reserve sa place : la page s'arrete au-dessus d'elle, et les calories d'un
+        // plat ne se retrouvent plus coupees en deux par un bouton pose par-dessus.
+        // C'est aussi ce qui permet a la bulle des sources de rester ouverte pendant
+        // qu'on note -- la barre n'est plus sur son chemin.
+        bottomBar = {
+            QuickEntryBar(
+                actions = actions,
+                aiConfigured = aiConfigured,
+                state = entryState,
+                onSend = onSend,
+                onCancel = onCancelEntry,
+                onDismissError = onDismissEntryError,
+            )
+        },
     ) { padding ->
         Column(
             modifier = Modifier
@@ -237,7 +259,7 @@ fun HomeScreen(
                 onDay = onSelectDay,
                 modifier = Modifier.weight(1f),
             ) {
-                DayScroll(collapseOnScroll, dayScroll, with(LocalDensity.current) { actionsPx.toDp() }) {
+                DayScroll(collapseOnScroll, dayScroll) {
                     suggestion?.let {
                         AdjustmentCard(
                             suggestion = it,
@@ -246,23 +268,44 @@ fun HomeScreen(
                             onStop = { onAdjustment(AdjustmentResponse.STOP) },
                         )
                     }
-
-                    when (state) {
-                        HomeUiState.Loading -> Unit
-                        is HomeUiState.Content -> DayContent(
-                            content = state,
-                            style = dishStyle,
-                            actions = actions,
-                            focus = focus,
-                            favoriteNameTaken = favoriteNameTaken,
-                            onDismissFavoriteError = onDismissFavoriteError,
-                        )
-
-                        HomeUiState.Error -> UnreadableDay(actions.onRetry)
-                    }
+                    LoadedDay(state, dishStyle, actions, focus, favoriteNameTaken, onDismissFavoriteError)
                 }
             }
         }
+    }
+}
+
+/**
+ * Les trois états d'un journal : il charge, il montre, ou il n'a pas pu être lu.
+ *
+ * Sortie du corps de l'écran quand le seuil de longueur a mordu, et le découpage suit
+ * ce que les choses sont : trois issues d'une lecture, là où ce qui l'entoure est une
+ * mise en page.
+ *
+ * **Un échec de lecture se dit**, il ne s'affiche pas comme une journée vide : une
+ * journée vide est une affirmation, pas une absence de réponse.
+ */
+@Composable
+private fun LoadedDay(
+    state: HomeUiState,
+    dishStyle: DishDisplayStyle,
+    actions: HomeActions,
+    focus: MacroFocus,
+    favoriteNameTaken: Boolean,
+    onDismissFavoriteError: () -> Unit,
+) {
+    when (state) {
+        HomeUiState.Loading -> Unit
+        is HomeUiState.Content -> DayContent(
+            content = state,
+            style = dishStyle,
+            actions = actions,
+            focus = focus,
+            favoriteNameTaken = favoriteNameTaken,
+            onDismissFavoriteError = onDismissFavoriteError,
+        )
+
+        HomeUiState.Error -> UnreadableDay(actions.onRetry)
     }
 }
 
@@ -377,23 +420,21 @@ private fun rememberCalendarScroll(
  * avant lui et le refermait, alors que défiler *dans* le mois déplié doit le faire
  * défiler. La portée du geste est une affaire de disposition, pas de condition.
  *
- * **La page se termine par la place qu'occupent les boutons flottants.** Ils sont une
- * couche du `Scaffold`, donc dessinés par-dessus elle, et le `Scaffold` ne réserve
- * rien pour eux : la liste des plats défilait dessous, et leurs calories — alignées à
- * droite, dans la gouttière même de la colonne — se retrouvaient coupées en deux dès
- * qu'une journée portait des plats. Un bouton flottant qui passe au-dessus d'une liste
- * est normal ; une ligne qu'aucun défilement ne peut dégager ne l'est pas.
+ * **Elle ne réserve plus rien en bas**, depuis que la barre d'ajout est une `bottomBar`
+ * et non une couche flottante ([D131][decisions]). La colonne de boutons était dessinée
+ * par-dessus la page sans que le `Scaffold` lui garde de place : la liste des plats
+ * défilait dessous, et leurs calories — alignées à droite, dans la gouttière même de la
+ * colonne — se retrouvaient coupées en deux dès qu'une journée portait des plats.
+ * L'écran mesurait donc la colonne pour allonger la page d'autant. Une barre du bas est
+ * une pièce de la structure : c'est le `padding` du `Scaffold` qui la porte, une fois,
+ * pour tout l'écran.
  *
- * L'écart vient de [DayActions], qui mesure sa propre colonne. Il vaut zéro au
- * premier passage, avant que la mesure n'arrive, et la page n'en souffre pas : elle
- * est plus haute que l'écran de toute façon, donc ce qui change est la course du
- * défilement, jamais la position de ce qu'on lit.
+ * [decisions]: docs/11-decisions.md
  */
 @Composable
 private fun DayScroll(
     collapseOnScroll: NestedScrollConnection,
     scroll: ScrollState,
-    bottomInset: Dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
@@ -406,10 +447,6 @@ private fun DayScroll(
         verticalArrangement = Arrangement.spacedBy(Spacing.xl),
     ) {
         content()
-        // A la fin du contenu et non en marge du conteneur : une marge posee apres
-        // `verticalScroll` retrecirait la fenetre au lieu d'allonger ce qui defile,
-        // et le dernier chiffre resterait sous les boutons.
-        Spacer(modifier = Modifier.height(bottomInset))
     }
 }
 

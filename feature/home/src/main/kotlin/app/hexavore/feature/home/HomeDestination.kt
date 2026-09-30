@@ -27,6 +27,18 @@ data class HomeRoutes(
     val onAddDish: () -> Unit,
     val onScan: () -> Unit,
     val onAnalyse: () -> Unit,
+    val onShoot: () -> Unit,
+    /**
+     * Vers la validation, quand la barre du bas vient d'obtenir une proposition.
+     *
+     * **L'accueil devient un écran de capture** ([D131][decisions]), et il lui faut donc
+     * la sortie que les quatre autres avaient déjà. Elle ne porte rien : ce que le
+     * modèle a proposé attend dans le dépôt, parce qu'une route ne transporte pas cinq
+     * lignes.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val onProposal: () -> Unit,
     val onEditDish: (DishId) -> Unit,
     val onSetUpGoal: () -> Unit,
     val onOpenSettings: () -> Unit,

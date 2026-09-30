@@ -12,11 +12,12 @@ Onboarding (première ouverture uniquement)
                 │             ├─> Apparence
                 │             └─> À propos
                 ├─> Journal de poids
-                └─> [FAB] ─┬─> Scan code-barres      ┐
-                           ├─> Photo                 │ 4 modales
-                           ├─> Recherche             │ qui convergent
-                           └─> Texte libre           ┘ vers ↓
-                                                Validation d'entrée
+                └─> [Barre du bas] ─┬─> Champ de texte ──> (analyse)  ┐
+                                    ├─> Appareil photo ──> Écran d'IA │ tout converge
+                                    └─> [+] ─┬─> Scanner              │ vers ↓
+                                             ├─> Ajouter à la main    │
+                                             └─> Favoris              ┘
+                                                          Validation d'entrée
 ```
 
 Une seule règle structurante : **les quatre modes de saisie se rejoignent sur le même écran de validation**. Un seul composant à concevoir, à tester et à corriger, et un geste identique quel que soit le chemin emprunté.
@@ -125,20 +126,27 @@ Chaque ligne d'aliment — en détaillé — montre nom, quantité, calories. **
 - ~~**Balayage vers la gauche** → supprimer une ligne.~~ **Le balayage change de jour** ([D117](11-decisions.md)) : vers la gauche le lendemain, vers la droite la veille, le contenu suivant le doigt et s'arrêtant à aujourd'hui. Supprimer une ligne se fait en ouvrant le plat, où chaque ligne porte sa corbeille ; l'accueil ne supprime plus qu'un plat entier, par l'appui long, et la barre d'annulation reste offerte (5 s). Aucune suppression n'est immédiatement définitive.
 - **Appui long** → menu du plat : ~~dupliquer, déplacer vers un autre plat,~~ **Modifier**, **Supprimer** ([D61](11-decisions.md)). Supprimer emporte les *n* lignes d'un coup : un dialogue le demande d'abord et **dit le nombre**, puis la barre d'annulation reste offerte. « Modifier » double le tap volontairement — un menu dont la moitié des entrées manque oblige à se souvenir de quel geste sert à quoi. **Mettre en favori** / **Retirer des favoris** ([D62](11-decisions.md)) : mettre demande un nom, retirer n'en demande pas — le favori est déjà désigné par le plat. *Dupliquer et déplacer restent à faire.*
 
-### Bouton d'ajout
+### La barre d'ajout
 
-Une colonne de boutons flottants en bas à droite. ~~Un tap déploie quatre actions étiquetées, en arc.~~
+**En bas, sur toute la largeur, et en trois éléments** ([D131](11-decisions.md)). ~~Une colonne de boutons flottants en bas à droite.~~ ~~Un tap déploie quatre actions étiquetées, en arc.~~
 
-| | Action | Ouvre |
+| | Élément | Ce qu'il fait |
 |---|---|---|
-| ✨ | IA | Écran d'IA — une photo, une phrase, ou les deux |
-| ⌗ | Scanner | Modale code-barres |
-| ★ | Favoris | Liste des plats enregistrés |
-| — | **Ajouter** | Modale recherche, qui porte aussi la saisie manuelle |
+| — | **Champ de texte** | On y écrit ce qu'on a mangé. L'analyse part **depuis l'accueil**, sans écran intermédiaire ; la validation s'ouvre ensuite, pré-remplie. |
+| 📷 | **Appareil photo** | L'appareil du système s'ouvre tout de suite. La photo prise arrive dans l'écran d'IA, où une précision reste facultative. |
+| + | **Le reste** | Une feuille venant du bas : **Scanner** · **Ajouter à la main** (la recherche, qui porte aussi la création d'un aliment) · **Favoris**. |
 
-**Un seul bouton d'IA** ([D120](11-decisions.md)), là où « Photographier » et « Décrire » en occupaient deux : les deux modales ne différaient que par ce qu'elles envoyaient. La colonne y gagne la place qui manquait le plus, juste au-dessus du pouce.
+Le geste le plus fréquent — décrire son repas — est devenu le contenu de la barre et non ce qu'un bouton ouvre : il passe de quatre gestes à deux. Les trois autres modes ne sont pas cachés pour autant ; ils sont à un geste, **et c'est le même geste pour les trois**.
 
-L'ordre est fixe. Un ordre adaptatif « selon vos habitudes » ferait bouger les cibles sous le doigt et détruirait la mémoire musculaire — c'est exactement le contraire du but. « Ajouter » reste le seul à porter un libellé : c'est le geste principal.
+L'ordre est fixe. Un ordre adaptatif « selon vos habitudes » ferait bouger les cibles sous le doigt et détruirait la mémoire musculaire — c'est exactement le contraire du but.
+
+**Chaque entrée de la feuille porte son nom et une ligne qui dit ce qu'elle ouvre.** Un glyphe seul se reconnaît, jamais ne s'explique : ★ et ⌗ occupaient la colonne sans dire où ils menaient avant qu'on y soit allé.
+
+**Sans clé d'IA**, le champ et l'appareil photo restent visibles et **expliquent à l'appui**, comme les boutons qu'ils remplacent. Le champ prend alors la forme d'un champ sans en être un : rien ne s'y tape, et le lecteur d'écran l'annonce comme indisponible plutôt que comme un endroit où écrire.
+
+**Une phrase part sans avertissement**, comme depuis toujours : [05](05-ia.md) ne demande le consentement que pour une photo. L'attente se lit sur une ligne au-dessus du champ — la journée reste visible — et **l'annulation coupe réellement la requête**. Un échec laisse la phrase dans le champ et offre la saisie manuelle : un fournisseur en panne ne doit pas empêcher de noter son repas.
+
+**La barre monte avec le clavier.** Elle est une pièce de la structure et non une couche flottante : c'est elle qui borne la page, la liste des plats s'arrête au-dessus, et la bulle des sources n'a plus à la faire disparaître pour être lisible ([D122](11-decisions.md#d122--un-quartier-touché-dit-ce-qui-la-rempli---validée)).
 
 ---
 
@@ -177,6 +185,8 @@ La permission est demandée **à l'ouverture**, sans écran d'explication devant
 **Un seul écran pour la photo et pour le texte** ([D120](11-decisions.md)). Il remplace ~~la modale photo~~ et ~~la modale texte libre~~, qui suivaient le même pipeline, déposaient au même endroit, traduisaient les mêmes erreurs et sortaient au même écran : ce qui les distinguait tenait en une ligne de code.
 
 Trois zones, de haut en bas :
+
+**On y arrive de deux façons** ([D131](11-decisions.md)) : par l'appareil photo de la barre du bas — et l'appareil du système s'ouvre alors **sans qu'on le redemande**, une seule fois par arrivée, la photo prise atterrissant dans le cadre — ou par un échec qu'on vient corriger. Le champ de texte de la barre, lui, ne passe plus par ici : il analyse depuis l'accueil.
 
 1. **Le cadre de l'image**, et **dedans deux boutons ronds** — prendre une photo, choisir une image. Ce qu'on regarde et ce qui le change sont au même endroit. Vide, le cadre dit ce qu'on attend de lui : *« Photographiez l'assiette entière, de préférence vue de dessus — ou décrivez votre repas en dessous. »* C'est le conseil de cadrage que cette page voulait en surimpression d'un aperçu caméra, et il se lit mieux **avant** d'appuyer. Une croix retire la photo, ce qui permet de basculer vers le texte sans quitter l'écran.
 2. **Le champ de texte**, qui change de rôle selon le cadre : sans photo il **décrit** le repas, avec photo il le **précise** — *« l'assiette fait 24 cm »*, *« la sauce est allégée »*, le levier de justesse le moins coûteux qui existe. Son libellé le dit ; un champ qui demanderait « décrivez votre repas » sous une photo ferait tout retaper.
