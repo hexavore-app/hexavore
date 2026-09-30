@@ -9,6 +9,7 @@ import app.hexavore.domain.goal.Goals
 import app.hexavore.domain.nutrition.Macro
 import app.hexavore.domain.profile.Profiles
 import app.hexavore.domain.profile.UnitSystem
+import app.hexavore.domain.profile.WeeklySessions
 import app.hexavore.domain.profile.WeightLog
 import app.hexavore.domain.time.Clock
 import app.hexavore.domain.usecase.CalculateDailyGoal
@@ -164,7 +165,8 @@ internal class ProfileViewModel @Inject constructor(
             // Le poids vient du journal de pesees et non du profil : c'est la
             // derniere mesure connue qui entre dans le calcul.
             currentWeightKg = weight?.weightKg,
-            activityLevel = profile?.activityLevel,
+            work = profile?.activity?.work,
+            sessions = profile?.activity?.sessions ?: WeeklySessions.NONE,
             strategy = goal?.strategy,
             targetWeightKg = goal?.targetWeightKg,
             targetDate = goal?.targetDate,

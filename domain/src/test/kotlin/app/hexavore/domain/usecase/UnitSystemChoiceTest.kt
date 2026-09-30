@@ -1,10 +1,12 @@
 package app.hexavore.domain.usecase
 
 import app.hexavore.core.testing.InMemoryProfiles
-import app.hexavore.domain.profile.ActivityLevel
+import app.hexavore.domain.profile.Activity
 import app.hexavore.domain.profile.Sex
 import app.hexavore.domain.profile.UnitSystem
 import app.hexavore.domain.profile.UserProfile
+import app.hexavore.domain.profile.WeeklySessions
+import app.hexavore.domain.profile.WorkActivity
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -63,7 +65,7 @@ class UnitSystemChoiceTest {
         birthDate = LocalDate.of(1990, 5, 4),
         sex = Sex.MALE,
         heightCm = 178.0,
-        activityLevel = ActivityLevel.MODERATE,
+        activity = Activity(WorkActivity.ON_FEET, WeeklySessions(3)),
         unitSystem = system,
     )
 }

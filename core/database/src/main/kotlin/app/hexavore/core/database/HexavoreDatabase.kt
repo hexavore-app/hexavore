@@ -83,7 +83,7 @@ abstract class HexavoreDatabase : RoomDatabase() {
     abstract fun backupWriteDao(): BackupWriteDao
 
     companion object {
-        const val VERSION = 8
+        const val VERSION = 9
 
         const val NAME = "hexavore.db"
 
@@ -103,6 +103,7 @@ abstract class HexavoreDatabase : RoomDatabase() {
                 Migration5To6,
                 Migration6To7,
                 Migration7To8,
+                Migration8To9,
             )
 
         /**

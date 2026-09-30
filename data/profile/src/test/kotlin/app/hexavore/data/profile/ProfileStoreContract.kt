@@ -6,11 +6,13 @@ import app.hexavore.domain.goal.Goal
 import app.hexavore.domain.goal.GoalId
 import app.hexavore.domain.goal.GoalOrigin
 import app.hexavore.domain.goal.GoalStrategy
-import app.hexavore.domain.profile.ActivityLevel
+import app.hexavore.domain.profile.Activity
 import app.hexavore.domain.profile.Sex
 import app.hexavore.domain.profile.UnitSystem
 import app.hexavore.domain.profile.UserProfile
+import app.hexavore.domain.profile.WeeklySessions
 import app.hexavore.domain.profile.WeightEntry
+import app.hexavore.domain.profile.WorkActivity
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -269,7 +271,7 @@ abstract class ProfileStoreContract {
             birthDate = LocalDate.of(1991, 3, 4),
             sex = Sex.MALE,
             heightCm = TAILLE_CM,
-            activityLevel = ActivityLevel.MODERATE,
+            activity = Activity(WorkActivity.ON_FEET, WeeklySessions(3)),
             unitSystem = UnitSystem.METRIC,
         )
 
@@ -283,7 +285,7 @@ abstract class ProfileStoreContract {
             birthDate = LocalDate.of(1990, 12, 25),
             sex = Sex.UNSPECIFIED,
             heightCm = TAILLE_CORRIGEE_CM,
-            activityLevel = ActivityLevel.VERY_ACTIVE,
+            activity = Activity(WorkActivity.PHYSICAL, WeeklySessions(5)),
             unitSystem = UnitSystem.IMPERIAL,
         )
 

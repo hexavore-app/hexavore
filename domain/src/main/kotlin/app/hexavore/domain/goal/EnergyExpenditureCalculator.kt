@@ -34,7 +34,7 @@ object EnergyExpenditureCalculator {
 
     /** La dépense énergétique totale, exercice compris. */
     fun totalExpenditure(profile: UserProfile, weightKg: Double, on: LocalDate): Double =
-        basalRate(profile, weightKg, on) * profile.activityLevel.factor
+        basalRate(profile, weightKg, on) * profile.activity.factor
 
     private const val WEIGHT_FACTOR = 10.0
     private const val HEIGHT_FACTOR = 6.25

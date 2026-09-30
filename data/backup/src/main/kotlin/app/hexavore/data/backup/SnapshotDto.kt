@@ -42,6 +42,16 @@ internal data class ProfileDto(
     val sex: String,
     val heightCm: Double,
     val activityLevel: String,
+    /**
+     * Les séances de sport par semaine.
+     *
+     * Absente d'un fichier antérieur à [D137][decisions], et c'est exactement pourquoi
+     * elle a un défaut : `activityLevel` y porte alors un ancien niveau unique, que la
+     * relecture traduit en couple. Le format ne change donc pas de version.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val leisureSessions: Int? = null,
     val unitSystem: String,
 )
 

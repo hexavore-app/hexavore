@@ -19,9 +19,10 @@ import app.hexavore.core.designsystem.component.NeonDateField
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.domain.goal.GoalHorizon
 import app.hexavore.domain.goal.GoalStrategy
-import app.hexavore.domain.profile.ActivityLevel
 import app.hexavore.domain.profile.Sex
 import app.hexavore.domain.profile.UnitSystem
+import app.hexavore.domain.profile.WeeklySessions
+import app.hexavore.domain.profile.WorkActivity
 import app.hexavore.domain.usecase.GoalPlan
 import java.time.LocalDate
 import kotlin.math.abs
@@ -86,17 +87,34 @@ private fun YouSection(form: ProfileForm, today: LocalDate, units: UnitSystem, o
     }
 }
 
-/** **Votre activité.** Cinq niveaux, chacun décrit par un exemple concret. */
+/**
+ * **Votre activité.** Le métier, puis le sport.
+ *
+ * Deux questions là où il n'y en avait qu'une ([D137][decisions]) : un maçon sans sport
+ * dépense davantage qu'un cadre qui court trois fois par semaine, et les deux se
+ * reconnaissaient dans « modérément actif ».
+ *
+ * [decisions]: docs/11-decisions.md
+ */
 @Composable
 private fun ActivitySection(form: ProfileForm, onForm: (ProfileForm) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
-        SectionTitle(stringResource(R.string.profile_activity_title))
-        Body(stringResource(R.string.profile_activity_body))
+        Body(stringResource(R.string.profile_privacy))
+        SectionTitle(stringResource(R.string.profile_work_title))
+        Body(stringResource(R.string.profile_work_body))
         ChoiceColumn(
-            options = ActivityLevel.entries,
-            selected = form.activityLevel,
+            options = WorkActivity.entries,
+            selected = form.work,
             label = { stringResource(it.labelRes) },
-            onSelect = { onForm(form.copy(activityLevel = it)) },
+            onSelect = { onForm(form.copy(work = it)) },
+        )
+
+        SectionTitle(stringResource(R.string.profile_sessions_title))
+        ChoiceColumn(
+            options = (0..WeeklySessions.MAX_SESSIONS).map { WeeklySessions(it) },
+            selected = form.sessions,
+            label = { sessionLabel(it) },
+            onSelect = { onForm(form.copy(sessions = it)) },
         )
     }
 }

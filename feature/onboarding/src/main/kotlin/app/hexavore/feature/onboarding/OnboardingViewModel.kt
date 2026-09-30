@@ -8,12 +8,13 @@ import app.hexavore.domain.goal.GoalOrigin
 import app.hexavore.domain.goal.GoalStrategy
 import app.hexavore.domain.goal.Goals
 import app.hexavore.domain.identity.IdGenerator
-import app.hexavore.domain.profile.ActivityLevel
+import app.hexavore.domain.profile.Activity
 import app.hexavore.domain.profile.Profiles
 import app.hexavore.domain.profile.Sex
 import app.hexavore.domain.profile.UserProfile
 import app.hexavore.domain.profile.WeightEntry
 import app.hexavore.domain.profile.WeightLog
+import app.hexavore.domain.profile.WorkActivity
 import app.hexavore.domain.time.Clock
 import app.hexavore.domain.usecase.CalculateDailyGoal
 import app.hexavore.domain.usecase.GoalRequest
@@ -140,7 +141,7 @@ internal fun OnboardingAnswers.toProfile(today: LocalDate) = UserProfile(
     birthDate = birthDate ?: today.minusYears(DEFAULT_AGE),
     sex = sex ?: Sex.UNSPECIFIED,
     heightCm = heightCm ?: DEFAULT_HEIGHT_CM,
-    activityLevel = activityLevel ?: ActivityLevel.SEDENTARY,
+    activity = Activity(work = work ?: WorkActivity.DESK, sessions = sessions),
 )
 
 internal fun OnboardingAnswers.toRequest() = GoalRequest(

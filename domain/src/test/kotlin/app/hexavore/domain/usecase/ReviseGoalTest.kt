@@ -10,10 +10,12 @@ import app.hexavore.domain.goal.Goal
 import app.hexavore.domain.goal.GoalId
 import app.hexavore.domain.goal.GoalOrigin
 import app.hexavore.domain.goal.GoalStrategy
-import app.hexavore.domain.profile.ActivityLevel
+import app.hexavore.domain.profile.Activity
 import app.hexavore.domain.profile.Sex
 import app.hexavore.domain.profile.UserProfile
+import app.hexavore.domain.profile.WeeklySessions
 import app.hexavore.domain.profile.WeightEntry
+import app.hexavore.domain.profile.WorkActivity
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -155,11 +157,11 @@ class ReviseGoalTest {
     @Test
     fun `le profil corrige est enregistre, et le reste ne bouge pas`() = runTest {
         val goals = goals(objectifCourant())
-        val sedentaire = PROFIL.copy(activityLevel = ActivityLevel.SEDENTARY)
+        val sedentaire = PROFIL.copy(activity = Activity(WorkActivity.DESK))
 
         revise(goals, profile = sedentaire, daily = calculate(sedentaire, DEMANDE).goal)
 
-        assertEquals(ActivityLevel.SEDENTARY, profiles.saved?.activityLevel)
+        assertEquals(Activity(WorkActivity.DESK), profiles.saved?.activity)
         assertEquals(PROFIL.birthDate, profiles.saved?.birthDate, "le reste du profil n a pas bouge")
     }
 
@@ -209,7 +211,7 @@ class ReviseGoalTest {
             birthDate = LocalDate.of(1991, 3, 4),
             sex = Sex.MALE,
             heightCm = 182.0,
-            activityLevel = ActivityLevel.MODERATE,
+            activity = Activity(WorkActivity.ON_FEET, WeeklySessions(3)),
         )
 
         val DEMANDE = GoalRequest(

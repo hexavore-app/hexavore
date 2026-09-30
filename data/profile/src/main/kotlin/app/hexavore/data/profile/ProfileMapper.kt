@@ -8,11 +8,13 @@ import app.hexavore.domain.goal.Goal
 import app.hexavore.domain.goal.GoalId
 import app.hexavore.domain.goal.GoalOrigin
 import app.hexavore.domain.goal.GoalStrategy
-import app.hexavore.domain.profile.ActivityLevel
+import app.hexavore.domain.profile.Activity
 import app.hexavore.domain.profile.Sex
 import app.hexavore.domain.profile.UnitSystem
 import app.hexavore.domain.profile.UserProfile
+import app.hexavore.domain.profile.WeeklySessions
 import app.hexavore.domain.profile.WeightEntry
+import app.hexavore.domain.profile.WorkActivity
 import java.time.LocalDate
 
 /**
@@ -30,7 +32,7 @@ fun ProfileEntity.toDomain() = UserProfile(
     birthDate = LocalDate.parse(birthDate),
     sex = sex.toSex(),
     heightCm = heightCm,
-    activityLevel = activityLevel.toActivityLevel(),
+    activity = activityOf(activityLevel, leisureSessions),
     unitSystem = UnitSystem.entries.firstOrNull { it.name == unitSystem } ?: UnitSystem.METRIC,
 )
 
@@ -38,7 +40,8 @@ fun UserProfile.toEntity(now: Long) = ProfileEntity(
     birthDate = birthDate.toString(),
     sex = sex.name,
     heightCm = heightCm,
-    activityLevel = activityLevel.name,
+    activityLevel = activity.work.name,
+    leisureSessions = activity.sessions.count,
     unitSystem = unitSystem.name,
     createdAt = now,
     updatedAt = now,
@@ -46,8 +49,26 @@ fun UserProfile.toEntity(now: Long) = ProfileEntity(
 
 private fun String.toSex(): Sex = Sex.entries.firstOrNull { it.name == this } ?: Sex.UNSPECIFIED
 
-private fun String.toActivityLevel(): ActivityLevel =
-    ActivityLevel.entries.firstOrNull { it.name == this } ?: ActivityLevel.SEDENTARY
+/**
+ * L'activité : un métier et des séances, ou la traduction d'un ancien niveau unique.
+ *
+ * **Les deux colonnes se lisent ensemble**, et non chacune de son côté. Quand le métier
+ * n'en est pas un, la ligne vient d'avant [D137][decisions] : elle porte un niveau
+ * unique, et sa colonne de séances vaut zéro parce que personne ne l'a jamais remplie.
+ * Traduire le seul métier rendrait alors « debout, aucune séance » là où « modéré »
+ * en valait trois — et le facteur perdrait un dixième au passage.
+ *
+ * La migration a déjà réécrit les lignes existantes ; ce repli couvre ce qu'aucune
+ * migration ne couvre — un fichier bricolé, ou une base venue d'une version plus
+ * récente. Une lecture prudente vaut mieux qu'un profil refusé.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+private fun activityOf(work: String, sessions: Int): Activity {
+    val known = WorkActivity.entries.firstOrNull { it.name == work } ?: return Activity.ofLegacy(work)
+    // Hors plage, on ramene dans la plage : un profil ne se refuse pas pour un entier.
+    return Activity(known, WeeklySessions(sessions.coerceIn(0, WeeklySessions.MAX_SESSIONS)))
+}
 
 fun WeightEntryEntity.toDomain() = WeightEntry(date = LocalDate.parse(date), weightKg = weightKg)
 

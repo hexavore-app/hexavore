@@ -24,15 +24,21 @@
     <string name="onboarding_height">Taille (cm)</string>
     <string name="onboarding_weight">Poids actuel (kg)</string>
 
-    <!-- 3. Activité. Un exemple concret plutôt qu'un adjectif : « modérément actif »
-         ne veut rien dire, « sport 3 à 5 fois par semaine » se répond en une seconde. -->
-    <string name="onboarding_activity_title">Votre activité</string>
-    <string name="onboarding_activity_body">L\'exercice est compté ici, une fois pour toutes, et jamais ajouté au jour le jour.</string>
-    <string name="onboarding_activity_sedentary">Travail assis, peu ou pas de sport</string>
-    <string name="onboarding_activity_light">Sport léger 1 à 3 fois par semaine</string>
-    <string name="onboarding_activity_moderate">Sport 3 à 5 fois par semaine</string>
-    <string name="onboarding_activity_active">Sport 6 à 7 fois par semaine</string>
-    <string name="onboarding_activity_very_active">Métier physique, ou sport biquotidien</string>
+    <!-- Deux questions la ou il n'y en avait qu'une : un macon sans sport depense plus
+         qu'un cadre qui court, et les deux se reconnaissaient dans « modere ». -->
+    <!-- Dit une fois, a l'endroit ou l'on commence a saisir : ce qu'on demande ici
+         ne part nulle part, et personne n'a a le deviner. -->
+    <string name="onboarding_privacy">Tout ce que vous saisissez reste sur ce téléphone. Aucun compte, aucun serveur, rien qui parte chez qui que ce soit.</string>
+
+    <string name="onboarding_work_title">Votre journée de travail</string>
+    <string name="onboarding_work_body">Huit heures par jour, cinq jours sur sept : c\'est le socle, et il ne se devine pas depuis un nombre de séances.</string>
+    <string name="onboarding_work_desk">Assis la majeure partie du temps — bureau, conduite, études</string>
+    <string name="onboarding_work_on_feet">Debout, sans porter de charge — vente, service, enseignement</string>
+    <string name="onboarding_work_physical">Effort physique soutenu — bâtiment, manutention, agriculture</string>
+
+    <string name="onboarding_sessions_title">Et votre sport</string>
+    <string name="onboarding_sessions_body">Des séances par semaine, quelles qu\'elles soient. Comptées ici une fois pour toutes, jamais ajoutées au jour le jour.</string>
+    <string name="onboarding_sessions_max">%1$d et plus</string>
 
     <!-- 4. Objectif. -->
     <string name="onboarding_objective_title">Votre objectif</string>

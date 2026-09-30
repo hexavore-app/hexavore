@@ -23,13 +23,21 @@
     <!-- A weight reading is a dated fact: opening this screen does not create one. -->
     <string name="profile_weight_note">Correcting this weight records a reading dated today. Leaving it as it is invents none.</string>
 
-    <string name="profile_activity_title">Your activity</string>
-    <string name="profile_activity_body">Exercise is counted here, once and for all, and never added day by day.</string>
-    <string name="profile_activity_sedentary">Desk job, little or no sport</string>
-    <string name="profile_activity_light">Light sport 1 to 3 times a week</string>
-    <string name="profile_activity_moderate">Sport 3 to 5 times a week</string>
-    <string name="profile_activity_active">Sport 6 to 7 times a week</string>
-    <string name="profile_activity_very_active">Physical job, or sport twice a day</string>
+    <!-- Deux questions la ou il n'y en avait qu'une (D137). -->
+    <string name="profile_privacy">Everything on this screen stays on this phone. No account, no server, nothing sent to anyone.</string>
+    <string name="profile_work_title">Your working day</string>
+    <string name="profile_work_body">Eight hours a day, five days a week: this is the floor. Sport adds to it, and is counted here once and for all rather than day by day.</string>
+    <string name="profile_work_desk">Sitting most of the day — office, driving, studying</string>
+    <string name="profile_work_on_feet">On your feet, without carrying loads — shop, service, teaching</string>
+    <string name="profile_work_physical">Sustained physical effort — building, handling, farming</string>
+    <string name="profile_sessions_title">Sport sessions per week</string>
+    <string name="profile_sessions_none">None</string>
+    <string name="profile_sessions_max">%1$d and more</string>
+    <plurals name="profile_sessions">
+        <item quantity="one">%1$d session</item>
+        <item quantity="other">%1$d sessions</item>
+    </plurals>
+    <string name="profile_label_sessions">Sport</string>
 
     <string name="profile_objective_title">Your goal</string>
     <string name="profile_strategy_lose">Lose weight</string>
@@ -195,7 +203,6 @@
 
     <!-- An HTTP code never reaches the screen: every outcome has its message, and most
          have an action. -->
-
 
     <!-- ===== Backup ================================================================
          The project\'s guarantee of reversibility: an open format, an export that works,

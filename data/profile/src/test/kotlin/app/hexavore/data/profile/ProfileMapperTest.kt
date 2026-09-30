@@ -10,9 +10,11 @@ import app.hexavore.core.testing.SequentialIdGenerator
 import app.hexavore.core.testing.TestDispatchers
 import app.hexavore.domain.goal.GoalOrigin
 import app.hexavore.domain.goal.GoalStrategy
-import app.hexavore.domain.profile.ActivityLevel
+import app.hexavore.domain.profile.Activity
 import app.hexavore.domain.profile.Sex
 import app.hexavore.domain.profile.UnitSystem
+import app.hexavore.domain.profile.WeeklySessions
+import app.hexavore.domain.profile.WorkActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -72,11 +74,30 @@ class ProfileMapperTest {
     }
 
     @Test
-    fun `un niveau d activite inconnu retombe sur le plus bas`() = runBlocking {
+    fun `un metier inconnu retombe sur le plus bas`() = runBlocking {
         // Le moins engageant : sous-estimer la depense plutot que la surestimer.
-        ecrireProfil(activityLevel = "ATHLETE_OLYMPIQUE")
+        ecrireProfil(work = "ATHLETE_OLYMPIQUE", sessions = 0)
 
-        assertEquals(ActivityLevel.SEDENTARY, magasin.observeProfile().first()!!.activityLevel)
+        assertEquals(Activity(WorkActivity.DESK), magasin.observeProfile().first()!!.activity)
+    }
+
+    @Test
+    fun `un ancien niveau unique se traduit en couple`() = runBlocking {
+        // Une base migree n'en porte plus, mais un fichier bricole ou une version
+        // plus ancienne le peut : la lecture prudente vaut mieux qu'un profil refuse.
+        ecrireProfil(work = "MODERATE", sessions = 0)
+
+        assertEquals(
+            Activity(WorkActivity.ON_FEET, WeeklySessions(3)),
+            magasin.observeProfile().first()!!.activity,
+        )
+    }
+
+    @Test
+    fun `des seances hors plage reviennent dans la plage`() = runBlocking {
+        ecrireProfil(sessions = 99)
+
+        assertEquals(WeeklySessions.MAX_SESSIONS, magasin.observeProfile().first()!!.activity.sessions.count)
     }
 
     @Test
@@ -91,7 +112,7 @@ class ProfileMapperTest {
     fun `un profil dont toutes les enumerations sont inconnues reste lisible`() = runBlocking {
         // Le cas qui compte vraiment : trois replis a la fois, et le profil revient
         // quand meme. Planter ici rendrait l'application entiere inaccessible.
-        ecrireProfil(sex = "MARTIEN", activityLevel = "ATHLETE_OLYMPIQUE", unitSystem = "COUDEES")
+        ecrireProfil(sex = "MARTIEN", work = "ATHLETE_OLYMPIQUE", unitSystem = "COUDEES")
 
         val profil = magasin.observeProfile().first()!!
         assertEquals(TAILLE_CM, profil.heightCm, 0.0)
@@ -109,14 +130,16 @@ class ProfileMapperTest {
 
     private suspend fun ecrireProfil(
         sex: String = Sex.MALE.name,
-        activityLevel: String = ActivityLevel.MODERATE.name,
+        work: String = WorkActivity.ON_FEET.name,
+        sessions: Int = 3,
         unitSystem: String = UnitSystem.METRIC.name,
     ) = base.profileDao().upsert(
         ProfileEntity(
             birthDate = "1991-03-04",
             sex = sex,
             heightCm = TAILLE_CM,
-            activityLevel = activityLevel,
+            activityLevel = work,
+            leisureSessions = sessions,
             unitSystem = unitSystem,
             createdAt = INSTANT_MILLIS,
             updatedAt = INSTANT_MILLIS,

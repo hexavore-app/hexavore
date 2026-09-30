@@ -17,10 +17,12 @@ import app.hexavore.domain.goal.GoalId
 import app.hexavore.domain.goal.GoalOrigin
 import app.hexavore.domain.goal.GoalStrategy
 import app.hexavore.domain.nutrition.Macros
-import app.hexavore.domain.profile.ActivityLevel
+import app.hexavore.domain.profile.Activity
 import app.hexavore.domain.profile.Sex
 import app.hexavore.domain.profile.UserProfile
+import app.hexavore.domain.profile.WeeklySessions
 import app.hexavore.domain.profile.WeightEntry
+import app.hexavore.domain.profile.WorkActivity
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -343,7 +345,7 @@ class SuggestGoalAdjustmentTest {
             birthDate = LocalDate.of(1991, 3, 4),
             sex = Sex.MALE,
             heightCm = 182.0,
-            activityLevel = ActivityLevel.MODERATE,
+            activity = Activity(WorkActivity.ON_FEET, WeeklySessions(3)),
         )
     }
 }
