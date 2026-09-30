@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    La permission est declaree par le module qui en a besoin, et la fusion des
+    manifestes la porte jusqu'a l'APK : c'est ce que fait deja :integration:scanner
+    pour la camera.
+
+    Elle n'est demandee a l'execution que sur Android 13 et au-dela ; en dessous,
+    poster une notification ne demande rien. Aucune `uses-feature` ne l'accompagne :
+    tout appareil sait afficher une notification, et les rappels ne conditionnent
+    rien du reste de l'application (D134).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+</manifest>

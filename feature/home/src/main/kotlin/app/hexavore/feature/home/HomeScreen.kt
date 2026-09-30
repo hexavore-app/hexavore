@@ -6,7 +6,10 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -50,6 +53,10 @@ import java.time.LocalDate
 /** L'accueil, branché sur le graphe d'injection. */
 @Composable
 fun HomeRoute(routes: HomeRoutes) {
+    // La question des notifications, une fois, pour qui n'a pas vu l'onboarding la
+    // poser -- c'est-a-dire tous ceux qui utilisaient l'application avant (D135).
+    FirstRunNotificationRequest()
+
     val viewModel: HomeViewModel = hiltViewModel()
     val calendarViewModel: CalendarViewModel = hiltViewModel()
     val calendar by calendarViewModel.uiState.collectAsStateWithLifecycle()
@@ -205,7 +212,12 @@ fun HomeScreen(
     val snackbarHostState = rememberUndoBar(pendingUndo, actions.onUndo, actions.onUndoExpired)
 
     Scaffold(
-        modifier = modifier.fillMaxSize(),
+        // **C'est l'ecran entier qui remonte, pas la barre.** Poser la marge du clavier
+        // sur la seule barre la faisait monter d'une hauteur de clavier **au-dessus**
+        // de celui-ci : la fenetre s'etait deja retrecie, et la marge s'ajoutait a ce
+        // retrecissement. Ici, le contenu suit la barre, et il n'y a plus qu'un seul
+        // endroit qui connaisse le clavier (D135).
+        modifier = modifier.fillMaxSize().imePadding(),
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         // **Une barre du bas et non une couche flottante** (D131). Le `Scaffold` lui
@@ -228,7 +240,7 @@ fun HomeScreen(
             // Le titre et le calendrier ne defilent pas : docs/02 les veut fixes en
             // haut, et c'est aussi ce qui permet au mois deplie de defiler pour son
             // propre compte -- il n'est plus sous la connexion qui replie.
-            DayHeader(actions, day, today, swipe, onBackToToday, notices)
+            DayHeader(actions, day, today, swipe, onBackToToday, notices, progress)
             calendar(calendarExpanded) { calendarExpanded = it }
 
             // Le glissement porte sur ce qui defile, jamais sur le calendrier : celui-ci
@@ -243,10 +255,6 @@ fun HomeScreen(
                 modifier = Modifier.weight(1f),
             ) {
                 DayScroll(collapseOnScroll, dayScroll) {
-                    // En tete, au-dessus de l'hexagone : c'est ce qu'on voit sans
-                    // chercher, et c'est la que la serie a un effet (D133).
-                    ProgressStrip(progress = progress.progress, onOpen = progress.onOpen)
-
                     suggestion?.let {
                         AdjustmentCard(
                             suggestion = it,
@@ -446,6 +454,10 @@ private fun DayScroll(
         verticalArrangement = Arrangement.spacedBy(Spacing.xl),
     ) {
         content()
+        // Un peu d'air entre le dernier plat et la barre du bas. Le `Scaffold` reserve
+        // la place de la barre, pas celle du regard : les deux se touchaient, et le
+        // dernier plat semblait pose dessus (D135).
+        Spacer(modifier = Modifier.height(Spacing.sm))
     }
 }
 

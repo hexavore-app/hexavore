@@ -60,9 +60,22 @@ internal fun DayHeader(
     swipe: DaySwipeState,
     onBackToToday: () -> Unit,
     notices: Set<Notice> = emptySet(),
+    /**
+     * La progression, pour l'anneau de niveau.
+     *
+     * **Sans valeur par défaut, et c'est délibéré.** Elle en avait une — une progression
+     * vide —, et l'unique appelant l'a oubliée : l'anneau affichait le niveau 1 et ne
+     * répondait pas au doigt, parce qu'il montrait `Progress.NONE` et son `onOpen` vide.
+     * Rien ne le signalait, ni le compilateur ni un test d'écran qui n'existe pas. Un
+     * défaut sur un paramètre que tout appelant doit fournir ne protège de rien : il
+     * transforme un oubli en écran silencieusement faux ([D135][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    progress: ProgressPanel,
 ) {
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-        DayTitle(actions, day, today, swipe, notices)
+        DayTitle(actions, day, today, swipe, notices, progress)
         // Rien du tout quand on est aujourd'hui : un bouton grise qui ne fait rien
         // occuperait la place et poserait la question de ce qu'il fait la.
         AnimatedVisibility(visible = day != null) { TodayChip(onBackToToday) }
@@ -105,6 +118,7 @@ private fun DayTitle(
     today: LocalDate,
     swipe: DaySwipeState,
     notices: Set<Notice>,
+    progress: ProgressPanel,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -124,7 +138,12 @@ private fun DayTitle(
         )
         // Des icones seules, sans libelle : ce sont les portes les moins frequentees
         // de l'ecran, et le titre du jour doit rester ce qu'on lit en premier.
-        Row {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            // **Aujourd'hui seulement** : un niveau au-dessus d'une journee d'il y a
+            // trois semaines laisserait croire qu'il en parle (D135).
+            if (day == null || day == today) {
+                LevelRing(progress = progress.progress, onOpen = progress.onOpen)
+            }
             IconButton(onClick = actions.onOpenWeight) {
                 WithNoticeDot(
                     visible = Notice.WEIGHT_STALE in notices,

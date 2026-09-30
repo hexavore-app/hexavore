@@ -35,9 +35,23 @@ import java.time.temporal.ChronoUnit
  * - Pas de fournisseur qui serve → une clé enregistrée l'éteint.
  * - Clé refusée au dernier appel → une analyse qui aboutit l'éteint.
  * - Pas de pesée depuis [WEIGHT_SILENCE_DAYS] jours → une pesée l'éteint.
- * - Hier sans aucune ligne → une ligne notée sur hier l'éteint, et **le lendemain la
- *   déplace** plutôt que de l'accumuler : c'est toujours la veille du jour courant qui
- *   est regardée, jamais une liste de jours oubliés.
+ * - Hier vide **alors que l'avant-veille ne l'était pas** → une ligne notée sur hier
+ *   l'éteint, et le lendemain la déplace plutôt que de l'accumuler.
+ *
+ * ### Pourquoi la veille ne suffit pas à elle seule
+ *
+ * La règle disait d'abord « hier est vide », et elle s'allumait donc chez quelqu'un qui
+ * n'a jamais rien noté, chez celui qui vient d'installer l'application, et tous les
+ * jours chez celui qui a cessé de s'en servir ([D135][decisions]). Trois situations où
+ * il n'y a **rien à rattraper** : un oubli suppose une habitude, et une pastille qui
+ * réclame ce qu'on n'a jamais fait n'est plus un rappel mais un reproche.
+ *
+ * L'avant-veille est ce qui distingue l'oubli de l'abandon. Notée, elle dit que
+ * quelqu'un tenait son journal la veille encore : hier est alors un trou, et ce trou se
+ * rattrape en touchant la pastille. Vide, il n'y a pas de trou — il y a quelqu'un qui
+ * ne note pas, et ce n'est pas à une pastille de le lui dire.
+ *
+ * [decisions]: docs/11-decisions.md
  *
  * @see docs/02-parcours-et-ecrans.md
  */
@@ -54,8 +68,14 @@ class ObserveNotices(
         credentials.observe(),
         rejection.observe(),
         weights.observeLatest(),
-        diary.observeDay(clock.today().minusDays(1)),
-    ) { allumees, setup, refusee, pesee, hier ->
+        // Les deux journees d'un coup : la regle porte sur leur couple, et deux flux
+        // separes les auraient fait arriver l'une apres l'autre -- donc la pastille
+        // aurait clignote a chaque emission intermediaire.
+        diary.observeRange(clock.today().minusDays(2), clock.today().minusDays(1)),
+    ) { allumees, setup, refusee, pesee, veilles ->
+        val hier = veilles.filter { it.date == clock.today().minusDays(1) }
+        val avantHier = veilles.filter { it.date == clock.today().minusDays(2) }
+
         buildSet {
             if (setup.activeConfiguration() == null) add(Notice.AI_NOT_CONFIGURED)
             // **Une clé refusée n'a de sens que s'il y en a une.** Sans fournisseur
@@ -63,7 +83,9 @@ class ObserveNotices(
             // chose deux fois -- alors que le geste a faire est le meme.
             if (refusee && setup.activeConfiguration() != null) add(Notice.AI_KEY_REJECTED)
             if (pesee.isStale(clock.today())) add(Notice.WEIGHT_STALE)
-            if (hier.isEmpty()) add(Notice.YESTERDAY_EMPTY)
+            // Un trou, et non un arret : l'avant-veille notee est ce qui dit qu'il y
+            // avait une habitude a laquelle hier manque.
+            if (hier.isEmpty() && avantHier.isNotEmpty()) add(Notice.YESTERDAY_EMPTY)
         }.intersect(allumees)
     }
 }

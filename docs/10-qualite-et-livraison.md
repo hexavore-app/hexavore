@@ -313,6 +313,7 @@ Ordre choisi pour qu'une version utilisable existe le plus tôt possible, et que
 | **0.3** | IA photo et texte, fournisseurs, résolution, écran de validation | La fonctionnalité différenciante |
 | **0.4** | Calendrier étendu, journée passée, journal de poids, adaptation hebdomadaire | Le suivi dans la durée |
 | **0.5** | Sauvegarde Drive, export/import, chiffrement optionnel | Les données deviennent sûres |
+| **0.7** | Barre d'ajout, progression, rappels — l'*Addictive update* ([D131](11-decisions.md) à [D135](11-decisions.md)) | Noter un repas tient en deux gestes, et quelque chose ramène le lendemain |
 | **1.0** | Accessibilité, ~~traduction anglaise~~ *(livrée, [D129](11-decisions.md#d129--langlais-est-le-repli-le-français-une-traduction-et-la-langue-est-une-donnée---validée))*, tests d'image, `LICENSE`, `CONTRIBUTING` | Application finie, distribuée en APK via GitHub Releases |
 | **1.1** | Widget, favoris avancés, contribution à Open Food Facts | |
 | **Play** | Domaine, politique de confidentialité, formulaire Data Safety, compte développeur, 12 testeurs pendant 14 jours | Étape distincte et facultative, déclenchée quand l'application le mérite — voir D14 dans [11](11-decisions.md) |

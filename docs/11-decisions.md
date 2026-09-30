@@ -4504,6 +4504,125 @@ Un seizième module, `:feature:progress`, pour l'écran qui déplie les paliers.
 
 ---
 
+## D134 — Les rappels se taisent quand ils n'ont rien à dire · ✓ validée
+
+**Contexte.** [D107](#d107--une-pastille-désigne-une-situation-jamais-un-message---validée) posait une règle nette : *rien ne sort de l'application*. Pas de notification système, pas de permission demandée, pas de travail de fond. Elle ajoutait sa propre condition de révision — *« le jour où l'une d'elles devra sonner sur l'écran de verrouillage, ce sera une autre décision, avec une permission à demander, une politique de fréquence à écrire, et un utilisateur à ne pas fâcher »*.
+
+Ce jour est arrivé. Une pastille se voit en **ouvrant** l'application ; elle ne peut donc rien pour quelqu'un qui ne l'ouvre pas, c'est-à-dire exactement celui que l'abandon guette.
+
+**Choix.** Quatre rappels, dont trois de repas et un de fin de journée.
+
+| | Rappel | Par défaut |
+|---|---|---|
+| 🍳 | Petit-déjeuner | 8 h 00 |
+| 🍽 | Déjeuner | 12 h 30 |
+| 🌙 | Dîner | 19 h 30 |
+| ⚡ | Série en jeu | 21 h 00 |
+
+**Tous allumés d'office**, heures réglables, chacun désactivable — le raisonnement des pastilles, appliqué à quelque chose qui coûte plus cher.
+
+**La contrepartie, et c'est elle qui rend la dépense tenable : aucun rappel ne sonne s'il n'a rien à dire.** Le rappel du déjeuner se tait quand le déjeuner est déjà noté ; celui de la série se tait quand la journée est notée, ou quand aucune série ne court. Un rappel qui sonne tous les jours à la même heure quoi qu'on fasse devient prévisible, donc ignoré, puis **coupé au niveau du système** — et l'on perd alors le canal entier, y compris celui qui aurait servi.
+
+La question se pose **au moment de sonner**, jamais au moment de planifier : un rappel placé la veille ne peut pas savoir ce qui sera noté à midi.
+
+**Le moment vient de `momentIn`**, celui-là même qui nomme les plats de l'accueil ([D118](#d118--un-plat-porte-un-titre-et-cest-le-nom-que-le-favori-propose---validée)). Refaire la règle ici aurait donné un rappel qui se tait pour un plat que l'écran nomme autrement.
+
+**Écarté.** *`AlarmManager` et l'alarme exacte.* Elle sonnerait à la minute, et demande depuis Android 12 la permission `SCHEDULE_EXACT_ALARM`, que Google n'accorde qu'aux applications dont l'alarme **est** la fonction — un réveil, un agenda. Une application de nutrition ne l'obtiendrait pas, et la demander ferait refuser la publication. Elle n'est pas nécessaire : un rappel de déjeuner à 12 h 35 ne coûte rien.
+
+*Un travail périodique.* `PeriodicWorkRequest` n'accepte pas d'heure mais un intervalle : « toutes les 24 h » glisserait à chaque décalage du système et finirait par sonner n'importe quand. Un **travail unique qui replanifie le suivant** recalcule à chaque fois — ce qu'il faut de toute façon, puisque l'heure se règle et qu'un jour de changement d'heure fait vingt-trois ou vingt-cinq heures.
+
+*Un rappel pour le goûter.* Il n'est pas un repas que tout le monde prend, et un rappel qui ne concerne pas la moitié des gens est un rappel qu'on désactive — avec les trois autres.
+
+*Quatre canaux de notification.* Ils laisseraient couper le déjeuner sans couper le dîner, ce que les réglages de l'application font déjà — en mieux, puisqu'ils déplacent aussi l'heure. Un canal par rappel ferait deux endroits qui disent la même chose, dont un que l'application ne voit pas.
+
+**Il se replanifie avant de décider s'il sonne**, et dans tous les cas — même quand il se tait, même quand la permission manque. Un rappel qui ne se replanifierait qu'après avoir sonné s'éteindrait définitivement le premier jour où il n'a rien à dire, c'est-à-dire le jour où tout va bien.
+
+**La permission se demande au dernier geste de l'onboarding.** Au démarrage, elle arriverait avant qu'on sache à quoi elle sert : on la refuse, et Android ne la redemande plus. Plus tard, elle n'arriverait jamais. Après les cinq questions et l'écran des six objectifs, quelqu'un comprend ce qu'un rappel de repas viendra faire. Elle ne bloque rien : accordée ou refusée, on arrive à l'accueil.
+
+**Conséquences.** Un dix-septième module, `:integration:reminders` — un adaptateur vers le système, au même titre que la caméra ou le réseau. Le domaine dit quels rappels courent et à quelle heure ; comment cela survit à un redémarrage ne le regarde pas.
+
+`ChooseReminder` tient les deux gestes ensemble : régler **replace** dans le temps. Les séparer aurait marché une fois ; le jour où un second écran règle un rappel, il en oublie un.
+
+Les rappels partagent le fichier de préférences des pastilles : les deux répondent à la même question — *de quoi l'application a-t-elle le droit de me parler* — et l'écran des réglages les montre ensemble, en disant ce qui les distingue. Les unes se voient en ouvrant l'application, les autres sonnent dehors.
+
+L'initialiseur par défaut de `WorkManager` est retiré du manifeste : il construit sa configuration avant que Hilt soit prêt, et un `@HiltWorker` recevrait alors une fabrique qui ne sait rien de ses dépendances.
+
+**Ce que le vert ne prouve pas.** **Qu'un rappel arrive.** Rien de tout cela ne s'éprouve sans un téléphone qui dort, se réveille, et sur lequel le fabricant a posé sa propre politique d'économie d'énergie. C'est le domaine où les constructeurs Android divergent le plus.
+
+**Que le silence soit assez fréquent.** La règle est écrite et testée ; savoir si elle suffit à ne pas agacer demande des semaines d'usage, et aucune télémétrie ne le dira ici.
+
+---
+
+## D135 — Ce que l'usage a trouvé en une soirée · ✓ validée
+
+**Contexte.** L'*Addictive update* installée sur un vrai téléphone, et parcourue par son auteur. Sept défauts en sont sortis, dont un vieux de plusieurs versions. Aucun n'était visible depuis les tests : `./gradlew check` était vert avant, pendant et après — comme pour [D130](#d130--photographier-lapplication-a-trouvé-trois-défauts-que-les-tests-ne-voyaient-pas---validée), ce qui les a trouvés est quelqu'un qui se sert de l'application.
+
+### Modifier un favori échouait, pour tout le monde, depuis toujours
+
+« Enregistrement impossible, écriture non aboutie, saisie conservée telle quelle » — à chaque tentative.
+
+Un brouillon porte un lien vers le favori dont il vient, et ce lien **tombe dès qu'une ligne bouge** ([D62](#d62--un-favori-est-un-modèle-vivant-et-létoile-est-son-seul-interrupteur---validée)). C'est juste pour un plat rejoué : corriger une quantité en fait un plat à soi, plus le modèle. Mais l'éditeur de favori lisait ce même lien pour savoir **quoi** réécrire — or toucher une ligne *est* le geste qu'on vient y faire. Il exigeait donc qu'on n'ait rien modifié pour enregistrer une modification.
+
+L'identifiant vient maintenant de **la route**, où il ne bouge pas. Deux choses distinctes qui s'écrivaient pareil : *« ce plat vient de ce modèle »* et *« c'est ce modèle que je corrige »*. La première a le droit de tomber, la seconde non.
+
+**Ce qui l'avait caché :** les cas couvraient l'enregistrement d'un favori — où le lien vient d'être posé et n'a pas bougé — jamais la modification d'un favori **après retouche**, c'est-à-dire le seul chemin qui existe dans l'application. Deux cas le gardent désormais.
+
+### L'animation d'un palier se rejouait à chaque retour sur l'accueil
+
+Ouvrir l'écran de progression, revenir : la gerbe repartait, pour un palier obtenu la semaine d'avant.
+
+Le flux de progression s'arrête faute d'observateur quand on quitte l'accueil, et repart quand on y revient. Sa première émission repassait par la file de célébration, et un palier dont l'animation n'était pas allée au bout — ce qui arrive dès qu'on navigue pendant — y retombait.
+
+Le modèle retient maintenant ce qu'il a déjà **fêté**, et marque **avant** de montrer plutôt qu'après l'animation : ce qui compte est qu'un palier ne passe qu'une fois par là, pas que sa gerbe soit allée au bout. Une mémoire de session suffit, et c'est la bonne portée — un palier rangé ne peut plus retomber au lancement suivant, puisque le calcul le voit dans le dépôt.
+
+### Le niveau parlait d'aujourd'hui au-dessus d'une journée d'il y a trois semaines
+
+Le bandeau de [D133](#d133--une-journée-parfaite-penche-du-côté-de-lobjectif-et-la-lueur-ne-suffisait-plus---validée) s'affichait sur toutes les journées, y compris en remontant l'historique. Une progression est une chose du **présent** : posée au-dessus d'un jour passé, elle laissait croire qu'elle en parlait.
+
+Il ne paraît plus que sur aujourd'hui, et il a changé de forme : un **anneau de 44 dp dans la ligne du titre**, le numéro de niveau au centre, la fraction vers le suivant sur le pourtour. Une barre horizontale a besoin de largeur pour dire quelque chose ; un anneau dit la même fraction dans le gabarit d'une pastille de calendrier, et son centre est libre — c'est là que va le chiffre, qui devient ce qu'on lit d'abord.
+
+**En `primary` et non dans une teinte de macro** : les six teintes désignent les six compteurs, et en emprunter une ferait croire à un septième.
+
+### La barre du bas montait deux fois sous le clavier
+
+`imePadding()` puis `navigationBarsPadding()`, empilés, **s'additionnent** : la barre montait de la hauteur du clavier **plus** celle de la barre de navigation, qui est pourtant dessous.
+
+La première correction — prendre la plus grande des deux — n'a pas suffi, et l'essai sur l'appareil l'a montré : la barre restait bien trop haute. La marge du clavier posée sur la **seule barre** s'ajoute au rétrécissement que la fenêtre a déjà appliqué, et la barre monte alors d'une hauteur de clavier **au-dessus** de celui-ci.
+
+C'est donc **l'écran** qui remonte, d'un seul `imePadding()` sur le `Scaffold` — un seul endroit connaît le clavier, et le contenu suit la barre. Celle-ci ne garde que la marge de la barre de navigation, `exclude(ime)` la retranchant quand le clavier la recouvre.
+
+**Et le champ descend à 48 dp.** Material en réserve 56, dont le haut est occupé par le libellé flottant : juste dans un formulaire, où il dit ce que la ligne attend une fois remplie ; de trop dans une barre qui n'a qu'un champ et qu'on voit en permanence. Il devient un texte d'invite qui s'efface à la première lettre. Le champ compact est bâti sur `BasicTextField` et la boîte de décoration de Material — `OutlinedTextField` n'expose pas sa marge intérieure, et son plancher est justement ce qu'on cherchait à descendre.
+
+**Le champ passe à quatre lignes.** Une phrase de repas en fait souvent deux ou trois, et un champ d'une seule ligne les faisait défiler horizontalement : on écrivait sans voir le début de ce qu'on écrivait.
+
+**Et la barre au repos maigrit** : boutons à 48 dp — la cible tactile minimale du projet — et marges verticales réduites. C'est ce qu'on voit en permanence au-dessus du pouce ; les huit dp gagnés rendent à la page une ligne de plat entière.
+
+### Le dernier plat touchait la barre
+
+Le `Scaffold` réserve la place de la barre, pas celle du regard : les deux se touchaient, et le dernier plat semblait posé dessus. Un espace en fin de page, et rien de plus.
+
+### La permission de notifier n'arrivait jamais chez ceux qui en avaient le plus besoin
+
+L'onboarding la demande au dernier geste ([D134](#d134--les-rappels-se-taisent-quand-ils-nont-rien-à-dire---validée)), et il ne se rejoue pas : quiconque utilisait Hexavore **avant** que les rappels existent ne la verrait jamais, et ses quatre rappels seraient restés muets sans que rien ne le dise.
+
+L'accueil la pose donc à la première ouverture, **une fois**, et le souvenir de l'avoir posée est rangé avec les réglages de rappel. Notée avant d'ouvrir la boîte plutôt qu'après la réponse : quelqu'un qui balaie la boîte sans répondre n'a rien accordé, mais la question lui a bien été posée.
+
+### La pastille de la veille réclamait à ceux qui n'avaient rien commencé
+
+« Hier est vide » s'allumait chez quelqu'un qui n'a jamais rien noté, chez celui qui vient d'installer l'application, et **tous les jours** chez celui qui a cessé de s'en servir. Trois situations où il n'y a rien à rattraper : un oubli suppose une habitude, et une pastille qui réclame ce qu'on n'a jamais fait n'est plus un rappel mais un reproche.
+
+La règle porte désormais sur **un couple de journées** : hier vide **et** l'avant-veille notée. L'avant-veille est ce qui distingue l'oubli de l'abandon — notée, elle dit que quelqu'un tenait son journal la veille encore, donc qu'hier est un trou, et un trou se rattrape en touchant la pastille.
+
+C'est la même exigence que [D107](#d107--une-pastille-désigne-une-situation-jamais-un-message---validée) posait déjà : une pastille désigne une **situation**, et « cette personne ne note pas » n'en est pas une.
+
+**Conséquences.** Les deux journées se lisent d'un seul flux et non de deux : la règle porte sur leur couple, et deux flux séparés les auraient fait arriver l'une après l'autre — donc la pastille aurait clignoté à chaque émission intermédiaire.
+
+**Ce que le vert ne prouve pas.** **Que la barre se comporte bien avec tous les claviers.** `union` est la règle juste, et elle se vérifie sur un appareil — c'est d'ailleurs ainsi que le défaut a été trouvé.
+
+**Qu'il n'en reste que sept.** Une soirée d'usage sur un seul téléphone, par une seule personne, qui connaît l'application.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

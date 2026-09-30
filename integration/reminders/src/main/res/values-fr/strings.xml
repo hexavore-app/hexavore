@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="fr">
+
+    <!-- Un seul canal pour les quatre rappels. Quatre laisseraient couper le déjeuner
+         sans couper le dîner, ce que les réglages de l\'application font déjà mieux. -->
+    <string name="reminder_channel">Rappels de repas</string>
+    <string name="reminder_channel_description">Un rappel quand un repas n\'a pas été noté, et un le soir quand une série est en jeu.</string>
+
+    <!-- Chacun ne sonne que s\'il a encore quelque chose à dire : le rappel du déjeuner
+         se tait dès que le déjeuner est noté. -->
+    <string name="reminder_breakfast_title">Petit-déjeuner ?</string>
+    <string name="reminder_breakfast_body">Rien de noté ce matin pour l\'instant.</string>
+    <string name="reminder_lunch_title">Déjeuner ?</string>
+    <string name="reminder_lunch_body">Une phrase suffit — Hexavore fait le reste.</string>
+    <string name="reminder_dinner_title">Dîner ?</string>
+    <string name="reminder_dinner_body">Votre journée touche à sa fin. Une dernière saisie ?</string>
+
+    <!-- Le seul qui parle de la progression, et le seul qui ait quelque chose à perdre.
+         Toujours sans reproche : il dit ce qui est en jeu, pas ce qu\'on a manqué. -->
+    <string name="reminder_streak_title">Votre série est en jeu</string>
+    <string name="reminder_streak_body">Rien de noté aujourd\'hui. Un plat suffit à la garder.</string>
+
+</resources>

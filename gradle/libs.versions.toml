@@ -26,11 +26,15 @@ jvmToolchain = "17"
 
 # --- Identite de l'application ------------------------------------------------
 # applicationId verrouille a la premiere publication Play : docs/10-qualite-et-livraison.md.
-versionName = "0.6.0"
-# 2 et non 1 : le code 1 est parti a la Console par erreur, et un code televerse ne se
-# reprend pas, meme sur une release qu'on supprime. Le nom de version, lui, ne bouge
-# pas -- c'est le meme contenu.
-versionCode = "2"
+versionName = "0.7.0"
+# Un code televerse ne se reprend jamais, meme sur une release supprimee : la Console
+# refuse tout bundle qui ne monte pas. Le 1 et le 2 sont donc partis pour de bon -- le
+# premier par erreur, le second avec le contenu de la 0.6.0.
+#
+# 3 porte l'Addictive update : la barre du bas, la progression et les rappels (D131 a
+# D135). Le nom de version monte avec lui, parce que le contenu change, la ou la 0.6.0
+# avait garde le sien pour un simple changement de code.
+versionCode = "3"
 
 # --- Bibliotheques ------------------------------------------------------------
 androidxCore = "1.15.0"
@@ -54,6 +58,14 @@ navigation = "2.8.4"
 room = "2.6.1"
 hilt = "2.53.1"
 hiltNavigationCompose = "1.2.0"
+
+# Le travail planifie des rappels (D134). WorkManager et non AlarmManager : un
+# rappel de repas n'a pas besoin d'etre a la minute, et l'alarme exacte demande
+# depuis Android 12 une permission speciale que le Play Store n'accorde pas a une
+# application de nutrition. `hilt-work` est ce qui permet a un worker de recevoir
+# ses cas d'usage par injection, comme n'importe quelle autre classe du projet.
+work = "2.9.1"
+hiltWork = "1.2.0"
 
 # Retrofit 2 et OkHttp 4, pas les paliers 3 et 5 : ces deux-la vont ensemble et
 # demandent une chaine de construction plus recente que celle que D15 a fixee sur
@@ -160,6 +172,10 @@ androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hilt-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+androidx-work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
+androidx-work-testing = { module = "androidx.work:work-testing", version.ref = "work" }
+androidx-hilt-work = { module = "androidx.hilt:hilt-work", version.ref = "hiltWork" }
+androidx-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "hiltWork" }
 
 # Les plugins de convention de build-logic compilent contre l'API d'AGP, du plugin
 # Kotlin, de KSP et de Hilt : pour eux, ce sont des dependances de compilation et

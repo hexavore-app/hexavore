@@ -10,6 +10,7 @@ import app.hexavore.core.testing.SampleDiary
 import app.hexavore.domain.ai.AiProvider
 import app.hexavore.domain.ai.ApiKey
 import app.hexavore.domain.ai.ProviderCredentials
+import app.hexavore.domain.diary.DishId
 import app.hexavore.domain.notice.Notice
 import app.hexavore.domain.profile.WeightEntry
 import kotlinx.coroutines.flow.first
@@ -114,13 +115,31 @@ class ObserveNoticesTest {
     // --- Hier --------------------------------------------------------------------------
 
     @Test
-    fun `une veille vide s allume`() = runTest {
+    fun `une veille vide s allume quand l avant-veille etait notee`() = runTest {
+        // Un trou : quelqu'un tenait son journal, et hier manque.
+        noter(AVANT_HIER)
+
         assertTrue(Notice.YESTERDAY_EMPTY in notices())
     }
 
     @Test
+    fun `deux journees vides ne s allument pas`() = runTest {
+        // Ce n'est pas un oubli, c'est quelqu'un qui ne note pas -- et ce n'est pas a
+        // une pastille de le lui dire (D135).
+        assertFalse(Notice.YESTERDAY_EMPTY in notices())
+    }
+
+    @Test
+    fun `une installation neuve ne reclame rien`() = runTest {
+        // Le cas le plus visible de la regle precedente : un journal entierement vide
+        // allumait la pastille des la premiere ouverture.
+        assertFalse(Notice.YESTERDAY_EMPTY in notices(), "rien a rattraper quand rien n'a jamais ete note")
+    }
+
+    @Test
     fun `une veille notee ne s allume pas`() = runTest {
-        SampleDiary.day(HIER).forEach { diary.save(it) }
+        noter(AVANT_HIER)
+        noter(HIER)
 
         assertFalse(Notice.YESTERDAY_EMPTY in notices())
     }
@@ -129,7 +148,8 @@ class ObserveNoticesTest {
     fun `c est bien la veille qui est regardee, pas aujourd hui`() = runTest {
         // Sans ce cas, lire le jour courant passerait les deux precedents : une
         // journee neuve est vide elle aussi.
-        SampleDiary.day(AUJOURD_HUI).forEach { diary.save(it) }
+        noter(AVANT_HIER)
+        noter(AUJOURD_HUI)
 
         assertTrue(Notice.YESTERDAY_EMPTY in notices(), "aujourd'hui n'est pas hier")
     }
@@ -138,6 +158,7 @@ class ObserveNoticesTest {
 
     @Test
     fun `une pastille eteinte ne s allume pas, meme quand sa situation est vraie`() = runTest {
+        noter(AVANT_HIER)
         settings.setEnabled(Notice.WEIGHT_STALE, enabled = false)
 
         assertFalse(Notice.WEIGHT_STALE in notices())
@@ -160,9 +181,21 @@ class ObserveNoticesTest {
         clock = FixedClock.atNoon(AUJOURD_HUI),
     )().first()
 
+    /**
+     * Note une journee de demonstration, **avec des identifiants a elle**.
+     *
+     * `SampleDiary` numerote ses plats par l'heure et non par la date : ecrire deux
+     * journees telles quelles ecrase la premiere, et le cas qui distingue hier
+     * d'avant-hier passait alors pour la mauvaise raison.
+     */
+    private suspend fun noter(date: LocalDate) {
+        SampleDiary.day(date).forEach { diary.save(it.copy(id = DishId("$date-${it.id.value}"))) }
+    }
+
     private companion object {
         val AUJOURD_HUI: LocalDate = LocalDate.of(2026, 8, 24)
         val HIER: LocalDate = AUJOURD_HUI.minusDays(1)
+        val AVANT_HIER: LocalDate = AUJOURD_HUI.minusDays(2)
         val CLE = ProviderCredentials(ApiKey("sk-ant-de-test"), model = "claude-opus-5", baseUrl = "https://x/")
     }
 }

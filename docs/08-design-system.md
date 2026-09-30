@@ -320,9 +320,12 @@ La forme appartient à l'appelant : coins hauts en 24 dp pour un panneau au ras 
 La barre d'ajout de l'accueil ([D131](11-decisions.md)) : un champ de texte, un appareil photo, un « + ».
 
 - **Une `bottomBar` du `Scaffold`**, jamais une couche flottante. C'est ce qui lui fait réserver sa place : la page s'arrête au-dessus d'elle, une fois, pour tout l'écran — là où quatre boutons flottants obligeaient la page à se mesurer elle-même ([D130](11-decisions.md#d130--photographier-lapplication-a-trouvé-trois-défauts-que-les-tests-ne-voyaient-pas---validée)).
+- **Boutons de 48 dp**, la cible tactile minimale du projet : la barre au repos est ce qu'on voit en permanence au-dessus du pouce, et huit dp de moins par bouton rendent à la page une ligne de plat entière ([D135](11-decisions.md)).
+- **Le champ tient quatre lignes** et n'en montre qu'une au repos : une phrase de repas en fait souvent trois, et un champ d'une seule ligne les fait défiler horizontalement.
+- **Il est compact** : 48 dp au lieu des 56 que Material réserve. Le libellé flottant occupe le haut de cette hauteur — juste dans un formulaire, où il dit ce que la ligne attend une fois remplie ; de trop dans une barre qui n'a qu'un champ. Il devient un texte d'invite qui s'efface à la première lettre.
 - **Fond `surfaceContainerHigh`**, coins hauts en 16 dp et **carrée en bas** : les deux coins du bas tombent hors de l'écran, et les arrondir n'y découperait que deux triangles de fond.
 - **Trois éléments sur une ligne**, le champ prenant la place restante. Les deux boutons font 56 dp — la hauteur d'un champ, pour que la ligne s'aligne, et plus que la cible minimale parce qu'ils se visent d'un pouce.
-- **`imePadding` puis `navigationBarsPadding`**, dans cet ordre. La barre monte avec le clavier et ne garde la marge de la barre de navigation que tant qu'il est fermé ; inversées, les deux marges ajoutent une bande vide sous un clavier ouvert.
+- **La barre ne connaît pas le clavier.** C'est l'écran qui remonte, d'un seul `imePadding()` posé sur le `Scaffold` ([D135](11-decisions.md)). Poser cette marge sur la seule barre la faisait monter d'une hauteur de clavier **au-dessus** de celui-ci : la fenêtre s'était déjà rétrécie, et la marge s'ajoutait à ce rétrécissement. La barre ne garde que celle de la barre de navigation, **retranchée de celle du clavier** — `navigationBars.exclude(ime)` — sans quoi elle réserverait de la place à une barre système cachée sous le clavier.
 - **Le champ est un `DraftTextField`** comme tous les champs du projet ([D45](11-decisions.md#d45--un-champ-de-saisie-tient-son-texte-lui-même---validée)). Il porte ici deux choses que le composant a apprises pour lui : la touche d'action du clavier — « envoyer », parce qu'il n'y a pas de champ suivant — et le bouton d'envoi **dans** le champ, qui n'apparaît que lorsqu'il y a quelque chose à envoyer.
 - **Sans clé d'IA**, le champ est remplacé par une surface de même forme, en `surfaceVariant`, cliquable et annoncée comme indisponible. Pas de pointillés : la forme en pointillés appartient à ce qui a été estimé ([D25](11-decisions.md#d25--lestimation-ia-se-signale-par-une-forme-pas-par-une-couleur---validée)), et un champ verrouillé n'est pas une valeur incertaine.
 
@@ -339,13 +342,15 @@ Ce qui passe à l'écran quand un palier tombe ([D133](11-decisions.md)).
 - Elles s'écartent du centre en ralentissant, et s'effacent sur la fin : une gerbe qui disparaîtrait d'un coup se lirait comme un défaut d'affichage. Le texte monte d'un cheveu et part avec elles.
 - **Supprimée, et non raccourcie**, quand l'appareil demande moins de mouvement — la règle de la pulsation du titre ([D121](11-decisions.md#d121--le-changement-de-jour-se-voit---validée)) : des particules instantanées seraient un clignotement. Le texte reste, seul.
 
-### `ProgressStrip`
+### `LevelRing`
 
-Le bandeau de tête de l'accueil : la série en cours, le niveau, et la jauge du suivant.
+L'anneau de niveau, dans la barre du haut de l'accueil ([D135](11-decisions.md)). ~~Un bandeau pleine largeur posé au-dessus de l'hexagone.~~
 
-- **Trois choses sur une ligne**, dans une `surfaceContainerLow` à 16 dp de rayon. L'accueil répond déjà à une question ; ce bandeau en pose une seconde, et il doit se lire sans la disputer.
+- **44 dp**, le gabarit des pastilles du calendrier : la barre du haut porte déjà des cibles de cette taille.
+- **Piste en `outline`, progression en `primary`**, jamais dans une teinte de macro — les six teintes désignent les six compteurs, et en emprunter une ferait croire à un septième.
+- **Le numéro au centre**, en `titleMedium`. C'est ce qu'on lit d'abord ; la fraction est ce qu'on lit ensuite, et elle n'a besoin d'aucun chiffre.
 - **La jauge glisse** jusqu'à sa nouvelle valeur, à la durée et à la courbe des autres jauges. C'est le seul endroit de l'écran où un progrès se voit *arriver*, et un saut le ferait manquer.
-- **Un seul nœud d'accessibilité** : la ligne annonce « 7 jours. Niveau 4 », et non trois arrêts pour une seule action.
+- **Un seul nœud d'accessibilité** : « Niveau 4, 7 jours de suite. Ouvrir votre progression. » — et non trois arrêts pour une seule action.
 
 ---
 

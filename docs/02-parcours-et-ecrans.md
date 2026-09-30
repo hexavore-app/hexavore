@@ -67,7 +67,9 @@ Un segment se remplit à mesure que l'objectif du jour est atteint ; il passe en
 
 Le jour de départ d'un objectif porte un liseré : on voit où une nouvelle phase a commencé.
 
-**La veille porte une pastille si elle est restée vide** ([D107](11-decisions.md#d107--une-pastille-désigne-une-situation-jamais-un-message---validée)), sur la journée concernée et non sur une icône : c'est là qu'on la touche pour y noter le repas oublié. Elle s'éteint dès qu'une ligne est notée, et le lendemain la déplace plutôt que de l'accumuler.
+**La veille porte une pastille si elle est restée vide alors que l'avant-veille ne l'était pas** ([D107](11-decisions.md#d107--une-pastille-désigne-une-situation-jamais-un-message---validée), [D135](11-decisions.md)), sur la journée concernée et non sur une icône : c'est là qu'on la touche pour y noter le repas oublié. Elle s'éteint dès qu'une ligne est notée, et le lendemain la déplace plutôt que de l'accumuler.
+
+~~La veille vide suffisait.~~ Elle s'allumait alors chez quelqu'un qui n'a jamais rien noté, chez celui qui vient d'installer l'application, et tous les jours chez celui qui a cessé de s'en servir — trois situations où il n'y a **rien à rattraper**. Un oubli suppose une habitude, et l'avant-veille est ce qui l'atteste : notée, elle dit qu'hier est un trou ; vide, il n'y a pas de trou mais quelqu'un qui ne note pas, et ce n'est pas à une pastille de le lui dire.
 
 ~~Tap sur une pastille → écran **Journée**. Tap sur l'en-tête du mois → **Calendrier étendu**.~~
 
@@ -75,13 +77,13 @@ Le jour de départ d'un objectif porte un liseré : on voit où une nouvelle pha
 
 **Trois gestes ouvrent le mois, et c'est le nombre qu'il fallait** ([D116](11-decisions.md)) : tirer la poignée, **la toucher** — elle ne répondait pas au doigt, seule l'action d'accessibilité était déclarée — et **tirer la page vers le bas quand elle est déjà en haut**, d'environ un centimètre. Ce dernier est celui que tout le monde connaît sans l'avoir appris ; les deux autres sont pour qui vise la poignée. Un défilement **lancé** qui bute en haut n'ouvre rien : un élan est un arrêt, pas une intention. La poignée elle-même porte un chevron et passe en encre claire — en `outline`, elle tenait 1,4:1 sur le fond sombre, là où un élément d'interface en demande 3.
 
-### Bandeau de progression (en tête)
+### L'anneau de niveau (dans la barre du haut)
 
-Trois choses sur une ligne, et rien de plus ([D133](11-decisions.md)) : la **série de saisie** en cours, le **niveau**, et la jauge qui dit la distance du suivant. Un tap ouvre **Progression**.
+~~Un bandeau de trois choses posé au-dessus de l'hexagone.~~ **Un anneau de 44 dp dans la ligne du titre** ([D135](11-decisions.md)), le numéro de niveau au centre et la fraction vers le suivant sur le pourtour. Un tap ouvre **Progression**.
 
-**En tête, au-dessus de l'hexagone** : c'est ce qu'on voit sans chercher en ouvrant l'application, et c'est là que la série a un effet — la voir monter est ce qui donne envie de ne pas la casser. Sous les plats, elle ne serait lue que par quelqu'un qui a déjà noté.
+**Sur aujourd'hui seulement.** Une progression est une chose du présent : posée au-dessus d'une journée d'il y a trois semaines, elle laissait croire qu'elle en parlait.
 
-**Trois choses et pas dix.** L'accueil répond déjà à une question — comment va ma journée — et lui en ajouter une seconde en pleine page rendrait la première moins nette. Les deux séries, les dix-huit paliers et leur histoire vivent dans l'écran dédié.
+**Un anneau et pas une barre.** Une barre horizontale a besoin de largeur pour dire quelque chose ; un anneau dit la même fraction dans le gabarit d'une pastille de calendrier, et son centre est libre — c'est là que va le chiffre, qui devient ce qu'on lit d'abord. Le reste — les deux séries, les dix-huit paliers, leur histoire — vit dans l'écran dédié : l'accueil répond déjà à une question, et lui en ajouter une seconde en pleine page rendrait la première moins nette.
 
 **Aucun jugement.** Une série à zéro se lit « 0 jour », sans couleur d'alerte ni phrase. C'est la règle de cet écran depuis toujours, et elle ne change pas parce qu'on ajoute un compteur.
 
@@ -158,6 +160,8 @@ L'ordre est fixe. Un ordre adaptatif « selon vos habitudes » ferait bouger les
 **Sans clé d'IA**, le champ et l'appareil photo restent visibles et **expliquent à l'appui**, comme les boutons qu'ils remplacent. Le champ prend alors la forme d'un champ sans en être un : rien ne s'y tape, et le lecteur d'écran l'annonce comme indisponible plutôt que comme un endroit où écrire.
 
 **Une phrase part sans avertissement**, comme depuis toujours : [05](05-ia.md) ne demande le consentement que pour une photo. L'attente se lit sur une ligne au-dessus du champ — la journée reste visible — et **l'annulation coupe réellement la requête**. Un échec laisse la phrase dans le champ et offre la saisie manuelle : un fournisseur en panne ne doit pas empêcher de noter son repas.
+
+**Le champ tient quatre lignes.** Une phrase de repas en fait souvent deux ou trois, et un champ d'une seule ligne les faisait défiler horizontalement : on écrivait sans voir le début de ce qu'on écrivait ([D135](11-decisions.md)). Au repos il n'en montre qu'une, et la barre reste basse — c'est ce qu'on voit en permanence au-dessus du pouce.
 
 **La barre monte avec le clavier.** Elle est une pièce de la structure et non une couche flottante : c'est elle qui borne la page, la liste des plats s'arrête au-dessus, et la bulle des sources n'a plus à la faire disparaître pour être lisible ([D122](11-decisions.md#d122--un-quartier-touché-dit-ce-qui-la-rempli---validée)).
 

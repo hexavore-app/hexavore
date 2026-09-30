@@ -1,5 +1,9 @@
 package app.hexavore.feature.onboarding
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -35,19 +40,60 @@ import kotlin.math.roundToInt
 @Composable
 internal fun OnboardingRoute(onDone: () -> Unit, viewModel: OnboardingViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val askNotifications = rememberNotificationRequest(onSettled = { viewModel.onFinish(onDone) })
 
     OnboardingScreen(
         state = state,
-        actions = remember(viewModel, onDone) {
+        actions = remember(viewModel, askNotifications) {
             OnboardingActions(
                 onAnswers = viewModel::onAnswers,
                 onUseReachableDate = viewModel::onUseReachableDate,
                 onNext = viewModel::onNext,
                 onBack = viewModel::onBack,
-                onFinish = { viewModel.onFinish(onDone) },
+                onFinish = askNotifications,
             )
         },
     )
+}
+
+/**
+ * La permission de notification, demandée **au dernier geste de l'onboarding**.
+ *
+ * ### Pourquoi ici, et pas ailleurs
+ *
+ * Au démarrage, elle arriverait avant qu'on sache à quoi elle sert : on la refuse, et
+ * Android ne la redemande plus. Plus tard, elle n'arriverait jamais — personne ne va
+ * dans les réglages pour autoriser quelque chose dont il ignore l'existence.
+ *
+ * Ici, elle arrive **après** les cinq questions et l'écran des six objectifs : quelqu'un
+ * qui vient de poser un objectif comprend ce qu'un rappel de repas viendra faire. C'est
+ * le moment où la question a le plus de chances d'être lue ([D134][decisions]).
+ *
+ * ### Elle ne bloque rien
+ *
+ * Accordée ou refusée, on arrive à l'accueil : `onSettled` est appelé dans les deux cas.
+ * Un refus n'empêche pas d'utiliser l'application — il éteint seulement les rappels, et
+ * l'écran des réglages le dira quand on y passera.
+ *
+ * En dessous d'Android 13, il n'y a rien à demander : le lanceur rend immédiatement, et
+ * le geste ne se voit pas.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+@Composable
+private fun rememberNotificationRequest(onSettled: () -> Unit): () -> Unit {
+    val settled = rememberUpdatedState(onSettled)
+    val request = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        settled.value()
+    }
+
+    return {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            request.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            settled.value()
+        }
+    }
 }
 
 /**

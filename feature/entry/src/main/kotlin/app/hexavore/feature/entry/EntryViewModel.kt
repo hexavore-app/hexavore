@@ -242,8 +242,13 @@ internal class EntryViewModel @Inject constructor(
 
         status.value = Status.SAVING
         viewModelScope.launch {
-            val written =
-                runCatching { if (editingFavorite) favorites.rewrite(draft).let { null } else saveDraft(draft) }
+            // `favoriteId` vient de la route et non du brouillon : le lien que celui-ci
+            // porte tombe a la premiere ligne touchee (D62), c'est-a-dire au geste meme
+            // qu'on vient faire ici (D135).
+            val written = runCatching {
+                val editing = favoriteId.takeIf { editingFavorite }
+                if (editing != null) favorites.rewrite(draft, editing).let { null } else saveDraft(draft)
+            }
             // La photo apres le plat, et seulement s'il en reste un : l'ecriture du
             // journal est ce qui compte, et un fichier qui ne se range pas ne doit pas
             // faire echouer un repas deja note. Un favori reecrit ne rend aucun plat,

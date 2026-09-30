@@ -49,10 +49,32 @@ class HomeProgressViewModel @Inject constructor(
     private val toCelebrate = MutableStateFlow<List<Badge>>(emptyList())
     val celebrating: StateFlow<List<Badge>> = toCelebrate.asStateFlow()
 
+    /**
+     * Ce qui a **déjà été fêté**, et ne le sera plus.
+     *
+     * **La correction d'une animation qui se rejouait à chaque retour sur l'accueil**
+     * ([D135][decisions]). Le flux s'arrête quand on ouvre l'écran de progression et
+     * repart quand on revient ; sa première émission repasse alors par ici, et un
+     * palier fêté dont l'animation n'était pas allée jusqu'au bout — ce qui est le cas
+     * dès qu'on navigue pendant — revenait dans la file. La gerbe se rejouait, à chaque
+     * aller-retour, pour un palier obtenu la semaine d'avant.
+     *
+     * Une mémoire de session suffit, et c'est exactement la bonne portée : un palier
+     * déjà rangé ne peut plus retomber au lancement suivant, puisque le calcul le voit
+     * dans le dépôt.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    private val celebrated = mutableSetOf<Badge>()
+
     val uiState: StateFlow<Progress> = observeProgress()
         .onEach { progress ->
-            val fallen = advanceProgress(progress)
-            if (fallen.isNotEmpty()) toCelebrate.value = toCelebrate.value + fallen
+            val fallen = advanceProgress(progress).filterNot { it in celebrated }
+            if (fallen.isEmpty()) return@onEach
+            // Marque avant de montrer, et non apres : ce qui compte est qu'un palier ne
+            // passe qu'une fois par ici, pas que son animation soit allee au bout.
+            celebrated += fallen
+            toCelebrate.value = toCelebrate.value + fallen
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MILLIS), Progress.NONE)
 

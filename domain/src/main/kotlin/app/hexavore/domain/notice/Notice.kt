@@ -52,11 +52,18 @@ enum class Notice {
     WEIGHT_STALE,
 
     /**
-     * Hier n'a aucune ligne.
+     * Hier n'a aucune ligne, **et l'avant-veille en avait**.
      *
      * Rattraper un repas oublié est possible depuis que l'accueil porte une date ;
      * encore faut-il remarquer qu'il manque. La pastille se pose sur la journée
      * concernée, et non sur une icône : c'est là qu'on la touche pour agir.
+     *
+     * **Les deux moitiés de la règle comptent.** « Hier est vide » seul s'allumait chez
+     * quelqu'un qui n'a jamais rien noté, et tous les jours chez celui qui a cessé : un
+     * oubli suppose une habitude, et l'avant-veille est ce qui l'atteste
+     * ([D135][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
      */
     YESTERDAY_EMPTY,
 }

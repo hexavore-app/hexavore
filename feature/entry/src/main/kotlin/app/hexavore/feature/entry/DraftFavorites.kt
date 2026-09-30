@@ -32,12 +32,22 @@ class DraftFavorites @Inject constructor(
     /**
      * Réécrit le modèle que ce brouillon décrit, et délie les plats qui le citaient.
      *
+     * **L'identifiant vient de la route, jamais du brouillon**, et c'est ce qui répare
+     * une modification qui échouait toujours. Le lien qu'un brouillon porte vers un
+     * favori dit *« ce plat vient de ce modèle »*, et il tombe dès qu'une ligne bouge
+     * ([D62][decisions]) — ce qui est juste pour un plat rejoué, et faux ici : toucher
+     * une ligne **est** le geste qu'on vient faire. Le lire dans le brouillon revenait
+     * donc à exiger qu'on n'ait rien modifié pour pouvoir enregistrer une
+     * modification, et l'écran répondait « écriture non aboutie » à chaque fois
+     * ([D135][decisions]).
+     *
      * **Un favori disparu est un échec**, pas un succès silencieux : l'écran garde la
      * saisie et propose de réessayer, là où ne rien dire aurait laissé croire que la
      * correction était enregistrée.
+     *
+     * [decisions]: docs/11-decisions.md
      */
-    suspend fun rewrite(draft: EntryDraft) {
-        val id = checkNotNull(draft.favoriteId) { "Modification d'un favori sans favori." }
+    suspend fun rewrite(draft: EntryDraft, id: FavoriteDishId) {
         checkNotNull(updateFavoriteDish(draft, id)) { "Favori disparu pendant la modification." }
     }
 
