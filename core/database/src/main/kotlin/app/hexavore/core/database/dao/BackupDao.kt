@@ -11,6 +11,8 @@ import app.hexavore.core.database.entity.FoodEntity
 import app.hexavore.core.database.entity.FoodEntryEntity
 import app.hexavore.core.database.entity.GoalEntity
 import app.hexavore.core.database.entity.ProfileEntity
+import app.hexavore.core.database.entity.ProgressEntity
+import app.hexavore.core.database.entity.UnlockedBadgeEntity
 import app.hexavore.core.database.entity.WeightEntryEntity
 
 /**
@@ -49,10 +51,16 @@ interface BackupReadDao {
     @Transaction
     @Query("SELECT * FROM favorite_dish ORDER BY name ASC")
     suspend fun favorites(): List<FavoriteWithComponents>
+
+    @Query("SELECT * FROM progress WHERE id = :id")
+    suspend fun progress(id: String = ProgressEntity.SINGLETON): ProgressEntity?
+
+    @Query("SELECT * FROM unlocked_badge ORDER BY unlocked_on ASC")
+    suspend fun badges(): List<UnlockedBadgeEntity>
 }
 
 /**
- * Les huit insertions d'une restauration.
+ * Les dix insertions d'une restauration.
  *
  * **L'ordre d'appel suit les clés étrangères** : les aliments avant les lignes qui les
  * citent, les plats avant leurs lignes, les favoris avant leurs composants. Il est tenu
@@ -85,4 +93,10 @@ interface BackupWriteDao {
 
     @Insert
     suspend fun insertComponents(components: List<FavoriteComponentEntity>)
+
+    @Insert
+    suspend fun insertProgress(progress: ProgressEntity)
+
+    @Insert
+    suspend fun insertBadges(badges: List<UnlockedBadgeEntity>)
 }

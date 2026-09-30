@@ -72,14 +72,8 @@ import app.hexavore.core.designsystem.theme.Spacing
  * [decisions]: docs/11-decisions.md
  */
 @Composable
-internal fun QuickEntryBar(
-    actions: HomeActions,
-    aiConfigured: Boolean,
-    state: QuickEntryUiState,
-    onSend: (String) -> Unit,
-    onCancel: () -> Unit,
-    onDismissError: () -> Unit,
-) {
+internal fun QuickEntryBar(actions: HomeActions, aiConfigured: Boolean, entry: QuickEntry) {
+    val state = entry.state
     var menuOpen by rememberSaveable { mutableStateOf(false) }
     var explaining by rememberSaveable { mutableStateOf(false) }
     var text by rememberSaveable { mutableStateOf("") }
@@ -107,8 +101,8 @@ internal fun QuickEntryBar(
     val onMore = { menuOpen = true }
 
     BarSurface {
-        Analysis(state, onCancel)
-        Failure(state, onDismissError, actions.onAddDish)
+        Analysis(state, entry.onCancel)
+        Failure(state, entry.onDismissError, actions.onAddDish)
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -123,7 +117,7 @@ internal fun QuickEntryBar(
                 onValueChange = { text = it },
                 onSend = {
                     keyboard?.hide()
-                    onSend(text)
+                    entry.onSend(text)
                 },
                 onExplain = { explaining = true },
                 modifier = Modifier.weight(1f),

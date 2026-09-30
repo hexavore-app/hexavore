@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="fr">
+
+    <string name="progress_title">Progression</string>
+    <string name="progress_close">Fermer la progression</string>
+
+    <!-- Deux séries, et elles ne mesurent pas la même chose : l\'une dit qu\'on note,
+         l\'autre qu\'on tient sa fourchette. -->
+    <string name="progress_streak_logging">Série de saisie</string>
+    <string name="progress_streak_logging_hint">Jours d\'affilée avec au moins un plat</string>
+    <string name="progress_streak_perfect">Série parfaite</string>
+    <string name="progress_streak_perfect_hint">Jours d\'affilée passés dans votre fourchette</string>
+
+    <plurals name="progress_days">
+        <item quantity="one">%1$d jour</item>
+        <item quantity="other">%1$d jours</item>
+    </plurals>
+
+    <string name="progress_level">Niveau %1$d</string>
+    <string name="progress_level_points">%1$d points sur %2$d avant le niveau suivant</string>
+
+    <!-- Tous les paliers sont affichés, pris ou non : un palier caché ne donne envie de
+         rien. Ceux qui ne sont pas pris sont estompés et sans date. -->
+    <string name="progress_badges">Paliers</string>
+    <string name="progress_family_streak">Régularité</string>
+    <string name="progress_family_volume">Volume</string>
+    <string name="progress_family_perfect">Justesse</string>
+    <string name="progress_family_discovery">Premières fois</string>
+
+    <string name="progress_name_streak">%1$d jours d\'affilée</string>
+    <string name="progress_name_volume">%1$d plats notés</string>
+    <string name="progress_name_perfect">%1$d journées parfaites d\'affilée</string>
+    <string name="progress_name_first_scan">Premier scan</string>
+    <string name="progress_name_first_photo">Première photo</string>
+    <string name="progress_name_first_text">Première description</string>
+    <string name="progress_name_first_favorite">Premier favori</string>
+
+    <string name="progress_hint_streak">Notez quelque chose %1$d jours de suite</string>
+    <string name="progress_hint_volume">Notez %1$d plats</string>
+    <string name="progress_hint_perfect">Restez dans votre fourchette %1$d jours de suite</string>
+    <string name="progress_hint_first_scan">Scannez un code-barres</string>
+    <string name="progress_hint_first_photo">Photographiez un repas</string>
+    <string name="progress_hint_first_text">Décrivez un repas en une phrase</string>
+    <string name="progress_hint_first_favorite">Enregistrez un plat en favori</string>
+
+    <!-- Une fois pris, la date remplace la description : elle fait de cette liste une
+         histoire plutôt qu\'un catalogue. -->
+    <string name="progress_badge_on">Obtenu le %1$s</string>
+
+</resources>

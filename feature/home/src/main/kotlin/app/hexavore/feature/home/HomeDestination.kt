@@ -45,6 +45,8 @@ data class HomeRoutes(
     val onConfigureAi: () -> Unit,
     val onOpenFavorites: () -> Unit,
     val onOpenWeight: () -> Unit,
+    /** Vers l'ecran de progression, depuis le bandeau de tete. */
+    val onOpenProgress: () -> Unit,
 )
 
 /**

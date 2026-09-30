@@ -36,6 +36,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.hexavore.core.designsystem.component.AdjustmentCard
+import app.hexavore.core.designsystem.component.Celebration
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.core.designsystem.theme.Timing
 import app.hexavore.domain.appearance.DishDisplayStyle
@@ -61,19 +62,6 @@ fun HomeRoute(routes: HomeRoutes) {
     val dishStyle by viewModel.dishStyle.collectAsStateWithLifecycle()
     val noticeViewModel: NoticeViewModel = hiltViewModel()
     val notices by noticeViewModel.notices.collectAsStateWithLifecycle()
-    val quickEntry: QuickEntryViewModel = hiltViewModel()
-    val entryState by quickEntry.uiState.collectAsStateWithLifecycle()
-
-    // La proposition est deposee : l'accueil cede la place, exactement comme l'ecran
-    // d'IA le fait pour la sienne. `onNavigated` referme le drapeau, sans quoi revenir
-    // de la validation repartirait aussitot vers un depot qu'elle a vide.
-    LaunchedEffect(entryState.proposed) {
-        if (entryState.proposed) {
-            quickEntry.onNavigated()
-            routes.onProposal()
-        }
-    }
-
     HomeScreen(
         state = state,
         pendingUndo = pendingUndo,
@@ -88,10 +76,8 @@ fun HomeRoute(routes: HomeRoutes) {
         onBackToToday = { viewModel.onSelectDay(null) },
         onSelectDay = viewModel::onSelectDay,
         notices = notices,
-        entryState = entryState,
-        onSend = quickEntry::onSend,
-        onCancelEntry = quickEntry::onCancel,
-        onDismissEntryError = quickEntry::onDismissError,
+        entry = quickEntryPanel(routes.onProposal),
+        progress = progressPanel(routes.onOpenProgress),
         calendar = { expanded, onExpandedChange ->
             CalendarPane(
                 state = calendar,
@@ -177,10 +163,14 @@ fun HomeScreen(
      * envoie, et la barre qui l'affiche. L'ecran n'est ici qu'un chemin de passage --
      * ce qui lui permet de se composer dans un apercu sans modele.
      */
-    entryState: QuickEntryUiState = QuickEntryUiState(),
-    onSend: (String) -> Unit = {},
-    onCancelEntry: () -> Unit = {},
-    onDismissEntryError: () -> Unit = {},
+    entry: QuickEntry = QuickEntry(),
+    /**
+     * Où en est la progression, et ce qui attend d'être fêté.
+     *
+     * Vide par défaut : une installation neuve est à zéro partout, et c'est aussi ce
+     * que les aperçus composent sans modèle.
+     */
+    progress: ProgressPanel = ProgressPanel(),
     /**
      * L'en-tete escamotable, ou rien.
      *
@@ -224,14 +214,7 @@ fun HomeScreen(
         // C'est aussi ce qui permet a la bulle des sources de rester ouverte pendant
         // qu'on note -- la barre n'est plus sur son chemin.
         bottomBar = {
-            QuickEntryBar(
-                actions = actions,
-                aiConfigured = aiConfigured,
-                state = entryState,
-                onSend = onSend,
-                onCancel = onCancelEntry,
-                onDismissError = onDismissEntryError,
-            )
+            QuickEntryBar(actions = actions, aiConfigured = aiConfigured, entry = entry)
         },
     ) { padding ->
         Column(
@@ -260,6 +243,10 @@ fun HomeScreen(
                 modifier = Modifier.weight(1f),
             ) {
                 DayScroll(collapseOnScroll, dayScroll) {
+                    // En tete, au-dessus de l'hexagone : c'est ce qu'on voit sans
+                    // chercher, et c'est la que la serie a un effet (D133).
+                    ProgressStrip(progress = progress.progress, onOpen = progress.onOpen)
+
                     suggestion?.let {
                         AdjustmentCard(
                             suggestion = it,
@@ -271,6 +258,18 @@ fun HomeScreen(
                     LoadedDay(state, dishStyle, actions, focus, favoriteNameTaken, onDismissFavoriteError)
                 }
             }
+        }
+
+        // **Par-dessus tout, et sans rien bloquer** : elle passe, on continue a noter
+        // dessous. Posee dans le `Scaffold` et non dans la colonne, pour qu'elle
+        // couvre aussi le calendrier et la barre du bas.
+        progress.celebrating?.let { badge ->
+            Celebration(
+                title = stringResource(R.string.home_celebration_title),
+                subtitle = badgeLabel(badge),
+                onDone = progress.onCelebrated,
+                modifier = Modifier.padding(padding),
+            )
         }
     }
 }

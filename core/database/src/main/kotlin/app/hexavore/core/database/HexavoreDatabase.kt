@@ -15,6 +15,7 @@ import app.hexavore.core.database.dao.FoodDao
 import app.hexavore.core.database.dao.FoodMarksDao
 import app.hexavore.core.database.dao.GoalDao
 import app.hexavore.core.database.dao.ProfileDao
+import app.hexavore.core.database.dao.ProgressDao
 import app.hexavore.core.database.entity.DishEntity
 import app.hexavore.core.database.entity.FavoriteComponentEntity
 import app.hexavore.core.database.entity.FavoriteDishEntity
@@ -22,6 +23,8 @@ import app.hexavore.core.database.entity.FoodEntity
 import app.hexavore.core.database.entity.FoodEntryEntity
 import app.hexavore.core.database.entity.GoalEntity
 import app.hexavore.core.database.entity.ProfileEntity
+import app.hexavore.core.database.entity.ProgressEntity
+import app.hexavore.core.database.entity.UnlockedBadgeEntity
 import app.hexavore.core.database.entity.WeightEntryEntity
 
 /**
@@ -44,10 +47,17 @@ import app.hexavore.core.database.entity.WeightEntryEntity
         ProfileEntity::class,
         WeightEntryEntity::class,
         GoalEntity::class,
+        ProgressEntity::class,
+        UnlockedBadgeEntity::class,
     ],
     version = HexavoreDatabase.VERSION,
     exportSchema = true,
 )
+// Onze DAO, et le seuil de detekt en tolere onze. Ce n'est pas une classe a decouper :
+// Room veut une seule `@Database`, et chaque methode n'est qu'un acces. Le projet
+// decoupe selon ce que les choses sont -- ce qu'il a fait des modules Hilt qui
+// fournissent ces DAO, deux fois -- mais la classe qui les declare n'a pas de couture.
+@Suppress("TooManyFunctions")
 abstract class HexavoreDatabase : RoomDatabase() {
     abstract fun diaryDao(): DiaryDao
 
@@ -65,13 +75,15 @@ abstract class HexavoreDatabase : RoomDatabase() {
 
     abstract fun goalDao(): GoalDao
 
+    abstract fun progressDao(): ProgressDao
+
     /** Toutes les tables d'un coup, pour la sauvegarde et la restauration. */
     abstract fun backupReadDao(): BackupReadDao
 
     abstract fun backupWriteDao(): BackupWriteDao
 
     companion object {
-        const val VERSION = 7
+        const val VERSION = 8
 
         const val NAME = "hexavore.db"
 
@@ -83,7 +95,15 @@ abstract class HexavoreDatabase : RoomDatabase() {
          * elle est validée par un test déjà écrit contre un schéma déjà versionné.
          */
         val MIGRATIONS: List<Migration> =
-            listOf(Migration1To2, Migration2To3, Migration3To4, Migration4To5, Migration5To6, Migration6To7)
+            listOf(
+                Migration1To2,
+                Migration2To3,
+                Migration3To4,
+                Migration4To5,
+                Migration5To6,
+                Migration6To7,
+                Migration7To8,
+            )
 
         /**
          * Construit la base.

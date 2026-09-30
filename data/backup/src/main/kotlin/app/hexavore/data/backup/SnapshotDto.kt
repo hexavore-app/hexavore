@@ -33,6 +33,7 @@ internal data class SnapshotDto(
     @SerialName("foods") val foods: List<FoodDto> = emptyList(),
     @SerialName("favorites") val favorites: List<FavoriteDto> = emptyList(),
     @SerialName("adjustment") val adjustment: AdjustmentDto = AdjustmentDto(),
+    @SerialName("progress") val progress: ProgressDto = ProgressDto(),
 )
 
 @Serializable
@@ -167,6 +168,22 @@ internal data class ComponentDto(
     val sugars: Double? = null,
     val fat: Double? = null,
     val fiber: Double? = null,
+)
+
+/**
+ * La progression, telle que le fichier la porte.
+ *
+ * Tous les champs ont un défaut : un fichier écrit avant que la progression existe se
+ * relit sans lui, et c'est ce qui permet d'ajouter ce bloc **sans incrémenter la
+ * version du format** — la règle que `SNAPSHOT_FORMAT_VERSION` énonce.
+ */
+@Serializable
+internal data class ProgressDto(
+    val points: Long = 0,
+    val bestStreak: Int = 0,
+    val bestPerfectStreak: Int = 0,
+    /** Le nom du palier, et le jour où il est tombé. */
+    val badges: Map<String, String> = emptyMap(),
 )
 
 @Serializable

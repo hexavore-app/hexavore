@@ -143,3 +143,18 @@ include(":feature:weight")
 // second jeu -- deux traductions de la meme chose finissent par diverger, et la
 // divergence corromprait de vraies donnees.
 include(":data:backup")
+
+// Addictive update. La progression : trois planchers et les paliers franchis.
+//
+// Un module a lui plutot qu'une section de :data:profile : ce que celui-ci range est
+// ce que l'utilisateur **est** -- son age, son poids, son objectif -- la ou celui-ci
+// range ce qu'il a **traverse**. Les deux n'ont ni la meme duree de vie ni la meme
+// source : un profil se saisit, une progression se derive du journal et se fige.
+include(":data:progress")
+
+// Addictive update. L'ecran de progression : la serie, les paliers, le niveau.
+//
+// Un module a lui plutot qu'une section de :feature:home : l'accueil en montre trois
+// lignes et rien de plus -- c'est ce qui le garde lisible -- la ou cet ecran deploie
+// dix-huit paliers et leur histoire. Les deux lisent le meme cas d'usage.
+include(":feature:progress")

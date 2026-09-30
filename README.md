@@ -74,7 +74,7 @@ Trois règles [detekt](build-logic/detekt-rules) maison font échouer le build s
 
 ### Modules
 
-Quatorze, nés au fur et à mesure qu'ils avaient un fichier à contenir.
+Seize, nés au fur et à mesure qu'ils avaient un fichier à contenir.
 
 | Module | Rôle |
 |---|---|
@@ -87,7 +87,9 @@ Quatorze, nés au fur et à mesure qu'ils avaient un fichier à contenir.
 | `:data:diary` | Le journal alimentaire |
 | `:data:food` | Le catalogue d'aliments |
 | `:data:profile` | Profil, journal de poids, objectifs versionnés |
-| `:feature:home` | L'accueil et son hexagone |
+| `:data:progress` | Ce que la progression a figé : trois planchers et les paliers |
+| `:feature:home` | L'accueil, son hexagone et sa barre d'ajout |
+| `:feature:progress` | Les deux séries, les paliers, le niveau |
 | `:feature:entry` | L'écran de validation, point de convergence des modes de saisie |
 | `:feature:search` | La recherche et le bandeau de rayons |
 | `:feature:onboarding` | Les cinq questions |

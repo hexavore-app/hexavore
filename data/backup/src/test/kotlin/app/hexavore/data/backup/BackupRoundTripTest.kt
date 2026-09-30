@@ -273,6 +273,8 @@ class BackupRoundTripTest {
         val SECTIONS_ATTENDUES = setOf(
             "formatVersion", "appVersion", "exportedAt", "attribution",
             "profile", "goals", "weights", "dishes", "entries", "foods", "favorites", "adjustment",
+            // La progression : ce qu'elle a fige, et rien de ce qui se derive (D132).
+            "progress",
         )
 
         val PROFIL = UserProfile(

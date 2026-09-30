@@ -12,6 +12,7 @@ Onboarding (première ouverture uniquement)
                 │             ├─> Apparence
                 │             └─> À propos
                 ├─> Journal de poids
+                ├─> Progression
                 └─> [Barre du bas] ─┬─> Champ de texte ──> (analyse)  ┐
                                     ├─> Appareil photo ──> Écran d'IA │ tout converge
                                     └─> [+] ─┬─> Scanner              │ vers ↓
@@ -73,6 +74,18 @@ Le jour de départ d'un objectif porte un liseré : on voit où une nouvelle pha
 **Tap sur une pastille : l'accueil change de date, sur place** ([D101](11-decisions.md#d101--laccueil-porte-une-date-et-lécran-journée-disparaît---validée)). Le calendrier ne bouge pas — c'est ce qui permet de se promener dans l'historique sans le perdre — et le bouton d'ajout écrit sur le jour affiché, pour rattraper un oubli. Une poignée déplie le mois ; un glissement vers le haut le replie et la page suit.
 
 **Trois gestes ouvrent le mois, et c'est le nombre qu'il fallait** ([D116](11-decisions.md)) : tirer la poignée, **la toucher** — elle ne répondait pas au doigt, seule l'action d'accessibilité était déclarée — et **tirer la page vers le bas quand elle est déjà en haut**, d'environ un centimètre. Ce dernier est celui que tout le monde connaît sans l'avoir appris ; les deux autres sont pour qui vise la poignée. Un défilement **lancé** qui bute en haut n'ouvre rien : un élan est un arrêt, pas une intention. La poignée elle-même porte un chevron et passe en encre claire — en `outline`, elle tenait 1,4:1 sur le fond sombre, là où un élément d'interface en demande 3.
+
+### Bandeau de progression (en tête)
+
+Trois choses sur une ligne, et rien de plus ([D133](11-decisions.md)) : la **série de saisie** en cours, le **niveau**, et la jauge qui dit la distance du suivant. Un tap ouvre **Progression**.
+
+**En tête, au-dessus de l'hexagone** : c'est ce qu'on voit sans chercher en ouvrant l'application, et c'est là que la série a un effet — la voir monter est ce qui donne envie de ne pas la casser. Sous les plats, elle ne serait lue que par quelqu'un qui a déjà noté.
+
+**Trois choses et pas dix.** L'accueil répond déjà à une question — comment va ma journée — et lui en ajouter une seconde en pleine page rendrait la première moins nette. Les deux séries, les dix-huit paliers et leur histoire vivent dans l'écran dédié.
+
+**Aucun jugement.** Une série à zéro se lit « 0 jour », sans couleur d'alerte ni phrase. C'est la règle de cet écran depuis toujours, et elle ne change pas parce qu'on ajoute un compteur.
+
+**Une journée en cours ne casse rien** : la série compte aujourd'hui s'il est noté, la veille sinon. À huit heures du matin, personne n'a encore noté son petit-déjeuner ; compter à rebours depuis aujourd'hui remettrait la série à zéro chaque nuit.
 
 ### Le titre du jour
 
@@ -147,6 +160,26 @@ L'ordre est fixe. Un ordre adaptatif « selon vos habitudes » ferait bouger les
 **Une phrase part sans avertissement**, comme depuis toujours : [05](05-ia.md) ne demande le consentement que pour une photo. L'attente se lit sur une ligne au-dessus du champ — la journée reste visible — et **l'annulation coupe réellement la requête**. Un échec laisse la phrase dans le champ et offre la saisie manuelle : un fournisseur en panne ne doit pas empêcher de noter son repas.
 
 **La barre monte avec le clavier.** Elle est une pièce de la structure et non une couche flottante : c'est elle qui borne la page, la liste des plats s'arrête au-dessus, et la bulle des sources n'a plus à la faire disparaître pour être lisible ([D122](11-decisions.md#d122--un-quartier-touché-dit-ce-qui-la-rempli---validée)).
+
+---
+
+## Progression
+
+Ce qu'on a traversé, déplié. **L'ordre va du présent au passé** : les deux séries d'abord — c'est ce qui est en jeu aujourd'hui —, le niveau ensuite, et les paliers en dernier, qui sont une histoire. Un écran qui ouvrirait sur dix-huit trophées dont deux pris dirait d'abord ce qui manque.
+
+**Les deux séries, côte à côte.** La **série de saisie** compte les jours consécutifs portant au moins un plat : elle récompense l'habitude de noter, pas la performance. La **série parfaite** compte les jours consécutifs passés dans la fourchette de son objectif ([D133](11-decisions.md)) — calories et protéines, avec une tolérance qui penche du côté de la stratégie : large sous l'objectif en perte, large au-dessus en prise, serrée des deux en maintien.
+
+Elle se compte sur les **jours clos** : une journée n'est pas parfaite tant qu'elle dure, et la juger ferait passer chaque matin par « parfaite » puis par « ratée » au premier repas un peu large.
+
+**Le niveau**, avec une jauge et les deux nombres en dessous. Les niveaux s'écartent à mesure qu'on monte : passer du 1 au 2 coûte 100 points, du 9 au 10 en coûte 900. Les points viennent de ce qui a été fait — un plat noté, une journée suivie jusqu'au bout, une journée tenue — jamais d'une ouverture de l'application.
+
+**Les paliers, tous affichés**, pris ou non. Un palier caché tant qu'il n'est pas atteint ne donne envie de rien : c'est la liste entière qui dit ce que l'application récompense. Ceux qui ne sont pas pris sont estompés et sans date ; une fois pris, **la date remplace la description** — « le 3 mars » dit quelque chose que « sept jours d'affilée » ne dit plus une fois que c'est fait.
+
+Quatre familles, dans l'ordre où on les rencontre : **régularité** (3, 7, 14, 30, 100, 365 jours), **volume** (10, 50, 100, 500 plats), **justesse** (1, 3, 7, 30 journées parfaites d'affilée), **premières fois** (un scan, une photo, une description, un favori).
+
+**Rien ne s'atteint depuis cet écran.** On y regarde où l'on en est ; ce qui fait avancer la progression est ailleurs, dans le fait de noter ses repas.
+
+**Quand un palier tombe**, une brève animation passe sur l'accueil : des particules aux six teintes de macro, un nom, et c'est tout. Rien à fermer, rien à valider, et elle disparaît entièrement quand l'appareil demande moins de mouvement.
 
 ---
 

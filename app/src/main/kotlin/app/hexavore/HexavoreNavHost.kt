@@ -24,6 +24,8 @@ import app.hexavore.feature.home.HomeRoutes
 import app.hexavore.feature.home.homeScreen
 import app.hexavore.feature.onboarding.OnboardingDestination
 import app.hexavore.feature.onboarding.onboardingScreen
+import app.hexavore.feature.progress.navigateToProgress
+import app.hexavore.feature.progress.progressScreen
 import app.hexavore.feature.scan.navigateToScan
 import app.hexavore.feature.scan.scanScreen
 import app.hexavore.feature.search.navigateToFavorites
@@ -102,6 +104,7 @@ private fun HexavoreNavHost(startDestination: Any, modifier: Modifier = Modifier
                 onConfigureAi = { navController.navigate(AiSettingsDestination) },
                 onOpenFavorites = { navController.navigateToFavorites() },
                 onOpenWeight = { navController.navigateToWeight() },
+                onOpenProgress = { navController.navigateToProgress() },
             ),
         )
         onboardingScreen(
@@ -119,6 +122,7 @@ private fun HexavoreNavHost(startDestination: Any, modifier: Modifier = Modifier
         )
         settingsScreens(navController)
         weightScreen(onClose = { navController.popBackStack() })
+        progressScreen(onClose = { navController.popBackStack() })
         captureScreens(navController)
     }
 }

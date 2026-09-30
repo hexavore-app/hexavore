@@ -182,4 +182,25 @@
     <string name="notice_ai_rejected">Votre clé d\'API a été refusée</string>
     <string name="notice_weight_stale">Aucune pesée depuis une semaine</string>
     <string name="notice_yesterday_empty">Hier n\'a rien de noté</string>
+
+    <!-- La progression, en trois choses sur une ligne. L’ecran qui la deplie est a un
+         tap : l’accueil repond deja a une question, et deux en pleine page rendraient
+         la premiere moins nette. -->
+    <plurals name="home_streak_days">
+        <item quantity="one">%1$d jour</item>
+        <item quantity="other">%1$d jours</item>
+    </plurals>
+    <string name="home_level">Niveau %1$d</string>
+    <string name="home_open_progress">Votre progression</string>
+
+    <!-- Ce qui passe a l’ecran quand un palier tombe. Rien a fermer : l’animation
+         passe, et on continue a noter dessous. -->
+    <string name="home_celebration_title">Palier atteint</string>
+    <string name="home_badge_streak">%1$d jours d\'affilée</string>
+    <string name="home_badge_volume">%1$d plats notés</string>
+    <string name="home_badge_perfect">%1$d journées parfaites d\'affilée</string>
+    <string name="home_badge_first_scan">Premier scan</string>
+    <string name="home_badge_first_photo">Première photo</string>
+    <string name="home_badge_first_text">Première description</string>
+    <string name="home_badge_first_favorite">Premier favori</string>
 </resources>

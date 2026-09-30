@@ -4,6 +4,8 @@ import androidx.room.withTransaction
 import app.hexavore.core.database.HexavoreDatabase
 import app.hexavore.core.database.dao.BackupReadDao
 import app.hexavore.core.database.dao.BackupWriteDao
+import app.hexavore.core.database.entity.ProgressEntity
+import app.hexavore.core.database.entity.UnlockedBadgeEntity
 import app.hexavore.core.database.eraseUserData
 import app.hexavore.data.diary.toComponents
 import app.hexavore.data.diary.toDomain
@@ -16,9 +18,12 @@ import app.hexavore.domain.backup.Snapshot
 import app.hexavore.domain.backup.SnapshotStore
 import app.hexavore.domain.concurrency.DispatcherProvider
 import app.hexavore.domain.goal.AdjustmentSettings
+import app.hexavore.domain.progress.Badge
+import app.hexavore.domain.progress.StoredProgress
 import app.hexavore.domain.time.Clock
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -49,6 +54,10 @@ class RoomSnapshotStore @Inject constructor(
     private val dispatchers: DispatcherProvider,
 ) : SnapshotStore {
     override suspend fun capture(): Snapshot = withContext(dispatchers.io) {
+        // Lue une fois : la ligne est unique, et trois appels feraient trois requetes
+        // pour trois colonnes de la meme ligne.
+        val progress = reads.progress()
+
         Snapshot(
             exportedAt = clock.now(),
             appVersion = APP_VERSION,
@@ -61,6 +70,17 @@ class RoomSnapshotStore @Inject constructor(
             foods = reads.foods().map { it.toDomain() },
             favorites = reads.favorites().map { it.toDomain() },
             adjustment = adjustment.observe().first(),
+            // Ce que la progression a fige, et rien de ce qui se derive : une serie en
+            // cours se recalcule sur le journal que ce meme fichier transporte.
+            progress = StoredProgress(
+                points = progress?.points ?: 0,
+                bestStreak = progress?.bestStreak ?: 0,
+                bestPerfectStreak = progress?.bestPerfectStreak ?: 0,
+                unlocked = reads.badges().mapNotNull { row ->
+                    val badge = Badge.entries.firstOrNull { it.name == row.badge } ?: return@mapNotNull null
+                    runCatching { badge to LocalDate.parse(row.unlockedOn) }.getOrNull()
+                }.toMap(),
+            ),
         )
     }
 
@@ -105,6 +125,23 @@ class RoomSnapshotStore @Inject constructor(
             writes.insertComponents(snapshot.favorites.flatMap { it.toComponents() })
             writes.insertDishes(snapshot.dishes.map { it.toEntity(now) })
             writes.insertEntries(snapshot.dishes.flatMap { dish -> dish.entries.map { it.toEntity(now) } })
+            // La progression ne cite personne et personne ne la cite : elle peut
+            // s'ecrire n'importe ou dans la transaction, et elle s'ecrit en dernier
+            // pour que l'ordre du bloc reste celui des cles etrangeres.
+            snapshot.progress.takeIf { it != StoredProgress() }?.let { stored ->
+                writes.insertProgress(
+                    ProgressEntity(
+                        points = stored.points,
+                        bestStreak = stored.bestStreak,
+                        bestPerfectStreak = stored.bestPerfectStreak,
+                    ),
+                )
+                writes.insertBadges(
+                    stored.unlocked.map { (badge, on) ->
+                        UnlockedBadgeEntity(badge = badge.name, unlockedOn = on.toString())
+                    },
+                )
+            }
         }
 
         // **Hors de la transaction, et il n'y a pas de choix** : l'adaptation est
