@@ -10,7 +10,6 @@ import app.hexavore.domain.food.Food
 import app.hexavore.domain.identity.IdGenerator
 import app.hexavore.domain.time.Clock
 import java.time.LocalDate
-import java.time.LocalTime
 
 /**
  * Fabrique un brouillon vierge et ses lignes.
@@ -44,8 +43,15 @@ class CreateDraft(private val clock: Clock, private val ids: IdGenerator, privat
      * est une date, pas un instant. Quelqu'un qui rattrape le dîner d'hier à 9 h du
      * matin voit donc « Petit-déjeuner » proposé, et les quatre pastilles de l'écran
      * sont là pour ça.
+     *
+     * **`atZone(...).toLocalTime()` et non `LocalTime.ofInstant(...)`**, qui dit
+     * pourtant la même chose en plus court. Cette seconde forme est arrivée avec Java 9,
+     * et Android ne l'a reçue qu'à l'API 31 : sous Android 11, ouvrir une saisie levait
+     * un `NoSuchMethodError` et fermait l'application ([D139][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
      */
-    private fun moment(): MealMoment = MealMoment.at(LocalTime.ofInstant(clock.now(), clock.zone()))
+    private fun moment(): MealMoment = MealMoment.at(clock.now().atZone(clock.zone()).toLocalTime())
 
     /** Un brouillon d'une seule ligne vide, daté du jour regardé. */
     operator fun invoke(source: EntrySource): EntryDraft = EntryDraft(

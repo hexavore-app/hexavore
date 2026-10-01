@@ -205,9 +205,24 @@ class CiqualDatabase(private val context: Context) {
             }
         }
 
+    /**
+     * Ouvre la copie, et la refait quand ce qui est là n'est pas une base.
+     *
+     * **Exister ne suffit pas.** Un fichier de zéro octet s'ouvre sans broncher : SQLite
+     * y lit une base vide, et chaque recherche répond alors « catalogue illisible »,
+     * pour toujours — l'ancienne condition ne regardait que l'existence, donc personne
+     * ne recopiait jamais. C'est arrivé sous Android 11, après qu'un plantage a
+     * emporté le processus pendant la première copie ([D139][decisions]).
+     *
+     * La taille plutôt qu'une vérification du schéma : c'est le seul état qu'on a vu,
+     * il coûte un appel système, et une base à moitié écrite ne peut pas arriver — la
+     * copie passe par un fichier temporaire que le renommage publie d'un bloc.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
     private fun open(): SQLiteDatabase {
         val target = File(context.filesDir, FILE_NAME)
-        if (!target.exists()) copyFromAssets(target)
+        if (target.length() == 0L) copyFromAssets(target)
         return SQLiteDatabase.openDatabase(target.path, null, SQLiteDatabase.OPEN_READONLY)
     }
 
@@ -217,6 +232,9 @@ class CiqualDatabase(private val context: Context) {
         // ouverture prendrait pour valide.
         val partial = File(target.parentFile, "$FILE_NAME.partial")
         context.assets.open(ASSET_NAME).use { input -> partial.outputStream().use(input::copyTo) }
+        // Effacer d'abord : `renameTo` ne recouvre pas une destination existante
+        // partout, et la recopie sert justement a remplacer un fichier illisible.
+        target.delete()
         check(partial.renameTo(target)) { "Copie de $ASSET_NAME impossible vers ${target.path}" }
         retireOlderEditions(target)
     }

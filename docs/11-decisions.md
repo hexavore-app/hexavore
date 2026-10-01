@@ -4779,6 +4779,55 @@ La **proposition d'IA incorrecte** se signale depuis l'édition qui suit l'analy
 
 ---
 
+## D139 â L'application tient depuis Android 11, et un tour d'Ã©crans le vÃ©rifie Â· â validÃ©e
+
+**Contexte.** Quelqu'un sous **Android 11** ne pouvait pas ajouter de plat : l'Ã©cran de saisie se fermait d'un coup, et celui d'Ã©dition avec lui. Le reste de l'application marchait. Rien, dans tout ce que le projet sait vÃ©rifier â compilation, `detekt`, `ktlint`, trois cents tests unitaires, `lint` sur tous les modules â n'avait rien Ã  dire.
+
+### Une mÃ©thode qui n'existe pas lÃ -bas
+
+```
+java.lang.NoSuchMethodError: No static method ofInstant(Ljava/time/Instant;Ljava/time/ZoneId;)Ljava/time/LocalTime;
+    at app.hexavore.domain.usecase.CreateDraft.moment(CreateDraft.kt:48)
+```
+
+`LocalTime.ofInstant(Instant, ZoneId)` est arrivÃ©e avec **Java 9**. Le `java.time` d'Android date de l'API 26 et s'arrÃªte Ã  Java 8 ; cette surcharge-lÃ  n'est apparue qu'Ã  l'**API 31**. Entre les deux â Android 8.0 Ã  Android 11, soit `minSdk` jusqu'Ã  l'API 30 â l'appel compile et n'existe pas.
+
+**Le correctif tient en une ligne** : `clock.now().atZone(clock.zone()).toLocalTime()`. MÃªme rÃ©sultat, mÃªme lisibilitÃ©, et Java 8.
+
+### Pourquoi rien ne l'avait vu
+
+`NewApi`, le contrÃ´le de `lint` qui existe exactement pour Ã§a, **n'a jamais regardÃ© ce fichier** : il ne tourne que sur les modules Android, et `CreateDraft` vit dans `:domain`, qui est un module Kotlin pur. C'est le prix d'une dÃ©cision qu'on ne regrette pas â un domaine sans Android ([D02](#d02--architecture-en-couches-domaine-pur---validÃ©e)) â mais c'est un prix, et il Ã©tait impayÃ© : la JVM du poste de dÃ©veloppement a la mÃ©thode, donc tout Ã©tait vert.
+
+Les Ã©mulateurs du projet Ã©taient en API 33 et 35. Le dÃ©faut vivait **sous** le plancher de ce qu'on essayait.
+
+### Un tour d'Ã©crans, une fois par version
+
+`AppJourneyTest` ouvre l'accueil, le menu d'ajout, la recherche, la saisie, l'Ã©dition, les rÃ©glages, le journal de poids et la progression. Il ne juge **ni la mise en page ni les chiffres** â les calculs ont leurs tests, rapides et sans appareil. Il rÃ©pond Ã  une seule question, posÃ©e sur chaque version : *est-ce que Ã§a s'ouvre*.
+
+**Sur le vrai graphe.** Aucun adaptateur n'est remplacÃ© : Room, DataStore, le catalogue embarquÃ© et les ressources sont ceux de l'application. Ce sont prÃ©cisÃ©ment les adaptateurs qui se comportent autrement d'une version Ã  l'autre, et un faux les aurait tous cachÃ©s. Le profil et l'objectif s'Ã©crivent par ce mÃªme graphe, via un point d'entrÃ©e Hilt qui **n'existe qu'en `debug`** : sans objectif, l'application dÃ©marre sur l'onboarding, et traverser cinq questions Ã  la main rendrait chaque test otage de l'Ã©cran qui les pose.
+
+**Avec UiAutomator, et non le testeur de Compose.** Celui-ci ne voit que la fenÃªtre de l'activitÃ© : la feuille du Â« + Â» est une fenÃªtre Ã  elle, et le test passait Ã  cÃ´tÃ© du menu d'ajout tout en le regardant Ã  l'Ã©cran. UiAutomator lit l'arbre d'accessibilitÃ© de **toutes** les fenÃªtres â ce qu'un lecteur d'Ã©cran lit â et ne dÃ©pend ni de la version de Compose ni de sa synchronisation, ce qui compte pour un test qui doit survivre Ã  sept versions d'Android.
+
+**Il cherche un libellÃ© en texte *ou* en description**, parce que Compose expose les deux : une entrÃ©e de la feuille d'ajout fond son titre et son explication dans une seule description, et le mÃªme libellÃ© est du texte partout ailleurs.
+
+**Il s'accroche au Â« + Â» et non au libellÃ© du champ de saisie** : sans clÃ© d'IA, la barre est verrouillÃ©e et dit autre chose ([D136](#d136--trois-gestes-qui-manquaient-Ã -lusage---validÃ©e)). C'est l'Ã©tat d'une installation neuve, donc celui de six Ã©mulateurs sur sept.
+
+### Un catalogue vide ne se rÃ©parait jamais
+
+Le plantage a laissÃ© une trace : un `ciqual-*.db` de **zÃ©ro octet** dans `filesDir`, le processus ayant Ã©tÃ© emportÃ© pendant la premiÃ¨re copie. Un fichier vide s'ouvre sans broncher â SQLite y lit une base vide â et la condition de recopie ne regardait que l'**existence** du fichier. La recherche rÃ©pondait donc Â« catalogue illisible Â» Ã  chaque fois, dÃ©finitivement, et rÃ©installer Ã©tait le seul recours.
+
+La condition regarde maintenant la **taille**. Et la recopie efface la cible avant de renommer, parce que `renameTo` ne recouvre pas une destination existante partout â or la recopie sert justement Ã  remplacer un fichier qu'on ne sait pas lire.
+
+**ConsÃ©quences.** Android 11 Ã  16 passent les huit Ã©crans. Android 17 n'a pas encore d'image systÃ¨me : la plage s'arrÃªte lÃ , et non par choix.
+
+**Ce que le vert ne prouve pas.** **Que les API 26 Ã  29 tiennent.** Elles ne sont pas essayÃ©es ici, faute d'images installÃ©es ; le correctif les concerne pourtant au premier chef, puisque le dÃ©faut portait sur tout l'intervalle 26â30. Le tour d'Ã©crans se rejoue sur une image de plus sans qu'on y touche.
+
+**Que la famille entiÃ¨re soit sÃ»re.** Une seule mÃ©thode de Java 9 Ã©tait appelÃ©e, et elle est corrigÃ©e ; rien n'empÃªche la suivante d'entrer. Le **dÃ©sucrage de la bibliothÃ¨que standard** (`coreLibraryDesugaring`) la fermerait pour de bon, au prix d'une dÃ©pendance de build et de quelques centaines de kilooctets dans l'APK. Il n'est pas activÃ© : la dÃ©cision se prend sur l'APK publiÃ©, pas en passant.
+
+**Que huit Ã©crans soient tous les Ã©crans.** Le scan, la photo, l'analyse par IA et l'onboarding ne sont pas dans le tour â ils demandent une camÃ©ra, un rÃ©seau ou une clÃ©. Ce sont les trois endroits oÃ¹ un dÃ©faut de version resterait invisible.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.
