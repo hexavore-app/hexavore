@@ -6,6 +6,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.UiObject2
 import androidx.test.uiautomator.Until
 import app.hexavore.domain.goal.DailyGoal
 import app.hexavore.domain.goal.Goal
@@ -65,7 +66,8 @@ import app.hexavore.feature.settings.R as SettingsStrings
  * Le profil et l'objectif sont écrits **par ce même graphe** avant chaque test. Sans
  * objectif, l'application démarre sur l'onboarding ([StartDestinationViewModel]), et
  * aucun des écrans visés n'est atteignable ; traverser les cinq questions à la main
- * rendrait chaque test otage de l'écran qui les pose.
+ * rendrait chaque test otage de l'écran qui les pose. L'onboarding a sa propre classe,
+ * qui tourne avant celle-ci sur une installation neuve.
  *
  * [decisions]: docs/11-decisions.md
  */
@@ -160,6 +162,28 @@ class AppJourneyTest {
         attend(SettingsStrings.string.settings_title)
     }
 
+    /**
+     * Les sept sections des reglages, ouvertes une par une.
+     *
+     * Chacune est un ecran a part entiere, et elles sont les plus denses de
+     * l'application : profil, objectifs, IA, apparence, sauvegarde, photos, mentions.
+     * Un defaut de version s'y logerait sans que rien d'autre bouge.
+     */
+    @Test
+    fun chaque_section_des_reglages_s_ouvre() {
+        ouvreLAccueil()
+        clique(texte(HomeStrings.string.home_open_profile))
+        attend(SettingsStrings.string.settings_title)
+
+        SECTIONS.forEach { section ->
+            val titre = texte(section)
+            clique(titre)
+            attendLeLibelle(titre)
+            device.pressBack()
+            attend(SettingsStrings.string.settings_title)
+        }
+    }
+
     @Test
     fun le_journal_de_poids_s_ouvre() {
         ouvreLAccueil()
@@ -185,14 +209,12 @@ class AppJourneyTest {
     // --- les gestes, nommes comme on les ferait --------------------------------------
 
     /**
-     * Lance l'application, et attend le  +  de la barre du bas.
+     * Lance l'application, et attend le « + » de la barre du bas.
      *
      * **Et non le libelle du champ** : sans cle d'IA, la barre est verrouillee et dit
-     * autre chose ([D136][decisions]). C'est l'etat d'une installation neuve, donc
-     * celui de six emulateurs sur sept — un test accroche au libelle du champ
-     * n'arrivait jamais a l'ecran suivant, et accusait la version d'Android.
-     *
-     * Le  +  est la dans les deux etats : c'est le geste qui ne depend de rien.
+     * autre chose ([D136][decisions]). C'est l'etat d'une installation neuve, donc celui
+     * de six emulateurs sur sept — un test accroche au libelle du champ n'arrivait
+     * jamais a l'ecran suivant, et accusait la version d'Android.
      *
      * [decisions]: docs/11-decisions.md
      */
@@ -211,56 +233,77 @@ class AppJourneyTest {
     }
 
     /**
-     * Tape une lettre, puis prend ce qui remonte.
+     * Tape deux lettres, puis prend ce qui remonte.
      *
      * **Sans nommer d'aliment** : le catalogue embarque est celui de la vraie
      * application, et un test qui citerait une fiche se casserait le jour ou elle
      * changerait de libelle. `kcal` s'ecrit pareil dans les deux langues.
+     *
+     * Le champ se trouve par sa **classe** et non par son libelle : ce que Compose
+     * expose sous « Search for a food » est l'etiquette, et ecrire dedans n'ecrit nulle
+     * part. Un champ de saisie se presente comme un `EditText` a l'accessibilite, quelle
+     * que soit la version.
      */
     private fun choisitLePremierAliment() {
-        // Le champ par sa **classe** et non par son libelle : ce que Compose expose
-        // sous  Search for a food  est l'etiquette, et ecrire dedans n'ecrit nulle
-        // part. Un champ de saisie se presente comme un EditText a l'accessibilite,
-        // quelle que soit la version.
         val champ = device.wait(Until.findObject(By.clazz(SAISIE)), ATTENTE_MS)
         requireNotNull(champ) { "Le champ de recherche ne repond pas." }.text = LETTRES
-        prendLePremier()
+        prendLaPremiereLigne()
     }
 
     /**
      * Fait defiler l'accueil jusqu'a un plat, puis l'ouvre.
      *
-     * ### Pourquoi ce n'est pas  cliquer le premier  kcal
-     *
      * La liste est **sous la pliure** : l'accueil montre d'abord l'hexagone et les six
-     * compteurs. Et une fois deroulee, le premier plat qui porte  kcal  peut se trouver
-     * a demi glisse sous le bandeau du calendrier, qui reste en haut : le clic part
-     * alors dans le bandeau, l'ecran ne bouge pas, et le test accuse la saisie.
+     * compteurs. Et une fois deroulee, un plat a demi glisse sous le bandeau du
+     * calendrier, qui reste en haut, recevrait un clic qui part dans le bandeau.
      *
-     * On ne prend donc qu'un plat **franchement au milieu de l'ecran**, hors du bandeau
-     * comme de la barre d'ajout. C'est aussi ce qu'un doigt ferait.
+     * On attend donc que le plat **existe**, puis on ne prend que celui qui se trouve
+     * franchement au milieu de l'ecran, hors du bandeau comme de la barre d'ajout.
      */
     private fun ouvreLePremierPlat() {
         fermeLeClavier()
+        // On regarde, puis on deroule -- et non l'inverse. UiAutomator ne voit que ce
+        // qui est a l'ecran : attendre le plat avant d'avoir deroule, c'est attendre
+        // qu'une chose apparaisse la ou elle ne peut pas etre.
         repeat(DEROULES) {
-            val plat = platEnPleinEcran()
-            if (plat != null) {
-                plat.click()
-                return
-            }
+            if (cliqueLaLigne(platEnPleinEcran())) return
             glisse()
         }
         fail("Aucun plat n'est venu sous les yeux." + System.lineSeparator() + "Il montrait : " + ceQuOnVoit())
     }
 
     /**
-     * Un plat dont le centre tombe entre le bandeau et la barre.
+     * Laisse la liste se poser, puis ouvre la premiere ligne.
      *
-     * Le quart du haut est pris par le calendrier, qui reste en place ; le huitieme du
-     * bas par la barre d'ajout. Entre les deux, un clic atteint ce qu'il vise. La bande
-     * doit rester large : avec un seul plat, la liste ne defile presque pas, et un
-     * cadrage trop etroit ne laisse aucune position acceptable.
+     * **On recommence jusqu'a ce que l'ecran change**, et non jusqu'a ce qu'un clic
+     * parte. Les resultats arrivent par vagues -- une premiere reponse du catalogue,
+     * puis une seconde mieux classee -- et un clic sur une ligne en train d'etre
+     * remplacee est accepte sans rien ouvrir. Verifier le depart du champ de recherche
+     * est la seule preuve qui vaille.
      */
+    private fun prendLaPremiereLigne() {
+        attendLeLibelle(ENERGIE)
+        device.waitForIdle(REPOS_MS)
+        repeat(ESSAIS) {
+            if (cliqueLaLigne(device.findObject(By.textContains(ENERGIE)))) return
+            device.waitForIdle(PAS_MS)
+        }
+        fail("Aucune ligne ne s'est laissee ouvrir." + System.lineSeparator() + "Il montrait : " + ceQuOnVoit())
+    }
+
+    /**
+     * Clique la ligne reperee par son energie.
+     *
+     * **Sur le noeud trouve, et non sur son parent.** Compose annonce la plupart de ses
+     * noeuds comme non cliquables tout en traitant le geste : UiAutomator le dit en
+     * clair dans le journal, puis clique par coordonnees -- et cela atteint la ligne.
+     * Remonter d'un cran semblait plus propre, mais le parent n'est pas toujours la
+     * ligne : sur Android 16 c'etait le conteneur de l'ecran, et le clic refermait la
+     * recherche au lieu d'ouvrir la fiche.
+     */
+    private fun cliqueLaLigne(valeur: UiObject2?): Boolean = valeur != null && runCatching { valeur.click() }.isSuccess
+
+    /** Un plat dont le centre tombe entre le bandeau du calendrier et la barre d'ajout. */
     private fun platEnPleinEcran() = device
         .findObjects(By.textContains(ENERGIE))
         .lastOrNull { it.visibleBounds.centerY() in device.displayHeight / 4..device.displayHeight * 7 / 8 }
@@ -268,10 +311,10 @@ class AppJourneyTest {
     /**
      * Referme le clavier, et seulement s'il est ouvert.
      *
-     * Apres une recherche, le clavier reste leve et couvre le tiers bas de l'ecran :
-     * le plat qu'on vient d'ecrire est dessous, et le test le cherchait en vain. Un
-     * `pressBack()` systematique aurait quitte l'accueil quand il n'y avait pas de
-     * clavier -- on demande donc au systeme s'il y en a un.
+     * Apres une recherche, le clavier reste leve et couvre le tiers bas de l'ecran : le
+     * plat qu'on vient d'ecrire est dessous. Un `pressBack()` systematique aurait quitte
+     * l'accueil quand il n'y avait pas de clavier — on demande donc au systeme s'il y en
+     * a un.
      */
     private fun fermeLeClavier() {
         val ouvert = instrumentation.uiAutomation.windows.any {
@@ -294,8 +337,6 @@ class AppJourneyTest {
         device.waitForIdle(PAS_MS)
     }
 
-    private fun prendLePremier() = clique(ENERGIE)
-
     private fun texte(id: Int): String = context.getString(id)
 
     private fun attend(id: Int) = attendLeLibelle(texte(id))
@@ -303,11 +344,11 @@ class AppJourneyTest {
     /**
      * Ce libelle est-il a l'ecran, **en texte ou en description** ?
      *
-     * Les deux, parce que Compose expose les deux. Une entree de la feuille d'ajout
-     * fond son titre et sa ligne d'explication dans une seule description — c'est ce
-     * qu'un lecteur d'ecran doit entendre d'un coup — et le meme libelle est du texte
-     * partout ailleurs. Chercher dans un seul des deux rendait le test aveugle a un
-     * menu qu'il avait pourtant sous les yeux.
+     * Les deux, parce que Compose expose les deux. Une entree de la feuille d'ajout fond
+     * son titre et sa ligne d'explication dans une seule description — c'est ce qu'un
+     * lecteur d'ecran doit entendre d'un coup — et le meme libelle est du texte partout
+     * ailleurs. Chercher dans un seul des deux rendait le test aveugle a un menu qu'il
+     * avait pourtant sous les yeux.
      */
     private fun voit(libelle: String): Boolean =
         device.wait(Until.hasObject(By.textContains(libelle)), PAS_MS) == true ||
@@ -316,15 +357,10 @@ class AppJourneyTest {
     /**
      * Attend qu'un libelle paraisse, et echoue en le nommant.
      *
-     * L'attente plutot qu'une assertion seche : le demarrage ouvre une base, lit un
-     * profil et compose un ecran, et la duree de tout cela depend autant de la machine
-     * qui emule que de la version emulee.
+     * Un nombre d'essais et non une echeance : lire l'horloge systeme est precisement ce
+     * que ce depot interdit, et chaque essai attend deja par lui-meme.
      */
     private fun attendLeLibelle(libelle: String) {
-        // Un nombre d'essais et non une echeance : lire l'horloge systeme est
-        // precisement ce que ce depot interdit, et chaque essai attend deja par
-        // lui-meme. Vingt essais de deux demi-secondes font les vingt secondes qu'on
-        // accorde a un ecran pour paraitre.
         repeat(ESSAIS) { if (voit(libelle)) return }
         fail("L'ecran n'a jamais montre : $libelle" + System.lineSeparator() + "Il montrait : " + ceQuOnVoit())
     }
@@ -337,17 +373,30 @@ class AppJourneyTest {
      * session a la main sur l'emulateur concerne.
      */
     private fun ceQuOnVoit(): String {
+        // Chaque lecture est protegee : un noeud peut disparaître entre l'instant ou on
+        // le liste et celui ou on le lit, et un diagnostic qui jette en route efface
+        // justement le message qu'on etait en train d'ecrire.
         val tout = Regex(".+").toPattern()
-        return (
-            device.findObjects(By.text(tout)).mapNotNull { it.text } +
-                device.findObjects(By.desc(tout)).mapNotNull { it.contentDescription }
-            ).distinct().joinToString(separator = " | ").take(EXTRAIT)
+        return runCatching {
+            device.findObjects(By.text(tout)).mapNotNull { runCatching { it.text }.getOrNull() } +
+                device.findObjects(By.desc(tout)).mapNotNull { runCatching { it.contentDescription }.getOrNull() }
+        }.getOrDefault(emptyList()).distinct().joinToString(separator = " | ").take(EXTRAIT)
     }
 
+    /**
+     * Cherche, puis clique — et recommence si la cible a bouge entre les deux.
+     *
+     * Une liste se recompose pendant qu'on la regarde : le noeud trouve a l'instant
+     * d'avant n'existe deja plus, et UiAutomator le dit en jetant. C'est la vie d'un
+     * ecran vivant, pas un defaut — un doigt qui rate recommence, lui aussi.
+     */
     private fun clique(libelle: String) {
-        attendLeLibelle(libelle)
-        val cible = device.findObject(By.textContains(libelle)) ?: device.findObject(By.descContains(libelle))
-        requireNotNull(cible) { "Disparu entre l'attente et le clic : $libelle" }.click()
+        repeat(ESSAIS) {
+            val cible = device.findObject(By.textContains(libelle)) ?: device.findObject(By.descContains(libelle))
+            if (cible != null && runCatching { cible.click() }.isSuccess) return
+            device.waitForIdle(PAS_MS)
+        }
+        fail("Jamais cliquable : $libelle" + System.lineSeparator() + "Il montrait : " + ceQuOnVoit())
     }
 
     private companion object {
@@ -360,25 +409,19 @@ class AppJourneyTest {
         /** Vingt essais d'une demi-seconde par recherche : vingt secondes en tout. */
         const val ESSAIS = 20
 
-        /**
-         * Le nombre de glissees avant d'abandonner la liste des plats.
-         *
-         * Deux suffisent quand le journal tient sur un ecran ; six laissent de la marge
-         * a une journee chargee sans faire durer un echec.
-         */
+        /** Le temps qu'on laisse a une liste qui se complete avant d'y toucher. */
+        const val REPOS_MS = 1_500L
+
+        /** Six glissees : deux suffisent a un journal court, six a une journee chargee. */
         const val DEROULES = 6
 
         /**
          * Un glisse lent, et non une chiquenaude.
          *
          * Dix pas lancent la liste, qui continue sur son erre : le clic qui suit vise
-         * alors des coordonnees que le plat a deja quittees. Soixante pas font un
-         * deplacement qui s'arrete ou on le lache.
+         * alors des coordonnees que le plat a deja quittees.
          */
         const val GLISSE_PAS = 60
-
-        /** De quoi reconnaitre l'ecran sans noyer le journal de test. */
-        const val EXTRAIT = 700
 
         const val KCAL = 2400.0
         const val PROTEINES = 120.0
@@ -390,8 +433,8 @@ class AppJourneyTest {
         /**
          * Deux lettres, et pas une.
          *
-         * La recherche n'ouvre pas en dessous -- elle le dit elle-meme : *tapez deux
-         * lettres*. Et  to  plutot qu'autre chose parce que tomate et tomato
+         * La recherche n'ouvre pas en dessous — elle le dit elle-meme : *tapez deux
+         * lettres*. Et « to » plutot qu'autre chose parce que tomate et tomato
          * commencent pareil : le catalogue suit la langue de l'application, et ce test
          * tourne dans les deux.
          */
@@ -405,5 +448,19 @@ class AppJourneyTest {
 
         /** La fin de la description de l'anneau, celle qui ne porte aucun chiffre. */
         const val OUVRE_LA_PROGRESSION = "progress"
+
+        /** De quoi reconnaitre l'ecran sans noyer le journal de test. */
+        const val EXTRAIT = 700
+
+        /** Les sept entrees du hub, dans l'ordre ou il les presente. */
+        val SECTIONS = listOf(
+            SettingsStrings.string.settings_profile_title,
+            SettingsStrings.string.settings_ai_title,
+            SettingsStrings.string.settings_backup_title,
+            SettingsStrings.string.settings_photos_title,
+            SettingsStrings.string.settings_appearance_title,
+            SettingsStrings.string.settings_notices_title,
+            SettingsStrings.string.settings_contribution_title,
+        )
     }
 }
