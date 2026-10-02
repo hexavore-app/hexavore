@@ -124,7 +124,7 @@ fun HomeScreen(
     pendingUndo: Dish?,
     actions: HomeActions,
     modifier: Modifier = Modifier,
-    aiConfigured: Boolean = false,
+    aiConfigured: Boolean? = null,
     favoriteNameTaken: Boolean = false,
     onDismissFavoriteError: () -> Unit = {},
     /**

@@ -217,12 +217,22 @@ class HomeViewModelTest {
     }
 
     @Test
+    fun `tant qu on ne sait pas, le mode Decrire ne s annonce pas indisponible`() = runTest(dispatcher) {
+        // La barre s'ouvrait en rouge chez quelqu'un qui a une cle : une demi-seconde
+        // de lecture du depot, et l'alerte se demente. Une alerte qui se dement
+        // apprend a ne plus lire les alertes (D140).
+        val viewModel = viewModel(InMemoryDiaryRepository(), FixedClock.atNoon(jour))
+
+        assertNull(viewModel.aiConfigured.value)
+    }
+
+    @Test
     fun `sans cle, le mode Decrire s annonce indisponible`() = runTest(dispatcher) {
         // D73 : visible et grise plutot que cache. L'accueil n'a besoin de rien de
         // plus que ce booleen -- ni du fournisseur, ni du modele.
         val viewModel = viewModel(InMemoryDiaryRepository(), FixedClock.atNoon(jour))
 
-        assertFalse(viewModel.aiConfigured.first())
+        assertEquals(false, viewModel.aiConfigured.first())
     }
 
     @Test
@@ -233,7 +243,7 @@ class HomeViewModelTest {
         )
         val viewModel = viewModel(InMemoryDiaryRepository(), FixedClock.atNoon(jour))
 
-        assertTrue(viewModel.aiConfigured.first())
+        assertEquals(true, viewModel.aiConfigured.first())
     }
 
     private fun viewModel(diary: InMemoryDiaryRepository, clock: FixedClock) = HomeViewModel(

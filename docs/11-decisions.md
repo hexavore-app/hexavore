@@ -4828,6 +4828,38 @@ La condition regarde maintenant la **taille**. Et la recopie efface la cible ava
 
 ---
 
+## D140 â Une alerte attend d'avoir quelque chose Ã  dire, et le dÃ©sucrage ferme la porte Â· â validÃ©e
+
+**Contexte.** Deux suites de [D139](#d139--lapplication-tient-depuis-android-11-et-un-tour-dÃ©crans-le-vÃ©rifie---validÃ©e), de natures diffÃ©rentes : une alerte qui se dÃ©mentait, et un garde-fou qui manquait.
+
+### Le rouge attendait de savoir
+
+Ã chaque ouverture, la barre du bas s'affichait une demi-seconde en **rouge** â champ verrouillÃ©, appareil photo barrÃ©, avertissement â puis redevenait normale. Chez quelqu'un qui a une clÃ©, donc, l'application annonÃ§ait son absence avant de se corriger.
+
+La cause tient en un mot : `initialValue = false`. Lire le dÃ©pÃ´t et dÃ©chiffrer la clÃ© prend ce temps-lÃ , et partir de `false` revient Ã  **affirmer** qu'il n'y a pas de clÃ© tant qu'on n'a pas regardÃ©.
+
+**`null` plutÃ´t que `false`**, c'est-Ã -dire *on ne sait pas encore*, et la barre ne montre le verrou que sur un `false` avÃ©rÃ©. C'est dÃ©jÃ  l'idiome du dÃ©pÃ´t : `StartDestinationViewModel` ne pose rien tant qu'il ignore oÃ¹ dÃ©marrer, et pour la mÃªme raison.
+
+**Ce que coÃ»te l'inverse n'est pas cosmÃ©tique.** Le mode dÃ©gradÃ© est devenu voyant exprÃ¨s ([D136](#d136--trois-gestes-qui-manquaient-Ã -lusage---validÃ©e)) : il doit se voir. Une alerte qui apparaÃ®t Ã  chaque ouverture et se dÃ©ment aussitÃ´t apprend Ã  ne plus lire les alertes, et c'est prÃ©cisÃ©ment celle-lÃ  qu'on avait besoin de rendre lisible.
+
+Le cas symÃ©trique â quelqu'un **sans** clÃ© voit le neutre une demi-seconde avant le rouge â est le bon sens de la marche : le rouge est son Ã©tat stable, il arrive et il reste.
+
+### Le dÃ©sucrage, et ce qu'on croyait savoir
+
+[D139](#d139--lapplication-tient-depuis-android-11-et-un-tour-dÃ©crans-le-vÃ©rifie---validÃ©e) corrigeait **un** appel de Java 9. Rien n'empÃªchait le suivant d'entrer : `NewApi` ne regarde pas `:domain`, qui est du Kotlin pur, et la JVM du poste a toutes les mÃ©thodes.
+
+`coreLibraryDesugaring` est activÃ© pour tout module Android. D8 rÃ©Ã©crit les appels manquants vers une implÃ©mentation embarquÃ©e, et il le fait sur **tout ce qui est dexÃ©** â donc sur les modules JVM comme sur les autres. C'est ce qui en fait un garde-fou et non un rappel.
+
+**On aurait pu croire que `minSdk = 26` rendait la chose inutile**, puisque `java.time` existe Ã  partir de lÃ . C'est faux, et c'est tout le sujet : l'API 26 porte le `java.time` de Java 8, pas celui de Java 9. La vÃ©rification a Ã©tÃ© faite en remplaÃ§ant **exprÃ¨s** l'appel corrigÃ© par `LocalTime.ofInstant`, puis en rejouant le tour d'Ã©crans sous Android 11 : il passe, sans `NoSuchMethodError`. Sans dÃ©sucrage, le mÃªme binaire fermait l'application.
+
+**L'appel corrigÃ© reste corrigÃ©.** Les deux ne font pas double emploi : `atZone(...).toLocalTime()` dit la mÃªme chose sans rien demander Ã  personne, et le dÃ©sucrage couvre ce que la prochaine distraction Ã©crira.
+
+**CoÃ»t.** L'APK de dÃ©bogage ne bouge pas de faÃ§on mesurable. Celui qui est publiÃ© passe par R8, qui ne garde que ce qui sert.
+
+**Ce que le vert ne prouve pas.** **Que le dÃ©sucrage couvre tout Java 9+.** Il couvre ce que la spÃ©cification de `desugar_jdk_libs` dÃ©clare, et cette liste n'est pas la bibliothÃ¨que standard entiÃ¨re. Ce qui est tenu, c'est le cas qui a cassÃ© â et il l'est par un essai, pas par une lecture.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.
