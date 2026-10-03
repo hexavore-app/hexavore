@@ -93,14 +93,21 @@ class HomeViewModel @Inject constructor(
      *
      * [decisions]: docs/11-decisions.md
      */
-    val aiConfigured: StateFlow<Boolean> = credentials
+    val aiConfigured: StateFlow<Boolean?> = credentials
         .observe()
         .map { it.activeConfiguration() != null }
         .catch { emit(false) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MILLIS),
-            initialValue = false,
+            // `null` et non `false` : **on ne sait pas encore**. Lire le dépôt et
+            // déchiffrer la clé prend une demi-seconde, et partir de `false` faisait
+            // s'ouvrir la barre en rouge chez quelqu'un qui a une clé — une alerte
+            // qui se dément aussitôt apprend à ne plus lire les alertes ([D140][decisions]).
+            //
+            // C'est l'idiome du dépôt : `StartDestination?` dit la même chose au
+            // démarrage, et pour la même raison.
+            initialValue = null,
         )
 
     /**

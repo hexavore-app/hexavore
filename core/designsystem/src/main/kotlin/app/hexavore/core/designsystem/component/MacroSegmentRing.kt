@@ -48,6 +48,18 @@ fun MacroSegmentRing(
     diameter: Dp = MacroRingDefaults.CalendarDiameter,
     strokeWidth: Dp = SegmentStrokeWidth,
     contentDescription: String? = null,
+    /**
+     * L'anneau se ferme : les six arcs se touchent et font un tour complet.
+     *
+     * **Une forme, pas une septième couleur.** Ce thème s'interdit un rôle de couleur
+     * de plus, et signale ce qui sort de l'ordinaire par le dessin — c'est déjà ce
+     * que fait le contour pointillé d'une valeur estimée. Une journée parfaite est un
+     * anneau entier là où les autres sont brisés, et une série se lit d'un coup d'œil
+     * comme une suite de cercles pleins ([D143][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    closed: Boolean = false,
     center: @Composable () -> Unit = {},
 ) {
     val palettes = Macro.entries.associateWith { NeonTheme.macros[it].base }
@@ -72,10 +84,17 @@ fun MacroSegmentRing(
             val stroke = strokeWidth.toPx()
             Macro.entries.forEachIndexed { index, macro ->
                 val start = START_ANGLE + index * SEGMENT_SWEEP
-                drawSegment(trackColor, start, SEGMENT_SWEEP - SEGMENT_GAP, stroke)
-                val filled = (progress[macro] ?: 0f).coerceIn(0f, 1f)
-                if (filled > 0f) {
-                    drawSegment(palettes.getValue(macro), start, (SEGMENT_SWEEP - SEGMENT_GAP) * filled, stroke)
+                if (closed) {
+                    // Un demi-degre de recouvrement : sans lui, l'arrondi des traits
+                    // laisse six cheveux de fond entre les arcs, et l'anneau n'a plus
+                    // l'air entier.
+                    drawSegment(palettes.getValue(macro), start, SEGMENT_SWEEP + CLOSING_OVERLAP, stroke)
+                } else {
+                    drawSegment(trackColor, start, SEGMENT_SWEEP - SEGMENT_GAP, stroke)
+                    val filled = (progress[macro] ?: 0f).coerceIn(0f, 1f)
+                    if (filled > 0f) {
+                        drawSegment(palettes.getValue(macro), start, (SEGMENT_SWEEP - SEGMENT_GAP) * filled, stroke)
+                    }
                 }
             }
         }
@@ -110,6 +129,9 @@ private const val SEGMENT_SWEEP = 360f / SEGMENTS
 
 /** Le vide entre deux quartiers. Sans lui, les six couleurs formeraient un dégradé. */
 private const val SEGMENT_GAP = 6f
+
+/** Ce dont deux arcs se chevauchent quand l'anneau se ferme. */
+private const val CLOSING_OVERLAP = 0.5f
 
 // --- Aperçus -----------------------------------------------------------------
 

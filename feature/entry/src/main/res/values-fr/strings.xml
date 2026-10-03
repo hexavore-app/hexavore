@@ -119,4 +119,17 @@
     <string name="entry_report">Signaler une proposition incorrecte</string>
     <string name="entry_report_subject">Proposition d\'IA incorrecte</string>
     <string name="entry_report_body">La proposition ci-dessous était fausse. L\'échange et la photo sont en pièce jointe.\n\nCe que l\'écran montrait :\n%1$s\n\nCe qui était faux :\n</string>
+    <string name="entry_copy">Copier sur un autre jour</string>
+    <string name="entry_copy_title">Copier ce plat au</string>
+    <string name="entry_copy_confirm">Copier</string>
+    <string name="entry_copy_cancel">Annuler</string>
+    <string name="entry_delete">Supprimer ce plat</string>
+    <string name="entry_delete_title">Supprimer ce plat ?</string>
+    <string name="entry_delete_body">Il quitte la journée et ses compteurs. C\'est sans retour.</string>
+    <string name="entry_delete_confirm">Supprimer</string>
+    <string name="entry_delete_cancel">Le garder</string>
+    <string name="entry_report_explain_title">Plat proposé faux ?</string>
+    <string name="entry_report_explain_body">Envoyez-nous ce qui a été demandé à l\'IA et ce qu\'elle a répondu, avec la photo. Un courriel s\'ouvre, déjà rempli — rien ne quitte ce téléphone tant que vous ne l\'envoyez pas.</string>
+    <string name="entry_report_explain_confirm">Rédiger le signalement</string>
+    <string name="entry_report_explain_cancel">Annuler</string>
 </resources>

@@ -341,8 +341,8 @@
     <!-- Deep analysis: the model queries the catalogue before concluding, instead of
          letting a similarity score choose in its place. -->
     <string name="ai_deep_title">Deep analysis</string>
-    <string name="ai_deep_body">The model queries the catalogue and picks the entry for each food itself. Slower and more expensive, but markedly more accurate when two foods have similar names.</string>
-    <string name="ai_deep_unavailable">The active provider cannot call tools. The setting is kept and will take effect again with a provider that can.</string>
+    <string name="ai_deep_body">The model queries the catalogue and picks the entry for each food itself. It is always on where the provider can call tools: without it, foods the catalogue does not match come back with no values at all.</string>
+    <string name="ai_deep_unavailable">The active provider cannot call tools. Foods it does not match will be estimated instead, and flagged as estimates.</string>
 
     <string name="ai_debug_title">Debug mode</string>
     <string name="ai_debug_body">Keeps what goes to the provider and what comes back, to make sense of an unexpected answer. Nothing is written to disk, images are stripped out, and the list disappears when you close it.</string>

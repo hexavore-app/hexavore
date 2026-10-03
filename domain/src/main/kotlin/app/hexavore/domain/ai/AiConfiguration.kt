@@ -41,12 +41,18 @@ data class AiConfiguration(
     val model: String,
     val baseUrl: String,
     /**
-     * L'analyse approfondie est demandée **et** possible.
+     * Le fournisseur sait-il appeler des outils ?
      *
-     * Deux conditions et non une : la case peut rester cochée pendant qu'on bascule sur
-     * un fournisseur qui ne sait pas appeler d'outils. Le calcul se fait une fois, ici,
-     * plutôt que dans chaque reconnaisseur — trois copies d'un `&&` divergent au
-     * premier fournisseur ajouté.
+     * **Ce n'est plus un réglage.** L'analyse approfondie était une case à cocher, et
+     * sa position « éteinte » était toujours la mauvaise : sans elle, le modèle rend
+     * des libellés que le catalogue ne rejoint pas toujours, et les lignes arrivent
+     * sans valeurs. Un interrupteur dont une position est toujours moins bonne n'est
+     * pas un choix ([D142][decisions]).
+     *
+     * Le calcul se fait une fois, ici, plutôt que dans chaque reconnaisseur — trois
+     * copies d'une même condition divergent au premier fournisseur ajouté.
+     *
+     * [decisions]: docs/11-decisions.md
      */
     val deepAnalysis: Boolean = false,
 )

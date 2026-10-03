@@ -7,6 +7,7 @@ import app.hexavore.domain.food.FoodUsage
 import app.hexavore.domain.goal.Goals
 import app.hexavore.domain.identity.IdGenerator
 import app.hexavore.domain.time.Clock
+import app.hexavore.domain.usecase.CopyDishToDate
 import app.hexavore.domain.usecase.CreateDraft
 import app.hexavore.domain.usecase.DeleteDish
 import app.hexavore.domain.usecase.GetCalendar
@@ -80,6 +81,19 @@ object DomainModule {
 
     @Provides
     fun deleteDish(diary: DiaryRepository): DeleteDish = DeleteDish(diary)
+
+    /**
+     * La recopie d'un plat sur un autre jour.
+     *
+     * Elle a besoin d'une horloge et d'un générateur d'identifiants parce que la copie
+     * est **un autre plat** : son heure est celle de la copie, et ses identifiants sont
+     * neufs ([D143][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    @Provides
+    fun copyDishToDate(diary: DiaryRepository, clock: Clock, ids: IdGenerator): CopyDishToDate =
+        CopyDishToDate(diary, clock, ids)
 
     @Provides
     fun restoreDish(diary: DiaryRepository): RestoreDish = RestoreDish(diary)

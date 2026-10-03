@@ -119,4 +119,17 @@
     <string name="entry_report">Report an incorrect suggestion</string>
     <string name="entry_report_subject">Incorrect AI suggestion</string>
     <string name="entry_report_body">The suggestion below was wrong. The exchange and the photo are attached.\n\nWhat the screen showed:\n%1$s\n\nWhat was wrong:\n</string>
+    <string name="entry_copy">Copy to another day</string>
+    <string name="entry_copy_title">Copy this meal to</string>
+    <string name="entry_copy_confirm">Copy</string>
+    <string name="entry_copy_cancel">Cancel</string>
+    <string name="entry_delete">Delete this meal</string>
+    <string name="entry_delete_title">Delete this meal?</string>
+    <string name="entry_delete_body">It leaves the day and its counters. This cannot be undone.</string>
+    <string name="entry_delete_confirm">Delete</string>
+    <string name="entry_delete_cancel">Keep it</string>
+    <string name="entry_report_explain_title">Wrong suggestion?</string>
+    <string name="entry_report_explain_body">Send us what the AI was asked and what it answered, with the photo. An email opens, already filled in — nothing leaves this phone until you send it.</string>
+    <string name="entry_report_explain_confirm">Write the report</string>
+    <string name="entry_report_explain_cancel">Cancel</string>
 </resources>

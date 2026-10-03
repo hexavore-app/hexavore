@@ -39,7 +39,12 @@ class DraftReporting @Inject constructor(
     suspend fun report(draft: EntryDraft, photo: PhotoFile?, subject: String, body: String): Boolean {
         // Le dernier echange, et non celui du plat : le depot n'en garde pas la trace,
         // et l'analyse qu'on signale est celle qu'on vient de faire.
-        val exchange = runCatching { exchanges.observe().first().lastOrNull() }.getOrNull()
+        //
+        // **`firstOrNull` et non `lastOrNull`** : le journal est rendu du plus recent au
+        // plus ancien. Trois signalements ont ainsi joint le *premier* tour d'une
+        // analyse profonde -- l'appel au catalogue -- la ou le defaut se voyait au
+        // dernier (D142).
+        val exchange = runCatching { exchanges.observe().first().firstOrNull() }.getOrNull()
         val bytes = photo?.let { runCatching { photos.of(it) }.getOrNull() }
 
         return reportAnalysis(

@@ -341,8 +341,8 @@
     <!-- L\'analyse approfondie : le modele interroge le catalogue avant de conclure,
          au lieu de laisser un score de ressemblance choisir a sa place. -->
     <string name="ai_deep_title">Analyse approfondie</string>
-    <string name="ai_deep_body">Le modèle interroge le catalogue et choisit lui-même la fiche de chaque aliment. Plus lent et plus cher, mais nettement plus juste quand deux aliments portent des noms voisins.</string>
-    <string name="ai_deep_unavailable">Le fournisseur actif ne sait pas appeler d\'outils. Le réglage est conservé et reprendra effet avec un fournisseur qui le sait.</string>
+    <string name="ai_deep_body">Le modèle interroge le catalogue et choisit lui-même la fiche de chaque aliment. Elle est toujours active dès que le fournisseur sait appeler des outils : sans elle, les aliments que le catalogue ne rejoint pas reviennent sans aucune valeur.</string>
+    <string name="ai_deep_unavailable">Le fournisseur actif ne sait pas appeler d\'outils. Les aliments qu\'il ne rejoint pas seront estimés, et signalés comme tels.</string>
 
     <string name="ai_debug_title">Mode debug</string>
     <string name="ai_debug_body">Garde ce qui part chez le fournisseur et ce qui en revient, pour comprendre une réponse inattendue. Rien n\'est écrit sur le disque, les images sont retirées, et la liste disparaît à la fermeture.</string>

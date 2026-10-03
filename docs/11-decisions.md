@@ -4828,6 +4828,108 @@ La condition regarde maintenant la **taille**. Et la recopie efface la cible ava
 
 ---
 
+## D140 â Une alerte attend d'avoir quelque chose Ã  dire, et le dÃ©sucrage ferme la porte Â· â validÃ©e
+
+**Contexte.** Deux suites de [D139](#d139--lapplication-tient-depuis-android-11-et-un-tour-dÃ©crans-le-vÃ©rifie---validÃ©e), de natures diffÃ©rentes : une alerte qui se dÃ©mentait, et un garde-fou qui manquait.
+
+### Le rouge attendait de savoir
+
+Ã chaque ouverture, la barre du bas s'affichait une demi-seconde en **rouge** â champ verrouillÃ©, appareil photo barrÃ©, avertissement â puis redevenait normale. Chez quelqu'un qui a une clÃ©, donc, l'application annonÃ§ait son absence avant de se corriger.
+
+La cause tient en un mot : `initialValue = false`. Lire le dÃ©pÃ´t et dÃ©chiffrer la clÃ© prend ce temps-lÃ , et partir de `false` revient Ã  **affirmer** qu'il n'y a pas de clÃ© tant qu'on n'a pas regardÃ©.
+
+**`null` plutÃ´t que `false`**, c'est-Ã -dire *on ne sait pas encore*, et la barre ne montre le verrou que sur un `false` avÃ©rÃ©. C'est dÃ©jÃ  l'idiome du dÃ©pÃ´t : `StartDestinationViewModel` ne pose rien tant qu'il ignore oÃ¹ dÃ©marrer, et pour la mÃªme raison.
+
+**Ce que coÃ»te l'inverse n'est pas cosmÃ©tique.** Le mode dÃ©gradÃ© est devenu voyant exprÃ¨s ([D136](#d136--trois-gestes-qui-manquaient-Ã -lusage---validÃ©e)) : il doit se voir. Une alerte qui apparaÃ®t Ã  chaque ouverture et se dÃ©ment aussitÃ´t apprend Ã  ne plus lire les alertes, et c'est prÃ©cisÃ©ment celle-lÃ  qu'on avait besoin de rendre lisible.
+
+Le cas symÃ©trique â quelqu'un **sans** clÃ© voit le neutre une demi-seconde avant le rouge â est le bon sens de la marche : le rouge est son Ã©tat stable, il arrive et il reste.
+
+### Le dÃ©sucrage, et ce qu'on croyait savoir
+
+[D139](#d139--lapplication-tient-depuis-android-11-et-un-tour-dÃ©crans-le-vÃ©rifie---validÃ©e) corrigeait **un** appel de Java 9. Rien n'empÃªchait le suivant d'entrer : `NewApi` ne regarde pas `:domain`, qui est du Kotlin pur, et la JVM du poste a toutes les mÃ©thodes.
+
+`coreLibraryDesugaring` est activÃ© pour tout module Android. D8 rÃ©Ã©crit les appels manquants vers une implÃ©mentation embarquÃ©e, et il le fait sur **tout ce qui est dexÃ©** â donc sur les modules JVM comme sur les autres. C'est ce qui en fait un garde-fou et non un rappel.
+
+**On aurait pu croire que `minSdk = 26` rendait la chose inutile**, puisque `java.time` existe Ã  partir de lÃ . C'est faux, et c'est tout le sujet : l'API 26 porte le `java.time` de Java 8, pas celui de Java 9. La vÃ©rification a Ã©tÃ© faite en remplaÃ§ant **exprÃ¨s** l'appel corrigÃ© par `LocalTime.ofInstant`, puis en rejouant le tour d'Ã©crans sous Android 11 : il passe, sans `NoSuchMethodError`. Sans dÃ©sucrage, le mÃªme binaire fermait l'application.
+
+**L'appel corrigÃ© reste corrigÃ©.** Les deux ne font pas double emploi : `atZone(...).toLocalTime()` dit la mÃªme chose sans rien demander Ã  personne, et le dÃ©sucrage couvre ce que la prochaine distraction Ã©crira.
+
+**CoÃ»t.** L'APK de dÃ©bogage ne bouge pas de faÃ§on mesurable. Celui qui est publiÃ© passe par R8, qui ne garde que ce qui sert.
+
+**Ce que le vert ne prouve pas.** **Que le dÃ©sucrage couvre tout Java 9+.** Il couvre ce que la spÃ©cification de `desugar_jdk_libs` dÃ©clare, et cette liste n'est pas la bibliothÃ¨que standard entiÃ¨re. Ce qui est tenu, c'est le cas qui a cassÃ© â et il l'est par un essai, pas par une lecture.
+
+---
+
+## D141 — Le premier lancement se raconte sur l'application elle-même · ✓ validée
+
+**Contexte.** L'onboarding pose cinq questions et calcule un objectif. Puis il rend la main sur un accueil **vide**, où un hexagone sans aires et six compteurs à zéro n'expliquent rien, et où trois boutons attendent qu'on devine ce qu'ils font. Le geste le plus utile de l'application — décrire son repas en une phrase — est aussi le moins visible, et il demande une clé que personne n'a.
+
+### Des bulles sur l'application réelle
+
+Un voile assombrit l'écran **sauf** ce dont la bulle parle. Le trou se découpe en `BlendMode.Clear` dans une couche hors écran, et chaque élément concerné dépose lui-même sa position : la bulle tombe donc à côté du bouton dont elle parle, quelle que soit la taille de l'écran ou la langue.
+
+**Et non un diaporama.** Des images auraient expliqué une application qui n'est pas à l'écran, et auraient vieilli à la première refonte. Ici il n'y a rien à maintenir en double : ce qu'on montre est ce qui tourne.
+
+### Une journée qui n'a jamais eu lieu
+
+Trois plats d'exemple sont écrits **dans le vrai journal** au début du tour, et repris à la fin. Un par source — une phrase, une photo, une recherche — pour que la liste montre ses trois pastilles de provenance.
+
+Ils passent par le dépôt parce que l'hexagone, les compteurs, la liste et l'anneau de niveau lisent tous le journal : un jeu de données posé à côté aurait demandé de doubler ce chemin dans chacun d'eux. Le prix est qu'il faut les reprendre, et leurs identifiants sont **fixes** : c'est ce qui permet de les retrouver au lancement suivant quand l'application a été fermée au milieu, plutôt que de laisser trois plats fantômes chez quelqu'un.
+
+### L'IA en avant-dernier, et le refus montré
+
+La proposition de clé arrive **après** qu'on a vu à quoi elle sert. Proposée en premier, elle n'est qu'une demande. L'étape dit en gros que **Gemini est gratuit** ([D138](#d138--lia-se-tient-mieux-et-lapplication-sait-dire-ce-qui-a-raté---validée)) et offre deux issues de même poids : *Configurer* et *Plus tard*.
+
+**Un refus mène à une dernière bulle**, et pas à un silence : elle désigne la barre rouge et dit exactement ce qui manque, ce qui continue de marcher, et où poser une clé plus tard. Le mode dégradé est voyant depuis [D136](#d136--trois-gestes-qui-manquaient-à-lusage---validée) ; il lui manquait une phrase.
+
+### Il revient tant qu'on n'y a pas répondu
+
+Le souvenir se pose **à la fin**, et sur les deux seules fins qui sont une réponse : « Passer » et « J'ai compris ». Fermer l'application au milieu d'une bulle ne décide rien, et un tour qui disparaîtrait là-dessus aurait été manqué par celui-là même qu'il visait — le premier lancement est la seule fois où il sert à quelque chose.
+
+**Partir poser une clé n'est pas une réponse non plus.** Quelqu'un qui appuie sur « Configurer » va faire ce que le tour lui demandait : il le retrouve au retour, et la barre y est déverrouillée, ce qu'il était précisément venu voir.
+
+### ConsÃ©quences
+
+Le tour vit dans `:feature:home` parce qu'il se dessine par-dessus l'accueil et lit les positions de ses éléments ; un module à part aurait inversé la dépendance pour rien. Son souvenir est rangé avec les pastilles — l'état de ce que l'écran a déjà dit — et non avec les clés : effacer sa clé d'IA ne doit pas rejouer un tour qu'on a vu.
+
+**Ce que le vert ne prouve pas.** **Que six bulles soient le bon nombre.** C'est le minimum pour couvrir ce qui ne se devine pas ; c'est peut-être déjà deux de trop pour qui veut noter son dîner. Le bouton « Passer » est là pour ça, et il est visible dès la première.
+
+**Que le trou tombe juste partout.** Les positions sont mesurées, donc justes par construction — mais une cible hors de l'écran n'a pas d'ancre, et la bulle parle alors sans rien désigner. Aucune des six n'est dans ce cas aujourd'hui.
+
+---
+
+## D142 — Les lignes sans valeurs, et pourquoi elles arrivaient jusqu'à l'écran · ✓ validée
+
+**Contexte.** Trois signalements, tous de la même forme : des lignes affichées avec un nom, une quantité, et **« ? kcal »**. « travers de porc : 200 g, ? » à côté de « Sauce barbecue, préemballée : 20 g, 27 kcal ».
+
+La forme dit la cause : les lignes complètes portent un **nom du catalogue**, les lignes vides portent le **libellé du modèle**. Ce sont exactement celles que le catalogue n'a pas rejointes — et que le repli d'estimation aurait dû remplir.
+
+### Le repli ne partait pas, ou partait pour rien
+
+Trois défauts se sont additionnés, chacun silencieux.
+
+**Le critère était interne.** `completedByEstimate` ne regardait que les lignes de verdict `NONE`. Une fiche choisie par le modèle mais vide, une fiche `REVIEW` sans valeurs : l'écran affichait « ? », et l'estimation ne partait pas. Le critère est maintenant **celui que l'utilisateur voit** — une ligne sans énergie — et non un classement que lui seul connaissait.
+
+**Le rapprochement était exact.** Les estimations revenaient dans une table indexée par libellé, et la recherche se faisait par égalité de chaînes. Une majuscule, un accent, un mot en plus, et la ligne restait vide **sans que rien ne le dise**. Les libellés sont désormais normalisés comme partout ailleurs dans la résolution, et le **rang** sert de filet quand ils ne se rejoignent toujours pas : le modèle répond dans l'ordre où on demande.
+
+**L'analyse approfondie était un réglage.** Éteinte, le modèle rend des libellés et l'application les cherche seule ; allumée, le modèle voit les fiches et choisit. La première voie produit beaucoup plus de lignes vides. Un interrupteur dont une position est toujours moins bonne n'est pas un choix : il disparaît, et l'analyse approfondie se fait **dès que le fournisseur sait appeler des outils**.
+
+### Le signalement montrait le mauvais tour
+
+Les trois traces jointes montraient toutes le **premier** appel d'une analyse profonde — la recherche au catalogue — là où le défaut se voit au dernier. `DraftReporting` prenait `lastOrNull()` d'un journal rendu **du plus récent au plus ancien** ([AiExchangeLog][ia]) : il joignait donc systématiquement le plus vieil échange gardé.
+
+C'est un défaut du défaut : l'outil fait pour comprendre les pannes en cachait une partie. Trois rapports ont été envoyés avec la mauvaise pièce jointe avant qu'on s'en aperçoive.
+
+[ia]: docs/05-ia.md
+
+**Conséquences.** `DeepAnalysisSettings` quitte l'écran d'IA et le chemin des identifiants. `activeConfiguration()` ne prend plus de paramètre : la seule question est la capacité du fournisseur.
+
+**Ce que le vert ne prouve pas.** **Qu'il n'y ait plus de trous.** Les trois causes trouvées sont fermées ; une quatrième — un estimateur qui répond à côté, un fournisseur qui refuse — laisserait encore une ligne vide. Ce qui est tenu, c'est qu'elle ne le restera plus **en silence par construction**.
+
+**Que l'estimation soit juste.** Elle ne l'est pas : elle est signalée comme estimation, et c'est tout ce qu'elle prétend être. Mieux vaut un ordre de grandeur marqué qu'un champ vide qu'on remplira au jugé.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

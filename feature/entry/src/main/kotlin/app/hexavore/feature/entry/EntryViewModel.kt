@@ -51,7 +51,7 @@ internal class EntryViewModel @Inject constructor(
     private val getDaySummary: GetDaySummary,
     private val saveDraft: SaveDraft,
     private val favorites: DraftFavorites,
-    private val reporting: DraftReporting,
+    private val dishActions: DraftFiling,
     private val clock: Clock,
 ) : ViewModel() {
     private val dishId: DishId? = savedStateHandle.get<String>(EntryDestination.DISH_ID)?.let(::DishId)
@@ -88,6 +88,16 @@ internal class EntryViewModel @Inject constructor(
      * formulaire — c'est elle qui sait qu'un favori enregistré le rattache.
      */
     val favorite = DraftNaming(favorites, viewModelScope, form)
+
+    /**
+     * Les trois gestes de l'en-tete, derriere un porteur.
+     *
+     * Comme [favorite], et pour la meme raison : ils forment un tout, et les
+     * laisser au premier plan poussait ce `ViewModel` au-dela du seuil de
+     * fonctions -- un seuil qui dit precisement qu'une classe fait trop de
+     * choses a la fois (D143).
+     */
+    val filing = DraftHeaderActions(dishActions, dishId, viewModelScope, form, photo, status)
 
     /**
      * La journée visée, relue une seule fois.
@@ -259,28 +269,6 @@ internal class EntryViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Signale la proposition affichée.
-     *
-     * **Ce qui part est ce que le mode debug montre déjà** : l'échange entier et la
-     * photo ([D138][decisions]). Rien ne part sans un geste — l'application ouvre un
-     * courriel prérempli, et c'est l'utilisateur qui appuie sur « envoyer ».
-     *
-     * **Les libellés viennent de l'écran** : ce `ViewModel` ne connait pas de ressources.
-     *
-     * L'échec est silencieux : sans application de messagerie, il n'y a rien à dire de
-     * plus que ce que le système dira lui-même, et un message d'erreur sur un bouton
-     * d'entraide serait un reproche de plus à quelqu'un qui rendait service.
-     *
-     * [decisions]: docs/11-decisions.md
-     */
-    fun onReport(subject: String, body: String) {
-        val current = form.value ?: return
-        viewModelScope.launch {
-            runCatching { reporting.report(current.toDraft(), photo.value, subject, body) }
-        }
-    }
-
     private suspend fun open() {
         val origin = origin(proposal, dishId, favoriteId, scannedFoodId, foodId)
         val relu = composition.open(origin)
@@ -303,7 +291,7 @@ internal class EntryViewModel @Inject constructor(
      * mêmes raisons : le formulaire bouge à chaque frappe, l'étape seulement aux
      * moments qui comptent.
      */
-    private enum class Status {
+    internal enum class Status {
         LOADING,
         EDITING,
         SAVING,

@@ -39,7 +39,6 @@ internal class StoredAiCredentials(
     private val preferences: SharedPreferences,
     private val cipher: SecretCipher,
     private val dispatchers: DispatcherProvider,
-    private val deep: StoredDeepAnalysisSettings,
 ) : AiCredentials,
     AiSettings {
     private val setup = MutableStateFlow(preferences.readSetup(cipher))
@@ -73,7 +72,7 @@ internal class StoredAiCredentials(
         if (provider in setup.value.credentials) preferences.edit { putString(ACTIVE, provider.name) }
     }
 
-    override suspend fun current(): AiConfiguration? = setup.value.activeConfiguration(deep.enabled())
+    override suspend fun current(): AiConfiguration? = setup.value.activeConfiguration()
 
     /**
      * Écrit hors du fil principal, puis **relit** pour rafraîchir le flux.

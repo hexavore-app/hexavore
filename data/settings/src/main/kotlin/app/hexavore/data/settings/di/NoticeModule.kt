@@ -4,9 +4,11 @@ import android.content.Context
 import android.content.SharedPreferences
 import app.hexavore.data.settings.StoredKeyRejection
 import app.hexavore.data.settings.StoredNoticeSettings
+import app.hexavore.data.settings.StoredTourSettings
 import app.hexavore.domain.concurrency.DispatcherProvider
 import app.hexavore.domain.notice.KeyRejection
 import app.hexavore.domain.notice.NoticeSettings
+import app.hexavore.domain.tour.TourSettings
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -43,6 +45,22 @@ internal object NoticeModule {
 
     @Provides
     fun notices(stored: StoredNoticeSettings): NoticeSettings = stored
+
+    /**
+     * Le souvenir du tour guidé, dans le même fichier que les pastilles.
+     *
+     * Ce sont deux choses de même nature : l'état de ce que l'écran a déjà dit. Ni
+     * l'un ni l'autre ne doit partir avec une clé d'IA.
+     */
+    @Provides
+    @Singleton
+    fun tourStore(
+        @Named(NOTICE_PREFERENCES) preferences: SharedPreferences,
+        dispatchers: DispatcherProvider,
+    ): StoredTourSettings = StoredTourSettings(preferences, dispatchers)
+
+    @Provides
+    fun tour(stored: StoredTourSettings): TourSettings = stored
 
     @Provides
     @Singleton

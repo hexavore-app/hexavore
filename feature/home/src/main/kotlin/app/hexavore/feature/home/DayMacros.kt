@@ -30,6 +30,10 @@ import app.hexavore.domain.diary.MacroSources
 import app.hexavore.domain.diary.sourcesOf
 import app.hexavore.domain.goal.DailyGoal
 import app.hexavore.domain.nutrition.Macro
+import app.hexavore.feature.home.tour.TourAnchors
+import app.hexavore.feature.home.tour.TourTarget
+import app.hexavore.feature.home.tour.tourAnchorOrNot
+import app.hexavore.feature.home.tour.tourTarget
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -56,7 +60,7 @@ import kotlin.math.roundToInt
  * dans celui de l'écran : c'est la boîte qui place la bulle, donc c'est elle qui compte.
  */
 @Composable
-internal fun MacroBlock(summary: DaySummary, goal: DailyGoal, focus: MacroFocus) {
+internal fun MacroBlock(summary: DaySummary, goal: DailyGoal, focus: MacroFocus, anchors: TourAnchors? = null) {
     var zone by remember { mutableStateOf<LayoutCoordinates?>(null) }
     var figure by remember { mutableStateOf(Rect.Zero) }
 
@@ -70,8 +74,9 @@ internal fun MacroBlock(summary: DaySummary, goal: DailyGoal, focus: MacroFocus)
                 dailyGoal = goal,
                 focus = focus,
                 onFigure = { coords -> figure = zone?.localBoundingBoxOf(coords) ?: Rect.Zero },
+                anchors = anchors,
             )
-            MacroBars(summary, goal, focus)
+            MacroBars(summary, goal, focus, anchors)
         }
 
         // `matchParentSize` : la bulle se place dans la boite sans la dimensionner,
@@ -108,6 +113,7 @@ private fun RemainingBlock(
     dailyGoal: DailyGoal,
     focus: MacroFocus,
     onFigure: (LayoutCoordinates) -> Unit,
+    anchors: TourAnchors? = null,
 ) {
     val consumed = summary.totals[Macro.CALORIES].value
     val goal = dailyGoal.kcal
@@ -133,21 +139,28 @@ private fun RemainingBlock(
             label = { actions.getValue(it) },
             onSelect = { focus.tapped(summary, it) },
         )
-        Text(
-            text = abs(remaining).roundToInt().toString(),
-            style = MaterialTheme.typography.displayLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Text(
-            text = stringResource(if (remaining < 0) R.string.home_over_label else R.string.home_remaining_label),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = stringResource(R.string.home_consumed_of_goal, consumed.roundToInt(), goal.roundToInt()),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        // Le grand chiffre et ses deux legendes forment ce que le tour designe : la
+        // reponse de la journee, et l'unite dans laquelle elle se dit (D143).
+        Column(
+            modifier = Modifier.tourAnchorOrNot(anchors, TourTarget.CALORIES),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = abs(remaining).roundToInt().toString(),
+                style = MaterialTheme.typography.displayLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = stringResource(if (remaining < 0) R.string.home_over_label else R.string.home_remaining_label),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = stringResource(R.string.home_consumed_of_goal, consumed.roundToInt(), goal.roundToInt()),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
@@ -163,7 +176,7 @@ private fun DaySummary.quarters(goal: DailyGoal): Map<Macro, MacroQuarter> = Mac
 }
 
 @Composable
-private fun MacroBars(summary: DaySummary, goal: DailyGoal, focus: MacroFocus) {
+private fun MacroBars(summary: DaySummary, goal: DailyGoal, focus: MacroFocus, anchors: TourAnchors?) {
     // **Le chemin visible des sources.** Toucher un triangle est un geste que rien
     // n'annonce ; une barre pleine largeur est une cible qu'on trouve sans la
     // connaitre, et que le lecteur d'ecran annonce deja par son nom et sa valeur.
@@ -182,10 +195,12 @@ private fun MacroBars(summary: DaySummary, goal: DailyGoal, focus: MacroFocus) {
                 unit = MacroUnit.GRAM,
                 // Muette quand la macro n'a rien a montrer : la meme regle que le
                 // quartier, parce que c'est une regle sur la macro et non sur la porte.
-                modifier = Modifier.clickable(
-                    enabled = !summary.sourcesOf(macro, MacroSources.DETAILED).isEmpty,
-                    onClickLabel = ouvrir,
-                ) { focus.tapped(summary, macro) },
+                modifier = Modifier
+                    .tourAnchorOrNot(anchors, macro.tourTarget())
+                    .clickable(
+                        enabled = !summary.sourcesOf(macro, MacroSources.DETAILED).isEmpty,
+                        onClickLabel = ouvrir,
+                    ) { focus.tapped(summary, macro) },
             )
         }
     }

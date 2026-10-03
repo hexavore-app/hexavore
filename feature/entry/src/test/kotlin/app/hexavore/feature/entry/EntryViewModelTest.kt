@@ -34,7 +34,9 @@ import app.hexavore.domain.nutrition.Macros
 import app.hexavore.domain.nutrition.NutrientValues
 import app.hexavore.domain.usecase.AddFoodLine
 import app.hexavore.domain.usecase.AttachDishPhoto
+import app.hexavore.domain.usecase.CopyDishToDate
 import app.hexavore.domain.usecase.CreateDraft
+import app.hexavore.domain.usecase.DeleteDish
 import app.hexavore.domain.usecase.GetDaySummary
 import app.hexavore.domain.usecase.GetDishDraft
 import app.hexavore.domain.usecase.GetFavoriteDraft
@@ -595,7 +597,11 @@ class EntryViewModelTest {
             proposeFavoriteName = ProposeFavoriteName(favoris),
             updateFavoriteDish = UpdateFavoriteDish(favoris, diary),
         ),
-        reporting = DraftReporting(ReportAnalysis(rapports), echanges, photos),
+        dishActions = DraftFiling(
+            copyTo = CopyDishToDate(diary, clock, ids),
+            delete = DeleteDish(diary),
+            reporting = DraftReporting(ReportAnalysis(rapports), echanges, photos),
+        ),
         clock = clock,
     )
 

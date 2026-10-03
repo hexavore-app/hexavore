@@ -89,6 +89,20 @@ enum class AiProvider(
      * [decisions]: docs/11-decisions.md
      */
     val free: Boolean = false,
+    /**
+     * L'adresse du service se choisit-elle ?
+     *
+     * **Non, pour tout le monde sauf le fournisseur libre.** Gemini et Claude ont une
+     * adresse et une seule ; la montrer dans un formulaire revient à demander à
+     * quelqu'un de vérifier une chaîne qu'il ne peut ni connaître ni corriger, et à
+     * lui offrir de la casser ([D143][decisions]).
+     *
+     * Le fournisseur compatible est l'exception, et c'est toute sa raison d'exister :
+     * son adresse **est** le réglage.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val editableBaseUrl: Boolean = false,
 ) {
     ANTHROPIC(
         displayName = "Anthropic",
@@ -158,6 +172,7 @@ enum class AiProvider(
         suggestedModels = emptyList(),
         vision = VisionSupport.MODEL_DEPENDENT,
         status = ProviderStatus.SUSPENDED,
+        editableBaseUrl = true,
     ),
 }
 

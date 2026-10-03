@@ -81,7 +81,6 @@ class StoredAiCredentialsTest : AiCredentialsContract() {
             preferences,
             cipher,
             TestDispatchers(UnconfinedTestDispatcher()),
-            StoredDeepAnalysisSettings(preferences, TestDispatchers(UnconfinedTestDispatcher())),
         )
         return object : AiCredentialsView, app.hexavore.domain.ai.AiCredentials by stored {
             override suspend fun current() = stored.current()

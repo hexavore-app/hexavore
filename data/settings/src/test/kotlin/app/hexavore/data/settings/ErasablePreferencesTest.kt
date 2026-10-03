@@ -52,7 +52,7 @@ class ErasablePreferencesTest {
         override fun decrypt(encoded: String): String? = encoded.reversed()
     }
     private val deep = StoredDeepAnalysisSettings(aiFile, dispatchers)
-    private val credentials = StoredAiCredentials(aiFile, cipher, dispatchers, deep)
+    private val credentials = StoredAiCredentials(aiFile, cipher, dispatchers)
     private val contribution = StoredContributionSettings(contributionFile, cipher, dispatchers)
     private val adjustment = StoredAdjustmentSettings(adjustmentFile, dispatchers)
     private val noticeFile = context.getSharedPreferences("erase-notices", Context.MODE_PRIVATE)
