@@ -221,6 +221,12 @@ class AppJourneyTest {
      */
     private fun ouvreLAccueil() {
         ActivityScenario.launch(MainActivity::class.java)
+        // L'accueil d'abord, le tour ensuite. Le tour lit un reglage puis pose ses
+        // plats d'exemple : il arrive donc **apres** l'ecran qu'il recouvre, et le
+        // chercher avant revenait a attendre quelque chose qui n'etait pas encore
+        // parti. On attend deux fois le meme reperage parce qu'il vaut deux choses
+        // differentes -- l'ecran est la, puis plus rien ne le couvre.
+        attend(HomeStrings.string.home_more_ways)
         congedieLeTour()
         attend(HomeStrings.string.home_more_ways)
     }
@@ -286,6 +292,14 @@ class AppJourneyTest {
         // qu'une chose apparaisse la ou elle ne peut pas etre.
         repeat(DEROULES) {
             if (cliqueLaLigne(platEnPleinEcran())) return
+            // Le tour arrive quand il est pret, et pas forcement avant qu'on regarde :
+            // il lit un reglage, puis pose ses plats d'exemple, et sur une image lente
+            // tout cela se termine apres que l'accueil s'est montre. Son voile avale
+            // alors le geste, et les plats qu'on voit sont les siens.
+            //
+            // On le congedie **quand on n'a rien trouve**, et non d'emblee : sa venue
+            // est l'exception, et l'attendre a chaque tour ferait payer son absence.
+            congedieLeTour()
             glisse()
         }
         fail("Aucun plat n'est venu sous les yeux." + System.lineSeparator() + "Il montrait : " + ceQuOnVoit())
