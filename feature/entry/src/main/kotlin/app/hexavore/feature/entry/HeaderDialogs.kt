@@ -1,5 +1,6 @@
 package app.hexavore.feature.entry
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -10,6 +11,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import app.hexavore.core.designsystem.theme.Spacing
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -55,7 +58,19 @@ internal fun CopyDateDialog(today: LocalDate, onPick: (LocalDate) -> Unit, onDis
             TextButton(onClick = onDismiss) { Text(text = stringOf(R.string.entry_copy_cancel)) }
         },
     ) {
-        DatePicker(state = state, title = { Text(text = stringOf(R.string.entry_copy_title)) })
+        DatePicker(
+            state = state,
+            // Le titre porte lui-meme ses marges : la boite ne lui en donne aucune, et
+            // sans elles il se posait dans le coin arrondi, qui lui rognait sa premiere
+            // lettre. Ce sont celles du titre que Material pose quand on le laisse ecrire
+            // le sien -- l'ecart avec le calendrier en dessous vient de la.
+            title = {
+                Text(
+                    text = stringOf(R.string.entry_copy_title),
+                    modifier = Modifier.padding(start = Spacing.xl, end = Spacing.md, top = Spacing.lg),
+                )
+            },
+        )
     }
 }
 

@@ -4930,6 +4930,56 @@ C'est un défaut du défaut : l'outil fait pour comprendre les pannes en cachait
 
 ---
 
+## D143 — Le tour désigne un élément, et neuf détails cessent de se faire deviner · ✓ validée
+
+**Contexte.** Le tour guidé de [D141](#d141--le-premier-lancement-se-raconte-sur-lapplication-elle-même---validée) marchait, et il expliquait mal. À côté de lui, une série de choses que l'application laissait deviner — chacune minuscule, et chacune signalée par quelqu'un qui s'en était servi.
+
+### Le tour montrait du doigt sans doigt
+
+**Il éclairait la barre du bas entière** pour parler du champ de description. Trois boutons allumés pour un seul propos : l'œil ne sait pas lequel on lui montre, et c'est précisément l'œil qui découvre. Chaque élément porte maintenant son ancre.
+
+**Et la bulle restait au plafond** pendant qu'un bouton s'éclairait en bas. Elle se glisse désormais **contre sa cible**, du côté où il y a de la place : sous elle quand la cible est haute, au-dessus quand elle est basse. La règle la plus simple qui ne fasse jamais sortir la bulle de l'écran.
+
+### Les six compteurs, un par un
+
+Six étapes nouvelles, et le tour passe à quatorze. C'est long, et c'est le prix : **rien de ce que l'application montre le plus ne se devine**. Une lettre à la pointe d'un hexagone ne dit pas ce qu'est une macro, encore moins si elle est un objectif à atteindre ou un plafond à ne pas franchir — or c'est toute la différence entre une barre verte qu'on veut remplir et une barre qu'on veut laisser courte.
+
+Chaque étape éclaire **sa** barre et nomme sa macro. « Passer » reste visible dès la première bulle, et c'est ce qui rend les quatorze acceptables.
+
+S'y ajoutent le bandeau des sept jours et l'accès aux réglages, qui n'étaient nulle part.
+
+### Neuf détails qui se faisaient deviner
+
+**Le grand chiffre ne disait pas son unité.** Il dit « kcal restantes » plutôt que « restantes ». Deux caractères, et la question la plus fréquemment posée disparaît.
+
+**Le champ de saisie se fondait dans sa barre.** Un contour seul sur `surfaceContainerHigh` : beaucoup de gens ne voyaient pas qu'on pouvait écrire là. Il prend un fond, au ton le plus bas — qui se détache dans les deux thèmes sans devenir un bouton.
+
+**Les journées parfaites ne se voyaient pas.** Leur anneau se **ferme** : les six arcs se touchent et font un tour complet, là où les autres jours montrent six segments brisés. Une forme et non une septième couleur — ce thème s'interdit un rôle de couleur de plus et signale par le dessin, comme le contour pointillé d'une valeur estimée ([D25](#d25--lestimation-ia-se-signale-par-une-forme-pas-par-une-couleur---validée)). La forme ne se lisant pas à voix haute, le lecteur d'écran l'entend par une phrase.
+
+Seulement sur un jour **révolu** : une journée en cours peut être dans sa fourchette à midi et en sortir au dîner, et fermer l'anneau avant la fin promettrait ce que la soirée peut défaire.
+
+**L'adresse de base d'un fournisseur était un champ.** Gemini et Claude en ont une et une seule : la montrer revient à demander de vérifier une chaîne qu'on ne peut ni connaître ni corriger, et à offrir de la casser. Elle ne reste que pour le fournisseur libre, dont l'adresse **est** le réglage.
+
+**Le modèle était un champ libre.** Il devient une liste déroulante qui reste écrivable : la liste évite la faute de frappe sur un nom qui ne se vérifie nulle part — un modèle mal écrit ne se voit qu'au premier repas photographié — et le champ laisse utiliser celui sorti hier.
+
+### Trois gestes dans l'en-tête de l'édition
+
+**Copier le plat sur un autre jour**, par un calendrier. Une copie et non un déplacement : un petit-déjeuner identique se recopie, il ne se déménage pas, et une erreur de date ne coûte alors qu'une suppression. La copie est **un autre plat** — identifiants neufs, heure de la copie, et le lien au favori ne suit pas ([D62](#d62--un-favori-est-un-modèle-vivant-et-létoile-est-son-seul-interrupteur---validée)).
+
+**Supprimer le plat.** C'était déjà possible en vidant ses lignes une à une ([D61](#d61--un-plat-vidé-se-supprime-et-lappui-long-ouvre-ses-actions---validée)), ce qui demandait de comprendre qu'un plat vide se supprime. Le chemin visible existe maintenant, et il garde la confirmation — ce qui la justifie n'est pas l'irréversibilité mais le volume.
+
+**Le bouton de signalement dit ce qu'il fait avant de le faire.** Personne ne clique sur une icône qu'il ne comprend pas, et ceux qui le font ignorent qu'un courriel va s'ouvrir avec leur photo en pièce jointe. La boîte dit les deux, et qu'il n'est pas encore envoyé.
+
+**Les trois demandent avant d'agir, et pour la même raison** : les trois sortent de l'écran. Ils vivent derrière un porteur, comme le nommage d'un favori — les laisser au premier plan poussait le `ViewModel` au-delà du seuil de fonctions, lequel dit précisément qu'une classe fait trop de choses à la fois.
+
+**Ce que le vert ne prouve pas.** **Que quatorze bulles se lisent.** C'est le minimum pour couvrir ce qui ne se devine pas ; c'est peut-être déjà six de trop pour qui veut noter son dîner. Le nombre se réduit en retirant des entrées d'une énumération, et rien d'autre.
+
+**Que l'anneau fermé se lise comme une réussite.** Il se distingue, c'est vérifiable ; qu'il se *comprenne* sans légende ne l'est pas. Le tour n'en parle pas encore.
+
+**Que la copie serve.** Elle répond à une demande, pas à un usage observé. Si personne ne s'en sert, c'est une icône de plus en haut d'un écran qui en porte déjà quatre.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

@@ -220,7 +220,25 @@ class AppJourneyTest {
      */
     private fun ouvreLAccueil() {
         ActivityScenario.launch(MainActivity::class.java)
+        congedieLeTour()
         attend(HomeStrings.string.home_more_ways)
+    }
+
+    /**
+     * Passe le tour guide s'il se presente.
+     *
+     * **Une installation neuve le montre toujours** ([D141][decisions]), et son voile
+     * avale les gestes : sans ce renvoi, chaque test de ce fichier parlerait a une
+     * bulle. Le tour a son propre test, qui lui le regarde.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    private fun congedieLeTour() {
+        val passer = By.textContains(texte(HomeStrings.string.tour_skip))
+        if (device.wait(Until.hasObject(passer), REPOS_MS) == true) {
+            device.findObject(passer)?.click()
+            device.waitForIdle(REPOS_MS)
+        }
     }
 
     private fun ouvreLeMenuDAjout() = clique(texte(HomeStrings.string.home_more_ways))
@@ -283,12 +301,31 @@ class AppJourneyTest {
      */
     private fun prendLaPremiereLigne() {
         attendLeLibelle(ENERGIE)
-        device.waitForIdle(REPOS_MS)
+        attendUneListePosee()
         repeat(ESSAIS) {
             if (cliqueLaLigne(device.findObject(By.textContains(ENERGIE)))) return
             device.waitForIdle(PAS_MS)
         }
         fail("Aucune ligne ne s'est laissee ouvrir." + System.lineSeparator() + "Il montrait : " + ceQuOnVoit())
+    }
+
+    /**
+     * Attend que la premiere ligne cesse de changer.
+     *
+     * **Deux lectures identiques, et non un delai.** Les resultats arrivent par vagues
+     * -- une premiere reponse du catalogue, puis une seconde mieux classee -- et
+     * cliquer pendant qu'une ligne est remplacee revient a cliquer sur rien : le clic
+     * part, l'ecran ne s'ouvre pas, et le test accuse la saisie. Un delai fixe aurait
+     * ete trop court sur une machine chargee et trop long partout ailleurs.
+     */
+    private fun attendUneListePosee() {
+        var precedent: String? = null
+        repeat(ESSAIS) {
+            val actuel = runCatching { device.findObject(By.textContains(ENERGIE))?.text }.getOrNull()
+            if (actuel != null && actuel == precedent) return
+            precedent = actuel
+            device.waitForIdle(PAS_MS)
+        }
     }
 
     /**
