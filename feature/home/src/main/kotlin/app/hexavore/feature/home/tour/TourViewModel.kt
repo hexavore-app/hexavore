@@ -47,7 +47,7 @@ class TourViewModel @Inject constructor(
             runCatching { hideSample() }
 
             val seen = runCatching { settings.observeSeen().first() }.getOrDefault(true)
-            if (!seen || REJOUE_TOUJOURS) {
+            if (!seen || (REJOUE_TOUJOURS && !reponduDansCeProcessus)) {
                 runCatching { showSample() }
                 current.value = TourStep.entries.first()
             }
@@ -86,6 +86,7 @@ class TourViewModel @Inject constructor(
      */
     private fun close(remember: Boolean) {
         current.value = null
+        reponduDansCeProcessus = true
         viewModelScope.launch {
             if (remember) runCatching { settings.markSeen() }
             runCatching { hideSample() }
@@ -103,5 +104,21 @@ class TourViewModel @Inject constructor(
          * repassera à `false`.
          */
         const val REJOUE_TOUJOURS = true
+
+        /**
+         * Le tour a-t-il deja ete congedie depuis le demarrage de l'application ?
+         *
+         * **Le rejeu porte sur le lancement, pas sur l'ecran.** Sans cette memoire, le
+         * tour reparaissait a chaque fois que l'accueil se recomposait -- au retour d'un
+         * plat, des reglages, de la recherche --, et son voile ravalait l'appui suivant.
+         * Relancer l'application dix fois reste ce qu'on voulait pouvoir faire ; revoir
+         * la premiere bulle en revenant d'un ecran ne l'a jamais ete.
+         *
+         * Elle vit dans le processus et nulle part ailleurs : c'est une aide d'essai,
+         * elle n'a rien a laisser sur le telephone, et le souvenir ecrit -- celui qui
+         * compte -- continue de se poser comme avant.
+         */
+        @Volatile
+        private var reponduDansCeProcessus = false
     }
 }
