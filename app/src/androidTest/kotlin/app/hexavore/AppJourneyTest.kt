@@ -25,6 +25,7 @@ import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.regex.Pattern
 import app.hexavore.feature.entry.R as EntryStrings
 import app.hexavore.feature.home.R as HomeStrings
 import app.hexavore.feature.search.R as SearchStrings
@@ -303,7 +304,7 @@ class AppJourneyTest {
         attendLeLibelle(ENERGIE)
         attendUneListePosee()
         repeat(ESSAIS) {
-            if (cliqueLaLigne(device.findObject(By.textContains(ENERGIE)))) return
+            if (cliqueLaLigne(device.findObject(By.text(LIGNE_AVEC_ENERGIE)))) return
             device.waitForIdle(PAS_MS)
         }
         fail("Aucune ligne ne s'est laissee ouvrir." + System.lineSeparator() + "Il montrait : " + ceQuOnVoit())
@@ -321,7 +322,7 @@ class AppJourneyTest {
     private fun attendUneListePosee() {
         var precedent: String? = null
         repeat(ESSAIS) {
-            val actuel = runCatching { device.findObject(By.textContains(ENERGIE))?.text }.getOrNull()
+            val actuel = runCatching { device.findObject(By.text(LIGNE_AVEC_ENERGIE))?.text }.getOrNull()
             if (actuel != null && actuel == precedent) return
             precedent = actuel
             device.waitForIdle(PAS_MS)
@@ -342,7 +343,7 @@ class AppJourneyTest {
 
     /** Un plat dont le centre tombe entre le bandeau du calendrier et la barre d'ajout. */
     private fun platEnPleinEcran() = device
-        .findObjects(By.textContains(ENERGIE))
+        .findObjects(By.text(LIGNE_AVEC_ENERGIE))
         .lastOrNull { it.visibleBounds.centerY() in device.displayHeight / 4..device.displayHeight * 7 / 8 }
 
     /**
@@ -482,6 +483,17 @@ class AppJourneyTest {
 
         /** Ce qu'une ligne de resultat porte toujours, et qui ne se traduit pas. */
         const val ENERGIE = "kcal"
+
+        /**
+         * Une energie **chiffree**, et c'est tout l'interet du chiffre.
+         *
+         * Chercher « kcal » seul reperait aussi « kcal left », le libelle pose sous le
+         * grand nombre de l'accueil. Le test croyait alors tenir un plat, cliquait le
+         * compteur du jour, et accusait l'ecran d'edition de ne pas s'ouvrir. Une ligne
+         * -- de resultat ou de plat -- porte toujours un nombre devant son unite ; un
+         * libelle, jamais.
+         */
+        val LIGNE_AVEC_ENERGIE: Pattern = Pattern.compile(".*\\d+\\s*$ENERGIE.*")
 
         /** La fin de la description de l'anneau, celle qui ne porte aucun chiffre. */
         const val OUVRE_LA_PROGRESSION = "progress"
