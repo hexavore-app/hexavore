@@ -217,4 +217,22 @@
     <string name="crash_decline">No thanks</string>
     <string name="crash_subject">Hexavore closed on its own</string>
     <string name="crash_intro">Here is the trace of the last crash.</string>
+    <!-- Le tour guide du premier lancement (D141). -->
+    <string name="tour_day_title">Your day, at a glance</string>
+    <string name="tour_day_body">The hexagon fills as you log. Below it, the six counters say what is left and what is already over. These meals are an example — they will be gone when the tour ends.</string>
+    <string name="tour_describe_title">Say it in your own words</string>
+    <string name="tour_describe_body">« Porridge with milk and a banana ». The AI reads the sentence, finds the foods and weighs them. You check, you correct, you save.</string>
+    <string name="tour_photo_title">Or photograph the plate</string>
+    <string name="tour_photo_body">One shot, and you can add a word if the picture is ambiguous. What you write wins over what is seen.</string>
+    <string name="tour_more_title">And when you prefer to be exact</string>
+    <string name="tour_more_body">A barcode, the catalogue of 3,484 foods offline, or a dish you saved. These three never need a key.</string>
+    <string name="tour_ai_title">Gemini is free</string>
+    <string name="tour_ai_body">The two gestures above — the sentence and the photo — need a key, and Google gives one away: a few analyses a day cost nothing, and no card is asked for. It takes two minutes.</string>
+    <string name="tour_degraded_title">Without a key, two gestures are missing</string>
+    <string name="tour_degraded_body">The field and the camera stay red: everything else works, and you can set a key up whenever you like from Settings. Nothing is lost in the meantime.</string>
+    <string name="tour_next">Next</string>
+    <string name="tour_skip">Skip</string>
+    <string name="tour_done">Got it</string>
+    <string name="tour_later">Later</string>
+    <string name="tour_configure">Set it up</string>
 </resources>

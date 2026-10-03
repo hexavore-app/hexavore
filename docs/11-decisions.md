@@ -4860,6 +4860,44 @@ Le cas symÃ©trique â quelqu'un **sans** clÃ© voit le neutre une demi-se
 
 ---
 
+## D141 — Le premier lancement se raconte sur l'application elle-même · ✓ validée
+
+**Contexte.** L'onboarding pose cinq questions et calcule un objectif. Puis il rend la main sur un accueil **vide**, où un hexagone sans aires et six compteurs à zéro n'expliquent rien, et où trois boutons attendent qu'on devine ce qu'ils font. Le geste le plus utile de l'application — décrire son repas en une phrase — est aussi le moins visible, et il demande une clé que personne n'a.
+
+### Des bulles sur l'application réelle
+
+Un voile assombrit l'écran **sauf** ce dont la bulle parle. Le trou se découpe en `BlendMode.Clear` dans une couche hors écran, et chaque élément concerné dépose lui-même sa position : la bulle tombe donc à côté du bouton dont elle parle, quelle que soit la taille de l'écran ou la langue.
+
+**Et non un diaporama.** Des images auraient expliqué une application qui n'est pas à l'écran, et auraient vieilli à la première refonte. Ici il n'y a rien à maintenir en double : ce qu'on montre est ce qui tourne.
+
+### Une journée qui n'a jamais eu lieu
+
+Trois plats d'exemple sont écrits **dans le vrai journal** au début du tour, et repris à la fin. Un par source — une phrase, une photo, une recherche — pour que la liste montre ses trois pastilles de provenance.
+
+Ils passent par le dépôt parce que l'hexagone, les compteurs, la liste et l'anneau de niveau lisent tous le journal : un jeu de données posé à côté aurait demandé de doubler ce chemin dans chacun d'eux. Le prix est qu'il faut les reprendre, et leurs identifiants sont **fixes** : c'est ce qui permet de les retrouver au lancement suivant quand l'application a été fermée au milieu, plutôt que de laisser trois plats fantômes chez quelqu'un.
+
+### L'IA en avant-dernier, et le refus montré
+
+La proposition de clé arrive **après** qu'on a vu à quoi elle sert. Proposée en premier, elle n'est qu'une demande. L'étape dit en gros que **Gemini est gratuit** ([D138](#d138--lia-se-tient-mieux-et-lapplication-sait-dire-ce-qui-a-raté---validée)) et offre deux issues de même poids : *Configurer* et *Plus tard*.
+
+**Un refus mène à une dernière bulle**, et pas à un silence : elle désigne la barre rouge et dit exactement ce qui manque, ce qui continue de marcher, et où poser une clé plus tard. Le mode dégradé est voyant depuis [D136](#d136--trois-gestes-qui-manquaient-à-lusage---validée) ; il lui manquait une phrase.
+
+### Il revient tant qu'on n'y a pas répondu
+
+Le souvenir se pose **à la fin**, et sur les deux seules fins qui sont une réponse : « Passer » et « J'ai compris ». Fermer l'application au milieu d'une bulle ne décide rien, et un tour qui disparaîtrait là-dessus aurait été manqué par celui-là même qu'il visait — le premier lancement est la seule fois où il sert à quelque chose.
+
+**Partir poser une clé n'est pas une réponse non plus.** Quelqu'un qui appuie sur « Configurer » va faire ce que le tour lui demandait : il le retrouve au retour, et la barre y est déverrouillée, ce qu'il était précisément venu voir.
+
+### ConsÃ©quences
+
+Le tour vit dans `:feature:home` parce qu'il se dessine par-dessus l'accueil et lit les positions de ses éléments ; un module à part aurait inversé la dépendance pour rien. Son souvenir est rangé avec les pastilles — l'état de ce que l'écran a déjà dit — et non avec les clés : effacer sa clé d'IA ne doit pas rejouer un tour qu'on a vu.
+
+**Ce que le vert ne prouve pas.** **Que six bulles soient le bon nombre.** C'est le minimum pour couvrir ce qui ne se devine pas ; c'est peut-être déjà deux de trop pour qui veut noter son dîner. Le bouton « Passer » est là pour ça, et il est visible dès la première.
+
+**Que le trou tombe juste partout.** Les positions sont mesurées, donc justes par construction — mais une cible hors de l'écran n'a pas d'ancre, et la bulle parle alors sans rien désigner. Aucune des six n'est dans ce cas aujourd'hui.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

@@ -54,6 +54,9 @@ import app.hexavore.core.designsystem.component.DraftTextField
 import app.hexavore.core.designsystem.component.aiErrorMessage
 import app.hexavore.core.designsystem.theme.Radius
 import app.hexavore.core.designsystem.theme.Spacing
+import app.hexavore.feature.home.tour.TourAnchors
+import app.hexavore.feature.home.tour.TourTarget
+import app.hexavore.feature.home.tour.tourAnchorOrNot
 
 /**
  * La barre d'ajout, en bas et sur toute la largeur.
@@ -77,7 +80,12 @@ import app.hexavore.core.designsystem.theme.Spacing
  * [decisions]: docs/11-decisions.md
  */
 @Composable
-internal fun QuickEntryBar(actions: HomeActions, aiConfigured: Boolean?, entry: QuickEntry) {
+internal fun QuickEntryBar(
+    actions: HomeActions,
+    aiConfigured: Boolean?,
+    entry: QuickEntry,
+    anchors: TourAnchors? = null,
+) {
     val state = entry.state
     var menuOpen by rememberSaveable { mutableStateOf(false) }
     var explaining by rememberSaveable { mutableStateOf(false) }
@@ -125,11 +133,17 @@ internal fun QuickEntryBar(actions: HomeActions, aiConfigured: Boolean?, entry: 
                     entry.onSend(text)
                 },
                 onExplain = { explaining = true },
-                modifier = Modifier.weight(1f),
+                // Les trois ancres du tour guide : il parle de ces boutons-la, et il a
+                // besoin de savoir ou ils sont tombes (D141).
+                modifier = Modifier.weight(1f).tourAnchorOrNot(anchors, TourTarget.FIELD),
             )
-            ShootAction(aiConfigured = aiConfigured, onShoot = actions.onShoot, onExplain = { explaining = true })
-            BarAction(onClick = onMore, available = true) {
-                Icon(imageVector = Icons.Filled.Add, contentDescription = stringResource(R.string.home_more_ways))
+            Box(modifier = Modifier.tourAnchorOrNot(anchors, TourTarget.CAMERA)) {
+                ShootAction(aiConfigured = aiConfigured, onShoot = actions.onShoot, onExplain = { explaining = true })
+            }
+            Box(modifier = Modifier.tourAnchorOrNot(anchors, TourTarget.MORE)) {
+                BarAction(onClick = onMore, available = true) {
+                    Icon(imageVector = Icons.Filled.Add, contentDescription = stringResource(R.string.home_more_ways))
+                }
             }
         }
     }

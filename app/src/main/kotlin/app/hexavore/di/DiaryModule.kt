@@ -9,6 +9,9 @@ import app.hexavore.domain.diary.DishPhotos
 import app.hexavore.domain.diary.FavoriteDishes
 import app.hexavore.domain.diary.PhotoBytes
 import app.hexavore.domain.food.FoodCitations
+import app.hexavore.domain.time.Clock
+import app.hexavore.domain.usecase.HideTourSample
+import app.hexavore.domain.usecase.ShowTourSample
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -85,4 +88,19 @@ object DiaryModule {
      */
     @Provides
     fun photoBytes(files: DishPhotoFiles): PhotoBytes = files
+
+    /**
+     * Les plats d'exemple du tour guidé, posés puis repris.
+     *
+     * Ils passent par le **vrai dépôt** : l'hexagone, les compteurs et la liste lisent
+     * tous le journal, et un jeu de données posé à côté aurait demandé de doubler ce
+     * chemin dans chacun d'eux ([D141][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    @Provides
+    fun showTourSample(diary: DiaryRepository, clock: Clock): ShowTourSample = ShowTourSample(diary, clock)
+
+    @Provides
+    fun hideTourSample(diary: DiaryRepository): HideTourSample = HideTourSample(diary)
 }
