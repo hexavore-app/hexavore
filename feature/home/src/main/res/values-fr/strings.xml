@@ -14,8 +14,8 @@
 
     <!-- Le chiffre affiché est le restant, pas le consommé : c'est l'information
          dont on a besoin au moment de décider quoi manger. -->
-    <string name="home_remaining_label">restantes</string>
-    <string name="home_over_label">de trop</string>
+    <string name="home_remaining_label">kcal restantes</string>
+    <string name="home_over_label">kcal de trop</string>
     <string name="home_consumed_of_goal">%1$d consommées sur %2$d</string>
     <string name="home_ring_a11y">Calories, %1$d sur %2$d, %3$d %%</string>
 
@@ -231,4 +231,20 @@
     <string name="tour_done">J\'ai compris</string>
     <string name="tour_later">Plus tard</string>
     <string name="tour_configure">Configurer</string>
+    <string name="tour_calories_title">Le grand chiffre, ce sont des calories</string>
+    <string name="tour_calories_body">Ce qu\'il vous reste d\'énergie pour la journée, en kilocalories. Dessous, ce que vous avez déjà mangé et votre objectif. Il passe au rouge dès que vous dépassez.</string>
+    <string name="tour_protein_title">Protéines</string>
+    <string name="tour_protein_body">Ce qui construit et répare le muscle. C\'est un objectif à atteindre, pas une limite — la barre se remplit et reste verte.</string>
+    <string name="tour_carbs_title">Glucides</string>
+    <string name="tour_carbs_body">Le carburant principal : pain, pâtes, riz, fruits. Un plafond, que la barre signale dès qu\'il est franchi.</string>
+    <string name="tour_sugars_title">Sucres</string>
+    <string name="tour_sugars_body">La part des glucides qui est du sucre — ajouté ou naturel. Un plafond à part, parce que les mêmes 50 g ne pèsent pas pareil dans un fruit et dans un soda.</string>
+    <string name="tour_fat_title">Lipides</string>
+    <string name="tour_fat_body">Huile, beurre, fromage, oléagineux. Deux fois plus d\'énergie que les deux autres à poids égal, et c\'est pourquoi c\'est un plafond.</string>
+    <string name="tour_fiber_title">Fibres</string>
+    <string name="tour_fiber_body">Légumes, légumineuses, céréales complètes. Le compteur que presque personne n\'atteint, et un objectif comme les protéines.</string>
+    <string name="tour_calendar_title">Sept jours d\'affilée</string>
+    <string name="tour_calendar_body">Chaque pastille porte l\'avancement de son jour. Touchez-en une pour la regarder, et rattraper un repas oublié — la saisie ira sur ce jour-là, pas sur aujourd\'hui.</string>
+    <string name="tour_settings_title">Tout le reste est ici</string>
+    <string name="tour_settings_body">Votre profil et vos objectifs, la clé d\'IA, la sauvegarde, les photos, les rappels et le thème. Rien ne quitte ce téléphone.</string>
 </resources>

@@ -5,11 +5,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -67,7 +73,11 @@ internal fun ProviderEditor(
 
     ModelField(provider, form, actions)
 
-    BaseUrlField(form, actions)
+    // Rien a regler quand l'adresse est unique : Gemini et Claude en ont une seule, et
+    // un champ qu'on ne peut que casser n'est pas un reglage (D143).
+    if (provider.editableBaseUrl) {
+        BaseUrlField(form, actions)
+    }
 
     ProbeResult(probe)
 
@@ -117,20 +127,47 @@ private fun KeyField(form: ProviderForm, actions: AiSettingsActions) {
     }
 }
 
+/**
+ * Le modèle : une liste qu'on déroule, et un champ qu'on peut écrire.
+ *
+ * **Les deux, et non l'un ou l'autre.** La liste évite la faute de frappe sur
+ * `gemini-3.5-flash-lite`, qui ne se devine pas et ne se vérifie nulle part — un
+ * modèle mal écrit ne se voit qu'au premier repas photographié. Mais les
+ * fournisseurs en publient de nouveaux chaque mois, et une liste fermée aurait
+ * empêché d'utiliser le modèle sorti hier ([D143][decisions]).
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ModelField(provider: AiProvider, form: ProviderForm, actions: AiSettingsActions) {
-    DraftTextField(
-        initial = form.model,
-        onValueChange = actions.onModel,
-        label = stringResource(R.string.ai_model_label),
+    var deroule by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = deroule && provider.suggestedModels.isNotEmpty(),
+        onExpandedChange = { deroule = it },
         modifier = Modifier.fillMaxWidth(),
-    )
-    if (provider.suggestedModels.isNotEmpty()) {
-        Text(
-            text = provider.suggestedModels.joinToString(separator = " · "),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+    ) {
+        DraftTextField(
+            initial = form.model,
+            onValueChange = actions.onModel,
+            label = stringResource(R.string.ai_model_label),
+            modifier = Modifier
+                .menuAnchor(MenuAnchorType.PrimaryEditable)
+                .fillMaxWidth(),
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = deroule) },
         )
+        ExposedDropdownMenu(expanded = deroule, onDismissRequest = { deroule = false }) {
+            provider.suggestedModels.forEach { modele ->
+                DropdownMenuItem(
+                    text = { Text(modele) },
+                    onClick = {
+                        actions.onModel(modele)
+                        deroule = false
+                    },
+                )
+            }
+        }
     }
 }
 

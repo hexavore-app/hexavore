@@ -14,8 +14,8 @@
 
     <!-- The figure shown is what is left, not what was eaten: that is the information
          you need at the moment of deciding what to eat. -->
-    <string name="home_remaining_label">left</string>
-    <string name="home_over_label">over</string>
+    <string name="home_remaining_label">kcal left</string>
+    <string name="home_over_label">kcal over</string>
     <string name="home_consumed_of_goal">%1$d eaten of %2$d</string>
     <string name="home_ring_a11y">Calories, %1$d of %2$d, %3$d %%</string>
 
@@ -235,4 +235,20 @@
     <string name="tour_done">Got it</string>
     <string name="tour_later">Later</string>
     <string name="tour_configure">Set it up</string>
+    <string name="tour_calories_title">The big number is calories</string>
+    <string name="tour_calories_body">What is left of your daily energy, in kilocalories. Below it, what you have already eaten and your target. It turns red once you go over.</string>
+    <string name="tour_protein_title">Protein</string>
+    <string name="tour_protein_body">What builds and repairs muscle. It is a target to reach, not a limit — the bar fills up and stays green.</string>
+    <string name="tour_carbs_title">Carbohydrates</string>
+    <string name="tour_carbs_body">The main fuel: bread, pasta, rice, fruit. A ceiling, which the bar marks as soon as it is passed.</string>
+    <string name="tour_sugars_title">Sugars</string>
+    <string name="tour_sugars_body">The share of carbohydrates that is sugar — added or natural. A ceiling of its own, because the same 50 g do not weigh the same in fruit as in soda.</string>
+    <string name="tour_fat_title">Fat</string>
+    <string name="tour_fat_body">Oil, butter, cheese, nuts. Twice the energy of the other two per gram, which is why it is a ceiling.</string>
+    <string name="tour_fiber_title">Fibre</string>
+    <string name="tour_fiber_body">Vegetables, pulses, whole grains. The counter almost nobody reaches, and a target like protein.</string>
+    <string name="tour_calendar_title">Seven days in a row</string>
+    <string name="tour_calendar_body">Each dot carries its day’s progress. Tap one to look at it, and log a meal you forgot — the entry lands on that day, not on today.</string>
+    <string name="tour_settings_title">Everything else is here</string>
+    <string name="tour_settings_body">Your profile and targets, the AI key, backup, photos, reminders and the theme. Nothing leaves this phone.</string>
 </resources>

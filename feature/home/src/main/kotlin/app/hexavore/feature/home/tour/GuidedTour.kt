@@ -3,10 +3,12 @@ package app.hexavore.feature.home.tour
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Button
@@ -18,6 +20,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
@@ -28,9 +31,11 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.feature.home.R
+import kotlin.math.roundToInt
 
 /**
  * Le tour guidé, posé par-dessus l'accueil réel.
@@ -45,11 +50,12 @@ import app.hexavore.feature.home.R
  * Le trou se découpe en `BlendMode.Clear`, ce qui demande une couche hors écran : sans
  * elle, l'effacement mordrait sur ce qui est derrière, c'est-à-dire sur l'accueil.
  *
- * ### La bulle fuit ce qu'elle désigne
+ * ### La bulle se pose contre sa cible
  *
- * Elle se pose en haut quand la cible est en bas, et en bas quand la cible est en haut.
- * C'est la seule règle, et elle suffit : les quatre cibles du tour sont soit dans la
- * barre du bas, soit dans le bloc du haut.
+ * Elle ne reste plus en haut de l'écran : elle se glisse **juste au-dessus ou juste en
+ * dessous** de ce qu'elle désigne, du côté où il y a de la place ([D143][decisions]).
+ * Une bulle collée au plafond pendant qu'un bouton s'éclaire en bas laisse à l'œil le
+ * soin de faire le lien — et cet œil-là découvre l'application.
  *
  * ### Rien ne passe au travers
  *
@@ -70,17 +76,42 @@ internal fun GuidedTour(
 ) {
     val cible = step.target?.let { anchors[it] }
 
-    Box(modifier = Modifier.fillMaxSize().blockingTaps()) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize().blockingTaps()) {
+        val hauteur = with(LocalDensity.current) { maxHeight.toPx() }
+        val ecart = with(LocalDensity.current) { GAP.toPx() }
+
         Veil(cible)
         Bubble(
             step = step,
-            below = cible != null && cible.center.y < MIDDLE_Y,
+            placement = cible.placementIn(hauteur, ecart),
             keyless = keyless,
             onNext = onNext,
             onConfigureAi = onConfigureAi,
             onFinish = onFinish,
         )
     }
+}
+
+/** Où la bulle se pose par rapport à sa cible, et de combien elle s'en écarte. */
+private data class BubblePlacement(val below: Boolean, val y: Float)
+
+/**
+ * Le côté où il reste de la place.
+ *
+ * **Sous la cible quand elle est dans la moitié haute**, au-dessus sinon : c'est la
+ * règle la plus simple qui ne fasse jamais sortir la bulle de l'écran, et elle suffit —
+ * une cible au milieu a de la place des deux côtés.
+ *
+ * `null` quand il n'y a pas de cible : la bulle se met alors au centre, ce qui est ce
+ * qu'on veut d'une étape qui ne désigne rien.
+ */
+private fun Rect?.placementIn(height: Float, gap: Float): BubblePlacement? {
+    val rect = this ?: return null
+    val below = rect.center.y < height / 2
+    return BubblePlacement(
+        below = below,
+        y = if (below) rect.bottom + gap else height - rect.top + gap,
+    )
 }
 
 /** Le voile, et le trou de lumière sur ce dont on parle. */
@@ -104,7 +135,7 @@ private fun Veil(target: Rect?) {
                 color = scrim,
                 topLeft = Offset(it.left - marge, it.top - marge),
                 size = Size(it.width + marge * 2, it.height + marge * 2),
-                cornerRadius = androidx.compose.ui.geometry.CornerRadius(rayon, rayon),
+                cornerRadius = CornerRadius(rayon, rayon),
                 blendMode = BlendMode.Clear,
             )
         }
@@ -115,19 +146,28 @@ private fun Veil(target: Rect?) {
 @Composable
 private fun Bubble(
     step: TourStep,
-    below: Boolean,
+    placement: BubblePlacement?,
     keyless: Boolean,
     onNext: () -> Unit,
     onConfigureAi: () -> Unit,
     onFinish: () -> Unit,
 ) {
+    val alignement = when {
+        placement == null -> Alignment.Center
+        placement.below -> Alignment.TopCenter
+        else -> Alignment.BottomCenter
+    }
+
     Box(
         // Les marges systeme : le voile couvre l'ecran entier, barre d'etat comprise,
         // et une bulle posee a son bord passerait sous l'heure.
         modifier = Modifier.fillMaxSize().systemBarsPadding().padding(Spacing.md),
-        contentAlignment = if (below) Alignment.BottomCenter else Alignment.TopCenter,
+        contentAlignment = alignement,
     ) {
-        Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest)) {
+        Card(
+            modifier = Modifier.offset { placement.toOffset() },
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
+        ) {
             Column(
                 modifier = Modifier.padding(Spacing.lg),
                 verticalArrangement = Arrangement.spacedBy(Spacing.sm),
@@ -147,6 +187,19 @@ private fun Bubble(
             }
         }
     }
+}
+
+/**
+ * Le décalage qui colle la bulle à sa cible.
+ *
+ * Il part du bord de la boîte : vers le bas quand la bulle est alignée en haut, vers le
+ * haut quand elle est alignée en bas. Le signe suit l'alignement, et c'est pourquoi les
+ * deux se décident au même endroit.
+ */
+private fun BubblePlacement?.toOffset(): IntOffset = when {
+    this == null -> IntOffset.Zero
+    below -> IntOffset(0, y.roundToInt())
+    else -> IntOffset(0, -y.roundToInt())
 }
 
 /**
@@ -199,9 +252,10 @@ private fun Modifier.blockingTaps(): Modifier = pointerInput(Unit) {
     }
 }
 
-/** Au-dessus de ce partage, une cible est « en haut » et la bulle descend. */
-private const val MIDDLE_Y = 1200f
-
 private const val VEIL_ALPHA = 0.82f
+
+/** L'air entre la cible éclairée et le bord de la bulle. */
+private val GAP = 12.dp
+
 private val HOLE_MARGIN = 8.dp
 private val HOLE_CORNER = 16.dp

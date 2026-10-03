@@ -297,8 +297,10 @@ fun HomeScreen(
             // Le titre et le calendrier ne defilent pas : docs/02 les veut fixes en
             // haut, et c'est aussi ce qui permet au mois deplie de defiler pour son
             // propre compte -- il n'est plus sous la connexion qui replie.
-            DayHeader(actions, day, today, swipe, onBackToToday, notices, progress)
-            calendar(calendarExpanded) { calendarExpanded = it }
+            DayHeader(actions, day, today, swipe, onBackToToday, notices, progress, anchors)
+            Box(modifier = Modifier.tourAnchorOrNot(anchors, TourTarget.CALENDAR)) {
+                calendar(calendarExpanded) { calendarExpanded = it }
+            }
 
             // Le glissement porte sur ce qui defile, jamais sur le calendrier : celui-ci
             // a son propre defilement horizontal, de semaine en semaine, et les deux
@@ -566,7 +568,7 @@ internal fun DayContent(
         // c'est de l'hexagone et des six compteurs que la premiere bulle parle, et une
         // ancre posee plus haut aurait fait un trou de la taille de l'ecran (D141).
         Box(modifier = Modifier.tourAnchorOrNot(anchors, TourTarget.DAY)) {
-            MacroBlock(summary, goal, focus)
+            MacroBlock(summary, goal, focus, anchors)
         }
     } else {
         NoGoal(actions.onSetUpGoal)
