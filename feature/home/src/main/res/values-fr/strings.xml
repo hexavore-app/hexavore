@@ -247,4 +247,5 @@
     <string name="tour_calendar_body">Chaque pastille porte l\'avancement de son jour. Touchez-en une pour la regarder, et rattraper un repas oublié — la saisie ira sur ce jour-là, pas sur aujourd\'hui.</string>
     <string name="tour_settings_title">Tout le reste est ici</string>
     <string name="tour_settings_body">Votre profil et vos objectifs, la clé d\'IA, la sauvegarde, les photos, les rappels et le thème. Rien ne quitte ce téléphone.</string>
+    <string name="calendar_day_perfect_a11y">Le %1$d, journée parfaite</string>
 </resources>

@@ -62,6 +62,10 @@ internal fun DayCell(
     // pendant la nuit garde son cerne sur la veille.
     val shown = date == (selected ?: state.today)
     val flagged = flagYesterday && date == state.today.minusDays(1)
+    // **Seulement sur un jour revolu.** Une journee en cours peut etre dans sa
+    // fourchette a midi et en sortir au diner : fermer l'anneau avant la fin
+    // promettrait quelque chose que la soiree peut defaire (D143).
+    val parfaite = day?.perfect == true && date.isBefore(state.today)
 
     Box(
         contentAlignment = Alignment.TopEnd,
@@ -80,7 +84,8 @@ internal fun DayCell(
             modifier = Modifier.align(Alignment.Center),
             progress = day.progress(),
             diameter = ringDiameter(footprint),
-            contentDescription = stringResource(date.labelOf(day, future), date.dayOfMonth),
+            contentDescription = stringResource(date.labelOf(day, future, parfaite), date.dayOfMonth),
+            closed = parfaite,
             center = {
                 Text(
                     text = date.dayOfMonth.toString(),
@@ -149,10 +154,18 @@ private fun BoxScope.SelectedDisc(shown: Boolean, diameter: Dp) {
 /** Assez pour se voir contre le fond, trop peu pour concurrencer l'anneau qu'il porte. */
 private const val DISC_ALPHA = 0.14f
 
-/** Ce que le lecteur d'écran annonce : un anneau absent ne s'entend pas. */
-private fun LocalDate.labelOf(day: CalendarDay?, future: Boolean): Int = when {
+/**
+ * Ce que le lecteur d'écran annonce : un anneau absent ne s'entend pas.
+ *
+ * **Et un anneau fermé non plus.** La journée parfaite se dit par la forme, qui ne se
+ * lit pas à voix haute : elle a donc sa phrase ([D143][decisions]).
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+private fun LocalDate.labelOf(day: CalendarDay?, future: Boolean, perfect: Boolean): Int = when {
     future -> R.string.calendar_day_future_a11y
     day == null -> R.string.calendar_day_empty_a11y
+    perfect -> R.string.calendar_day_perfect_a11y
     else -> R.string.calendar_day_a11y
 }
 

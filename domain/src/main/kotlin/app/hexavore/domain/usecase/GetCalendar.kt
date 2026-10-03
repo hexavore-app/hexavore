@@ -5,6 +5,7 @@ import app.hexavore.domain.goal.DailyGoal
 import app.hexavore.domain.goal.Goals
 import app.hexavore.domain.goal.activeOn
 import app.hexavore.domain.nutrition.MacroTotals
+import app.hexavore.domain.progress.PerfectDay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import java.time.LocalDate
@@ -41,13 +42,18 @@ class GetCalendar(private val diary: DiaryRepository, private val goals: Goals) 
             dishes
                 .groupBy { it.date }
                 .map { (date, ofDay) ->
+                    val totals = MacroTotals.of(ofDay.flatMap { dish -> dish.entries }.map { it.macros })
+                    // L'objectif **qui valait ce jour-la**, comme pour une journee
+                    // ouverte : sans lui, changer d'objectif repeindrait tout le mois
+                    // ecoule en depassement ([D04]).
+                    val goal = all.activeOn(date)
                     CalendarDay(
                         date = date,
-                        totals = MacroTotals.of(ofDay.flatMap { dish -> dish.entries }.map { it.macros }),
-                        // L'objectif **qui valait ce jour-la**, comme pour une journee
-                        // ouverte : sans lui, changer d'objectif repeindrait tout le
-                        // mois ecoule en depassement ([D04]).
-                        goal = all.activeOn(date)?.daily,
+                        totals = totals,
+                        goal = goal?.daily,
+                        // Calculee ici parce que la strategie vit sur l'objectif, et
+                        // qu'elle ne survit pas au passage en `DailyGoal` (D143).
+                        perfect = goal != null && PerfectDay.of(totals, goal.daily, goal.strategy),
                     )
                 }
                 .sortedBy { it.date }
@@ -64,4 +70,16 @@ class GetCalendar(private val diary: DiaryRepository, private val goals: Goals) 
  * objectif existe a bien des apports, mais rien à quoi les comparer. L'anneau se
  * dessine alors sans remplissage.
  */
-data class CalendarDay(val date: LocalDate, val totals: MacroTotals, val goal: DailyGoal?)
+data class CalendarDay(
+    val date: LocalDate,
+    val totals: MacroTotals,
+    val goal: DailyGoal?,
+    /**
+     * La journee est-elle restee dans sa fourchette sur les six compteurs ?
+     *
+     * **Le calcul, pas l'affichage.** Une journee en cours peut etre « parfaite » a
+     * midi et ne plus l'etre a vingt heures : c'est l'ecran qui decide de ne la montrer
+     * que sur les jours passes, parce que lui seul sait quel jour on est.
+     */
+    val perfect: Boolean = false,
+)

@@ -251,4 +251,5 @@
     <string name="tour_calendar_body">Each dot carries its day’s progress. Tap one to look at it, and log a meal you forgot — the entry lands on that day, not on today.</string>
     <string name="tour_settings_title">Everything else is here</string>
     <string name="tour_settings_body">Your profile and targets, the AI key, backup, photos, reminders and the theme. Nothing leaves this phone.</string>
+    <string name="calendar_day_perfect_a11y">The %1$d, a perfect day</string>
 </resources>
