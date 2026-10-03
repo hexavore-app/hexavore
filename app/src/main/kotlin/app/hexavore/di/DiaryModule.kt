@@ -1,5 +1,6 @@
 package app.hexavore.di
 
+import app.hexavore.BuildConfig
 import app.hexavore.data.diary.DishPhotoFiles
 import app.hexavore.data.diary.RoomDiaryRepository
 import app.hexavore.data.diary.RoomFavoriteDishes
@@ -12,6 +13,7 @@ import app.hexavore.domain.food.FoodCitations
 import app.hexavore.domain.time.Clock
 import app.hexavore.domain.usecase.HideTourSample
 import app.hexavore.domain.usecase.ShowTourSample
+import app.hexavore.feature.home.tour.TourReplay
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -103,4 +105,27 @@ object DiaryModule {
 
     @Provides
     fun hideTourSample(diary: DiaryRepository): HideTourSample = HideTourSample(diary)
+
+    /**
+     * Le tour se rejoue-t-il a chaque lancement ?
+     *
+     * **La variante publiee ne peut pas repondre oui**, et c'est tout l'interet d'avoir
+     * sorti ce reglage du tour : il ne depend plus de quelqu'un pour penser a le
+     * remettre a sa place avant de livrer. Le dial ci-dessous ne vaut que dans `debug`,
+     * la ou l'on regarde le tour vingt fois de suite sans effacer ses donnees entre
+     * deux essais.
+     *
+     * Le souvenir, lui, continue de s'ecrire dans les deux variantes : c'est lui qui
+     * decidera seul le jour ou [REJOUE_LE_TOUR] repassera a `false`.
+     */
+    @Provides
+    fun tourReplay(): TourReplay = if (BuildConfig.DEBUG) TourReplay(REJOUE_LE_TOUR) else TourReplay.NEVER
 }
+
+/**
+ * Le dial d'essai, **sans effet hors de la variante `debug`**.
+ *
+ * A remettre a `false` quand le tour n'a plus besoin d'etre regarde en boucle. L'oublier
+ * ne coute plus rien a personne d'autre qu'a celui qui developpe.
+ */
+private const val REJOUE_LE_TOUR = true

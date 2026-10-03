@@ -36,6 +36,7 @@ class TourViewModel @Inject constructor(
     private val settings: TourSettings,
     private val showSample: ShowTourSample,
     private val hideSample: HideTourSample,
+    private val replay: TourReplay,
 ) : ViewModel() {
     private val current = MutableStateFlow<TourStep?>(null)
 
@@ -47,7 +48,7 @@ class TourViewModel @Inject constructor(
             runCatching { hideSample() }
 
             val seen = runCatching { settings.observeSeen().first() }.getOrDefault(true)
-            if (!seen || (REJOUE_TOUJOURS && !reponduDansCeProcessus)) {
+            if (!seen || (replay.always && !reponduDansCeProcessus)) {
                 runCatching { showSample() }
                 current.value = TourStep.entries.first()
             }
@@ -94,17 +95,6 @@ class TourViewModel @Inject constructor(
     }
 
     private companion object {
-        /**
-         * **À remettre à `false` avant publication.**
-         *
-         * Le tour se rejoue à chaque ouverture, le souvenir étant ignoré : c'est la
-         * seule façon de le regarder dix fois de suite sans effacer les données de
-         * l'application entre chaque essai. Rien d'autre ne change — le souvenir
-         * s'écrit toujours, et il reprendra son rôle dès que cette constante
-         * repassera à `false`.
-         */
-        const val REJOUE_TOUJOURS = true
-
         /**
          * Le tour a-t-il deja ete congedie depuis le demarrage de l'application ?
          *

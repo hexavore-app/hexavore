@@ -5,6 +5,7 @@ import app.hexavore.core.testing.InMemoryDiaryRepository
 import app.hexavore.domain.tour.TourSettings
 import app.hexavore.domain.usecase.HideTourSample
 import app.hexavore.domain.usecase.ShowTourSample
+import app.hexavore.feature.home.tour.TourReplay
 import app.hexavore.feature.home.tour.TourStep
 import app.hexavore.feature.home.tour.TourViewModel
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +23,6 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -112,12 +112,6 @@ class TourViewModelTest {
         assertEquals(TAILLE, journal.observeDay(JOUR).first().size, "Les plats d'exemple se sont doubles.")
     }
 
-    @Disabled(
-        "Tant que TourViewModel.REJOUE_TOUJOURS vaut true, le tour ignore le souvenir, " +
-            "pour qu'on puisse le regarder sans effacer les donnees entre deux essais. " +
-            "Ce test redevient vrai -- et doit etre rallume -- des que la constante " +
-            "repasse a false.",
-    )
     @Test
     fun `un tour deja repondu ne se rejoue pas`() = runTest(dispatcher) {
         reglages.seen.value = true
@@ -136,6 +130,9 @@ class TourViewModelTest {
             settings = reglages,
             showSample = ShowTourSample(journal, clock),
             hideSample = HideTourSample(journal),
+            // Le rejeu d'essai est ce que `:app` n'accorde qu'a la variante `debug` :
+            // ces tests disent ce que le tour fait pour un utilisateur, donc jamais.
+            replay = TourReplay.NEVER,
         )
     }
 
