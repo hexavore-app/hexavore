@@ -31,7 +31,7 @@ data class AiSetup(val active: AiProvider? = null, val credentials: Map<AiProvid
  * [AiCredentials] à [AiSettings], et deux copies d'une même règle divergent le jour où
  * l'une devient défensive et l'autre non.
  */
-fun AiSetup.activeConfiguration(deepAnalysis: Boolean = false): AiConfiguration? {
+fun AiSetup.activeConfiguration(): AiConfiguration? {
     val provider = active ?: return null
     return credentials[provider]?.let {
         AiConfiguration(
@@ -39,10 +39,13 @@ fun AiSetup.activeConfiguration(deepAnalysis: Boolean = false): AiConfiguration?
             apiKey = it.apiKey,
             model = it.model,
             baseUrl = it.baseUrl,
-            // **Demandee et possible.** La case peut rester cochee pendant qu'on
-            // bascule sur un fournisseur qui ne sait pas appeler d'outils ; le `&&`
-            // vit ici, une fois, plutot que dans chaque reconnaisseur.
-            deepAnalysis = deepAnalysis && provider.tooling,
+            // **Des que le fournisseur sait appeler des outils**, et sans le
+            // demander. C'etait un reglage, et c'etait un mauvais reglage : eteinte,
+            // l'analyse rend des lignes que le catalogue n'a pas rejointes et que
+            // personne ne complete ; allumee, le modele choisit lui-meme la fiche.
+            // Un interrupteur dont une position est toujours moins bonne n'est pas un
+            // choix, c'est un piege (D142).
+            deepAnalysis = provider.tooling,
         )
     }
 }

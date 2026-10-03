@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.hexavore.domain.ai.AiCredentials
 import app.hexavore.domain.ai.DebugSettings
-import app.hexavore.domain.ai.DeepAnalysisSettings
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -26,25 +25,18 @@ import javax.inject.Inject
  */
 @HiltViewModel
 internal class AnalysisModesViewModel @Inject constructor(
-    private val deep: DeepAnalysisSettings,
     private val debug: DebugSettings,
     credentials: AiCredentials,
 ) : ViewModel() {
     val uiState: StateFlow<ModesUiState> = combine(
-        deep.observe(),
         debug.observe(),
         credentials.observe(),
-    ) { deeply, tracing, setup ->
+    ) { tracing, setup ->
         ModesUiState(
-            deepAnalysis = deeply,
             debug = tracing,
             toolingAvailable = setup.active?.tooling == true,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ModesUiState())
-
-    fun onDeepAnalysis(enabled: Boolean) {
-        viewModelScope.launch { deep.setEnabled(enabled) }
-    }
 
     fun onDebug(enabled: Boolean) {
         viewModelScope.launch { debug.setEnabled(enabled) }
@@ -54,12 +46,10 @@ internal class AnalysisModesViewModel @Inject constructor(
 /**
  * Ce que les deux sections montrent.
  *
- * [toolingAvailable] grise la case sans l'éteindre : le réglage reste, et il reprendra
- * effet quand on rebranchera un fournisseur qui sait appeler des outils. L'éteindre à
- * la bascule ferait perdre un choix que personne n'a défait.
+ * [toolingAvailable] dit si le fournisseur actif sait appeler des outils. Ce n'est plus
+ * un réglage depuis [D142][decisions] : l'analyse approfondie se fait dès qu'elle est
+ * possible, et l'écran ne fait que dire laquelle des deux voies sera prise.
+ *
+ * [decisions]: docs/11-decisions.md
  */
-internal data class ModesUiState(
-    val deepAnalysis: Boolean = false,
-    val debug: Boolean = false,
-    val toolingAvailable: Boolean = false,
-)
+internal data class ModesUiState(val debug: Boolean = false, val toolingAvailable: Boolean = false)

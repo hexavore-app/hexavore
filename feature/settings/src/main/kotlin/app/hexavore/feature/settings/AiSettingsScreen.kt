@@ -56,7 +56,6 @@ internal fun AiSettingsRoute(
         state = state,
         modes = modesState,
         onDebug = modes::onDebug,
-        onDeepAnalysis = modes::onDeepAnalysis,
         onOpenExchanges = onOpenExchanges,
         actions = remember(viewModel, onClose) {
             AiSettingsActions(
@@ -90,7 +89,6 @@ internal fun AiSettingsScreen(
     actions: AiSettingsActions,
     modes: ModesUiState = ModesUiState(),
     onDebug: (Boolean) -> Unit = {},
-    onDeepAnalysis: (Boolean) -> Unit = {},
     onOpenExchanges: () -> Unit = {},
 ) {
     Scaffold(
@@ -129,11 +127,7 @@ internal fun AiSettingsScreen(
                 )
             }
 
-            DeepAnalysisCard(
-                enabled = modes.deepAnalysis,
-                available = modes.toolingAvailable,
-                onToggle = onDeepAnalysis,
-            )
+            DeepAnalysisCard(available = modes.toolingAvailable)
 
             UsageCounter(state.usage)
 
@@ -354,7 +348,7 @@ private fun DebugCard(enabled: Boolean, onToggle: (Boolean) -> Unit, onOpenExcha
  * capable.
  */
 @Composable
-private fun DeepAnalysisCard(enabled: Boolean, available: Boolean, onToggle: (Boolean) -> Unit) {
+private fun DeepAnalysisCard(available: Boolean) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(Spacing.cardPadding),
@@ -372,7 +366,6 @@ private fun DeepAnalysisCard(enabled: Boolean, available: Boolean, onToggle: (Bo
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                Switch(checked = enabled, onCheckedChange = onToggle, enabled = available)
             }
             if (!available) {
                 Text(

@@ -6,7 +6,6 @@ import app.hexavore.data.settings.KeystoreCipher
 import app.hexavore.data.settings.SecretCipher
 import app.hexavore.data.settings.StoredAiCredentials
 import app.hexavore.data.settings.StoredAiUsage
-import app.hexavore.data.settings.StoredDeepAnalysisSettings
 import app.hexavore.data.settings.StoredPhotoConsent
 import app.hexavore.domain.ai.AiCredentials
 import app.hexavore.domain.ai.AiSettings
@@ -49,8 +48,7 @@ internal object AiSettingsModule {
         @Named(AI_PREFERENCES) preferences: SharedPreferences,
         cipher: SecretCipher,
         dispatchers: DispatcherProvider,
-        deep: StoredDeepAnalysisSettings,
-    ): StoredAiCredentials = StoredAiCredentials(preferences, cipher, dispatchers, deep)
+    ): StoredAiCredentials = StoredAiCredentials(preferences, cipher, dispatchers)
 
     @Provides
     fun credentials(stored: StoredAiCredentials): AiCredentials = stored

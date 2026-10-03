@@ -4898,6 +4898,38 @@ Le tour vit dans `:feature:home` parce qu'il se dessine par-dessus l'accueil et 
 
 ---
 
+## D142 — Les lignes sans valeurs, et pourquoi elles arrivaient jusqu'à l'écran · ✓ validée
+
+**Contexte.** Trois signalements, tous de la même forme : des lignes affichées avec un nom, une quantité, et **« ? kcal »**. « travers de porc : 200 g, ? » à côté de « Sauce barbecue, préemballée : 20 g, 27 kcal ».
+
+La forme dit la cause : les lignes complètes portent un **nom du catalogue**, les lignes vides portent le **libellé du modèle**. Ce sont exactement celles que le catalogue n'a pas rejointes — et que le repli d'estimation aurait dû remplir.
+
+### Le repli ne partait pas, ou partait pour rien
+
+Trois défauts se sont additionnés, chacun silencieux.
+
+**Le critère était interne.** `completedByEstimate` ne regardait que les lignes de verdict `NONE`. Une fiche choisie par le modèle mais vide, une fiche `REVIEW` sans valeurs : l'écran affichait « ? », et l'estimation ne partait pas. Le critère est maintenant **celui que l'utilisateur voit** — une ligne sans énergie — et non un classement que lui seul connaissait.
+
+**Le rapprochement était exact.** Les estimations revenaient dans une table indexée par libellé, et la recherche se faisait par égalité de chaînes. Une majuscule, un accent, un mot en plus, et la ligne restait vide **sans que rien ne le dise**. Les libellés sont désormais normalisés comme partout ailleurs dans la résolution, et le **rang** sert de filet quand ils ne se rejoignent toujours pas : le modèle répond dans l'ordre où on demande.
+
+**L'analyse approfondie était un réglage.** Éteinte, le modèle rend des libellés et l'application les cherche seule ; allumée, le modèle voit les fiches et choisit. La première voie produit beaucoup plus de lignes vides. Un interrupteur dont une position est toujours moins bonne n'est pas un choix : il disparaît, et l'analyse approfondie se fait **dès que le fournisseur sait appeler des outils**.
+
+### Le signalement montrait le mauvais tour
+
+Les trois traces jointes montraient toutes le **premier** appel d'une analyse profonde — la recherche au catalogue — là où le défaut se voit au dernier. `DraftReporting` prenait `lastOrNull()` d'un journal rendu **du plus récent au plus ancien** ([AiExchangeLog][ia]) : il joignait donc systématiquement le plus vieil échange gardé.
+
+C'est un défaut du défaut : l'outil fait pour comprendre les pannes en cachait une partie. Trois rapports ont été envoyés avec la mauvaise pièce jointe avant qu'on s'en aperçoive.
+
+[ia]: docs/05-ia.md
+
+**Conséquences.** `DeepAnalysisSettings` quitte l'écran d'IA et le chemin des identifiants. `activeConfiguration()` ne prend plus de paramètre : la seule question est la capacité du fournisseur.
+
+**Ce que le vert ne prouve pas.** **Qu'il n'y ait plus de trous.** Les trois causes trouvées sont fermées ; une quatrième — un estimateur qui répond à côté, un fournisseur qui refuse — laisserait encore une ligne vide. Ce qui est tenu, c'est qu'elle ne le restera plus **en silence par construction**.
+
+**Que l'estimation soit juste.** Elle ne l'est pas : elle est signalée comme estimation, et c'est tout ce qu'elle prétend être. Mieux vaut un ordre de grandeur marqué qu'un champ vide qu'on remplira au jugé.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

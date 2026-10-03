@@ -21,25 +21,18 @@ import org.junit.jupiter.api.Test
 class AiCredentialsTest {
     @Test
     fun `un fournisseur qui sait appeler des outils recoit l analyse approfondie`() {
-        val configuration = setup(AiProvider.ANTHROPIC).activeConfiguration(deepAnalysis = true)
+        val configuration = setup(AiProvider.ANTHROPIC).activeConfiguration()
 
         assertTrue(configuration?.deepAnalysis == true)
     }
 
     @Test
-    fun `un fournisseur sans outillage ne la recoit pas, meme demandee`() {
-        // Le reglage reste allume et reprendra effet des qu'un fournisseur capable
-        // redevient actif : c'est ici qu'on refuse, pas dans le magasin.
+    fun `un fournisseur sans outillage ne la recoit pas`() {
+        // Ce n'est plus un reglage : la seule question est de savoir si le fournisseur
+        // sait appeler des outils (D142).
         assertFalse(AiProvider.OPENAI.tooling, "le cas suppose un fournisseur sans outillage")
 
-        val configuration = setup(AiProvider.OPENAI).activeConfiguration(deepAnalysis = true)
-
-        assertFalse(configuration?.deepAnalysis == true)
-    }
-
-    @Test
-    fun `sans demande, l analyse reste ordinaire`() {
-        val configuration = setup(AiProvider.ANTHROPIC).activeConfiguration(deepAnalysis = false)
+        val configuration = setup(AiProvider.OPENAI).activeConfiguration()
 
         assertFalse(configuration?.deepAnalysis == true)
     }
@@ -54,7 +47,7 @@ class AiCredentialsTest {
 
     @Test
     fun `aucun fournisseur actif ne donne aucune configuration`() {
-        assertNull(AiSetup().activeConfiguration(deepAnalysis = true))
+        assertNull(AiSetup().activeConfiguration())
     }
 
     @Test
@@ -63,7 +56,7 @@ class AiCredentialsTest {
         // comme un manque plutot qu'en faisant tomber l'ecran.
         val setup = AiSetup(active = AiProvider.ANTHROPIC, credentials = emptyMap())
 
-        assertNull(setup.activeConfiguration(deepAnalysis = true))
+        assertNull(setup.activeConfiguration())
     }
 
     private fun setup(provider: AiProvider) = AiSetup(
