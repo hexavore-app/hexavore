@@ -115,8 +115,8 @@ object DiaryModule {
      * la ou l'on regarde le tour vingt fois de suite sans effacer ses donnees entre
      * deux essais.
      *
-     * Le souvenir, lui, continue de s'ecrire dans les deux variantes : c'est lui qui
-     * decidera seul le jour ou [REJOUE_LE_TOUR] repassera a `false`.
+     * Le souvenir, lui, s'ecrit dans les deux variantes, et c'est lui qui decide :
+     * le tour se joue une fois, puis plus jamais tant qu'on y a repondu.
      */
     @Provides
     fun tourReplay(): TourReplay = if (BuildConfig.DEBUG) TourReplay(REJOUE_LE_TOUR) else TourReplay.NEVER
@@ -125,7 +125,10 @@ object DiaryModule {
 /**
  * Le dial d'essai, **sans effet hors de la variante `debug`**.
  *
- * A remettre a `false` quand le tour n'a plus besoin d'etre regarde en boucle. L'oublier
- * ne coute plus rien a personne d'autre qu'a celui qui developpe.
+ * `false` est sa place au repos : le tour se joue une fois, et le souvenir decide seul.
+ * Le passer a `true` le fait rejouer a chaque lancement, ce qui sert a le regarder dix
+ * fois de suite sans effacer les donnees entre deux essais. L'oublier a `true` ne coute
+ * rien a personne d'autre qu'a celui qui developpe : la variante publiee recoit
+ * [TourReplay.NEVER] et ne peut rien recevoir d'autre.
  */
-private const val REJOUE_LE_TOUR = true
+private const val REJOUE_LE_TOUR = false
