@@ -1,16 +1,19 @@
 package app.hexavore.feature.home.tour
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -18,6 +21,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -28,6 +37,8 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +46,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.feature.home.R
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
@@ -69,12 +81,15 @@ import kotlin.math.roundToInt
 internal fun GuidedTour(
     step: TourStep,
     anchors: TourAnchors,
+    scroll: ScrollState,
     keyless: Boolean,
     onNext: () -> Unit,
     onConfigureAi: () -> Unit,
     onFinish: () -> Unit,
 ) {
     val cible = step.target?.let { anchors[it] }
+
+    SuitLaCible(step, anchors, scroll, cible != null) { cible }
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize().blockingTaps()) {
         val hauteur = with(LocalDensity.current) { maxHeight.toPx() }
@@ -83,7 +98,7 @@ internal fun GuidedTour(
         Veil(cible)
         Bubble(
             step = step,
-            placement = cible.placementIn(hauteur, ecart),
+            cadre = BubbleFrame(cible, hauteur, ecart),
             keyless = keyless,
             onNext = onNext,
             onConfigureAi = onConfigureAi,
@@ -92,27 +107,54 @@ internal fun GuidedTour(
     }
 }
 
-/** Où la bulle se pose par rapport à sa cible, et de combien elle s'en écarte. */
-private data class BubblePlacement(val below: Boolean, val y: Float)
-
 /**
- * Le côté où il reste de la place.
+ * Amène ce dont l'étape parle **sous les yeux**, et allume le quartier qu'elle décrit.
  *
- * **Sous la cible quand elle est dans la moitié haute**, au-dessus sinon : c'est la
- * règle la plus simple qui ne fasse jamais sortir la bulle de l'écran, et elle suffit —
- * une cible au milieu a de la place des deux côtés.
+ * ### Pourquoi l'écran doit bouger
  *
- * `null` quand il n'y a pas de cible : la bulle se met alors au centre, ce qui est ce
- * qu'on veut d'une étape qui ne désigne rien.
+ * Le tour désigne des éléments d'une page qui défile. Les six compteurs, la barre du
+ * bas, les réglages : rien ne garantit qu'ils soient visibles au moment où la phrase les
+ * concerne. Sans ce défilement, le voile s'ouvrait sur du vide et la bulle parlait d'un
+ * élément resté deux écrans plus bas ([D147][decisions]).
+ *
+ * **La cible va au milieu**, et pas seulement « quelque part dans l'écran » : c'est la
+ * seule position qui laisse de la place à la bulle des deux côtés, quelle que soit sa
+ * hauteur.
+ *
+ * ### Pourquoi la clé n'est pas le rectangle
+ *
+ * Défiler déplace la cible, donc son rectangle, donc relancerait l'effet — qui
+ * défilerait encore. La clé est l'**étape**, plus le seul fait qu'une position soit
+ * connue ; le rectangle se lit au moment où l'on en a besoin.
+ *
+ * [decisions]: docs/11-decisions.md
  */
-private fun Rect?.placementIn(height: Float, gap: Float): BubblePlacement? {
-    val rect = this ?: return null
-    val below = rect.center.y < height / 2
-    return BubblePlacement(
-        below = below,
-        y = if (below) rect.bottom + gap else height - rect.top + gap,
-    )
+@Composable
+private fun SuitLaCible(
+    step: TourStep,
+    anchors: TourAnchors,
+    scroll: ScrollState,
+    placee: Boolean,
+    cible: () -> Rect?,
+) {
+    val hauteur = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
+
+    LaunchedEffect(step, placee) {
+        anchors.spotlight = step.macro
+        val rect = cible() ?: return@LaunchedEffect
+        val ecart = rect.center.y - hauteur / 2f
+        if (abs(ecart) > SCROLL_TOLERANCE) scroll.animateScrollBy(ecart)
+    }
+
+    // La figure ne doit pas rester allumee quand le tour s'en va : le quartier mis en
+    // avant est l'affaire du tour, pas un etat de l'accueil.
+    DisposableEffect(Unit) {
+        onDispose { anchors.spotlight = null }
+    }
 }
+
+/** En deçà, l'écran est déjà au bon endroit : défiler de trois pixels serait un tic. */
+private const val SCROLL_TOLERANCE = 24f
 
 /** Le voile, et le trou de lumière sur ce dont on parle. */
 @Composable
@@ -142,30 +184,45 @@ private fun Veil(target: Rect?) {
     }
 }
 
-/** Ce que l'étape dit, et ce qu'elle propose de faire. */
+/**
+ * Ce que l'étape dit, et ce qu'elle propose de faire.
+ *
+ * ### Elle ne peut plus sortir de l'écran
+ *
+ * Elle se posait par alignement et décalage : collée en bas, puis remontée de la
+ * distance qui la séparait du haut de sa cible. Sur une cible **haute** — l'hexagone,
+ * le bloc de la journée — cette distance valait presque toute la hauteur de l'écran, et
+ * la bulle montait d'autant : on n'en voyait que le bas ([D147][decisions]).
+ *
+ * Elle calcule donc une position absolue, puis la **borne** entre les deux marges
+ * système. Pour cela il faut sa hauteur, qui ne se connaît qu'une fois mesurée : elle
+ * se place à zéro le temps d'une image, puis se repositionne. C'est le prix d'un
+ * placement qui tient quelle que soit la longueur du texte, et il se paie une fois par
+ * étape.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
 @Composable
 private fun Bubble(
     step: TourStep,
-    placement: BubblePlacement?,
+    cadre: BubbleFrame,
     keyless: Boolean,
     onNext: () -> Unit,
     onConfigureAi: () -> Unit,
     onFinish: () -> Unit,
 ) {
-    val alignement = when {
-        placement == null -> Alignment.Center
-        placement.below -> Alignment.TopCenter
-        else -> Alignment.BottomCenter
-    }
+    var mesure by remember(step) { mutableIntStateOf(0) }
+    val marges = WindowInsets.systemBars
+    val densite = LocalDensity.current
+    val haut = marges.getTop(densite).toFloat()
+    val bas = marges.getBottom(densite).toFloat()
 
-    Box(
-        // Les marges systeme : le voile couvre l'ecran entier, barre d'etat comprise,
-        // et une bulle posee a son bord passerait sous l'heure.
-        modifier = Modifier.fillMaxSize().systemBarsPadding().padding(Spacing.md),
-        contentAlignment = alignement,
-    ) {
+    Box(modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.md)) {
         Card(
-            modifier = Modifier.offset { placement.toOffset() },
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .onSizeChanged { mesure = it.height }
+                .offset { IntOffset(0, cadre.sommet(mesure, haut, bas).roundToInt()) },
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
         ) {
             Column(
@@ -190,16 +247,37 @@ private fun Bubble(
 }
 
 /**
- * Le décalage qui colle la bulle à sa cible.
+ * Où la bulle a le droit de se poser : la cible, et la place disponible autour.
  *
- * Il part du bord de la boîte : vers le bas quand la bulle est alignée en haut, vers le
- * haut quand elle est alignée en bas. Le signe suit l'alignement, et c'est pourquoi les
- * deux se décident au même endroit.
+ * Les trois voyagent ensemble parce qu'ils ne servent qu'à une chose — placer la bulle —
+ * et parce que passés un par un ils poussaient la composable au-delà du seuil de
+ * paramètres. La réponse du projet est de regrouper selon ce que les choses sont.
  */
-private fun BubblePlacement?.toOffset(): IntOffset = when {
-    this == null -> IntOffset.Zero
-    below -> IntOffset(0, y.roundToInt())
-    else -> IntOffset(0, -y.roundToInt())
+private data class BubbleFrame(val cible: Rect?, val hauteur: Float, val ecart: Float) {
+    /**
+     * Le haut de la bulle, en pixels depuis le haut de l'écran.
+     *
+     * **Du côté où il reste de la place**, puis borné. Sous la cible quand elle occupe
+     * la moitié haute, au-dessus sinon — et si le compte tombe en dehors de l'écran, il
+     * est ramené dedans. Le recouvrement qui en résulte est préférable à une bulle qu'on
+     * ne peut pas lire : une cible qui prend presque tout l'écran n'a de place nulle
+     * part, et il faut bien choisir.
+     *
+     * Sans cible, la bulle se centre : c'est ce qu'on veut d'une étape qui ne désigne
+     * rien.
+     *
+     * @param mesure la hauteur mesurée de la bulle, `0` tant qu'elle n'est pas posée.
+     */
+    fun sommet(mesure: Int, haut: Float, bas: Float): Float {
+        val bulle = mesure.toFloat()
+        val minimum = haut + ecart
+        val maximum = (hauteur - bas - ecart - bulle).coerceAtLeast(minimum)
+
+        val rect = cible ?: return ((hauteur - bulle) / 2f).coerceIn(minimum, maximum)
+        val dessous = rect.center.y < hauteur / 2f
+        val vise = if (dessous) rect.bottom + ecart else rect.top - ecart - bulle
+        return vise.coerceIn(minimum, maximum)
+    }
 }
 
 /**

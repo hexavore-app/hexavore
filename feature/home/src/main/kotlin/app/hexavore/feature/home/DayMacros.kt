@@ -24,6 +24,7 @@ import app.hexavore.core.designsystem.component.MacroHexagon
 import app.hexavore.core.designsystem.component.MacroQuarter
 import app.hexavore.core.designsystem.component.MacroUnit
 import app.hexavore.core.designsystem.component.macroAnchor
+import app.hexavore.core.designsystem.component.macroDialOrder
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.domain.diary.DaySummary
 import app.hexavore.domain.diary.MacroSources
@@ -33,7 +34,6 @@ import app.hexavore.domain.nutrition.Macro
 import app.hexavore.feature.home.tour.TourAnchors
 import app.hexavore.feature.home.tour.TourTarget
 import app.hexavore.feature.home.tour.tourAnchorOrNot
-import app.hexavore.feature.home.tour.tourTarget
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -76,7 +76,7 @@ internal fun MacroBlock(summary: DaySummary, goal: DailyGoal, focus: MacroFocus,
                 onFigure = { coords -> figure = zone?.localBoundingBoxOf(coords) ?: Rect.Zero },
                 anchors = anchors,
             )
-            MacroBars(summary, goal, focus, anchors)
+            MacroBars(summary, goal, focus)
         }
 
         // `matchParentSize` : la bulle se place dans la boite sans la dimensionner,
@@ -134,17 +134,20 @@ private fun RemainingBlock(
         // contre le grand chiffre et le « C » ne sort plus par le haut.
         MacroHexagon(
             quarters = summary.quarters(dailyGoal),
-            modifier = Modifier.onGloballyPositioned(onFigure),
-            selected = focus.macro,
+            modifier = Modifier
+                .onGloballyPositioned(onFigure)
+                .tourAnchorOrNot(anchors, TourTarget.HEXAGON),
+            // Le tour l'emporte sur le doigt pendant qu'il parle : c'est lui qui
+            // designe, et les six etapes de macros allument chacune leur triangle avec
+            // le mecanisme de la figure elle-meme (D147).
+            selected = anchors?.spotlight ?: focus.macro,
             label = { actions.getValue(it) },
             onSelect = { focus.tapped(summary, it) },
         )
-        // Le grand chiffre et ses deux legendes forment ce que le tour designe : la
-        // reponse de la journee, et l'unite dans laquelle elle se dit (D143).
-        Column(
-            modifier = Modifier.tourAnchorOrNot(anchors, TourTarget.CALORIES),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+        // Le grand chiffre et ses deux legendes : la reponse de la journee, et l'unite
+        // dans laquelle elle se dit (D143). Le tour ne le designe plus a part -- il est
+        // dans le bloc du jour, et l'etape des calories allume le triangle du haut.
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = abs(remaining).roundToInt().toString(),
                 style = MaterialTheme.typography.displayLarge,
@@ -176,7 +179,7 @@ private fun DaySummary.quarters(goal: DailyGoal): Map<Macro, MacroQuarter> = Mac
 }
 
 @Composable
-private fun MacroBars(summary: DaySummary, goal: DailyGoal, focus: MacroFocus, anchors: TourAnchors?) {
+private fun MacroBars(summary: DaySummary, goal: DailyGoal, focus: MacroFocus) {
     // **Le chemin visible des sources.** Toucher un triangle est un geste que rien
     // n'annonce ; une barre pleine largeur est une cible qu'on trouve sans la
     // connaitre, et que le lecteur d'ecran annonce deja par son nom et sa valeur.
@@ -196,7 +199,6 @@ private fun MacroBars(summary: DaySummary, goal: DailyGoal, focus: MacroFocus, a
                 // Muette quand la macro n'a rien a montrer : la meme regle que le
                 // quartier, parce que c'est une regle sur la macro et non sur la porte.
                 modifier = Modifier
-                    .tourAnchorOrNot(anchors, macro.tourTarget())
                     .clickable(
                         enabled = !summary.sourcesOf(macro, MacroSources.DETAILED).isEmpty,
                         onClickLabel = ouvrir,
@@ -214,4 +216,4 @@ private fun MacroBars(summary: DaySummary, goal: DailyGoal, focus: MacroFocus, a
  * traduction — deux ordres différents rendraient la couleur seule porteuse du lien.
  */
 private val BAR_MACROS =
-    listOf(Macro.PROTEIN, Macro.FIBER, Macro.CARBS, Macro.SUGARS, Macro.FAT)
+    macroDialOrder.filterNot { it == Macro.CALORIES }

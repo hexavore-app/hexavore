@@ -1,10 +1,12 @@
 package app.hexavore.feature.entry
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,16 +33,35 @@ import java.time.ZoneOffset
 /**
  * Le calendrier où choisir le jour de la copie.
  *
- * **Pas de jour à venir**, comme partout ailleurs : on note ce qu'on a mangé, et le
- * futur ne se mange pas ([décision par défaut n°10][parcours]).
+ * ### Ce qu'il dit avant qu'on y touche
+ *
+ * Un calendrier qui s'ouvre ne dit pas ce qu'il attend. Le titre est donc une phrase
+ * entière, à la taille d'un titre et non d'une étiquette, et une seconde ligne dit ce
+ * qui arrivera — **l'original reste** ([D144][decisions]). Sans elle, le geste ressemble
+ * à un déplacement, et on hésite à s'en servir.
+ *
+ * ### Le jour d'origine est déjà choisi
+ *
+ * Il sert deux fois : il montre d'où l'on part, et il rend la copie sur **le même jour**
+ * — dupliquer un plat — accessible en un appui. Ouvrir sans rien de sélectionné laissait
+ * un bouton gris sans dire ce qui l'allumerait.
+ *
+ * ### Pas de jour à venir
+ *
+ * Comme partout ailleurs : on note ce qu'on a mangé, et le futur ne se mange pas
+ * ([décision par défaut n°10][parcours]). La limite se compte depuis **aujourd'hui** et
+ * non depuis le plat : elle recevait la date du plat ouvert, si bien que depuis une
+ * journée passée on pouvait recopier vers n'importe quel jour **sauf** aujourd'hui.
  *
  * [parcours]: docs/02-parcours-et-ecrans.md
+ * [decisions]: docs/11-decisions.md
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun CopyDateDialog(today: LocalDate, onPick: (LocalDate) -> Unit, onDismiss: () -> Unit) {
+internal fun CopyDateDialog(today: LocalDate, source: LocalDate, onPick: (LocalDate) -> Unit, onDismiss: () -> Unit) {
     val limite = remember(today) { today.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli() }
     val state = rememberDatePickerState(
+        initialSelectedDateMillis = remember(source) { source.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli() },
         selectableDates = object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long): Boolean = utcTimeMillis < limite
         },
@@ -58,18 +79,30 @@ internal fun CopyDateDialog(today: LocalDate, onPick: (LocalDate) -> Unit, onDis
             TextButton(onClick = onDismiss) { Text(text = stringOf(R.string.entry_copy_cancel)) }
         },
     ) {
-        DatePicker(
-            state = state,
-            // Le titre porte lui-meme ses marges : la boite ne lui en donne aucune, et
-            // sans elles il se posait dans le coin arrondi, qui lui rognait sa premiere
-            // lettre. Ce sont celles du titre que Material pose quand on le laisse ecrire
-            // le sien -- l'ecart avec le calendrier en dessous vient de la.
-            title = {
-                Text(
-                    text = stringOf(R.string.entry_copy_title),
-                    modifier = Modifier.padding(start = Spacing.xl, end = Spacing.md, top = Spacing.lg),
-                )
-            },
+        DatePicker(state = state, title = { CopyTitle() })
+    }
+}
+
+/**
+ * Le titre de la boîte, et la phrase qui dit ce qui va se passer.
+ *
+ * Il porte lui-même ses marges : la boîte ne lui en donne aucune, et sans elles il se
+ * posait dans le coin arrondi, qui lui rognait sa première lettre. Ce sont celles que
+ * Material pose quand on le laisse écrire le sien.
+ */
+@Composable
+private fun CopyTitle() {
+    Column(modifier = Modifier.padding(start = Spacing.xl, end = Spacing.xl, top = Spacing.lg)) {
+        Text(
+            text = stringOf(R.string.entry_copy_title),
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = stringOf(R.string.entry_copy_explain),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = Spacing.xs),
         )
     }
 }

@@ -368,4 +368,14 @@
     <string name="reminders_streak_title">Série en jeu</string>
     <string name="reminders_meal_body">Muet dès que ce repas est noté.</string>
     <string name="reminders_streak_body">Le soir, quand rien n\'est noté et qu\'une série court.</string>
+    <string name="settings_favorites_title">Favoris</string>
+    <string name="settings_favorites_subtitle">Les plats que vous avez enregistrés, et de quoi les corriger.</string>
+    <string name="settings_favorites_edit">Modifier ce favori</string>
+    <string name="settings_favorites_empty">Aucun favori pour l\'instant. Ouvrez un plat et touchez l\'étoile pour l\'enregistrer — il reviendra sous le bouton +.</string>
+    <string name="settings_contact_title">Contact</string>
+    <string name="settings_contact_subtitle">Le code, le site, et où écrire.</string>
+    <string name="settings_contact_intro">Hexavore est un logiciel libre. Un défaut, une idée, un mot : les trois nous arrivent.</string>
+    <string name="settings_contact_site">Le site</string>
+    <string name="settings_contact_github">Le code, et les tickets</string>
+    <string name="settings_contact_mail">Nous écrire</string>
 </resources>

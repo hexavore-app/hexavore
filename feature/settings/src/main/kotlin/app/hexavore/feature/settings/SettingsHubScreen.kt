@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
@@ -18,10 +19,12 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -32,6 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.hexavore.core.designsystem.component.NoticeDot
 import app.hexavore.core.designsystem.component.ScreenTopBar
+import app.hexavore.core.designsystem.component.SparkleGlyph
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.domain.notice.Notice
 
@@ -90,6 +94,8 @@ internal data class SettingsSections(
     val onOpenPhotos: () -> Unit,
     val onOpenNotices: () -> Unit,
     val onOpenAppearance: () -> Unit,
+    val onOpenFavorites: () -> Unit,
+    val onOpenContact: () -> Unit,
 )
 
 @Composable
@@ -136,12 +142,22 @@ private fun HubSections(sections: SettingsSections, aiFlagged: Boolean) {
             subtitleRes = R.string.settings_profile_subtitle,
             onClick = sections.onOpenProfile,
         )
+        // Les deux etincelles, et non l'etoile : l'etoile designe les favoris dans
+        // toute l'application, et la section juste en dessous est la leur (D148).
         SectionCard(
             titleRes = R.string.settings_ai_title,
-            icon = Icons.Filled.Star,
+            // Muet, comme les autres icones de cette liste : le titre est juste a
+            // cote, et le repeter ferait deux arrets pour une seule entree.
+            glyph = { SparkleGlyph(contentDescription = "") },
             subtitleRes = R.string.settings_ai_subtitle,
             onClick = sections.onOpenAi,
             flagged = aiFlagged,
+        )
+        SectionCard(
+            titleRes = R.string.settings_favorites_title,
+            icon = Icons.Filled.Star,
+            subtitleRes = R.string.settings_favorites_subtitle,
+            onClick = sections.onOpenFavorites,
         )
         SectionCard(
             titleRes = R.string.settings_contribution_title,
@@ -175,6 +191,14 @@ private fun HubSections(sections: SettingsSections, aiFlagged: Boolean) {
             subtitleRes = R.string.settings_appearance_subtitle,
             onClick = sections.onOpenAppearance,
         )
+        // En dernier, et c'est sa place : on y va quand on a quelque chose a dire, pas
+        // quand on regle quelque chose.
+        SectionCard(
+            titleRes = R.string.settings_contact_title,
+            icon = Icons.Filled.MailOutline,
+            subtitleRes = R.string.settings_contact_subtitle,
+            onClick = sections.onOpenContact,
+        )
     }
 }
 
@@ -194,8 +218,16 @@ private fun HubSections(sections: SettingsSections, aiFlagged: Boolean) {
 private fun SectionCard(
     @StringRes titleRes: Int,
     @StringRes subtitleRes: Int,
-    icon: ImageVector,
     onClick: () -> Unit,
+    icon: ImageVector? = null,
+    /**
+     * Le signe, quand `material-icons-core` n'en a pas.
+     *
+     * Deux formes pour une seule place : la plupart des sections tiennent avec un
+     * vecteur de Material, et celles qui n'y sont pas — les étincelles de l'IA —
+     * apportent leur tracé. Deux cartes auraient divergé au premier changement de marge.
+     */
+    glyph: (@Composable () -> Unit)? = null,
     flagged: Boolean = false,
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
@@ -207,11 +239,13 @@ private fun SectionCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.md),
             ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                )
+                CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.primary) {
+                    if (icon != null) {
+                        Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    } else {
+                        glyph?.invoke()
+                    }
+                }
                 Text(text = stringResource(titleRes), style = MaterialTheme.typography.titleMedium)
                 if (flagged) {
                     NoticeDot(

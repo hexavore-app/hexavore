@@ -7,14 +7,15 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
@@ -25,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import app.hexavore.core.designsystem.component.CopyGlyph
 import app.hexavore.core.designsystem.component.DraftTextField
 import app.hexavore.core.designsystem.component.NeonChip
 import app.hexavore.core.designsystem.component.SourceBadge
@@ -121,11 +123,12 @@ private fun HeaderActions(state: EntryUiState.Content, actions: EntryActions, ti
         // recopier ni a supprimer d'une saisie qu'on est en train de faire (D143).
         if (state.form.dishId != null) {
             IconButton(onClick = { asked = HeaderAsk.COPY }) {
-                Icon(
-                    imageVector = Icons.Filled.DateRange,
-                    contentDescription = stringResource(R.string.entry_copy),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                // Les deux feuilles superposees, et non un calendrier : le calendrier
+                // dit « choisir une date », qui est l'ecran d'apres, la ou ce bouton
+                // dit ce qu'il fait -- recopier (D144).
+                CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurfaceVariant) {
+                    CopyGlyph(contentDescription = stringResource(R.string.entry_copy))
+                }
             }
             IconButton(onClick = { asked = HeaderAsk.DELETE }) {
                 Icon(
@@ -186,7 +189,11 @@ private fun HeaderDialogs(
 ) {
     when (asked) {
         HeaderAsk.COPY -> CopyDateDialog(
-            today = state.form.date,
+            // Aujourd'hui, et non la date du plat : c'est la limite du calendrier, et
+            // la confondre avec le jour ouvert interdisait de recopier vers aujourd'hui
+            // des qu'on modifiait un plat passe (D144).
+            today = state.today ?: state.form.date,
+            source = state.form.date,
             onPick = {
                 onAsked(null)
                 actions.onCopyTo(it)

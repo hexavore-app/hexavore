@@ -63,6 +63,34 @@ internal val Macro.axisDegrees: Float
         Macro.FAT -> 150f
     }
 
+/**
+ * Les six macros **dans l'ordre du cadran** : calories en haut, puis le sens horaire.
+ *
+ * ### Déduit, et non recopié
+ *
+ * C'est le seul ordre d'affichage de l'application — l'hexagone, les barres de
+ * l'accueil, l'anneau du calendrier. Il était écrit trois fois : une fois en géométrie
+ * ([axisDegrees]), deux fois à la main. L'anneau du calendrier, lui, ne l'écrivait pas
+ * du tout et suivait l'ordre de déclaration de l'énumération — si bien qu'il montrait
+ * les six mêmes couleurs dans un autre ordre que la figure juste au-dessus, ce qui
+ * revient à retirer à la position toute valeur d'indice ([D145][decisions]).
+ *
+ * Il se calcule donc à partir des axes, qui sont l'endroit où cet ordre existe
+ * vraiment. Déplacer une macro sur l'hexagone déplace tout le reste avec elle.
+ *
+ * ### La formule
+ *
+ * Les axes se comptent en degrés **antihoraires depuis l'est** ; le cadran part du haut
+ * et tourne dans l'autre sens. L'écart au sommet, ramené à un tour, est donc le rang.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+val macroDialOrder: List<Macro> =
+    Macro.entries.sortedBy { (Macro.CALORIES.axisDegrees - it.axisDegrees + FULL_TURN) % FULL_TURN }
+
+/** Un tour complet, en degrés. */
+private const val FULL_TURN = 360f
+
 internal fun cappedRatio(quarter: MacroQuarter?): Float = (quarter?.ratio ?: 0f).coerceIn(0f, RATIO_CAP)
 
 /**

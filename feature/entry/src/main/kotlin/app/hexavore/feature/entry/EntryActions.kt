@@ -48,8 +48,10 @@ internal data class EntryActions(
      * [decisions]: docs/11-decisions.md
      */
     val onReport: (subject: String, body: String) -> Unit,
-    /** Recopier ce plat sur un autre jour. L'original reste (D143). */
+    /** Recopier ce plat sur un autre jour. L'original reste, et l'écran aussi (D144). */
     val onCopyTo: (LocalDate) -> Unit,
+    /** Le jour de la copie a été annoncé : il n'y a plus de nouvelle à donner. */
+    val onCopyShown: () -> Unit,
     /** Supprimer ce plat, une fois la confirmation donnee. */
     val onDelete: () -> Unit,
     /** La boîte de nom se referme sans rien enregistrer. */

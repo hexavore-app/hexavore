@@ -1,7 +1,10 @@
 package app.hexavore.feature.home.tour
 
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInRoot
@@ -39,6 +42,25 @@ class TourAnchors {
     internal fun place(target: TourTarget, rect: Rect) {
         rects[target] = rect
     }
+
+    /**
+     * Le quartier que le tour met en avant, ou `null` quand il ne parle pas d'une macro.
+     *
+     * **La figure s'éclaire elle-même.** Les six étapes de macros désignaient leur barre
+     * en bas d'écran ; or une barre nommée et chiffrée n'a rien à expliquer, alors que
+     * le triangle qui lui correspond dans l'hexagone, lui, ne se devine pas
+     * ([D147][decisions]). Le tour pose donc ici la macro dont il parle, et l'hexagone
+     * la met en avant **avec son propre mécanisme** — celui du doigt, un quartier qui
+     * avance et cinq qui reculent.
+     *
+     * Passer par la mise en avant de la figure plutôt que par un découpage du voile a
+     * une conséquence qui vaut le détour : le tour montre le comportement réel de
+     * l'application, et non une imitation qui s'en écarterait au premier changement.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    var spotlight: Macro? by mutableStateOf(null)
+        internal set
 }
 
 /**
@@ -73,14 +95,13 @@ enum class TourTarget {
     /** Le bloc de la journée : l'hexagone et ce qu'il porte. */
     DAY,
 
-    /** Le grand chiffre, qui est un nombre de calories. */
-    CALORIES,
-
-    PROTEIN,
-    CARBS,
-    SUGARS,
-    FAT,
-    FIBER,
+    /**
+     * La figure elle-même, pour les six étapes de macros.
+     *
+     * Une seule cible pour six étapes : ce qui change d'une à l'autre n'est pas l'endroit
+     * mais le **quartier mis en avant**, que [TourAnchors.spotlight] porte (D147).
+     */
+    HEXAGON,
 
     /** Le bandeau des sept jours. */
     CALENDAR,
@@ -96,21 +117,4 @@ enum class TourTarget {
 
     /** L'accès aux réglages, en haut à droite. */
     SETTINGS,
-}
-
-/**
- * La cible qui correspond à une macro.
- *
- * Les six sont nommées une par une plutôt que portées par un paramètre : une
- * énumération se parcourt, se complète et se lit dans l'ordre du tour, et c'est elle
- * qui dit **que ces six-là sont des cibles** — un type générique l'aurait laissé
- * entendre sans jamais le garantir.
- */
-internal fun Macro.tourTarget(): TourTarget = when (this) {
-    Macro.CALORIES -> TourTarget.CALORIES
-    Macro.PROTEIN -> TourTarget.PROTEIN
-    Macro.CARBS -> TourTarget.CARBS
-    Macro.SUGARS -> TourTarget.SUGARS
-    Macro.FAT -> TourTarget.FAT
-    Macro.FIBER -> TourTarget.FIBER
 }

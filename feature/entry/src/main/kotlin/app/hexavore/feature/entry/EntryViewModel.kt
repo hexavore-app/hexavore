@@ -149,6 +149,11 @@ internal class EntryViewModel @Inject constructor(
             .combine(photo) { state, image ->
                 if (state is EntryUiState.Content) state.copy(photo = image) else state
             }
+            // La copie se greffe de la meme facon, et pour la meme raison : c'est une
+            // nouvelle a annoncer une fois, pas une sixieme piece de l'etat.
+            .combine(filing.copied) { state, jour ->
+                if (state is EntryUiState.Content) state.copy(copiedTo = jour) else state
+            }
             // Aucun `flowOn` ici, contrairement a l'accueil, et c'est deliberé.
             // Ce que produit ce flux a chaque frappe tient en une conversion de
             // quelques lignes et deux additions ; le passer sur un autre

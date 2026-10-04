@@ -5,6 +5,7 @@ import app.hexavore.domain.diary.PhotoFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -35,17 +36,45 @@ internal class DraftHeaderActions(
     private val status: MutableStateFlow<EntryViewModel.Status>,
 ) {
     /**
-     * Recopie ce plat sur un autre jour, et referme l'écran.
+     * Le jour vers lequel la dernière copie est partie, tant que l'écran ne l'a pas dit.
+     *
+     * Il revient à `null` dès que le message est passé : c'est une nouvelle, pas un
+     * état, et la laisser traîner la ferait reparaître au prochain retour sur l'écran.
+     */
+    private val copie = MutableStateFlow<LocalDate?>(null)
+
+    val copied: StateFlow<LocalDate?> = copie.asStateFlow()
+
+    /** Le message est passé. */
+    fun copyShown() {
+        copie.value = null
+    }
+
+    /**
+     * Recopie ce plat sur un autre jour, **sans quitter l'écran**.
      *
      * **L'original reste**, et c'est tout l'intérêt : un petit-déjeuner identique se
-     * recopie, il ne se déménage pas. L'écran se referme parce qu'il montrait le plat
-     * d'origine, que la copie n'a pas changé.
+     * recopie, il ne se déménage pas.
+     *
+     * L'écran se refermait, par symétrie avec la suppression. C'était une erreur de
+     * raisonnement : la suppression ferme parce qu'il n'y a plus rien à montrer, alors
+     * qu'une copie **ne touche pas** le plat ouvert. Rester permet d'ailleurs ce que le
+     * geste sert à faire — recopier le même petit-déjeuner sur trois matins — là où
+     * fermer obligeait à rouvrir le plat entre chaque jour ([D144][decisions]).
+     *
+     * Le jour atteint est annoncé, parce qu'une copie ne se voit nulle part : elle
+     * atterrit sur un écran qu'on ne regarde pas.
+     *
+     * [decisions]: docs/11-decisions.md
      */
     fun copyTo(date: LocalDate) {
         val source = dishId ?: return
         scope.launch {
+            // Seul un succes s'annonce : dire « copie au 3 octobre » apres un echec
+            // d'ecriture serait le seul endroit de l'application ou l'on mentirait.
             runCatching { filing.copyTo(source, date) }
-            status.value = EntryViewModel.Status.SAVED
+                .getOrNull()
+                ?.let { copie.value = date }
         }
     }
 

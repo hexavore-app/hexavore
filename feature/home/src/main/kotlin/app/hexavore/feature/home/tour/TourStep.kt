@@ -1,6 +1,7 @@
 package app.hexavore.feature.home.tour
 
 import androidx.annotation.StringRes
+import app.hexavore.domain.nutrition.Macro
 import app.hexavore.feature.home.R
 
 /**
@@ -12,6 +13,11 @@ import app.hexavore.feature.home.R
  * qu'un outil se présente par ce qu'il rend, pas par ses boutons. Puis les six
  * compteurs un par un : ce sont eux que l'application passe sa vie à montrer, et aucun
  * ne se devine depuis une lettre à la pointe d'un hexagone ([D143][decisions]).
+ *
+ * **Les six suivent le sens du cadran** — calories en haut, puis le sens horaire — et
+ * non l'ordre de l'énumération des macros. Le tour fait le tour de la figure, et
+ * l'expliquer en sautant d'un triangle à son opposé demanderait de la chercher à chaque
+ * phrase ([D147][decisions]).
  *
  * Viennent ensuite les gestes, du plus rapide au plus sûr : décrire, photographier, puis
  * tout le reste. L'IA arrive en avant-dernier et non en premier : proposée avant qu'on
@@ -25,15 +31,26 @@ import app.hexavore.feature.home.R
  *
  * [decisions]: docs/11-decisions.md
  */
-enum class TourStep(@StringRes val title: Int, @StringRes val body: Int, val target: TourTarget?) {
+enum class TourStep(
+    @StringRes val title: Int,
+    @StringRes val body: Int,
+    val target: TourTarget?,
+    /**
+     * Le quartier que la figure met en avant pendant cette étape, s'il y en a un.
+     *
+     * Les six étapes de macros partagent **la même cible** — l'hexagone — et ne
+     * diffèrent que par là : c'est le triangle qui change, pas l'endroit (D147).
+     */
+    val macro: Macro? = null,
+) {
     DAY(R.string.tour_day_title, R.string.tour_day_body, TourTarget.DAY),
 
-    CALORIES(R.string.tour_calories_title, R.string.tour_calories_body, TourTarget.CALORIES),
-    PROTEIN(R.string.tour_protein_title, R.string.tour_protein_body, TourTarget.PROTEIN),
-    CARBS(R.string.tour_carbs_title, R.string.tour_carbs_body, TourTarget.CARBS),
-    SUGARS(R.string.tour_sugars_title, R.string.tour_sugars_body, TourTarget.SUGARS),
-    FAT(R.string.tour_fat_title, R.string.tour_fat_body, TourTarget.FAT),
-    FIBER(R.string.tour_fiber_title, R.string.tour_fiber_body, TourTarget.FIBER),
+    CALORIES(R.string.tour_calories_title, R.string.tour_calories_body, TourTarget.HEXAGON, Macro.CALORIES),
+    PROTEIN(R.string.tour_protein_title, R.string.tour_protein_body, TourTarget.HEXAGON, Macro.PROTEIN),
+    FIBER(R.string.tour_fiber_title, R.string.tour_fiber_body, TourTarget.HEXAGON, Macro.FIBER),
+    CARBS(R.string.tour_carbs_title, R.string.tour_carbs_body, TourTarget.HEXAGON, Macro.CARBS),
+    SUGARS(R.string.tour_sugars_title, R.string.tour_sugars_body, TourTarget.HEXAGON, Macro.SUGARS),
+    FAT(R.string.tour_fat_title, R.string.tour_fat_body, TourTarget.HEXAGON, Macro.FAT),
 
     CALENDAR(R.string.tour_calendar_title, R.string.tour_calendar_body, TourTarget.CALENDAR),
 

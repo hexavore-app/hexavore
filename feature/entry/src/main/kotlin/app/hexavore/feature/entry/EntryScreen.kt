@@ -90,6 +90,7 @@ internal fun EntryRoute(
                 onRemovePhoto = viewModel::onRemovePhoto,
                 onReport = viewModel.filing::report,
                 onCopyTo = viewModel.filing::copyTo,
+                onCopyShown = viewModel.filing::copyShown,
                 onDelete = viewModel.filing::delete,
                 onRetry = viewModel::onRetry,
                 onClose = onClose,
@@ -160,6 +161,8 @@ private fun DraftEditor(state: EntryUiState.Content, actions: EntryActions) {
         scope = scope,
         onFlag = { flagged = it },
     )
+
+    AnnonceLaCopie(state.copiedTo, dateFormatter, snackbarHostState, actions.onCopyShown)
 
     Box(
         modifier = Modifier

@@ -120,7 +120,9 @@ private fun HexavoreNavHost(startDestination: Any, modifier: Modifier = Modifier
                 }
             },
         )
-        settingsScreens(navController)
+        // Corriger un favori ouvre l'ecran de saisie sur le favori lui-meme : c'est
+        // ici que les deux modules se rencontrent, et nulle part ailleurs (D149).
+        settingsScreens(navController, onEditFavorite = navController::navigateToFavoriteEditor)
         weightScreen(onClose = { navController.popBackStack() })
         progressScreen(onClose = { navController.popBackStack() })
         captureScreens(navController)

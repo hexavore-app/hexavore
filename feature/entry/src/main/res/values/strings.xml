@@ -120,9 +120,11 @@
     <string name="entry_report_subject">Incorrect AI suggestion</string>
     <string name="entry_report_body">The suggestion below was wrong. The exchange and the photo are attached.\n\nWhat the screen showed:\n%1$s\n\nWhat was wrong:\n</string>
     <string name="entry_copy">Copy to another day</string>
-    <string name="entry_copy_title">Copy this meal to</string>
+    <string name="entry_copy_title">Copy this meal to another day</string>
+    <string name="entry_copy_explain">Pick the day. The meal stays where it is — you get a second one.</string>
     <string name="entry_copy_confirm">Copy</string>
     <string name="entry_copy_cancel">Cancel</string>
+    <string name="entry_copied_to">Copied to %1$s</string>
     <string name="entry_delete">Delete this meal</string>
     <string name="entry_delete_title">Delete this meal?</string>
     <string name="entry_delete_body">It leaves the day and its counters. This cannot be undone.</string>

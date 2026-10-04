@@ -368,4 +368,14 @@
     <string name="reminders_streak_title">Streak at stake</string>
     <string name="reminders_meal_body">Quiet once this meal is logged.</string>
     <string name="reminders_streak_body">In the evening, when nothing is logged and a streak is running.</string>
+    <string name="settings_favorites_title">Favourites</string>
+    <string name="settings_favorites_subtitle">The meals you saved, and a way to fix them.</string>
+    <string name="settings_favorites_edit">Edit this favourite</string>
+    <string name="settings_favorites_empty">No favourites yet. Open a meal and tap the star to save it as one — it will come back under the + button.</string>
+    <string name="settings_contact_title">Contact</string>
+    <string name="settings_contact_subtitle">The code, the site, and where to write.</string>
+    <string name="settings_contact_intro">Hexavore is open source. A bug, an idea, a word — all three reach us.</string>
+    <string name="settings_contact_site">The site</string>
+    <string name="settings_contact_github">The code, and the issues</string>
+    <string name="settings_contact_mail">Write to us</string>
 </resources>

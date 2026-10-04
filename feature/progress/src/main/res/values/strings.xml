@@ -8,7 +8,7 @@
          the other says you are holding your range. -->
     <string name="progress_streak_logging">Logging streak</string>
     <string name="progress_streak_logging_hint">Days in a row with at least one dish</string>
-    <string name="progress_streak_perfect">Perfect streak</string>
+    <string name="progress_streak_perfect">Golden streak</string>
     <string name="progress_streak_perfect_hint">Days in a row spent inside your range</string>
 
     <plurals name="progress_days">
@@ -29,7 +29,7 @@
 
     <string name="progress_name_streak">%1$d days in a row</string>
     <string name="progress_name_volume">%1$d dishes logged</string>
-    <string name="progress_name_perfect">%1$d perfect days in a row</string>
+    <string name="progress_name_perfect">%1$d golden days in a row</string>
     <string name="progress_name_first_scan">First scan</string>
     <string name="progress_name_first_photo">First photo</string>
     <string name="progress_name_first_text">First description</string>

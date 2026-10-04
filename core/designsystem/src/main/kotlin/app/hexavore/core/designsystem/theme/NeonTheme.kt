@@ -45,6 +45,7 @@ fun NeonTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable (
     CompositionLocalProvider(
         LocalMacroColors provides macros,
         LocalMotion provides rememberMotion(),
+        LocalGold provides if (darkTheme) DarkGold else LightGold,
     ) {
         MaterialTheme(
             colorScheme = colors,
@@ -66,11 +67,32 @@ object NeonTheme {
     val motion: Motion
         @Composable @ReadOnlyComposable
         get() = LocalMotion.current
+
+    /**
+     * L'or d'une journée tenue de bout en bout.
+     *
+     * **La seule teinte hors des six et de Material**, et elle ne désigne pas une
+     * donnée : elle récompense. C'est ce qui la distingue de ce que la règle ci-dessous
+     * interdit — une septième couleur qui dirait un septième nutriment ferait de la
+     * teinte un canal ambigu, alors que celle-ci ne se pose jamais à côté des six pour
+     * être comparée à elles ([D146][decisions]).
+     *
+     * L'anneau fermé seul ne suffisait pas : il se distinguait d'un anneau brisé par un
+     * détail de tracé, à vingt millimètres de diamètre, dans un bandeau de sept jours.
+     * Ce qui se veut exceptionnel doit se voir sans être cherché.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val gold: Color
+        @Composable @ReadOnlyComposable
+        get() = LocalGold.current
 }
 
-// Il n'y a volontairement pas de rôle de couleur au-delà de Material 3 et des six
-// macros. L'estimation IA, seul candidat sérieux à une septième teinte, se signale
-// par la forme — voir SourceBadge et D25 dans docs/11-decisions.md.
+// Il n'y a volontairement pas de rôle de couleur au-delà de Material 3, des six
+// macros et de l'or. L'estimation IA, candidate sérieuse à une teinte de plus, se
+// signale par la forme — voir SourceBadge et D25 dans docs/11-decisions.md. L'or fait
+// exception parce qu'il ne dit aucune donnée : il récompense une journée tenue, ne se
+// compare jamais aux six, et D146 dit pourquoi la forme seule n'y suffisait pas.
 
 // --- Fonds et surfaces -------------------------------------------------------
 
@@ -318,3 +340,15 @@ private val LocalMacroColors =
     }
 
 private val LocalMotion = staticCompositionLocalOf { Motion.Standard }
+
+/**
+ * L'or des deux thèmes.
+ *
+ * Plus clair sur fond sombre, plus profond sur fond clair : c'est le même or, et il doit
+ * se lire comme tel des deux côtés. Un jaune unique virait au citron la nuit et
+ * disparaissait dans le blanc le jour.
+ */
+private val DarkGold = Color(0xFFFFD24A)
+private val LightGold = Color(0xFFB8860B)
+
+private val LocalGold = staticCompositionLocalOf { DarkGold }

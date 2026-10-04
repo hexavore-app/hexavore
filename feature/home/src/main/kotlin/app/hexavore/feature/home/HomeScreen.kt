@@ -141,11 +141,12 @@ private fun tourOverlay(
     keyless: Boolean,
     viewModel: TourViewModel,
     onConfigureAi: () -> Unit,
-): (@Composable () -> Unit)? = step?.let {
-    {
+): (@Composable (ScrollState) -> Unit)? = step?.let {
+    { scroll ->
         GuidedTour(
             step = it,
             anchors = anchors,
+            scroll = scroll,
             keyless = keyless,
             onNext = { viewModel.onNext(keyless) },
             onConfigureAi = {
@@ -177,8 +178,13 @@ fun HomeScreen(
     aiConfigured: Boolean? = null,
     /** Ou tombent les elements dont le tour guide parle. Inutilise sans tour. */
     anchors: TourAnchors? = null,
-    /** Le tour guide, quand il y en a un a jouer. */
-    tour: (@Composable () -> Unit)? = null,
+    /**
+     * Le tour guide, quand il y en a un a jouer.
+     *
+     * Il recoit le defilement de la page : c'est lui qui amene sous les yeux l'element
+     * dont l'etape parle, et ce defilement nait ici (D147).
+     */
+    tour: (@Composable (ScrollState) -> Unit)? = null,
     favoriteNameTaken: Boolean = false,
     onDismissFavoriteError: () -> Unit = {},
     /**
@@ -327,7 +333,7 @@ fun HomeScreen(
             }
         }
 
-        Overlays(tour, progress, padding)
+        Overlays(tour, dayScroll, progress, padding)
     }
 }
 
@@ -340,9 +346,14 @@ fun HomeScreen(
  * avec des plats qui vont disparaître.
  */
 @Composable
-private fun Overlays(tour: (@Composable () -> Unit)?, progress: ProgressPanel, padding: PaddingValues) {
+private fun Overlays(
+    tour: (@Composable (ScrollState) -> Unit)?,
+    scroll: ScrollState,
+    progress: ProgressPanel,
+    padding: PaddingValues,
+) {
     if (tour != null) {
-        tour()
+        tour(scroll)
         return
     }
 

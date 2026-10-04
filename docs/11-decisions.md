@@ -4980,6 +4980,126 @@ Seulement sur un jour **révolu** : une journée en cours peut être dans sa fou
 
 ---
 
+## D144 — Copier un plat se dit avec deux feuilles, part d'aujourd'hui, et s'annonce · ✓ validée
+
+**Contexte.** Le bouton « copier » de [D143](#d143--le-tour-désigne-un-élément-et-neuf-détails-cessent-de-se-faire-deviner---validée) a été utilisé, et il s'est révélé faux sur quatre points à la fois. Pris un par un ils semblent cosmétiques ; ensemble ils rendaient le geste inutilisable.
+
+### La date limite venait du plat, pas d'aujourd'hui
+
+La boîte reçoit un jour au-delà duquel on ne peut plus choisir — on note ce qu'on a mangé, et le futur ne se mange pas (décision par défaut n°10). Elle recevait `state.form.date`, c'est-à-dire **la date du plat ouvert**.
+
+Tant qu'on modifiait un plat du jour, les deux se confondaient et rien ne se voyait. Dès qu'on ouvrait un plat d'hier, la limite devenait hier : on pouvait recopier vers n'importe quel jour passé, mais **pas vers aujourd'hui** — le seul jour vers lequel on veut recopier.
+
+C'est la forme d'erreur la plus coûteuse à trouver : deux valeurs qui portent le même type, qui sont égales dans le cas qu'on essaie en premier, et dont la confusion ne produit aucune exception.
+
+### Le calendrier n'était pas le bon signe
+
+L'icône était un calendrier, parce que la boîte qu'elle ouvre en est un. C'était désigner **l'écran d'après** plutôt que l'action : on y lisait « choisir une date », sans savoir ce que la date servirait à faire.
+
+Deux feuilles superposées se lisent comme « copier » depuis trente ans. `material-icons-core` ne les a pas, et la réponse ne change pas depuis [D62](#d62--létoile-nomme-le-favori-et-la-liste-se-trie-par-usage---validée) : vingt lignes de tracé plutôt qu'un jeu d'icônes de plusieurs milliers d'entrées pour en utiliser une.
+
+### La boîte ne disait pas ce qu'elle attendait
+
+Un calendrier qui s'ouvre ne dit rien de ce qui arrivera. Le titre tenait en une étiquette de douze pixels — « Copier ce plat au » —, posée si près du coin arrondi qu'elle y perdait sa première lettre, et aucun jour n'était sélectionné : le bouton « Copier » était gris, sans rien dire de ce qui l'allumerait.
+
+Trois changements, et le même but : le titre à la taille d'un titre, une phrase qui dit que **l'original reste**, et le jour du plat **déjà choisi** — ce qui montre d'où l'on part et rend la copie sur le même jour, c'est-à-dire la duplication, accessible en un appui.
+
+### Rien ne se passait
+
+Une copie atterrit sur une journée qu'on ne regarde pas, et l'écran d'où elle part ne bouge pas d'un pixel. L'écran se refermait, par symétrie avec la suppression — mais la suppression ferme parce qu'il n'y a plus rien à montrer, alors qu'une copie **ne touche pas** le plat ouvert.
+
+L'écran reste donc ouvert, et une barre temporaire nomme le jour atteint. Ce qui permet au passage ce pour quoi le geste existe : recopier le même petit-déjeuner sur trois matins, sans rouvrir le plat entre chaque.
+
+**Ce qui est écarté.** Annoncer la copie avant de savoir qu'elle a réussi. Le cas d'usage rend l'échec rare, mais « copié au 3 octobre » après une écriture ratée serait le seul endroit de l'application où l'on mentirait.
+
+---
+
+## D145 — L'ordre des six couleurs se déduit de la figure, au lieu d'être recopié · ✓ validée
+
+**Contexte.** Les six teintes servent de second canal quand la couleur seule ne suffit pas — daltonisme, écran de mauvaise qualité, coup d'œil trop rapide. [08](08-design-system.md) dit que la **position** porte alors l'information, et qu'elle ne la porte que si elle est la même partout.
+
+Elle ne l'était pas. L'hexagone tient son ordre de sa géométrie ; les barres de l'accueil le recopiaient à la main ; l'anneau du calendrier, lui, parcourait simplement l'énumération des macros — et affichait donc les six mêmes couleurs dans un autre ordre que la figure située vingt pixels plus haut.
+
+Le commentaire de l'anneau affirmait pourtant suivre l'hexagone. Il disait la règle, et le code faisait autre chose : personne ne relit un commentaire pour vérifier qu'il est vrai.
+
+**Décision.** L'ordre du cadran se **calcule** à partir des axes de l'hexagone, qui sont le seul endroit où il existe vraiment. Les trois lecteurs s'y abonnent. Déplacer une macro sur la figure déplace désormais les barres et l'anneau avec elle.
+
+**Pourquoi pas une liste écrite une fois.** Une constante partagée aurait corrigé la divergence sans supprimer sa cause : il resterait deux descriptions du même ordre — les angles, et la liste — qui pourraient encore se contredire. Les angles suffisent à tout dire.
+
+---
+
+## D146 — Une journée tenue de bout en bout vaut une couleur, et c'est la seule · ✓ validée
+
+**Contexte.** Les journées parfaites se signalaient par un **anneau fermé** : six arcs qui se touchent au lieu de six arcs séparés. Le choix de la forme plutôt que de la teinte venait d'une règle du thème — pas de rôle de couleur au-delà de Material et des six macros —, et il suivait le précédent de [D25](#d25--une-valeur-estimée-se-signale-par-la-forme-pas-par-la-couleur---validée).
+
+À l'usage, ça ne marche pas. Dans un bandeau de sept jours, à vingt millimètres de diamètre, un cercle entier ne se distingue d'un cercle brisé qu'en le cherchant. Or **ce qui se veut exceptionnel ne se cherche pas** : une récompense qu'il faut repérer n'en est pas une.
+
+**Décision.** L'anneau d'une journée tenue est **doré**, d'un seul tenant, sans segments.
+
+**Pourquoi l'or ne contredit pas la règle.** La règle interdit une septième couleur qui dirait une septième donnée, parce que la teinte deviendrait alors un canal ambigu. L'or ne dit aucune donnée : il ne se pose jamais à côté des six pour être comparé à elles, et il ne désigne pas un nutriment mais un résultat. C'est aussi pourquoi les couleurs de macros disparaissent de cet anneau — une journée tenue n'est plus six compteurs, elle est une réponse.
+
+**Et le nom suit.** « Série parfaite » devient « série dorée ». Le mot dit ce qu'on voit, et « parfait » promettait une exactitude que la fourchette de [PerfectDay](../domain/src/main/kotlin/app/hexavore/domain/progress/PerfectDay.kt) n'a jamais demandée.
+
+---
+
+## D147 — Le tour fait le tour de l'hexagone, et sa bulle reste à l'écran · ✓ validée
+
+**Contexte.** Le tour de [D143](#d143--le-tour-désigne-un-élément-et-neuf-détails-cessent-de-se-faire-deviner---validée) a été joué en entier par quelqu'un qui ne l'avait pas écrit. Trois défauts, dont deux qui le rendaient illisible.
+
+### La bulle sortait de l'écran par le haut
+
+Elle se posait par alignement et décalage : collée en bas de l'écran, puis remontée de la distance qui la séparait du haut de sa cible. Sur une cible **haute** — le bloc de la journée, l'hexagone —, cette distance vaut presque la hauteur de l'écran, et la bulle montait d'autant. On n'en voyait que le bas.
+
+Elle calcule désormais une position absolue, puis la **borne** entre les deux marges système. Il faut pour cela sa hauteur, qui ne se connaît qu'une fois mesurée : elle se pose donc à zéro le temps d'une image, puis se replace. C'est le prix d'un placement qui tient quelle que soit la longueur du texte.
+
+### L'écran ne suivait pas
+
+Le tour désigne des éléments d'une page qui défile, et rien ne garantissait qu'ils soient visibles au moment où la phrase les concernait. Le voile s'ouvrait alors sur du vide, et la bulle parlait d'un élément resté deux écrans plus bas.
+
+Chaque étape amène donc sa cible **au milieu de l'écran**. Au milieu, et pas seulement « quelque part » : c'est la seule position qui laisse de la place à la bulle des deux côtés, quelle que soit sa hauteur.
+
+### Les six compteurs s'expliquaient sur ce qui n'en avait pas besoin
+
+Les six étapes de macros éclairaient chacune **sa barre**, en bas de l'écran. Or une barre porte son nom, sa valeur, son objectif et une jauge : elle n'a rien à expliquer. Ce qui ne se devine pas, c'est le **triangle** correspondant dans l'hexagone — une pointe de figure, une lettre, et aucune indication de ce qu'elle mesure.
+
+Les six étapes désignent donc la figure, et mettent en avant un quartier chacune, **dans le sens du cadran** : calories en haut, puis le sens horaire. Faire le tour en sautant d'un triangle à son opposé aurait demandé de le chercher à chaque phrase.
+
+**La figure s'éclaire avec son propre mécanisme** — celui du doigt, un quartier qui avance et cinq qui reculent — plutôt qu'avec un découpage du voile. Le tour montre ainsi le comportement réel de l'application, et non une imitation qui s'en écarterait au premier changement.
+
+---
+
+## D148 — Les réglages disent où écrire, et l'IA cesse d'emprunter l'étoile des favoris · ✓ validée
+
+**Contexte.** Deux manques de la même famille : l'application ne disait nulle part comment joindre ses auteurs, et deux sections de réglages se disputaient un signe.
+
+### Il n'y avait aucun chemin vers nous
+
+Le seul courriel que l'application sache ouvrir part du bouton de signalement, qui n'existe que sur un plat proposé par un modèle ([D138](#d138--lia-se-tient-mieux-et-lapplication-sait-dire-ce-qui-a-raté---validée)). Qui voulait écrire pour autre chose — un défaut ailleurs, une idée, une question — n'avait nulle part où aller.
+
+Trois destinations, et pas une de plus : le dépôt pour **lire le code** et ouvrir un ticket, le site pour **savoir ce que c'est**, l'adresse pour **écrire**. Chacune s'adresse à quelqu'un de différent, et aucune ne remplace les deux autres. L'adresse est lue depuis le domaine et non recopiée : deux adresses écrites à deux endroits finissent par différer, et c'est la seconde que personne ne relève.
+
+### L'étoile désignait deux choses
+
+La section d'IA portait une étoile, faute de mieux dans `material-icons-core`. L'étoile désigne les favoris dans tout le reste de l'application — et depuis que les favoris ont leur propre section ([D149](#d149--un-favori-se-corrige-là-où-il-a-été-écrit---validée)), les deux se touchaient dans la même liste.
+
+L'IA prend donc les **deux étincelles** qui marquent déjà ses propositions dans le journal. Le signe était écrit, il n'était simplement pas employé ici.
+
+---
+
+## D149 — Un favori se corrige là où il a été écrit · ✓ validée
+
+**Contexte.** Un favori se crée depuis l'étoile d'un plat, et se rejoue depuis le « + ». Le **corriger** n'avait aucun chemin : il fallait le rejouer dans une journée, le modifier, puis effacer le plat qu'on venait d'écrire. Trois gestes, dont deux qui salissent le journal pour une opération qui ne devait rien y laisser.
+
+**Décision.** Les favoris ont leur section dans les réglages, et toucher l'un d'eux ouvre **l'écran de saisie** sur le favori lui-même.
+
+**Pas un éditeur à part.** L'écran de saisie sait déjà tout faire — ajouter une ligne, changer une quantité, vérifier qu'un nom n'est pas déjà pris — et il savait déjà le faire *sur un favori* : le chemin existait, rien ne le désignait. Un second éditeur aurait fait deux endroits où écrire la même chose, et c'est toujours le second qui oublie une règle.
+
+**La liste est en lecture seule**, et c'est ce qui le permet : elle montre ce qu'il y a, elle ne le modifie pas. Elle énumère les lignes de chaque favori plutôt que de les compter — « Flocons, Lait, Banane » dit lequel c'est, là où « 3 aliments » demande de l'ouvrir pour savoir.
+
+**Où les deux modules se rencontrent.** `:feature:settings` ne dépend pas de `:feature:entry` : il reçoit de `:app` la fonction qui ouvre un favori. C'est ce qui l'empêche de devenir le carrefour par lequel tous les écrans se connaissent.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

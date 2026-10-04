@@ -67,6 +67,16 @@ internal sealed interface EntryUiState {
          */
         val today: LocalDate? = null,
         /**
+         * Le jour ou la derniere copie est partie, tant que l'ecran ne l'a pas dit.
+         *
+         * Une copie n'a aucune trace visible : elle atterrit sur une journee qu'on ne
+         * regarde pas, et sans ce mot l'appui sur « Copier » ne produirait rien de
+         * perceptible ([D144][decisions]).
+         *
+         * [decisions]: docs/11-decisions.md
+         */
+        val copiedTo: LocalDate? = null,
+        /**
          * La photo de ce plat, ou celle que le scan ou l'analyse viennent d'apporter.
          *
          * `null` dans le cas courant : une saisie manuelle, une recherche et un favori
