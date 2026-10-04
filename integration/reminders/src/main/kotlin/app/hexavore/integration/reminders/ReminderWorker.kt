@@ -62,6 +62,7 @@ internal class ReminderWorker @AssistedInject constructor(
     private val shouldRemind: ShouldRemind,
     private val settings: ReminderSettings,
     private val scheduler: ReminderScheduler,
+    private val look: NotificationLook,
 ) : CoroutineWorker(context, parameters) {
     override suspend fun doWork(): Result {
         val reminder = inputData.getString(KEY_REMINDER)
@@ -80,10 +81,26 @@ internal class ReminderWorker @AssistedInject constructor(
         if (!allowed()) return
 
         ensureChannel()
+        val corps = context.getString(reminder.body())
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            // **La marque, et non le « i » du systeme.** C'etait `ic_dialog_info`, que
+            // tout le monde reconnait precisement comme n'appartenant a personne : une
+            // notification sans visage ne se distingue pas de la quinzaine d'autres qui
+            // attendent dans le volet (D152).
+            .setSmallIcon(look.icon)
+            // La teinte que le systeme pose sur l'icone et sur le nom de
+            // l'application. Sans elle, les deux restent gris.
+            .setColor(ContextCompat.getColor(context, look.color))
             .setContentTitle(context.getString(reminder.title()))
-            .setContentText(context.getString(reminder.body()))
+            .setContentText(corps)
+            // **Deplie, le texte reste entier.** Une ligne de volet coupe a peu pres
+            // quarante caracteres, et la phrase qui dit quoi faire en fait davantage :
+            // repliee, elle s'arretait avant d'avoir dit l'essentiel.
+            .setStyle(NotificationCompat.BigTextStyle().bigText(corps))
+            // Ce que c'est, pour le systeme : un rappel. C'est ce qui lui permet de la
+            // ranger, de la laisser passer en mode concentration si l'utilisateur
+            // l'autorise, et de ne pas la confondre avec un message.
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             // **Elle ouvre l'application**, et c'est tout ce qu'on lui demande : un
             // rappel de repas sert a ouvrir l'ecran ou l'on note, pas a choisir un mode

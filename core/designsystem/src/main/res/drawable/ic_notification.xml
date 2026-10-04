@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  La marque, reduite a ce qui survit dans une barre d'etat.
+
+  Android ne garde que le canal alpha d'une icone de notification et la reteint :
+  le blanc n'est donc pas une couleur ici, c'est une opacite, comme dans
+  ic_launcher_monochrome.
+
+  **Un anneau, et non les six quartiers.** L'icone de lancement montre six
+  triangles separes par des fentes de trois unites sur cent huit. Ramenees a
+  vingt-quatre points, puis affichees autour de dix-huit pixels par le systeme,
+  ces fentes font moins d'un pixel : elles disparaissent ou crenellent, et les
+  six triangles deviennent une tache. Ce qui reste reconnaissable a cette taille
+  est la silhouette, l'hexagone a pointes laterales, et c'est elle qu'on garde
+  (D152).
+
+  C'est pourquoi ce trace ne doit pas etre tenu identique aux deux autres :
+  c'est une simplification deliberee, pas une copie qui aurait derive.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M1,12 L6.5,2.47 L17.5,2.47 L23,12 L17.5,21.53 L6.5,21.53 Z M5.5,12 L8.75,6.37 L15.25,6.37 L18.5,12 L15.25,17.63 L8.75,17.63 Z" />
+</vector>

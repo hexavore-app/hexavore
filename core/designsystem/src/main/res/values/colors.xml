@@ -20,4 +20,16 @@
     <color name="neon_carbs">#FF9D4EDD</color>
     <color name="neon_sugars">#FFD9A5FF</color>
     <color name="neon_fat">#FFFFB020</color>
+
+    <!--
+      La teinte des notifications, que le systeme pose sur l'icone et sur le nom
+      de l'application.
+
+      C'est la couleur principale du theme, c'est-a-dire celle des calories, mais
+      **ecrite en clair ici** : le theme la calcule pour le mode clair en
+      assombrissant le neon d'un quart, et une notification se dessine avant que
+      Compose n'existe. La valeur ci-dessous est ce calcul, pose a la main ; la
+      variante neon est dans values-night (D152).
+    -->
+    <color name="neon_notification">#FF00ACBF</color>
 </resources>

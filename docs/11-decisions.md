@@ -5164,6 +5164,36 @@ Le hub des réglages posait ses cartes dans une colonne sans défilement. Sept e
 
 ---
 
+## D152 — Une notification porte la marque, et la marque se simplifie pour y tenir · ✓ validée
+
+**Contexte.** Les rappels sortaient avec `android.R.drawable.ic_dialog_info` — le « i » cerclé du système. C'était une valeur de départ que personne n'avait reprise, et elle a exactement l'effet qu'on redoute d'une notification : elle ne ressemble à rien, donc à tout. Dans un volet qui en empile quinze, une notification sans visage se range avec le bruit.
+
+### Un anneau, et non les six quartiers
+
+L'icône de lancement montre six triangles séparés par des fentes de trois unités sur cent huit. Ramenées à vingt-quatre points, puis affichées autour de dix-huit pixels dans la barre d'état, ces fentes font moins d'un pixel : elles disparaissent ou crénellent, et les six triangles deviennent une tache.
+
+Ce qui reste reconnaissable à cette taille est la **silhouette** — l'hexagone à pointes latérales. Le tracé de notification est donc une simplification délibérée, et c'est écrit dans le fichier : il ne doit **pas** être tenu identique aux deux autres, contrairement à ce que `LauncherIconTest` exige de la variante monochrome.
+
+### La teinte vient du thème, écrite deux fois assumées
+
+Le système pose une couleur sur l'icône et sur le nom de l'application. Sans elle, les deux restent gris. C'est la couleur principale du thème — celle des calories —, mais une notification se dessine **avant que Compose n'existe** : elle doit donc exister en ressource.
+
+Le thème calcule la variante claire en assombrissant le néon d'un quart ; ce calcul est posé à la main dans `values/`, et le néon d'origine dans `values-night/`. C'est la même duplication assumée que les six teintes de l'icône de lancement, et pour la même raison.
+
+### Par où elle arrive
+
+`:integration:reminders` sait **quand** rappeler ; il ne sait pas à quoi l'application ressemble. L'icône et la couleur vivent dans le design system, dont une intégration ne dépend pas — c'est cette flèche-là qui tient l'architecture debout.
+
+`:app` assemble les deux et les passe en un porteur, comme il le fait déjà pour le rejeu du tour ([D148](#d148--les-réglages-disent-où-écrire-et-lia-cesse-demprunter-létoile-des-favoris---validée)). Un type plutôt que deux `Int` : une icône et une couleur sont toutes deux des identifiants de ressource, et deux entiers injectés se confondraient à la première inversion d'arguments sans que rien ne le dise.
+
+### Deux autres choses qu'une notification doit faire
+
+**Le texte reste entier.** Une ligne de volet coupe vers quarante caractères, et la phrase qui dit quoi faire en fait davantage : repliée, elle s'arrêtait avant d'avoir dit l'essentiel. `BigTextStyle` la déplie.
+
+**Elle dit ce qu'elle est.** `CATEGORY_REMINDER` permet au système de la ranger, de la laisser passer en mode concentration si l'utilisateur l'autorise, et de ne pas la confondre avec un message.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.
