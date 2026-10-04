@@ -5100,6 +5100,42 @@ L'IA prend donc les **deux étincelles** qui marquent déjà ses propositions da
 
 ---
 
+## D150 — Cinq reprises d'usage : la bulle défile, l'or entoure, le signalement expire · ✓ validée
+
+**Contexte.** Le lot de [D144](#d144--copier-un-plat-se-dit-avec-deux-feuilles-part-daujourdhui-et-sannonce---validée) à [D149](#d149--un-favori-se-corrige-là-où-il-a-été-écrit---validée) a été repris en main. Cinq retours, dont trois sur des choix que j'avais faits trop vite.
+
+### Une bulle plus grande que sa place
+
+[D147](#d147--le-tour-fait-le-tour-de-lhexagone-et-sa-bulle-reste-à-lécran---validée) bornait la bulle entre les deux marges système, ce qui suffit tant qu'elle y tient. Elle n'y tient pas toujours : six lignes de texte, un titre, deux boutons, et un appareil réglé sur une grande police suffisent à la rendre plus haute que l'écran. Le calcul la ramenait alors à la marge du haut, et ce qui dépassait sortait par le bas.
+
+**Borner ne suffisait pas, il fallait rendre lisible.** La bulle reçoit une hauteur maximale — la place entre les deux marges — et ce qui dépasse se fait défiler. Une bulle plus grande que l'écran n'a aucune position correcte ; la seule réponse honnête est de laisser atteindre sa fin.
+
+### L'or effaçait ce qu'il récompensait
+
+[D146](#d146--une-journée-tenue-de-bout-en-bout-vaut-une-couleur-et-cest-la-seule---validée) remplaçait les six arcs par un cercle d'or plein. Le signal se voyait, et il coûtait tout le reste : la journée ne disait plus ses six compteurs, et un cercle uni au milieu de pastilles segmentées ressemblait surtout à une journée **vide**.
+
+L'or se pose donc **autour**, dans la marge que la cellule garde déjà entre l'anneau et son bord. Les six couleurs restent ce qu'elles étaient, la récompense se lit par-dessus, et rien n'est échangé contre rien.
+
+### Un titre qui chassait le calendrier
+
+Le titre de la boîte de copie était passé en `headlineSmall` pour corriger une étiquette illisible. Sur deux lignes, il poussait le calendrier assez bas pour que sa première semaine vienne buter contre les initiales des jours. **La correction avait dépassé le défaut** : un titre court à taille de titre, et une ligne d'explication, suffisent.
+
+### Un signalement qui survivait à sa raison d'être
+
+Le bouton de signalement apparaissait sur tout plat dont la source était un modèle — y compris rouvert trois semaines plus tard, relu et corrigé. Ce qui partait n'était alors plus ce que le modèle avait proposé, mais ce que l'utilisateur en avait fait : le rapport décrivait une erreur que la correction avait déjà effacée.
+
+Il ne vaut donc que **sur la proposition elle-même**, avant enregistrement. Un plat écrit porte un identifiant, une proposition n'en a pas encore : la condition se lit en un terme.
+
+### Le tiret long
+
+Les textes de l'application employaient le tiret cadratin comme ponctuation d'incise. C'est une marque d'écriture machine devenue reconnaissable, et elle n'a pas sa place dans ce que l'application dit d'elle-même. Vingt-sept chaînes réécrites, dans les deux langues : deux-points, point-virgule ou phrase séparée, selon ce que l'incise faisait.
+
+**Une exception assumée** : `search_unknown_energy` affiche « — kcal / 100 g » pour une énergie inconnue. Le tiret y est un **symbole** et non une ponctuation : il dit « pas de valeur » là où « 0 kcal » dirait une mesure. Le remplacer demanderait un autre signe qui voudrait dire la même chose moins bien.
+
+La réécriture a servi deux fois : en retirant les incises, on retire aussi ce qu'elles portaient de superflu. Les chaînes concernées ont perdu entre un quart et un tiers de leur longueur sans rien perdre de leur sens.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

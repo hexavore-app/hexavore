@@ -11,9 +11,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -216,17 +219,23 @@ private fun Bubble(
     val densite = LocalDensity.current
     val haut = marges.getTop(densite).toFloat()
     val bas = marges.getBottom(densite).toFloat()
+    val plafond = with(densite) { cadre.placeLibre(haut, bas).toDp() }
 
     Box(modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.md)) {
         Card(
             modifier = Modifier
                 .align(Alignment.TopCenter)
+                // Jamais plus haute que la place entre les deux marges, et ce qui
+                // depasse se fait defiler : une bulle plus grande que l'ecran n'a
+                // aucune position correcte, et la borner sans la rendre lisible
+                // reviendrait a en couper la fin (D150).
+                .heightIn(max = plafond)
                 .onSizeChanged { mesure = it.height }
                 .offset { IntOffset(0, cadre.sommet(mesure, haut, bas).roundToInt()) },
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
         ) {
             Column(
-                modifier = Modifier.padding(Spacing.lg),
+                modifier = Modifier.verticalScroll(rememberScrollState()).padding(Spacing.lg),
                 verticalArrangement = Arrangement.spacedBy(Spacing.sm),
             ) {
                 Text(
@@ -254,6 +263,9 @@ private fun Bubble(
  * paramètres. La réponse du projet est de regrouper selon ce que les choses sont.
  */
 private data class BubbleFrame(val cible: Rect?, val hauteur: Float, val ecart: Float) {
+    /** La place qu'une bulle peut occuper au plus : l'écran, ses deux marges retirées. */
+    fun placeLibre(haut: Float, bas: Float): Float = (hauteur - haut - bas - ecart * 2).coerceAtLeast(0f)
+
     /**
      * Le haut de la bulle, en pixels depuis le haut de l'écran.
      *

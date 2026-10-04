@@ -215,7 +215,7 @@
     <string name="crash_intro">Voici la trace du dernier plantage.</string>
     <!-- Le tour guide du premier lancement (D141). -->
     <string name="tour_day_title">Votre journée d\'un coup d\'œil</string>
-    <string name="tour_day_body">L\'hexagone se remplit à mesure que vous notez. Dessous, les six compteurs disent ce qu\'il reste et ce qui est déjà dépassé. Ces repas sont un exemple — ils disparaîtront à la fin du tour.</string>
+    <string name="tour_day_body">L\'hexagone se remplit à mesure que vous notez, et les six compteurs disent ce qu\'il reste. Ces repas sont un exemple : ils disparaîtront à la fin du tour.</string>
     <string name="tour_describe_title">Dites-le avec vos mots</string>
     <string name="tour_describe_body">« Porridge au lait avec une banane ». L\'IA lit la phrase, trouve les aliments et les pèse. Vous vérifiez, vous corrigez, vous enregistrez.</string>
     <string name="tour_photo_title">Ou photographiez l\'assiette</string>
@@ -223,7 +223,7 @@
     <string name="tour_more_title">Et quand vous préférez être exact</string>
     <string name="tour_more_body">Un code-barres, le catalogue de 3 484 aliments hors ligne, ou un plat que vous avez gardé. Ces trois-là ne demandent jamais de clé.</string>
     <string name="tour_ai_title">Gemini est gratuit</string>
-    <string name="tour_ai_body">Les deux gestes du dessus — la phrase et la photo — demandent une clé, et Google en donne une : quelques analyses par jour ne coûtent rien, et aucune carte n\'est demandée. C\'est l\'affaire de deux minutes.</string>
+    <string name="tour_ai_body">La phrase et la photo demandent une clé. Google en donne une : quelques analyses par jour ne coûtent rien, et aucune carte n\'est demandée. Deux minutes suffisent.</string>
     <string name="tour_degraded_title">Sans clé, il manque deux gestes</string>
     <string name="tour_degraded_body">Le champ et l\'appareil photo restent en rouge : tout le reste fonctionne, et vous pourrez poser une clé quand vous voudrez depuis les réglages. Rien n\'est perdu entre-temps.</string>
     <string name="tour_next">Suivant</string>
@@ -236,7 +236,7 @@
     <string name="tour_protein_title">Protéines : à droite du sommet</string>
     <string name="tour_protein_body">Ce qui construit et répare le muscle. Un objectif à atteindre, pas un plafond : ce triangle-là, on cherche à le remplir jusqu\'au bord.</string>
     <string name="tour_carbs_title">Glucides : le triangle du bas</string>
-    <string name="tour_carbs_body">Le carburant principal : pain, pâtes, riz, fruits. Un plafond — ici, un triangle qui dépasse le contour est un signal, pas une réussite.</string>
+    <string name="tour_carbs_body">Le carburant principal : pain, pâtes, riz, fruits. C\'est un plafond, donc un triangle qui dépasse le contour est un signal, pas une réussite.</string>
     <string name="tour_sugars_title">Sucres : en bas à gauche</string>
     <string name="tour_sugars_body">La part des glucides qui est du sucre, ajouté ou naturel. Un plafond à part, parce que les mêmes 50 g ne pèsent pas pareil dans un fruit et dans un soda.</string>
     <string name="tour_fat_title">Lipides : en haut à gauche</string>
@@ -244,7 +244,7 @@
     <string name="tour_fiber_title">Fibres : en bas à droite</string>
     <string name="tour_fiber_body">Légumes, légumineuses, céréales complètes. Le triangle que presque personne ne remplit, et un objectif comme les protéines.</string>
     <string name="tour_calendar_title">Sept jours d\'affilée</string>
-    <string name="tour_calendar_body">Chaque pastille porte l\'avancement de son jour. Touchez-en une pour la regarder, et rattraper un repas oublié — la saisie ira sur ce jour-là, pas sur aujourd\'hui.</string>
+    <string name="tour_calendar_body">Chaque pastille porte l\'avancement de son jour. Touchez-en une pour rattraper un repas oublié : la saisie ira sur ce jour-là.</string>
     <string name="tour_settings_title">Tout le reste est ici</string>
     <string name="tour_settings_body">Votre profil et vos objectifs, la clé d\'IA, la sauvegarde, les photos, les rappels et le thème. Rien ne quitte ce téléphone.</string>
     <string name="calendar_day_perfect_a11y">Le %1$d, journée dorée</string>

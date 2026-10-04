@@ -32,9 +32,9 @@
 
     <string name="onboarding_work_title">Votre journée de travail</string>
     <string name="onboarding_work_body">Huit heures par jour, cinq jours sur sept : c\'est le socle, et il ne se devine pas depuis un nombre de séances.</string>
-    <string name="onboarding_work_desk">Assis la majeure partie du temps — bureau, conduite, études</string>
-    <string name="onboarding_work_on_feet">Debout, sans porter de charge — vente, service, enseignement</string>
-    <string name="onboarding_work_physical">Effort physique soutenu — bâtiment, manutention, agriculture</string>
+    <string name="onboarding_work_desk">Assis la majeure partie du temps : bureau, conduite, études</string>
+    <string name="onboarding_work_on_feet">Debout, sans porter de charge : vente, service, enseignement</string>
+    <string name="onboarding_work_physical">Effort physique soutenu : bâtiment, manutention, agriculture</string>
 
     <string name="onboarding_sessions_title">Et votre sport</string>
     <string name="onboarding_sessions_body">Des séances par semaine, quelles qu\'elles soient. Comptées ici une fois pour toutes, jamais ajoutées au jour le jour.</string>

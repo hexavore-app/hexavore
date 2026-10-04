@@ -35,6 +35,12 @@ import app.hexavore.domain.nutrition.Macro
  * donc les six mêmes couleurs dans un autre ordre que la figure juste au-dessus
  * ([D145][decisions]).
  *
+ * **Une journée tenue de bout en bout ne se dit pas ici non plus.** L'or qui la
+ * récompense se pose **autour** de cet anneau, dans la cellule du calendrier : les six
+ * couleurs restent ce qu'elles étaient, et la récompense se lit par-dessus sans rien
+ * leur retirer ([D150][decisions]). Remplacer les segments par un cercle d'or effaçait
+ * ce que la journée disait, et la rendait difficile à distinguer d'un jour vide.
+ *
  * **Une journée sans saisie ne s'appelle pas ici.** Ce composant dessine des
  * progressions ; l'absence de journée est l'affaire de l'écran, qui ne le compose
  * simplement pas. Lui passer six zéros dessinerait un anneau vide **identique** à
@@ -52,28 +58,10 @@ fun MacroSegmentRing(
     diameter: Dp = MacroRingDefaults.CalendarDiameter,
     strokeWidth: Dp = SegmentStrokeWidth,
     contentDescription: String? = null,
-    /**
-     * L'anneau se ferme **en or** : un tour complet, d'un seul tenant.
-     *
-     * La forme seule avait été préférée à une teinte, pour ne pas ajouter un septième
-     * rôle de couleur. À l'usage, ça ne marchait pas : à vingt millimètres de diamètre,
-     * dans un bandeau de sept jours, un cercle entier ne se distingue d'un cercle brisé
-     * qu'en le cherchant — et ce qui se veut exceptionnel ne se cherche pas
-     * ([D146][decisions]).
-     *
-     * L'or ne dit aucune donnée, et c'est ce qui l'autorise : il ne se pose jamais à
-     * côté des six pour être comparé à elles. Les couleurs de macros laissent donc la
-     * place — un anneau d'or n'a plus de segments, parce qu'une journée tenue n'est plus
-     * six compteurs mais un résultat.
-     *
-     * [decisions]: docs/11-decisions.md
-     */
-    closed: Boolean = false,
     center: @Composable () -> Unit = {},
 ) {
     val palettes = Macro.entries.associateWith { NeonTheme.macros[it].base }
     val trackColor = MaterialTheme.colorScheme.outline
-    val or = NeonTheme.gold
 
     Box(
         modifier = modifier
@@ -97,17 +85,10 @@ fun MacroSegmentRing(
             // position toute valeur d'indice (D145).
             macroDialOrder.forEachIndexed { index, macro ->
                 val start = START_ANGLE + index * SEGMENT_SWEEP
-                if (closed) {
-                    // Un demi-degre de recouvrement : sans lui, l'arrondi des traits
-                    // laisse six cheveux de fond entre les arcs, et l'anneau n'a plus
-                    // l'air entier.
-                    drawSegment(or, start, SEGMENT_SWEEP + CLOSING_OVERLAP, stroke)
-                } else {
-                    drawSegment(trackColor, start, SEGMENT_SWEEP - SEGMENT_GAP, stroke)
-                    val filled = (progress[macro] ?: 0f).coerceIn(0f, 1f)
-                    if (filled > 0f) {
-                        drawSegment(palettes.getValue(macro), start, (SEGMENT_SWEEP - SEGMENT_GAP) * filled, stroke)
-                    }
+                drawSegment(trackColor, start, SEGMENT_SWEEP - SEGMENT_GAP, stroke)
+                val filled = (progress[macro] ?: 0f).coerceIn(0f, 1f)
+                if (filled > 0f) {
+                    drawSegment(palettes.getValue(macro), start, (SEGMENT_SWEEP - SEGMENT_GAP) * filled, stroke)
                 }
             }
         }
@@ -142,9 +123,6 @@ private const val SEGMENT_SWEEP = 360f / SEGMENTS
 
 /** Le vide entre deux quartiers. Sans lui, les six couleurs formeraient un dégradé. */
 private const val SEGMENT_GAP = 6f
-
-/** Ce dont deux arcs se chevauchent quand l'anneau se ferme. */
-private const val CLOSING_OVERLAP = 0.5f
 
 // --- Aperçus -----------------------------------------------------------------
 

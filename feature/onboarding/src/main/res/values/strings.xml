@@ -33,9 +33,9 @@
 
     <string name="onboarding_work_title">Your working day</string>
     <string name="onboarding_work_body">Eight hours a day, five days a week: this is the floor, and it cannot be guessed from a number of workouts.</string>
-    <string name="onboarding_work_desk">Sitting most of the day — office, driving, studying</string>
-    <string name="onboarding_work_on_feet">On your feet, without carrying loads — shop, service, teaching</string>
-    <string name="onboarding_work_physical">Sustained physical effort — building, handling, farming</string>
+    <string name="onboarding_work_desk">Sitting most of the day: office, driving, studying</string>
+    <string name="onboarding_work_on_feet">On your feet, no heavy loads: shop, service, teaching</string>
+    <string name="onboarding_work_physical">Sustained physical effort: building, handling, farming</string>
 
     <string name="onboarding_sessions_title">And your sport</string>
     <string name="onboarding_sessions_body">Sessions per week, whatever they are. Counted here once and for all, never added day by day.</string>

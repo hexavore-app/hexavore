@@ -86,23 +86,26 @@ internal fun CopyDateDialog(today: LocalDate, source: LocalDate, onPick: (LocalD
 /**
  * Le titre de la boîte, et la phrase qui dit ce qui va se passer.
  *
+ * **À la taille d'un titre, pas d'un gros titre.** Il était en `headlineSmall` : sur deux
+ * lignes, il poussait le calendrier vers le bas au point que sa première semaine venait
+ * buter contre les initiales des jours ([D150][decisions]). Un titre court et une ligne
+ * d'explication suffisent à dire ce que la boîte attend.
+ *
  * Il porte lui-même ses marges : la boîte ne lui en donne aucune, et sans elles il se
- * posait dans le coin arrondi, qui lui rognait sa première lettre. Ce sont celles que
- * Material pose quand on le laisse écrire le sien.
+ * posait dans le coin arrondi, qui lui rognait sa première lettre.
  */
 @Composable
 private fun CopyTitle() {
-    Column(modifier = Modifier.padding(start = Spacing.xl, end = Spacing.xl, top = Spacing.lg)) {
+    Column(modifier = Modifier.padding(start = Spacing.xl, end = Spacing.xl, top = Spacing.md)) {
         Text(
             text = stringOf(R.string.entry_copy_title),
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
             text = stringOf(R.string.entry_copy_explain),
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = Spacing.xs),
         )
     }
 }

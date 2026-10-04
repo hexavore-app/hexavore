@@ -27,9 +27,9 @@
     <string name="profile_privacy">Tout ce que porte cet écran reste sur ce téléphone. Aucun compte, aucun serveur, rien qui parte chez qui que ce soit.</string>
     <string name="profile_work_title">Votre journée de travail</string>
     <string name="profile_work_body">Huit heures par jour, cinq jours sur sept : c\'est le socle. Le sport s\'y ajoute, et se compte ici une fois pour toutes plutôt qu\'au jour le jour.</string>
-    <string name="profile_work_desk">Assis la majeure partie du temps — bureau, conduite, études</string>
-    <string name="profile_work_on_feet">Debout, sans porter de charge — vente, service, enseignement</string>
-    <string name="profile_work_physical">Effort physique soutenu — bâtiment, manutention, agriculture</string>
+    <string name="profile_work_desk">Assis la majeure partie du temps : bureau, conduite, études</string>
+    <string name="profile_work_on_feet">Debout, sans porter de charge : vente, service, enseignement</string>
+    <string name="profile_work_physical">Effort physique soutenu : bâtiment, manutention, agriculture</string>
     <string name="profile_sessions_title">Séances de sport par semaine</string>
     <string name="profile_sessions_none">Aucune</string>
     <string name="profile_sessions_max">%1$d et plus</string>
@@ -369,9 +369,9 @@
     <string name="reminders_meal_body">Muet dès que ce repas est noté.</string>
     <string name="reminders_streak_body">Le soir, quand rien n\'est noté et qu\'une série court.</string>
     <string name="settings_favorites_title">Favoris</string>
-    <string name="settings_favorites_subtitle">Les plats que vous avez enregistrés, et de quoi les corriger.</string>
+    <string name="settings_favorites_subtitle">Les plats enregistrés, et de quoi les corriger.</string>
     <string name="settings_favorites_edit">Modifier ce favori</string>
-    <string name="settings_favorites_empty">Aucun favori pour l\'instant. Ouvrez un plat et touchez l\'étoile pour l\'enregistrer — il reviendra sous le bouton +.</string>
+    <string name="settings_favorites_empty">Aucun favori. Touchez l\'étoile sur un plat pour l\'enregistrer ; il reviendra sous le bouton +.</string>
     <string name="settings_contact_title">Contact</string>
     <string name="settings_contact_subtitle">Le code, le site, et où écrire.</string>
     <string name="settings_contact_intro">Hexavore est un logiciel libre. Un défaut, une idée, un mot : les trois nous arrivent.</string>

@@ -2,6 +2,7 @@ package app.hexavore.feature.home
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -14,13 +15,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import app.hexavore.core.designsystem.component.MacroSegmentRing
 import app.hexavore.core.designsystem.component.NoticeDot
 import app.hexavore.core.designsystem.theme.NeonTheme
+import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.domain.nutrition.Macro
 import app.hexavore.domain.usecase.CalendarDay
 import java.time.LocalDate
@@ -79,13 +83,13 @@ internal fun DayCell(
             .let { base -> if (future) base else base.clickable { onOpenDay(date) } },
     ) {
         SelectedDisc(shown = shown, diameter = footprint)
+        GoldenHalo(visible = parfaite, diameter = ringDiameter(footprint) + HALO_GAP * 2)
 
         MacroSegmentRing(
             modifier = Modifier.align(Alignment.Center),
             progress = day.progress(),
             diameter = ringDiameter(footprint),
             contentDescription = stringResource(date.labelOf(day, future, parfaite), date.dayOfMonth),
-            closed = parfaite,
             center = {
                 Text(
                     text = date.dayOfMonth.toString(),
@@ -126,6 +130,36 @@ internal fun DayCell(
  * qu'aucune des deux cellules ait à connaître la position de l'autre, ce qu'un
  * `LazyRow` ne dit de toute façon pas.
  */
+/**
+ * Le cercle d'or d'une journée tenue de bout en bout.
+ *
+ * ### Autour, et non à la place
+ *
+ * L'or remplaçait les six couleurs. La journée perdait alors tout ce qu'elle disait, et
+ * un cercle uni ressemblait surtout à une pastille vide : la récompense coûtait
+ * l'information ([D150][decisions]). Il se pose donc **à l'extérieur** de l'anneau, dans
+ * la marge que la cellule garde déjà autour de lui — les six teintes restent, et l'or se
+ * lit par-dessus.
+ *
+ * ### Dessiné plutôt que bordé
+ *
+ * Une bordure de `Modifier` se poserait sur le bord d'une boîte dont la taille est déjà
+ * prise ; un cercle tracé se place au rayon qu'on lui donne, qui est le seul moyen de
+ * tomber **entre** l'anneau et le bord de la cellule.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+@Composable
+private fun BoxScope.GoldenHalo(visible: Boolean, diameter: Dp) {
+    if (!visible) return
+    val or = NeonTheme.gold
+
+    Canvas(modifier = Modifier.align(Alignment.Center).size(diameter)) {
+        val trait = HALO_STROKE.toPx()
+        drawCircle(color = or, radius = (size.minDimension - trait) / 2f, style = Stroke(width = trait))
+    }
+}
+
 @Composable
 private fun BoxScope.SelectedDisc(shown: Boolean, diameter: Dp) {
     val taille by animateFloatAsState(
@@ -184,3 +218,9 @@ internal fun CalendarDay?.progress(): Map<Macro, Float> {
         if (target <= 0.0) 0f else (totals[macro].value / target).toFloat()
     }
 }
+
+/** Ce qui sépare le cercle d'or de l'anneau des six couleurs. */
+private val HALO_GAP: Dp = Spacing.xs
+
+/** Assez épais pour se voir à quarante millimètres, assez fin pour ne pas faire un anneau de plus. */
+private val HALO_STROKE: Dp = 2.dp

@@ -113,15 +113,22 @@ internal sealed interface EntryUiState {
         /**
          * Y a-t-il quelque chose à signaler ?
          *
-         * **Seulement ce qu'un modèle a proposé.** Il n'y a rien à signaler d'une saisie
-         * qu'on a faite soi-même, ni d'un code-barres dont les valeurs viennent d'Open
-         * Food Facts : le bouton désignerait alors n'importe quoi, et il ne désignerait
-         * plus rien ([D138][decisions]).
+         * **Seulement ce qu'un modèle vient de proposer, et pas encore enregistré.**
+         *
+         * La première condition tient depuis [D138][decisions] : il n'y a rien à
+         * signaler d'une saisie qu'on a faite soi-même, ni d'un code-barres dont les
+         * valeurs viennent d'Open Food Facts.
+         *
+         * La seconde est nouvelle. Le bouton survivait à l'enregistrement, et restait
+         * sur un plat qu'on avait relu, corrigé, validé : ce qui partait n'était alors
+         * plus ce que le modèle avait proposé, et le signalement rapportait une erreur
+         * que la correction avait déjà effacée ([D150][decisions]). Un plat déjà écrit
+         * porte un identifiant ; une proposition n'en a pas encore.
          *
          * [decisions]: docs/11-decisions.md
          */
         val reportable: Boolean
-            get() = form.source == EntrySource.PHOTO_AI || form.source == EntrySource.TEXT_AI
+            get() = form.dishId == null && (form.source == EntrySource.PHOTO_AI || form.source == EntrySource.TEXT_AI)
 
         /**
          * `true` quand enregistrer **supprimerait** le plat, faute de ligne restante.

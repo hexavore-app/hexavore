@@ -219,7 +219,7 @@
     <string name="crash_intro">Here is the trace of the last crash.</string>
     <!-- Le tour guide du premier lancement (D141). -->
     <string name="tour_day_title">Your day, at a glance</string>
-    <string name="tour_day_body">The hexagon fills as you log. Below it, the six counters say what is left and what is already over. These meals are an example — they will be gone when the tour ends.</string>
+    <string name="tour_day_body">The hexagon fills as you log, and the six counters say what is left. These meals are an example: they go when the tour ends.</string>
     <string name="tour_describe_title">Say it in your own words</string>
     <string name="tour_describe_body">« Porridge with milk and a banana ». The AI reads the sentence, finds the foods and weighs them. You check, you correct, you save.</string>
     <string name="tour_photo_title">Or photograph the plate</string>
@@ -227,7 +227,7 @@
     <string name="tour_more_title">And when you prefer to be exact</string>
     <string name="tour_more_body">A barcode, the catalogue of 3,484 foods offline, or a dish you saved. These three never need a key.</string>
     <string name="tour_ai_title">Gemini is free</string>
-    <string name="tour_ai_body">The two gestures above — the sentence and the photo — need a key, and Google gives one away: a few analyses a day cost nothing, and no card is asked for. It takes two minutes.</string>
+    <string name="tour_ai_body">The sentence and the photo need a key. Google gives one away: a few analyses a day cost nothing, and no card is asked for. Two minutes is enough.</string>
     <string name="tour_degraded_title">Without a key, two gestures are missing</string>
     <string name="tour_degraded_body">The field and the camera stay red: everything else works, and you can set a key up whenever you like from Settings. Nothing is lost in the meantime.</string>
     <string name="tour_next">Next</string>
@@ -240,7 +240,7 @@
     <string name="tour_protein_title">Protein: right of the top</string>
     <string name="tour_protein_body">What builds and repairs muscle. A target to reach, not a ceiling: this is a triangle you want filled to the edge.</string>
     <string name="tour_carbs_title">Carbs: the bottom triangle</string>
-    <string name="tour_carbs_body">The main fuel: bread, pasta, rice, fruit. A ceiling — here, a triangle past the outline is a warning, not an achievement.</string>
+    <string name="tour_carbs_body">The main fuel: bread, pasta, rice, fruit. It is a ceiling, so a triangle past the outline is a warning, not an achievement.</string>
     <string name="tour_sugars_title">Sugars: lower left</string>
     <string name="tour_sugars_body">The share of carbs that is sugar, added or natural. A ceiling of its own, because the same 50 g do not weigh the same in fruit and in a soda.</string>
     <string name="tour_fat_title">Fat: upper left</string>
@@ -248,7 +248,7 @@
     <string name="tour_fiber_title">Fibre: lower right</string>
     <string name="tour_fiber_body">Vegetables, pulses, whole grains. The triangle almost nobody fills, and a target like protein.</string>
     <string name="tour_calendar_title">Seven days in a row</string>
-    <string name="tour_calendar_body">Each dot carries its day’s progress. Tap one to look at it, and log a meal you forgot — the entry lands on that day, not on today.</string>
+    <string name="tour_calendar_body">Each dot carries its day\'s progress. Tap one to log a meal you forgot: the entry lands on that day, not today.</string>
     <string name="tour_settings_title">Everything else is here</string>
     <string name="tour_settings_body">Your profile and targets, the AI key, backup, photos, reminders and the theme. Nothing leaves this phone.</string>
     <string name="calendar_day_perfect_a11y">The %1$d, a golden day</string>

@@ -27,9 +27,9 @@
     <string name="profile_privacy">Everything on this screen stays on this phone. No account, no server, nothing sent to anyone.</string>
     <string name="profile_work_title">Your working day</string>
     <string name="profile_work_body">Eight hours a day, five days a week: this is the floor. Sport adds to it, and is counted here once and for all rather than day by day.</string>
-    <string name="profile_work_desk">Sitting most of the day — office, driving, studying</string>
-    <string name="profile_work_on_feet">On your feet, without carrying loads — shop, service, teaching</string>
-    <string name="profile_work_physical">Sustained physical effort — building, handling, farming</string>
+    <string name="profile_work_desk">Sitting most of the day: office, driving, studying</string>
+    <string name="profile_work_on_feet">On your feet, no heavy loads: shop, service, teaching</string>
+    <string name="profile_work_physical">Sustained physical effort: building, handling, farming</string>
     <string name="profile_sessions_title">Sport sessions per week</string>
     <string name="profile_sessions_none">None</string>
     <string name="profile_sessions_max">%1$d and more</string>
@@ -371,10 +371,10 @@
     <string name="settings_favorites_title">Favourites</string>
     <string name="settings_favorites_subtitle">The meals you saved, and a way to fix them.</string>
     <string name="settings_favorites_edit">Edit this favourite</string>
-    <string name="settings_favorites_empty">No favourites yet. Open a meal and tap the star to save it as one — it will come back under the + button.</string>
+    <string name="settings_favorites_empty">No favourites yet. Tap the star on a meal to save it; it comes back under the + button.</string>
     <string name="settings_contact_title">Contact</string>
     <string name="settings_contact_subtitle">The code, the site, and where to write.</string>
-    <string name="settings_contact_intro">Hexavore is open source. A bug, an idea, a word — all three reach us.</string>
+    <string name="settings_contact_intro">Hexavore is open source. A bug, an idea, a word: all three reach us.</string>
     <string name="settings_contact_site">The site</string>
     <string name="settings_contact_github">The code, and the issues</string>
     <string name="settings_contact_mail">Write to us</string>
