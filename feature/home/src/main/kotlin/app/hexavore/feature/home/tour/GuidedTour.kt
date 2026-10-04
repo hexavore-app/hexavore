@@ -214,7 +214,13 @@ private fun Bubble(
     onConfigureAi: () -> Unit,
     onFinish: () -> Unit,
 ) {
-    var mesure by remember(step) { mutableIntStateOf(0) }
+    // **Jamais remise a zero d'une etape a l'autre.** Elle l'etait, et c'est ce qui
+    // faisait sortir la bulle par le bas : `onSizeChanged` ne rappelle que lorsque la
+    // taille **change**, si bien que deux etapes de meme hauteur -- calories et
+    // proteines, par exemple -- laissaient la mesure a zero. La bulle se placait alors
+    // comme si elle n'avait pas de hauteur, et tout ce qu'elle en avait depassait
+    // (D151). Garder la derniere mesure connue est a la fois plus juste et plus simple.
+    var mesure by remember { mutableIntStateOf(0) }
     val marges = WindowInsets.systemBars
     val densite = LocalDensity.current
     val haut = marges.getTop(densite).toFloat()

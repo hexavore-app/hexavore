@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Lock
@@ -118,6 +120,11 @@ internal fun SettingsHubScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                // **La liste defile**, et il a fallu une neuvieme entree pour s'en
+                // apercevoir : les sept premieres tenaient a l'ecran, si bien qu'une
+                // colonne sans defilement se comportait comme une colonne qui defile.
+                // « Contact » tombait dessous, et rien ne permettait d'y arriver (D151).
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = Spacing.screenMargin),
             verticalArrangement = Arrangement.spacedBy(Spacing.betweenCards),
         ) {

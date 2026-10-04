@@ -5136,6 +5136,34 @@ La réécriture a servi deux fois : en retirant les incises, on retire aussi ce 
 
 ---
 
+## D151 — Trois pannes qui se cachaient derrière une correction apparente · ✓ validée
+
+**Contexte.** [D150](#d150--cinq-reprises-dusage--la-bulle-défile-lor-entoure-le-signalement-expire---validée) disait avoir borné la bulle du tour. Elle débordait toujours. Les deux autres défauts signalés en même temps avaient la même forme : un symptôme visible, une cause ailleurs que là où on la cherchait.
+
+### Une mesure qui ne se reprenait pas
+
+La bulle se place à partir de sa hauteur mesurée, et cette hauteur était remise à zéro à chaque étape — ce qui semblait prudent, puisque chaque étape a son texte.
+
+C'était l'erreur. `onSizeChanged` ne rappelle que lorsque la taille **change** ; deux étapes dont le texte occupe le même nombre de lignes mesurent pareil, donc ne rappellent pas. La hauteur restait à zéro, la bulle se plaçait comme si elle n'en avait pas, et tout ce qu'elle en avait sortait par le bas. Les calories, les protéines et les sucres tombaient exactement dans ce cas.
+
+**La mesure se garde donc d'une étape à l'autre.** Une hauteur connue vaut mieux qu'une hauteur oubliée, et la seule valeur fausse qu'on puisse en tirer — celle de l'étape précédente — est corrigée à l'image suivante quand elle diffère.
+
+### Un voile qui s'arrêtait à la barre
+
+Le tour et la félicitation vivaient dans le **contenu** du `Scaffold`, donc sous sa barre du bas. Le voile ne la couvrait jamais : elle restait éclairée à chaque étape, et les trois boutons qu'elle porte ne pouvaient pas se détacher les uns des autres puisque aucun n'était dans l'ombre.
+
+Les ancres étaient pourtant justes, et c'est ce qui rendait la panne difficile à voir : le trou de lumière était bien découpé au bon endroit, dans un voile qui ne recouvrait rien à cet endroit-là.
+
+Les deux couches passent donc **au-dessus du `Scaffold`**, dans une boîte qui le contient. Au passage, la félicitation fait enfin ce que son propre commentaire affirmait depuis le début.
+
+### Une liste qui ne défilait pas, et qui n'avait jamais eu à le faire
+
+Le hub des réglages posait ses cartes dans une colonne sans défilement. Sept entrées tenaient à l'écran ; la colonne se comportait donc exactement comme une colonne qui défile, et rien ne distinguait les deux. La neuvième entrée — « Contact » — est tombée dessous, sans aucun moyen d'y arriver.
+
+**Un conteneur qui ne déborde jamais ne prouve pas qu'il sait déborder.** La colonne défile désormais, ce qu'elle aurait dû faire depuis la première carte.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.
