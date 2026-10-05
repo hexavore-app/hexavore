@@ -26,4 +26,12 @@ dependencies {
 
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly(libs.junit.platform.launcher)
+
+    // Une `Intent` est une classe d'Android : eprouver celle du signalement demande
+    // Robolectric, pas un telephone (D35). Lanceur JUnit 4, d'ou le moteur vintage.
+    testImplementation(projects.core.testing)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.junit4)
+    testRuntimeOnly(libs.junit.vintage.engine)
 }

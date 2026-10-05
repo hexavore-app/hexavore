@@ -6,6 +6,21 @@
          au-dela ; en dessous, poster une notification ne demande rien. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!--
+      Ce que l'application cherche a resoudre hors d'elle-meme.
+
+      Depuis Android 11, une application ne voit que ce qu'elle a declare chercher.
+      Le signalement d'une proposition d'IA ouvre un courriel prerempli, et il
+      restreint sa cible aux seuls clients de courriel par un selecteur ; sans cette
+      declaration, cette resolution se ferait dans le noir (D154).
+    -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="mailto" />
+        </intent>
+    </queries>
+
     <application
         android:name=".HexavoreApplication"
         android:allowBackup="false"

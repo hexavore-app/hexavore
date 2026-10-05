@@ -5235,6 +5235,36 @@ C'est la troisième fois que cette barre se place mal, et les trois fois pour la
 
 ---
 
+## D154 — Un signalement s'adresse à un client de courriel, pas à tout ce qui sait partager · ✓ validée
+
+**Contexte.** Signaler une proposition d'IA ouvrait le choisisseur d'Android, avec WhatsApp, Discord, Drive et Telegram. Aucun ne sait écrire à une adresse de courriel, et celui qui voulait aider devait d'abord trier.
+
+### Les deux moitiés qui ne se combinaient pas
+
+`ACTION_SENDTO` sur `mailto:` ne désigne que les clients de courriel, et ne sait pas porter de pièce jointe. `ACTION_SEND` porte la pièce jointe, et s'adresse à **tout ce qui sait partager** : le type `message/rfc822` est revendiqué par les messageries, le stockage en ligne et les réseaux sociaux.
+
+[D138](#d138--lia-se-tient-mieux-et-lapplication-sait-dire-ce-qui-a-raté---validée) avait choisi la seconde, parce que le rapport porte l'échange et la photo — et c'est précisément ce qu'il faut voir. Le prix en était le choisisseur.
+
+### Le sélecteur
+
+Les deux se combinent par `Intent.setSelector`. L'intention principale garde `ACTION_SEND`, sa pièce jointe, ses extras et son autorisation de lecture ; le sélecteur porte `ACTION_SENDTO` et le schéma `mailto:`. Le système **résout sur le sélecteur** — donc sur les seules applications de courriel — et **délivre l'intention principale**, avec son fichier.
+
+**Le sélecteur ne porte pas l'adresse.** `mailto:` nu décrit la famille d'applications visée ; y mettre l'adresse en ferait un second destinataire à côté de celui d'`EXTRA_EMAIL`, que certains clients concatènent.
+
+Sans pièce jointe, rien ne change : `ACTION_SENDTO` sur `mailto:<adresse>` est déjà restreint, et lui ajouter un sélecteur reviendrait à le restreindre à lui-même.
+
+### Et le manifeste déclare ce qu'on cherche
+
+Depuis Android 11, une application ne voit que ce qu'elle a déclaré chercher. Un `<queries>` sur `SENDTO` + `mailto` accompagne donc le sélecteur : sans lui, la résolution se ferait dans le noir.
+
+### Tenu par un test, parce que rien ne le montrerait
+
+Le sélecteur est invisible : il ne change rien à ce que l'écran affiche, et le retirer par mégarde ne casserait aucun des tests existants — on ne s'en apercevrait qu'en signalant un défaut, c'est-à-dire au pire moment.
+
+Cinq cas sont donc éprouvés sous Robolectric, sur la seule fabrique d'intention : la borne aux clients de courriel, la pièce jointe et son autorisation de lecture, l'envoi multiple à deux fichiers, le `mailto:` adressé quand il n'y a rien à joindre, et les extras qui partent dans tous les cas. Pas d'appareil : ce qui est éprouvé est ce qu'on envoie, pas ce qu'un téléphone en fait ([D35][decisions]).
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.
