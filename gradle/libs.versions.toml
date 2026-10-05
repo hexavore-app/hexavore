@@ -26,7 +26,7 @@ jvmToolchain = "17"
 
 # --- Identite de l'application ------------------------------------------------
 # applicationId verrouille a la premiere publication Play : docs/10-qualite-et-livraison.md.
-versionName = "0.8.0"
+versionName = "0.8.1"
 # Un code televerse ne se reprend jamais, meme sur une release supprimee : la Console
 # refuse tout bundle qui ne monte pas. Le 1 et le 2 sont donc partis pour de bon -- le
 # premier par erreur, le second avec le contenu de la 0.6.0.
@@ -34,7 +34,7 @@ versionName = "0.8.0"
 # 3 porte l'Addictive update : la barre du bas, la progression et les rappels (D131 a
 # D135). Le nom de version monte avec lui, parce que le contenu change, la ou la 0.6.0
 # avait garde le sien pour un simple changement de code.
-versionCode = "4"
+versionCode = "5"
 
 # --- Bibliotheques ------------------------------------------------------------
 androidxCore = "1.15.0"

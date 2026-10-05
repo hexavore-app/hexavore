@@ -5235,33 +5235,21 @@ C'est la troisième fois que cette barre se place mal, et les trois fois pour la
 
 ---
 
-## D154 — Un signalement s'adresse à un client de courriel, pas à tout ce qui sait partager · ✓ validée
+## D154 — Restreindre le signalement aux clients de courriel par un sélecteur · ⊘ annulée
 
-**Contexte.** Signaler une proposition d'IA ouvrait le choisisseur d'Android, avec WhatsApp, Discord, Drive et Telegram. Aucun ne sait écrire à une adresse de courriel, et celui qui voulait aider devait d'abord trier.
+**Ce qui était visé.** Signaler une proposition d'IA ouvrait le choisisseur d'Android, avec WhatsApp, Discord, Drive et Telegram. Aucun ne sait écrire à une adresse, et celui qui voulait aider devait d'abord trier.
 
-### Les deux moitiés qui ne se combinaient pas
+**Ce qui a été tenté.** `Intent.setSelector` : l'intention principale garde `ACTION_SEND`, sa pièce jointe et ses extras ; un sélecteur portant `ACTION_SENDTO` et le schéma `mailto:` ramène la résolution aux seules applications de courriel. C'est la méthode documentée, et cinq tests sous Robolectric montraient que l'intention construite était bien celle-là.
 
-`ACTION_SENDTO` sur `mailto:` ne désigne que les clients de courriel, et ne sait pas porter de pièce jointe. `ACTION_SEND` porte la pièce jointe, et s'adresse à **tout ce qui sait partager** : le type `message/rfc822` est revendiqué par les messageries, le stockage en ligne et les réseaux sociaux.
+**Pourquoi c'est annulé.** Sur un téléphone réel, **plus rien ne résolvait** : l'appui ne trouvait aucune application et tombait sur « aucune application de courriel sur ce téléphone ». Le choisisseur était agaçant ; ne plus pouvoir signaler du tout est pire.
 
-[D138](#d138--lia-se-tient-mieux-et-lapplication-sait-dire-ce-qui-a-raté---validée) avait choisi la seconde, parce que le rapport porte l'échange et la photo — et c'est précisément ce qu'il faut voir. Le prix en était le choisisseur.
+### Ce que cet aller-retour apprend
 
-### Le sélecteur
+**Un test qui vérifie la forme d'une intention ne dit rien de sa résolution.** Les cinq cas étaient justes et passaient : ils éprouvaient ce qu'on envoie, pas ce qu'Android en fait. La résolution dépend du téléphone, de ses applications et de leurs filtres — et aucune de ces trois choses n'est dans le dépôt. C'est exactement la limite que [D35](#d35--les-tests-qui-demandent-un-appareil-sont-ceux-quon-nexécute-pas---validée) pose, rencontrée par l'autre bout.
 
-Les deux se combinent par `Intent.setSelector`. L'intention principale garde `ACTION_SEND`, sa pièce jointe, ses extras et son autorisation de lecture ; le sélecteur porte `ACTION_SENDTO` et le schéma `mailto:`. Le système **résout sur le sélecteur** — donc sur les seules applications de courriel — et **délivre l'intention principale**, avec son fichier.
+**Et une correction de confort ne se livre pas sans l'avoir vue tourner.** Celle-ci est partie avec pour seule preuve un test JVM, parce que l'émulateur n'était plus disponible. Le choisisseur méritait d'attendre.
 
-**Le sélecteur ne porte pas l'adresse.** `mailto:` nu décrit la famille d'applications visée ; y mettre l'adresse en ferait un second destinataire à côté de celui d'`EXTRA_EMAIL`, que certains clients concatènent.
-
-Sans pièce jointe, rien ne change : `ACTION_SENDTO` sur `mailto:<adresse>` est déjà restreint, et lui ajouter un sélecteur reviendrait à le restreindre à lui-même.
-
-### Et le manifeste déclare ce qu'on cherche
-
-Depuis Android 11, une application ne voit que ce qu'elle a déclaré chercher. Un `<queries>` sur `SENDTO` + `mailto` accompagne donc le sélecteur : sans lui, la résolution se ferait dans le noir.
-
-### Tenu par un test, parce que rien ne le montrerait
-
-Le sélecteur est invisible : il ne change rien à ce que l'écran affiche, et le retirer par mégarde ne casserait aucun des tests existants — on ne s'en apercevrait qu'en signalant un défaut, c'est-à-dire au pire moment.
-
-Cinq cas sont donc éprouvés sous Robolectric, sur la seule fabrique d'intention : la borne aux clients de courriel, la pièce jointe et son autorisation de lecture, l'envoi multiple à deux fichiers, le `mailto:` adressé quand il n'y a rien à joindre, et les extras qui partent dans tous les cas. Pas d'appareil : ce qui est éprouvé est ce qu'on envoie, pas ce qu'un téléphone en fait ([D35][decisions]).
+**La piste reste bonne**, et elle se reprendra autrement : tenter le sélecteur, puis **retomber** sur l'intention sans lui quand rien ne résout. Un repli coûte trois lignes et rend l'échec impossible ; c'est ce qui manquait.
 
 ---
 
