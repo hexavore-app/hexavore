@@ -52,10 +52,14 @@ interface AiExchangeLog {
 }
 
 /**
- * Si l'on enregistre les échanges.
+ * Si l'on **accumule** les échanges.
  *
  * **Éteint par défaut**, à la différence des pastilles : celles-ci décrivent, celui-ci
  * retient. Ce qui retient ne s'allume pas tout seul.
+ *
+ * Il ne gouverne plus que la **profondeur** de l'historique, et non le fait d'enregistrer
+ * ou non : le dernier échange est gardé dans tous les cas, faute de quoi le signalement
+ * d'une proposition fausse part sans ce qu'il promet de porter ([REPORTABLE_HISTORY]).
  */
 interface DebugSettings {
     fun observe(): Flow<Boolean>
@@ -79,3 +83,23 @@ interface DebugSettings {
  * appels qui l'ont précédée — sans garder la séance de la veille.
  */
 const val EXCHANGE_HISTORY = 20
+
+/**
+ * Ce qu'on garde **toujours**, mode de mise au point éteint.
+ *
+ * Un seul échange : celui qu'un signalement joint. Le bouton de signalement promet
+ * d'envoyer « ce qui a été demandé à l'IA et ce qu'elle a répondu » ; sans cette
+ * mémoire-là il n'envoyait que le corps du courriel, et la promesse était fausse pour
+ * quiconque n'avait pas d'abord découvert le mode de mise au point ([D153][decisions]).
+ *
+ * **Un, et pas vingt.** La règle qui tenait le journal éteint par défaut — ce qui
+ * retient ne s'allume pas tout seul — reste vraie de l'historique : rien ne
+ * s'**accumule** sans qu'on l'ait demandé. Ce qui change est qu'on cesse de ne rien
+ * retenir du tout, parce qu'une fonction de l'application en dépend.
+ *
+ * Il vit en mémoire, meurt avec le processus, ne part que si l'utilisateur appuie sur
+ * « signaler » **puis** sur « envoyer » dans son client de courriel.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+const val REPORTABLE_HISTORY = 1

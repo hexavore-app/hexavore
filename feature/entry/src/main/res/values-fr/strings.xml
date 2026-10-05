@@ -134,4 +134,5 @@
     <string name="entry_report_explain_body">Un courriel s\'ouvre, déjà rempli : ce qui a été demandé à l\'IA, sa réponse, et la photo. Rien ne part tant que vous n\'appuyez pas sur envoyer.</string>
     <string name="entry_report_explain_confirm">Rédiger le signalement</string>
     <string name="entry_report_explain_cancel">Annuler</string>
+    <string name="entry_report_no_mail_app">Aucune application de courriel sur ce téléphone : rien n\'a pu partir.</string>
 </resources>

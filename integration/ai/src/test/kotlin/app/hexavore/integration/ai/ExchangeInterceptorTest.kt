@@ -1,7 +1,6 @@
 package app.hexavore.integration.ai
 
 import app.hexavore.core.testing.FixedClock
-import app.hexavore.core.testing.InMemoryDebugSettings
 import app.hexavore.domain.ai.AiExchange
 import app.hexavore.domain.ai.AiExchangeLog
 import kotlinx.coroutines.flow.Flow
@@ -31,7 +30,6 @@ import java.time.LocalDate
  */
 class ExchangeInterceptorTest {
     private val server = MockWebServer()
-    private val debug = InMemoryDebugSettings(initial = true)
     private val log = RecordingLog()
 
     @BeforeEach
@@ -40,18 +38,24 @@ class ExchangeInterceptorTest {
     @AfterEach
     fun fermer() = server.shutdown()
 
+    /**
+     * Il note **toujours**, quel que soit le reglage de mise au point.
+     *
+     * Il sortait a sa premiere ligne quand celui-ci etait eteint, et un signalement ne
+     * joignait alors jamais l'echange qu'il promet de porter. La profondeur gardee est
+     * l'affaire du journal, pas de l'intercepteur (D153) : voir RecentExchangesTest.
+     */
     @Test
-    fun `eteint, rien n est retenu`() {
-        val silencieux = InMemoryDebugSettings(initial = false)
+    fun `l echange est note sans condition`() {
         server.enqueue(MockResponse().setBody("{}"))
 
-        appeler(client(silencieux), corps = "{\"a\":1}")
+        appeler(corps = "{\"a\":1}")
 
-        assertTrue(log.exchanges.isEmpty())
+        assertEquals(1, log.exchanges.size)
     }
 
     @Test
-    fun `allume, les deux corps sont retenus`() {
+    fun `les deux corps sont retenus`() {
         server.enqueue(MockResponse().setBody("""{"reponse":"ok"}"""))
 
         appeler(corps = """{"question":"quoi"}""")
@@ -124,8 +128,8 @@ class ExchangeInterceptorTest {
         assertEquals("""{"reponse":"intacte"}""", recu)
     }
 
-    private fun client(reglage: InMemoryDebugSettings = debug) = OkHttpClient.Builder()
-        .addInterceptor(ExchangeInterceptor(reglage, log, FixedClock.atNoon(LocalDate.of(2026, 8, 25))))
+    private fun client() = OkHttpClient.Builder()
+        .addInterceptor(ExchangeInterceptor(log, FixedClock.atNoon(LocalDate.of(2026, 8, 25))))
         .build()
 
     private fun appeler(

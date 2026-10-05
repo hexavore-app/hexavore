@@ -52,6 +52,8 @@ internal data class EntryActions(
     val onCopyTo: (LocalDate) -> Unit,
     /** Le jour de la copie a été annoncé : il n'y a plus de nouvelle à donner. */
     val onCopyShown: () -> Unit,
+    /** L'échec du signalement a été annoncé. */
+    val onReportFailureShown: () -> Unit,
     /** Supprimer ce plat, une fois la confirmation donnee. */
     val onDelete: () -> Unit,
     /** La boîte de nom se referme sans rien enregistrer. */

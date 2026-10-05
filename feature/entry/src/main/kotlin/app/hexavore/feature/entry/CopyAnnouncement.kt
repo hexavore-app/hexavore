@@ -46,3 +46,30 @@ internal fun AnnonceLaCopie(
         }
     }
 }
+
+/**
+ * Dit que le signalement n'a trouvé personne, une fois, puis se tait.
+ *
+ * **Un bouton qui ne fait rien est pire qu'un message.** Sans application de messagerie,
+ * l'appui sur « signaler » ne produisait aucun signe : ni courriel, ni erreur, rien. On
+ * s'y reprenait, puis on concluait que la fonction était cassée ([D153][decisions]).
+ *
+ * Le texte nomme le manque sans rien reprocher : il n'y a pas d'application de courriel,
+ * c'est tout, et ce n'est pas la faute de celui qui voulait rendre service.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+@Composable
+internal fun AnnonceLEchecDuSignalement(rate: Boolean, hote: SnackbarHostState, onShown: () -> Unit) {
+    val libelle = stringResource(R.string.entry_report_no_mail_app)
+
+    LaunchedEffect(rate) {
+        if (!rate) return@LaunchedEffect
+        try {
+            hote.currentSnackbarData?.dismiss()
+            hote.showSnackbar(libelle)
+        } finally {
+            onShown()
+        }
+    }
+}

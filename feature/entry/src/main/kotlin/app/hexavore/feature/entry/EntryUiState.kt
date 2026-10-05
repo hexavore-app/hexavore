@@ -77,6 +77,12 @@ internal sealed interface EntryUiState {
          */
         val copiedTo: LocalDate? = null,
         /**
+         * `true` quand un signalement n'a trouve aucune application de messagerie.
+         *
+         * Une nouvelle, comme [copiedTo] : l'ecran la dit une fois, puis l'oublie.
+         */
+        val reportFailed: Boolean = false,
+        /**
          * La photo de ce plat, ou celle que le scan ou l'analyse viennent d'apporter.
          *
          * `null` dans le cas courant : une saisie manuelle, une recherche et un favori

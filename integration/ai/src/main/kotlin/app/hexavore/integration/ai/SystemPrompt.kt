@@ -77,17 +77,23 @@ internal class AssetSystemPrompt(
  */
 val ContentLanguage.extractPromptVersion: String
     get() = when (this) {
-        ContentLanguage.FRENCH -> "fr_v2"
-        ContentLanguage.ENGLISH -> "en_v1"
+        ContentLanguage.FRENCH -> "fr_v3"
+        ContentLanguage.ENGLISH -> "en_v2"
     }
 
 /**
- * L'estimation en est à sa deuxième version.
+ * L'estimation en est à sa troisième version.
  *
  * La première laissait le modèle taire une valeur en omettant sa clé ; le décodage
  * contraint de Gemini s'en servait par défaut, et une ligne revenait sans glucides,
- * sans lipides et sans fibres. La deuxième exige les six clés et fait de `null` la
+ * sans lipides et sans fibres. La deuxième a exigé les six clés et fait de `null` la
  * seule façon de dire « je ne sais pas » ([D98][decisions]).
+ *
+ * La deuxième autorisait aussi l'omission d'un libellé « dont on ne sait rien », et le
+ * modèle s'en servait largement : « vol-au-vent », « fond d'artichaut », « crème de
+ * jambon » revenaient vides alors qu'ils s'estiment tous par leur famille. La troisième
+ * renverse la consigne — tout ce qui se mange s'estime, et l'omission est réservée à ce
+ * qui ne nomme rien de mangeable ([D153][decisions]).
  *
  * [decisions]: docs/11-decisions.md
  */

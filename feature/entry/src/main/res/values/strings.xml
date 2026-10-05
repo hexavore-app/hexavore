@@ -134,4 +134,5 @@
     <string name="entry_report_explain_body">An email opens, already filled in: what the AI was asked, what it answered, and the photo. Nothing leaves this phone until you send it.</string>
     <string name="entry_report_explain_confirm">Write the report</string>
     <string name="entry_report_explain_cancel">Cancel</string>
+    <string name="entry_report_no_mail_app">No email app on this phone, so nothing could be sent.</string>
 </resources>

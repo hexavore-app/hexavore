@@ -5194,6 +5194,47 @@ Le thème calcule la variante claire en assombrissant le néon d'un quart ; ce c
 
 ---
 
+## D153 — Un prompt déclaré sans fichier, un journal éteint, et un inset consommé · ✓ validée
+
+**Contexte.** Quatre défauts signalés ensemble, et les trois premiers se tenaient : une chaîne d'IA dont le garde-fou était mort depuis cinq semaines, des signalements vides, et un bouton qui ne faisait rien.
+
+### Le garde-fou n'existait plus
+
+Un commit du 30 septembre écrivait deux nouveaux prompts d'extraction — `extract_fr_v3`, `extract_en_v2` — et devait faire pointer `extractPromptVersion` dessus. Le changement a atterri dans **`estimatePromptVersion`**.
+
+Deux conséquences, et aucune ne s'est vue :
+
+1. L'extraction a continué de tourner sur l'ancien texte. Tout ce que ce commit apportait — le texte de l'utilisateur fait foi, un libellé nomme un aliment et jamais une plante, un poids sous cinq grammes est une erreur d'échelle — **n'a jamais été actif**.
+2. L'estimation demandait `prompts/estimate_fr_v3.txt`, qui n'existe pas. L'ouverture de l'asset levait, l'exception finissait dans un `runCatching`, et l'estimation **n'a jamais eu lieu**. Toutes les lignes que le catalogue ne rejoignait pas arrivaient vides, et l'étape 4 de [04](04-sources-de-donnees.md) — celle qui existe précisément pour les remplir — était morte sans un bruit.
+
+**Rien ne reliait une constante à un asset.** Ni le compilateur, ni l'analyse statique, ni aucun test : une chaîne d'un côté, un fichier de l'autre. Un test tient désormais les deux égaux **dans les deux sens** — chaque version déclarée a son fichier, et aucun fichier ne dort sans être déclaré. La seconde moitié n'est pas du zèle : ce sont les deux prompts orphelins qui disaient qu'une erreur avait eu lieu.
+
+**Et l'estimation passe en v3.** La v2 autorisait l'omission d'un libellé « dont on ne sait rien », et le modèle s'en servait largement : vol-au-vent, fond d'artichaut, crème de jambon, dessert spéculoos revenaient vides alors qu'ils s'estiment tous par leur famille. La consigne est renversée — tout ce qui se mange s'estime, l'omission est réservée à ce qui ne nomme rien de mangeable.
+
+### Le signalement promettait ce qu'il ne portait pas
+
+Le bouton dit : « envoyez-nous ce qui a été demandé à l'IA et ce qu'elle a répondu ». Il n'envoyait que le corps du courriel, parce que l'intercepteur qui note les échanges **sortait à sa première ligne** quand le mode de mise au point était éteint — et il l'est par défaut.
+
+La règle qui le tenait éteint reste vraie : *ce qui retient ne s'allume pas tout seul*. Mais elle parlait de l'**historique**, pas du dernier échange. Le journal garde donc **un** échange dans tous les cas, et vingt quand on a demandé à accumuler. Rien ne s'accumule sans qu'on l'ait demandé ; on cesse seulement de ne rien retenir du tout, parce qu'une fonction en dépend.
+
+Il vit en mémoire, meurt avec le processus, et ne part que si l'on appuie sur « signaler » **puis** sur « envoyer » dans son client de courriel. La clé n'y est pas : l'intercepteur de rédaction l'a retirée avant.
+
+### Et quand il échouait, il se taisait
+
+Sans application de messagerie, `startActivity` lève, le `runCatching` l'absorbe, et l'appui ne produit **rien** : ni courriel, ni erreur. Le silence était assumé — « un message d'erreur sur un bouton d'entraide serait un reproche de plus ». Sauf qu'un bouton qui ne fait rien se signale bien plus mal qu'une ligne de texte. Une barre nomme le manque, sans rien reprocher.
+
+### L'inset consommé
+
+Le champ de saisie remontait d'une hauteur de clavier de trop. La barre du bas réservait sa place à la barre de navigation par `windowInsetsPadding(navigationBars.exclude(ime))` : la marge de navigation quand le clavier est fermé, rien quand il la recouvre. L'intention était juste.
+
+`windowInsetsPadding` tient compte de ce que les parents ont **consommé**, et l'écran posait un `imePadding` sur son `Scaffold`. L'expression rendait alors 820 points au lieu de zéro.
+
+**Mesuré plutôt que raisonné.** Une sonde posée dans l'application a donné la vérité : la fenêtre ne se rétrécit pas (914 dp dans les deux états), l'inset de clavier vaut 883, et le `Scaffold` lève déjà sa barre basse de `clavier − navigation`. Il ne restait donc que la navigation à réserver, dans les deux états — une lecture **brute**, à un seul endroit.
+
+C'est la troisième fois que cette barre se place mal, et les trois fois pour la même raison : deux endroits connaissaient le clavier. Il n'y en a plus qu'un, et il ne lit rien que personne n'ait pu consommer.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

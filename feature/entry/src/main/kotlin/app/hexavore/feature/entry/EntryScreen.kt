@@ -91,6 +91,7 @@ internal fun EntryRoute(
                 onReport = viewModel.filing::report,
                 onCopyTo = viewModel.filing::copyTo,
                 onCopyShown = viewModel.filing::copyShown,
+                onReportFailureShown = viewModel.filing::reportFailureShown,
                 onDelete = viewModel.filing::delete,
                 onRetry = viewModel::onRetry,
                 onClose = onClose,
@@ -163,6 +164,7 @@ private fun DraftEditor(state: EntryUiState.Content, actions: EntryActions) {
     )
 
     AnnonceLaCopie(state.copiedTo, dateFormatter, snackbarHostState, actions.onCopyShown)
+    AnnonceLEchecDuSignalement(state.reportFailed, snackbarHostState, actions.onReportFailureShown)
 
     Box(
         modifier = Modifier

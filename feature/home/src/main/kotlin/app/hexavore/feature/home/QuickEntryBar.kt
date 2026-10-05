@@ -9,14 +9,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -42,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
@@ -152,8 +150,9 @@ internal fun QuickEntryBar(
 /**
  * Le contenant de la barre : sa forme, sa teinte, et **ce qu'elle laisse au système**.
  *
- * **Elle ne connaît pas le clavier**, et c'est ce qui la remet d'aplomb : c'est l'écran
- * qui remonte, d'un seul `imePadding` posé sur le `Scaffold`. La barre ne garde que la
+ * **Elle ne connaît pas le clavier**, et personne d'autre non plus : la fenêtre se
+ * rétrécit d'elle-même, le manifeste le déclare, et c'est tout ([D153][decisions]). La
+ * barre ne garde que la
  * marge de la barre de navigation, **retranchée de celle du clavier** : quand celui-ci
  * est ouvert, la barre de navigation est dessous, et lui réserver de la place y
  * ajouterait une bande vide ([D135][decisions]).
@@ -162,6 +161,19 @@ internal fun QuickEntryBar(
  */
 @Composable
 private fun BarSurface(content: @Composable ColumnScope.() -> Unit) {
+    // **La barre de navigation, lue brute, et elle seule.**
+    //
+    // Le `Scaffold` leve deja cette barre de ce que le clavier prend, moins la
+    // navigation : il ne reste donc que la navigation a reserver, dans les deux etats.
+    //
+    // Lue brute, et non par `windowInsetsPadding`, parce que cette derniere tient compte
+    // de ce que les parents ont **consomme**. L'expression qui disait la meme chose en
+    // insets -- `navigationBars.exclude(ime)` -- rendait 820 points au lieu de zero des
+    // qu'une marge de clavier etait posee au-dessus, et la barre montait d'une hauteur
+    // de clavier de trop (D153).
+    val densite = LocalDensity.current
+    val marge = with(densite) { WindowInsets.navigationBars.getBottom(densite).toDp() }
+
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         // Carree en bas, adoucie en haut : les deux coins du bas tombent hors de
@@ -171,12 +183,7 @@ private fun BarSurface(content: @Composable ColumnScope.() -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                // **Les deux ensemble, et non l'une puis l'autre.** Empilees, elles
-                // s'additionnent : la barre montait de la hauteur du clavier **plus**
-                // celle de la barre de navigation, qui est pourtant dessous. `union`
-                // prend la plus grande des deux, ce qui est exactement ce qu'on veut a
-                // chaque instant -- le clavier ouvert, ou rien (D135).
-                .windowInsetsPadding(WindowInsets.navigationBars.exclude(WindowInsets.ime))
+                .padding(bottom = marge)
                 .padding(horizontal = Spacing.md, vertical = Spacing.xs),
             verticalArrangement = Arrangement.spacedBy(Spacing.xs),
             content = content,

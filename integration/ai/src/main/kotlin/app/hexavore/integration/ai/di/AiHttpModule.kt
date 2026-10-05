@@ -1,7 +1,6 @@
 package app.hexavore.integration.ai.di
 
 import app.hexavore.domain.ai.AiExchangeLog
-import app.hexavore.domain.ai.DebugSettings
 import app.hexavore.domain.time.Clock
 import app.hexavore.integration.ai.AnthropicApi
 import app.hexavore.integration.ai.ExchangeInterceptor
@@ -36,17 +35,17 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 internal object AiHttpModule {
     /**
-     * L'intercepteur de mise au point, construit ici et branche toujours.
+     * L'intercepteur qui note les echanges, branche toujours.
      *
-     * Toujours, parce qu'eteint il rend la main a sa premiere ligne : le reconstruire
-     * au changement de reglage obligerait a reconstruire le client, donc les trois
-     * interfaces Retrofit, au milieu d'une analyse en cours.
+     * Il ne consulte plus le reglage de mise au point : c'est le journal qui decide de
+     * la profondeur qu'il garde, parce que c'est une question de retention (D153). Le
+     * reconstruire au changement de reglage obligerait de toute facon a reconstruire le
+     * client, donc les trois interfaces Retrofit, au milieu d'une analyse en cours.
      */
     @Provides
     @Singleton
     @Named(AI_EXCHANGES)
-    fun exchanges(debug: DebugSettings, log: AiExchangeLog, clock: Clock): Interceptor =
-        ExchangeInterceptor(debug, log, clock)
+    fun exchanges(log: AiExchangeLog, clock: Clock): Interceptor = ExchangeInterceptor(log, clock)
 
     @Provides
     @Singleton

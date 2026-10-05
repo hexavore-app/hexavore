@@ -154,6 +154,11 @@ internal class EntryViewModel @Inject constructor(
             .combine(filing.copied) { state, jour ->
                 if (state is EntryUiState.Content) state.copy(copiedTo = jour) else state
             }
+            // Et l'echec d'un signalement, pour la meme raison : une nouvelle a dire une
+            // fois, pas une piece de plus de l'etat (D153).
+            .combine(filing.reportFailed) { state, rate ->
+                if (state is EntryUiState.Content) state.copy(reportFailed = rate) else state
+            }
             // Aucun `flowOn` ici, contrairement a l'accueil, et c'est deliberé.
             // Ce que produit ce flux a chaque frappe tient en une conversion de
             // quelques lignes et deux additions ; le passer sur un autre

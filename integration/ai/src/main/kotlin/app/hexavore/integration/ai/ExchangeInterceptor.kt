@@ -2,7 +2,6 @@ package app.hexavore.integration.ai
 
 import app.hexavore.domain.ai.AiExchange
 import app.hexavore.domain.ai.AiExchangeLog
-import app.hexavore.domain.ai.DebugSettings
 import app.hexavore.domain.time.Clock
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -32,14 +31,14 @@ import okio.Buffer
  *
  * @see docs/05-ia.md § Sécurité des clés
  */
-internal class ExchangeInterceptor(
-    private val debug: DebugSettings,
-    private val log: AiExchangeLog,
-    private val clock: Clock,
-) : Interceptor {
+internal class ExchangeInterceptor(private val log: AiExchangeLog, private val clock: Clock) : Interceptor {
+    /**
+     * **Il note toujours.** Il sortait ici quand le mode de mise au point etait eteint,
+     * si bien qu'un signalement ne joignait jamais l'echange qu'il promet de porter.
+     * C'est le journal qui decide desormais de ce qu'il **garde** -- un echange, ou
+     * vingt --, parce que c'est une question de retention et non d'interception (D153).
+     */
     override fun intercept(chain: Interceptor.Chain): Response {
-        if (!debug.enabled()) return chain.proceed(chain.request())
-
         val request = chain.request()
         val sent = request.body?.let { body ->
             Buffer().also { runCatching { body.writeTo(it) } }.readUtf8()

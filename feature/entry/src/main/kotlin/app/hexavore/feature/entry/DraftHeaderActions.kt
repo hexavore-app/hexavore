@@ -104,16 +104,37 @@ internal class DraftHeaderActions(
      *
      * **Les libellés viennent de l'écran** : ce porteur ne connaît pas de ressources.
      *
-     * L'échec est silencieux : sans application de messagerie, il n'y a rien à dire de
-     * plus que ce que le système dira lui-même, et un message d'erreur sur un bouton
-     * d'entraide serait un reproche de plus à quelqu'un qui rendait service.
+     * **L'échec se dit.** Il était silencieux, au motif qu'un message d'erreur sur un
+     * bouton d'entraide serait un reproche de plus à quelqu'un qui rendait service. Sauf
+     * que sans application de messagerie, le système ne dit rien non plus : l'appui ne
+     * produisait alors **rien du tout**, et un bouton qui ne fait rien se signale bien
+     * plus mal qu'une ligne de texte ([D153][decisions]). La barre nomme le manque, elle
+     * ne reproche rien.
      *
      * [decisions]: docs/11-decisions.md
      */
     fun report(subject: String, body: String) {
         val current = form.value ?: return
         scope.launch {
-            runCatching { filing.reporting.report(current.toDraft(), photo.value, subject, body) }
+            val ouvert = runCatching {
+                filing.reporting.report(current.toDraft(), photo.value, subject, body)
+            }.getOrDefault(false)
+            if (!ouvert) echec.value = true
         }
+    }
+
+    /**
+     * Le signalement n'a trouvé personne à qui parler, tant que l'écran ne l'a pas dit.
+     *
+     * Même forme que [copied] : une nouvelle, pas un état. Elle revient à `null` dès que
+     * le message est passé.
+     */
+    private val echec = MutableStateFlow(false)
+
+    val reportFailed: StateFlow<Boolean> = echec.asStateFlow()
+
+    /** Le message est passé. */
+    fun reportFailureShown() {
+        echec.value = false
     }
 }
