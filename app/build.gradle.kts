@@ -24,6 +24,33 @@ val signingProperties: Properties? =
         .takeIf { it.exists() }
         ?.let { file -> Properties().apply { file.inputStream().use { stream -> load(stream) } } }
 
+/**
+ * Les paliers d'Android que la livraison dit porter, et sur lesquels on le verifie.
+ *
+ * De `minSdk` a `targetSdk` : 26 parce que c'est le plancher declare, 36 parce que c'est
+ * la cible, et entre les deux un palier par rupture connue -- 30 pour le stockage
+ * cloisonne, 31 pour les alarmes et le materiel graphique, 33 pour les notifications et
+ * la langue par application, 34 pour les services en avant-plan, 35 pour le bord-a-bord
+ * impose.
+ */
+private val matriceAndroid = mapOf(
+    "api26" to 26,
+    "api30" to 30,
+    "api31" to 31,
+    "api33" to 33,
+    "api34" to 34,
+    "api35" to 35,
+    "api36" to 36,
+)
+
+/**
+ * En deca, il n'existe pas d'image de test allegee : on prend l'image ordinaire.
+ *
+ * `val` et non `const val` : un script de construction n'est pas un fichier Kotlin
+ * ordinaire, et Kotlin n'y accepte pas de constante de compilation hors objet nomme.
+ */
+private val premierAtd = 30
+
 android {
     namespace = "app.hexavore"
 
@@ -48,6 +75,18 @@ android {
         // adaptateurs par des faux, et c'est precisement les adaptateurs qu'on veut
         // voir tourner sur chaque version d'Android (D139).
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // **Chaque methode part d'une installation neuve.**
+        //
+        // Le tour guide ne se montre qu'a qui ne l'a pas vu, et son souvenir ne s'oublie
+        // pas -- c'est une decision produit (D141), et c'est une contrainte de test : sans
+        // remise a neuf, seule la premiere methode executee voit un tour, et les autres
+        // passent au vert sans sujet.
+        //
+        // Ce qu'elle repare par la meme occasion : les plats qu'une methode note
+        // restaient dans le journal de la suivante, qui ouvrait alors  le premier plat
+        // d'une journee qu'elle n'avait pas remplie.
+        testInstrumentationRunnerArguments["clearPackageData"] = "true"
     }
 
     // La langue par application, declaree au systeme.
@@ -103,6 +142,58 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+        }
+    }
+
+    testOptions {
+        // L'orchestrateur : un processus par methode, et `clearPackageData` qui va avec.
+        // C'est lui qui rend le premier lancement rejouable autant de fois qu'il y a de
+        // methodes.
+        execution = "ANDROIDX_TEST_ORCHESTRATOR"
+
+        /**
+         * Les versions d'Android sur lesquelles le tour d'ecrans se joue.
+         *
+         * **Declarees ici plutot que dans `~/.android/avd/`.** Les AVD de la machine de
+         * developpement ont ete ecrits a la main, portent des noms qui n'existent que la,
+         * et ne disent nulle part lesquels comptent : une version verifiee ne se lisait
+         * donc dans aucun fichier du depot. Gradle les telecharge et les cree lui-meme, ce
+         * qui rend la matrice identique sur une autre machine et dans la CI.
+         *
+         * **API 26 est la borne basse et elle manque aux AVD locaux**, qui commencent a 30
+         * alors que `minSdk` vaut 26 : quatre versions que l'application declare porter
+         * n'avaient jamais ete ouvertes. Les bugs de compatibilite vivent aux extremites.
+         *
+         * `aosp-atd` la ou il existe -- une image sans services Google, taillee pour les
+         * tests, qui demarre en quelques secondes. API 26 n'en a pas et prend l'image
+         * ordinaire.
+         *
+         * Ce qu'aucune de ces images ne donne : One UI. Samsung ne publie pas d'image
+         * systeme pour l'emulateur, et le telephone du signalement tourne sous One UI 8.5.
+         * Voir docs/10 pour le chemin qui y mene (Remote Test Lab).
+         */
+        managedDevices {
+            localDevices {
+                matriceAndroid.forEach { (nom, palier) ->
+                    create(nom) {
+                        device = "Pixel 6"
+                        apiLevel = palier
+                        systemImageSource = if (palier >= premierAtd) "aosp-atd" else "aosp"
+                    }
+                }
+            }
+            groups {
+                create("matrice") {
+                    matriceAndroid.keys.forEach { targetDevices.add(localDevices[it]) }
+                }
+                // Les deux bornes, pour une pull request : c'est la ou vivent les bugs de
+                // compatibilite, et vingt minutes d'emulateur ne tiennent pas dans la
+                // cible de huit minutes.
+                create("bornes") {
+                    targetDevices.add(localDevices["api26"])
+                    targetDevices.add(localDevices["api36"])
+                }
+            }
         }
     }
 }
@@ -163,4 +254,7 @@ dependencies {
     // UiAutomator et non le testeur de Compose : celui-ci ne voit que la fenetre de
     // l'activite, et la feuille du  +  est une fenetre a elle (D139).
     androidTestImplementation(libs.androidx.test.uiautomator)
+    // `androidTestUtil` et non `androidTestImplementation` : l'orchestrateur s'installe a
+    // cote de l'APK de test, il n'en fait pas partie.
+    androidTestUtil(libs.androidx.test.orchestrator)
 }

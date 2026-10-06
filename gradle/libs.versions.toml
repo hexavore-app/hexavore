@@ -112,6 +112,12 @@ androidxTest = "1.6.1"
 androidxTestRunner = "1.6.2"
 androidxTestJunit = "1.2.1"
 uiautomator = "2.3.0"
+# L'orchestrateur, et la seule raison de l'ajouter : `clearPackageData`. Le tour guide
+# ne se montre qu'a qui ne l'a pas vu, et rien ne permet de l'oublier -- c'est voulu cote
+# produit. Sans une installation remise a neuf entre deux methodes, seule la premiere
+# regarde un tour et les suivantes passent au vert sans sujet. Il isole aussi chaque
+# methode des plats que la precedente a notes, ce que la suite actuelle ne fait pas.
+androidxTestOrchestrator = "1.5.1"
 
 # --- Outillage hors APK -------------------------------------------------------
 # Pilote SQLite pour la JVM de developpement : il embarque sa propre compilation de
@@ -206,6 +212,7 @@ androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTes
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRunner" }
 androidx-test-ext-junit = { module = "androidx.test.ext:junit", version.ref = "androidxTestJunit" }
 androidx-test-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "uiautomator" }
+androidx-test-orchestrator = { module = "androidx.test:orchestrator", version.ref = "androidxTestOrchestrator" }
 
 sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqliteJdbc" }
 calendar-compose = { module = "com.kizitonwose.calendar:compose", version.ref = "kizitonwoseCalendar" }
