@@ -225,7 +225,23 @@ Ce qui rend le piège coûteux : le code compile, les DTO se relisent sans rien 
 
 `./gradlew check` ne prouve que la compilation, les tests et leurs hypothèses. **Ce qui s'affiche n'est jamais prouvé par un vert**, et un compte rendu de travail dit ce que le vert ne prouve pas.
 
-Des émulateurs sont installés, de l'**API 30 à 36** — Android 11 à 16 ([D139](11-decisions.md#d139--lapplication-tient-depuis-android-11-et-un-tour-décrans-le-vérifie---validée)). Android 17 n'a pas encore d'image système. Les AVD s'appellent `Hexavore_API<n>` ; ils ont été écrits à la main dans `~/.android/avd/`, `avdmanager` ne tournant pas sous le JDK installé.
+La matrice est **déclarée dans `app/build.gradle.kts`**, de l'**API 26 à 36** — Android 8.0 à 16 ([D139](11-decisions.md#d139--lapplication-tient-depuis-android-11-et-un-tour-décrans-le-vérifie---validée)). Android 17 n'a pas encore d'image système.
+
+```bash
+./gradlew :app:matriceGroupDebugAndroidTest
+```
+
+Les deux bornes seules, quand on n'a pas vingt minutes — c'est aux extrémités que vivent les bugs de compatibilité :
+
+```bash
+./gradlew :app:bornesGroupDebugAndroidTest
+```
+
+**Déclarée, et non installée à la main.** Les AVD `Hexavore_API<n>` de `~/.android/avd/` restent commodes pour aller voir un écran de ses yeux, mais ils ne disaient nulle part lesquels comptaient : une version vérifiée ne se lisait dans aucun fichier du dépôt, et elle s'arrêtait à l'API 30 alors que `minSdk` vaut 26. **Quatre versions que l'application dit porter n'avaient jamais été ouvertes.** Gradle télécharge et crée ses émulateurs lui-même, ce qui rend la matrice identique sur une autre machine.
+
+L'API 26 demande un accord explicite dans `gradle.properties` : Gradle décourage les images anciennes, et il reste qu'une version qu'on dit porter se vérifie en l'ouvrant.
+
+**One UI ne s'émule pas.** Samsung ne publie aucune image système pour l'émulateur, et les habillages Galaxy ne changent aucun comportement. Pour un vrai téléphone Samsung, le [Remote Test Lab](https://developer.samsung.com/remotetestlab) prête un appareil physique — un S24 compris — avec un simple compte Samsung, et accepte l'installation d'un APK.
 
 ```bash
 "$ANDROID_HOME/emulator/emulator" -avd Hexavore_API30 -no-boot-anim -no-snapshot-save
@@ -259,18 +275,32 @@ Ce qu'on regarde ensuite, dans l'ordre où ça informe : `PRAGMA user_version` �
 
 ## Intégration continue
 
-GitHub Actions.
+GitHub Actions, et **un seul workflow de vérification** : [`ci.yml`](../.github/workflows/ci.yml).
 
-**Sur chaque pull request** — cible : moins de 8 minutes.
+**Sur chaque pull request, et sur `main`** — cible : moins de 8 minutes.
 
 ```
-ktlint → detekt → tests unitaires JVM → tests Room (Robolectric)
-       → tests d'image → assembleDebug → rapport de couverture
+ktlint → detekt → Android Lint → tests unitaires JVM → tests Room (Robolectric)
+       → tests des règles detekt maison → assembleDebug
 ```
 
-**Sur `main`** : ce qui précède, plus les tests instrumentés sur émulateur API 26 et API 34 (la borne basse et une borne haute — les bugs de compatibilité vivent aux extrémités).
+C'est ce que fait `./gradlew check assembleDebug`. **C'est tout ce que la chaîne fait**, et elle fait la même chose sur `main` que sur une pull request.
 
-**Sur un tag `v*`** : build release signé, `bundleRelease` pour le Play Store, APK universel pour GitHub Releases, notes de version extraites du `CHANGELOG`, publication en brouillon sur la piste interne du Play Store.
+Ce qui reste donc à la main :
+
+| Ce qui ne tourne pas | Où ça se fait |
+|---|---|
+| Tests instrumentés | `./gradlew :app:bornesGroupDebugAndroidTest`, sur la machine de développement |
+| Build release signé, bundle Play Store, notes de version | à la main, voir plus haut |
+| Rapport de couverture, tests d'image | nulle part : ils n'existent pas |
+
+### Cette section a décrit pendant des mois une chaîne qui n'existait pas
+
+Elle annonçait des tests instrumentés sur `main`, des tests d'image, un rapport de couverture et une publication sur tag `v*`. Aucun des quatre n'a jamais tourné.
+
+Ce n'est pas une inexactitude de documentation, c'est ce qui a laissé partir le blocage du tour guidé en 0.8.0 : un test instrumenté l'aurait attrapé, le dépôt en avait un qui touchait le tour, et personne n'a cherché pourquoi le vert ne disait rien — puisque la page qu'on lisait affirmait qu'il tournait. **Une vérification promise et absente est pire que son absence**, parce qu'elle rassure exactement là où il faudrait regarder.
+
+La règle qui en sort : ce fichier décrit ce que `ci.yml` fait, et rien d'autre. Ce qu'on souhaite qu'il fasse va dans [12-plan-de-developpement.md](12-plan-de-developpement.md).
 
 Les clés de signature sont des secrets de dépôt. Le trousseau n'est **jamais** versionné, et une règle `.gitignore` explicite le rappelle.
 
