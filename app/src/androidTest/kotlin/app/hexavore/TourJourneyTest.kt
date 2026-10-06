@@ -194,6 +194,38 @@ class TourJourneyTest {
         ecran.attendLaDisparition(HomeStrings.string.tour_skip)
     }
 
+    /**
+     * **Le retour du système congédie le tour**, et pose le souvenir.
+     *
+     * ### La sortie de secours, et pourquoi elle est à part
+     *
+     * Elle ne passe pas par les appuis. Le geste de retour arrive par l'activité, là où le
+     * voile n'intercepte rien — c'est donc la seule porte qui tienne **quelle que soit** la
+     * panne du côté des gestes, et la seule qui marchait déjà quand plus rien d'autre ne
+     * marchait.
+     *
+     * ### Le souvenir compte autant que la disparition
+     *
+     * Un retour qui ferait seulement disparaître la bulle ne libérerait personne : le tour
+     * reviendrait au lancement suivant, et l'utilisateur serait repris au même endroit.
+     * C'est exactement le piège signalé. Ce test vérifie donc les deux.
+     */
+    @Test
+    fun le_retour_arriere_congedie_le_tour() = runBlocking {
+        ouvreLAccueil()
+        ecran.attend(HomeStrings.string.tour_day_title)
+
+        ecran.revientEnArriere()
+
+        ecran.attendLaDisparition(HomeStrings.string.tour_day_title)
+        ecran.attendLaDisparition(HomeStrings.string.tour_skip)
+        assertTrue(
+            "Le tour est parti au retour arriere, mais le souvenir n'a pas ete ecrit : " +
+                "il reviendra au prochain lancement.",
+            graph.tour().observeSeen().first(),
+        )
+    }
+
     /** **« Suivant » avance.** La première bulle s'en va, la deuxième arrive. */
     @Test
     fun suivant_fait_avancer_le_tour() {

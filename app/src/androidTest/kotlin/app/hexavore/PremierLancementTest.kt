@@ -1,10 +1,13 @@
 package app.hexavore
 
+import android.Manifest
+import android.os.Build
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.regex.Pattern
@@ -57,6 +60,38 @@ import app.hexavore.feature.onboarding.R as OnboardingStrings
 class PremierLancementTest {
     private val instrumentation get() = InstrumentationRegistry.getInstrumentation()
     private val ecran by lazy { Ecran(instrumentation) }
+
+    /**
+     * **La permission de notifier est accordée d'avance**, et ce n'est pas une commodité.
+     *
+     * ### Ce que sa boîte fait au parcours
+     *
+     * L'onboarding la demande à son dernier geste, puis l'accueil **la redemande** : il
+     * relit `permissionAsked()`, que l'onboarding n'écrit jamais. La seconde boîte se pose
+     * alors par-dessus le tour, possède l'entrée, et plus rien ne répond — c'est ce que le
+     * premier passage sur émulateur a montré, sept échecs sur sept.
+     *
+     * ### Pourquoi l'écarter plutôt que la traverser
+     *
+     * Une boîte du système n'appartient pas à l'application : ses libellés sont ceux
+     * d'Android, ils changent de langue et de version, et un parcours accroché à « Allow »
+     * casserait sur un téléphone en français sans rien dire du chemin qu'il teste.
+     *
+     * **La collision est un vrai défaut et elle reste entière** — elle a besoin de son
+     * correctif, pas d'un contournement de test. Ce fichier répond à une autre question :
+     * *les cinq questions mènent-elles à un accueil utilisable*. Une boîte système devant
+     * lui empêche d'y répondre.
+     */
+    @Before
+    fun laPermissionDeNotifierEstAccordee() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        runCatching {
+            instrumentation.uiAutomation.grantRuntimePermission(
+                instrumentation.targetContext.packageName,
+                Manifest.permission.POST_NOTIFICATIONS,
+            )
+        }
+    }
 
     /**
      * Le parcours complet, en une seule méthode.

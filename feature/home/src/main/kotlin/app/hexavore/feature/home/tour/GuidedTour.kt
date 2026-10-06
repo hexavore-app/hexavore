@@ -1,5 +1,6 @@
 package app.hexavore.feature.home.tour
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.gestures.animateScrollBy
@@ -72,11 +73,16 @@ import kotlin.math.roundToInt
  * Une bulle collée au plafond pendant qu'un bouton s'éclaire en bas laisse à l'œil le
  * soin de faire le lien — et cet œil-là découvre l'application.
  *
- * ### Rien ne passe au travers
+ * ### Rien ne passe au travers, sauf le retour
  *
  * Le voile prend tous les gestes. Pendant un tour, les seuls boutons qui répondent sont
  * ceux de la bulle — on ne veut pas que quelqu'un ouvre la recherche au milieu d'une
  * phrase qui parle d'autre chose, et retrouve l'accueil sans savoir ce qui l'a quitté.
+ *
+ * **Le geste de retour, lui, sort toujours**, et il vaut « Passer ». Un écran qui prend
+ * tous les appuis doit garder une porte que le mécanisme d'interception ne peut pas
+ * fermer : celle-ci n'arrive pas par l'arbre de pointeurs mais par l'activité. Sans elle,
+ * la moindre panne d'appui enferme pour de bon — ce qui est arrivé.
  *
  * [decisions]: docs/11-decisions.md
  */
@@ -90,6 +96,22 @@ internal fun GuidedTour(
     onConfigureAi: () -> Unit,
     onFinish: () -> Unit,
 ) {
+    // **Le retour du systeme congedie le tour**, comme  Passer .
+    //
+    // C'est une sortie que rien ne peut avaler : le geste arrive par l'activite, et non
+    // par l'arbre de pointeurs que le voile intercepte. Quoi qu'il advienne des appuis --
+    // une consommation de trop, une bulle hors ecran, une boite systeme qui prend le
+    // dessus --, il reste une porte.
+    //
+    // Elle n'existait pas, et son absence a couté cher : un utilisateur bloque devant la
+    // premiere bulle n'avait aucun moyen d'en sortir, et le retour le faisait quitter
+    // l'application -- l'accueil ne retient le geste que lorsqu'on regarde un autre jour.
+    //
+    // `onFinish` et non une fermeture passagere : quelqu'un qui fait demi-tour devant la
+    // premiere bulle a repondu. Reposer la question au lancement suivant serait la
+    // reposer indefiniment, et c'est precisement le piege qu'on vient de refermer.
+    BackHandler { onFinish() }
+
     val cible = step.target?.let { anchors[it] }
 
     SuitLaCible(step, anchors, scroll, cible != null) { cible }
