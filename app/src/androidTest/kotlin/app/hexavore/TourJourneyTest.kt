@@ -1,5 +1,7 @@
 package app.hexavore
 
+import android.Manifest
+import android.os.Build
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -76,6 +78,29 @@ class TourJourneyTest {
             JourneyGraph::class.java,
         )
 
+    /**
+     * **La permission de notifier est accordée d'avance**, pour que sa boîte ne vienne pas.
+     *
+     * L'accueil la demande à son premier affichage ([FirstRunNotificationRequest]), et la
+     * boîte du système se pose **par-dessus le tour** : elle possède l'entrée, l'accueil ne
+     * répond plus, et ces tests-ci regardaient alors une boîte au lieu d'une bulle.
+     *
+     * La collision est réelle et elle a son propre test dans [PremierLancementTest], qui
+     * parcourt le premier lancement tel qu'il arrive. Ici on l'écarte : ce fichier répond à
+     * une question — *le tour se laisse-t-il congédier* — et une boîte système devant lui
+     * empêche d'y répondre.
+     */
+    @Before
+    fun laPermissionDeNotifierEstAccordee() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        runCatching {
+            instrumentation.uiAutomation.grantRuntimePermission(
+                instrumentation.targetContext.packageName,
+                Manifest.permission.POST_NOTIFICATIONS,
+            )
+        }
+    }
+
     @Before
     fun unProfilExisteEtLeTourNaPasEteVu() = runBlocking {
         val aujourdHui = graph.clock().today()
@@ -126,11 +151,17 @@ class TourJourneyTest {
     }
 
     /**
-     * **« Passer » passe.**
+     * **« Passer » passe — au clic immobile.**
      *
-     * Le cas signalé, dans sa forme la plus courte. Un clic d'UiAutomator suffit à le
-     * reproduire : son geste de clic rend des `ACTION_MOVE` pendant la pause du
-     * tap-timeout, exactement comme un doigt.
+     * ### C'est le témoin, et il est vert
+     *
+     * Le clic d'UiAutomator enfonce et relâche **au même pixel**. Ce test passe, et son
+     * jumeau [passer_congedie_le_tour_quand_le_doigt_bouge] échoue : même bouton, même
+     * état, même instant — un seul pixel de mouvement les sépare.
+     *
+     * Ces deux méthodes ne se doublonnent donc pas, elles **encadrent** le défaut. Garder
+     * celle-ci verte est ce qui prouve que l'échec de l'autre vient du geste et de rien
+     * d'autre — ni d'une bulle mal placée, ni d'une boîte système, ni d'un libellé changé.
      */
     @Test
     fun passer_congedie_le_tour() {
