@@ -360,6 +360,13 @@ class TourJourneyTest {
      * nulle, ou qui touche le bord, est un bouton qu'on ne peut pas viser.
      */
     private fun exigeUnBoutonEntierementVisible(bouton: String, etape: String) {
+        // **On attend le bouton avant de le mesurer.** La bulle se pose en deux temps :
+        // elle se place a zero le temps d'une image, puis se repositionne une fois sa
+        // hauteur connue (D147). Mesurer sans attendre, c'est mesurer pendant ce
+        // battement -- et l'etape de l'IA, la seule qui ne designe rien et se centre, est
+        // celle ou il se voyait.
+        ecran.attendLeLibelle(bouton)
+
         val cadre = ecran.cadre(bouton)
         assertTrue(
             "L'etape  $etape  ne montre pas  $bouton  dans l'ecran." +

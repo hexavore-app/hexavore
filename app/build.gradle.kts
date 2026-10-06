@@ -151,6 +151,17 @@ android {
         // methodes.
         execution = "ANDROIDX_TEST_ORCHESTRATOR"
 
+        // **Les animations sont coupees pendant les tests sur appareil.**
+        //
+        // UiAutomator attend une fenetre au repos avant de repondre, et le tour ne lui en
+        // laisse jamais : son defilement automatique deplie le calendrier, qui s'anime a
+        // son tour. La traversee des quatorze bulles echouait donc sur une bulle qui etait
+        // pourtant a l'ecran -- le diagnostic de l'echec la citait mot pour mot.
+        //
+        // Ce n'est pas un contournement : un test sur appareil juge ce qui s'affiche, pas
+        // la duree des transitions. Les animations ont leurs propres garde-fous ailleurs.
+        animationsDisabled = true
+
         /**
          * Les versions d'Android sur lesquelles le tour d'ecrans se joue.
          *

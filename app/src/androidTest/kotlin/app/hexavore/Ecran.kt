@@ -7,7 +7,6 @@ import android.view.accessibility.AccessibilityWindowInfo
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiObject2
-import androidx.test.uiautomator.Until
 import org.junit.Assert.fail
 
 /**
@@ -35,9 +34,35 @@ internal class Ecran(private val instrumentation: Instrumentation) {
 
     fun texte(id: Int): String = instrumentation.targetContext.getString(id)
 
+    /**
+     * Tout ce que l'écran porte à l'instant : les textes, puis les descriptions.
+     *
+     * ### Une seule lecture pour chercher et pour raconter
+     *
+     * [estLa] et [ceQuOnVoit] passaient par deux mécanismes différents — un sélecteur
+     * `By.textContains` d'un côté, une énumération des nœuds de l'autre. Ils se sont
+     * contredits : la traversée du tour a échoué vingt fois de suite sur une bulle que son
+     * propre message d'échec citait mot pour mot.
+     *
+     * **Un oracle qui se dément dans sa propre phrase ne vaut rien**, et il m'a coûté deux
+     * fausses pistes avant que je le regarde. Les deux lisent donc la même chose, et la
+     * comparaison se fait en Kotlin plutôt que par l'expression régulière que
+     * `By.textContains` construit — celle-ci bute sur ce que les nœuds de Compose portent
+     * réellement.
+     *
+     * Chaque lecture est protégée : un nœud peut disparaître entre l'instant où on le
+     * liste et celui où on le lit.
+     */
+    private fun libelles(): List<String> {
+        val tout = Regex(".+").toPattern()
+        return runCatching {
+            device.findObjects(By.text(tout)).mapNotNull { runCatching { it.text }.getOrNull() } +
+                device.findObjects(By.desc(tout)).mapNotNull { runCatching { it.contentDescription }.getOrNull() }
+        }.getOrDefault(emptyList())
+    }
+
     /** Ce libellé est-il à l'écran **à l'instant** ? Sans attendre, pour pouvoir le nier. */
-    fun estLa(libelle: String): Boolean = device.hasObject(By.textContains(libelle)) ||
-        device.hasObject(By.descContains(libelle))
+    fun estLa(libelle: String): Boolean = libelles().any { it.contains(libelle) }
 
     /**
      * Ce libellé paraît-il, **en texte ou en description** ?
@@ -46,8 +71,11 @@ internal class Ecran(private val instrumentation: Instrumentation) {
      * son titre et son explication dans une seule description, et le même libellé est du
      * texte partout ailleurs.
      */
-    fun voit(libelle: String): Boolean = device.wait(Until.hasObject(By.textContains(libelle)), PAS_MS) == true ||
-        device.wait(Until.hasObject(By.descContains(libelle)), PAS_MS) == true
+    fun voit(libelle: String): Boolean {
+        if (estLa(libelle)) return true
+        device.waitForIdle(PAS_MS)
+        return estLa(libelle)
+    }
 
     fun attend(id: Int) = attendLeLibelle(texte(id))
 
@@ -56,6 +84,17 @@ internal class Ecran(private val instrumentation: Instrumentation) {
      *
      * Un nombre d'essais et non une échéance : lire l'horloge système est ce que ce dépôt
      * évite partout ailleurs, et chaque essai attend déjà par lui-même.
+     */
+    /**
+     * **On regarde d'abord, on attend ensuite.**
+     *
+     * `UiDevice.wait` veut une fenêtre au repos, et le tour n'en offre pas : son
+     * défilement automatique déplie le calendrier, qui s'anime, si bien que l'écran ne
+     * devient jamais inactif. L'attente échouait alors sur une bulle qui était pourtant
+     * là — le diagnostic de l'échec la citait mot pour mot.
+     *
+     * Une lecture immédiate n'a pas ce défaut. L'attente reste derrière elle pour le cas
+     * inverse, celui d'un écran qui n'est pas encore arrivé.
      */
     fun attendLeLibelle(libelle: String) {
         repeat(ESSAIS) { if (voit(libelle)) return }
@@ -188,16 +227,24 @@ internal class Ecran(private val instrumentation: Instrumentation) {
      * pas seulement qu'il s'est arrêté : sans cela, chaque échec demande de rejouer la
      * session à la main sur l'émulateur concerné.
      */
-    fun ceQuOnVoit(): String {
-        val tout = Regex(".+").toPattern()
-        return runCatching {
-            device.findObjects(By.text(tout)).mapNotNull { runCatching { it.text }.getOrNull() } +
-                device.findObjects(By.desc(tout)).mapNotNull { runCatching { it.contentDescription }.getOrNull() }
-        }.getOrDefault(emptyList()).distinct().joinToString(separator = " | ").take(EXTRAIT)
-    }
+    fun ceQuOnVoit(): String = libelles().distinct().joinToString(separator = " | ").take(EXTRAIT)
 
-    private fun trouve(libelle: String): UiObject2? =
-        device.findObject(By.textContains(libelle)) ?: device.findObject(By.descContains(libelle))
+    /**
+     * Le nœud qui porte ce libellé, cherché **comme [libelles] le lit**.
+     *
+     * Pas `By.textContains` : l'expression régulière qu'il construit ne retrouve pas tout
+     * ce que les nœuds de Compose portent, et c'est ce désaccord entre le chercheur et le
+     * raconteur qui a envoyé ce fichier sur deux fausses pistes. Une seule lecture, donc,
+     * et la comparaison se fait en Kotlin.
+     */
+    private fun trouve(libelle: String): UiObject2? {
+        val tout = Regex(".+").toPattern()
+        fun porte(valeur: String?) = valeur?.contains(libelle) == true
+        return device.findObjects(By.text(tout))
+            .firstOrNull { porte(runCatching { it.text }.getOrNull()) }
+            ?: device.findObjects(By.desc(tout))
+                .firstOrNull { porte(runCatching { it.contentDescription }.getOrNull()) }
+    }
 
     internal companion object {
         /** Vingt essais d'une demi-seconde : vingt secondes par recherche. */

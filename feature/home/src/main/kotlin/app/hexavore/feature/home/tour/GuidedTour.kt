@@ -357,15 +357,47 @@ private fun Actions(
 }
 
 /**
- * Le voile avale les gestes : pendant un tour, seule la bulle répond.
+ * Le voile retient les gestes, **sans les consommer**.
  *
  * `pointerInput` et non `clickable` : on ne veut ni l'ondulation, ni le rôle de bouton
  * annoncé au lecteur d'écran. Ce n'est pas un bouton, c'est un mur.
+ *
+ * ### Pourquoi il ne consomme rien
+ *
+ * Il l'a fait, et c'est ce qui a enfermé un utilisateur dans le tour pendant toute la
+ * 0.8.0. Ce modificateur est posé **au-dessus de la bulle dans l'arbre** : consommer sur
+ * la passe `Main`, c'est consommer **après** les boutons, qui ont déjà commencé leur
+ * appui. Or `Modifier.clickable` annule son appui dès qu'il voit un changement consommé
+ * sur la passe `Final` — autrement dit au premier `ACTION_MOVE` qui suit l'enfoncement.
+ *
+ * Un doigt tremble toujours. Une souris posée sur un pixel, non. Le tour marchait donc
+ * sur la machine de développement et sur aucun téléphone : **un pixel de mouvement
+ * séparait l'appui reçu de l'appui mort**, et le testeur qui s'en est sorti l'a fait avec
+ * un auto-clicker.
+ *
+ * ### Ce qui retient l'accueil, alors
+ *
+ * La **présence** du nœud, et elle seule. Compose teste les frères du dessus vers le bas
+ * et **s'arrête au premier qui est touché** : ce mur-ci couvre tout l'écran, il est donc
+ * toujours celui-là, et le `Scaffold` qui vit dessous n'entre jamais dans le trajet du
+ * geste. Rien n'a besoin d'être consommé pour qu'il ne reçoive rien.
+ *
+ * La bulle, elle, reste **en dessous de ce mur dans l'arbre** : il voit donc tous ses
+ * appuis, comme avant. Ce qui change est qu'il les laisse passer — un bouton qui a
+ * commencé son appui va maintenant jusqu'au bout.
+ *
+ * C'est `le_voile_retient_ce_qui_est_dessous` qui tient cette moitié-là, et il était vert
+ * avant la correction comme après : c'est pour ça qu'il a été écrit alors qu'il passait
+ * déjà. Une correction qui aurait rendu la bulle cliquable en ouvrant l'accueil aurait
+ * déplacé le défaut au lieu de le réparer, et lui seul pouvait le dire.
+ *
+ * La boucle paraît ne rien faire. C'est exact, et c'est le but : elle existe pour que le
+ * nœud existe.
  */
 private fun Modifier.blockingTaps(): Modifier = pointerInput(Unit) {
     awaitPointerEventScope {
         while (true) {
-            awaitPointerEvent().changes.forEach { it.consume() }
+            awaitPointerEvent()
         }
     }
 }
