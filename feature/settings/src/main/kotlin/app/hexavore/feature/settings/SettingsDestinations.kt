@@ -3,6 +3,7 @@ package app.hexavore.feature.settings
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import app.hexavore.domain.diary.FavoriteDishId
 import kotlinx.serialization.Serializable
 
 /**
@@ -49,6 +50,14 @@ data object PhotoSettingsDestination
 @Serializable
 data object AiExchangesDestination
 
+/** Les plats enregistrés, et le chemin pour les corriger. Aucun argument. */
+@Serializable
+data object FavoritesSettingsDestination
+
+/** Le dépôt, le site et l'adresse. Aucun argument. */
+@Serializable
+data object ContactDestination
+
 fun NavController.navigateToSettings() = navigate(SettingsDestination)
 
 /**
@@ -58,7 +67,17 @@ fun NavController.navigateToSettings() = navigate(SettingsDestination)
  * précédent**. Le module ne sait pas lequel c'est, ce qui lui évite de dépendre de
  * `:feature:home`.
  */
-fun NavGraphBuilder.settingsScreens(navController: NavController) {
+fun NavGraphBuilder.settingsScreens(
+    navController: NavController,
+    /**
+     * Ouvre un favori pour le corriger.
+     *
+     * Elle vient de `:app` parce que l'écran est celui de la saisie : ce module ne
+     * dépend pas de `:feature:entry`, et c'est ce qui l'empêche de devenir le carrefour
+     * de tous les autres (D149).
+     */
+    onEditFavorite: (FavoriteDishId) -> Unit,
+) {
     composable<SettingsDestination> {
         SettingsHubRoute(
             sections = SettingsSections(
@@ -69,6 +88,8 @@ fun NavGraphBuilder.settingsScreens(navController: NavController) {
                 onOpenPhotos = { navController.navigate(PhotoSettingsDestination) },
                 onOpenNotices = { navController.navigate(NoticeSettingsDestination) },
                 onOpenAppearance = { navController.navigate(AppearanceDestination) },
+                onOpenFavorites = { navController.navigate(FavoritesSettingsDestination) },
+                onOpenContact = { navController.navigate(ContactDestination) },
             ),
             onClose = { navController.popBackStack() },
         )
@@ -99,5 +120,11 @@ fun NavGraphBuilder.settingsScreens(navController: NavController) {
     }
     composable<AiExchangesDestination> {
         AiExchangesRoute(onClose = { navController.popBackStack() })
+    }
+    composable<FavoritesSettingsDestination> {
+        FavoritesSettingsRoute(onClose = { navController.popBackStack() }, onEdit = onEditFavorite)
+    }
+    composable<ContactDestination> {
+        ContactRoute(onClose = { navController.popBackStack() })
     }
 }

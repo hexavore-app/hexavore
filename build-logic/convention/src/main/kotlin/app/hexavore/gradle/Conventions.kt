@@ -9,6 +9,7 @@ import org.gradle.api.artifacts.VersionCatalog
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.testing.Test
+import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -77,7 +78,28 @@ internal fun Project.configureAndroidCommon(extension: CommonExtension<*, *, *, 
         compileOptions {
             sourceCompatibility = JavaVersion.toVersion(jvm)
             targetCompatibility = JavaVersion.toVersion(jvm)
+
+            // Le désucrage de la bibliothèque standard, pour tout module Android.
+            //
+            // **Android n'a pas le `java.time` qu'on compile.** Celui de l'API 26 s'arrête
+            // à Java 8 ; les ajouts de Java 9 n'arrivent qu'à l'API 31. Un appel comme
+            // `LocalTime.ofInstant` compile, passe toute l'analyse statique, et lève un
+            // `NoSuchMethodError` sur un téléphone sous Android 11 — c'est arrivé
+            // ([D139][decisions]), et rien dans le dépôt ne pouvait l'attraper :
+            // `NewApi` ne regarde pas `:domain`, qui est du Kotlin pur.
+            //
+            // D8 réécrit désormais ces appels vers une implémentation embarquée. Le
+            // désucrage porte sur **tout ce qui est dexé**, donc sur les modules JVM
+            // comme sur les autres : c'est ce qui en fait un garde-fou et non un
+            // rappel ([D140][decisions]).
+            //
+            // [decisions]: docs/11-decisions.md
+            isCoreLibraryDesugaringEnabled = true
         }
+    }
+
+    dependencies {
+        add("coreLibraryDesugaring", catalogLibrary("desugar-jdk-libs"))
     }
 
     // Sur la tache plutot que sur l'extension Kotlin : la meme ligne vaut alors

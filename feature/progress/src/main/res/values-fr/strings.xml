@@ -8,7 +8,7 @@
          l\'autre qu\'on tient sa fourchette. -->
     <string name="progress_streak_logging">Série de saisie</string>
     <string name="progress_streak_logging_hint">Jours d\'affilée avec au moins un plat</string>
-    <string name="progress_streak_perfect">Série parfaite</string>
+    <string name="progress_streak_perfect">Série dorée</string>
     <string name="progress_streak_perfect_hint">Jours d\'affilée passés dans votre fourchette</string>
 
     <plurals name="progress_days">
@@ -29,7 +29,7 @@
 
     <string name="progress_name_streak">%1$d jours d\'affilée</string>
     <string name="progress_name_volume">%1$d plats notés</string>
-    <string name="progress_name_perfect">%1$d journées parfaites d\'affilée</string>
+    <string name="progress_name_perfect">%1$d journées dorées d\'affilée</string>
     <string name="progress_name_first_scan">Premier scan</string>
     <string name="progress_name_first_photo">Première photo</string>
     <string name="progress_name_first_text">Première description</string>

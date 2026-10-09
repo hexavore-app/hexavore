@@ -3,6 +3,7 @@ package app.hexavore.feature.entry
 import androidx.compose.runtime.Immutable
 import app.hexavore.domain.diary.DraftLineId
 import app.hexavore.domain.diary.MealMoment
+import java.time.LocalDate
 
 /**
  * Ce que l'écran de validation peut déclencher.
@@ -47,6 +48,14 @@ internal data class EntryActions(
      * [decisions]: docs/11-decisions.md
      */
     val onReport: (subject: String, body: String) -> Unit,
+    /** Recopier ce plat sur un autre jour. L'original reste, et l'écran aussi (D144). */
+    val onCopyTo: (LocalDate) -> Unit,
+    /** Le jour de la copie a été annoncé : il n'y a plus de nouvelle à donner. */
+    val onCopyShown: () -> Unit,
+    /** L'échec du signalement a été annoncé. */
+    val onReportFailureShown: () -> Unit,
+    /** Supprimer ce plat, une fois la confirmation donnee. */
+    val onDelete: () -> Unit,
     /** La boîte de nom se referme sans rien enregistrer. */
     val onDismissNaming: () -> Unit,
     val onFavorite: (String) -> Unit,

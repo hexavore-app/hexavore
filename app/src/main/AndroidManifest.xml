@@ -17,6 +17,15 @@
         android:theme="@style/Theme.Hexavore"
         android:usesCleartextTraffic="false">
 
+        <!--
+          La fenetre se retrecit quand le clavier s'ouvre, et c'est dit ici.
+
+          Elle le faisait deja, par defaut, sans que personne l'ait ecrit : l'ecran
+          posait donc par-dessus une marge de clavier qui s'ajoutait a un
+          retrecissement deja fait, et la barre du bas remontait de deux hauteurs de
+          clavier. Le defaut se corrige en declarant ce sur quoi on s'appuie, pas en
+          compensant ce qu'on n'a pas declare (D153).
+        -->
         <activity
             android:name=".MainActivity"
             android:exported="true"

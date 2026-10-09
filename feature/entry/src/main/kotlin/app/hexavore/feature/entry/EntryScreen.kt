@@ -88,7 +88,11 @@ internal fun EntryRoute(
                 onFavorite = viewModel.favorite::save,
                 onUnfavorite = viewModel.favorite::remove,
                 onRemovePhoto = viewModel::onRemovePhoto,
-                onReport = { reportSubject, reportBody -> viewModel.onReport(reportSubject, reportBody) },
+                onReport = viewModel.filing::report,
+                onCopyTo = viewModel.filing::copyTo,
+                onCopyShown = viewModel.filing::copyShown,
+                onReportFailureShown = viewModel.filing::reportFailureShown,
+                onDelete = viewModel.filing::delete,
                 onRetry = viewModel::onRetry,
                 onClose = onClose,
             )
@@ -158,6 +162,9 @@ private fun DraftEditor(state: EntryUiState.Content, actions: EntryActions) {
         scope = scope,
         onFlag = { flagged = it },
     )
+
+    AnnonceLaCopie(state.copiedTo, dateFormatter, snackbarHostState, actions.onCopyShown)
+    AnnonceLEchecDuSignalement(state.reportFailed, snackbarHostState, actions.onReportFailureShown)
 
     Box(
         modifier = Modifier

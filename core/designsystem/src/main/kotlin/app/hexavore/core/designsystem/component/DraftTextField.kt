@@ -284,6 +284,19 @@ private fun CompactField(
                         enabled = true,
                         isError = false,
                         interactionSource = interactions,
+                        // **Un fond, et non un simple contour.** Le champ compact vit
+                        // dans la barre du bas, sur `surfaceContainerHigh` : un
+                        // contour seul s'y fondait, et beaucoup de gens ne voyaient
+                        // pas qu'on pouvait ecrire la ([D143][decisions]). Le ton le
+                        // plus bas s'en detache dans les deux themes -- plus clair sur
+                        // le clair, plus sombre sur le sombre -- sans devenir un
+                        // bouton.
+                        //
+                        // [decisions]: docs/11-decisions.md
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                        ),
                         shape = RoundedCornerShape(Radius.field),
                     )
                 },

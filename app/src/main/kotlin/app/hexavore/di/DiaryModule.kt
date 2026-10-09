@@ -1,5 +1,6 @@
 package app.hexavore.di
 
+import app.hexavore.BuildConfig
 import app.hexavore.data.diary.DishPhotoFiles
 import app.hexavore.data.diary.RoomDiaryRepository
 import app.hexavore.data.diary.RoomFavoriteDishes
@@ -9,6 +10,10 @@ import app.hexavore.domain.diary.DishPhotos
 import app.hexavore.domain.diary.FavoriteDishes
 import app.hexavore.domain.diary.PhotoBytes
 import app.hexavore.domain.food.FoodCitations
+import app.hexavore.domain.time.Clock
+import app.hexavore.domain.usecase.HideTourSample
+import app.hexavore.domain.usecase.ShowTourSample
+import app.hexavore.feature.home.tour.TourReplay
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -85,4 +90,45 @@ object DiaryModule {
      */
     @Provides
     fun photoBytes(files: DishPhotoFiles): PhotoBytes = files
+
+    /**
+     * Les plats d'exemple du tour guidé, posés puis repris.
+     *
+     * Ils passent par le **vrai dépôt** : l'hexagone, les compteurs et la liste lisent
+     * tous le journal, et un jeu de données posé à côté aurait demandé de doubler ce
+     * chemin dans chacun d'eux ([D141][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    @Provides
+    fun showTourSample(diary: DiaryRepository, clock: Clock): ShowTourSample = ShowTourSample(diary, clock)
+
+    @Provides
+    fun hideTourSample(diary: DiaryRepository): HideTourSample = HideTourSample(diary)
+
+    /**
+     * Le tour se rejoue-t-il a chaque lancement ?
+     *
+     * **La variante publiee ne peut pas repondre oui**, et c'est tout l'interet d'avoir
+     * sorti ce reglage du tour : il ne depend plus de quelqu'un pour penser a le
+     * remettre a sa place avant de livrer. Le dial ci-dessous ne vaut que dans `debug`,
+     * la ou l'on regarde le tour vingt fois de suite sans effacer ses donnees entre
+     * deux essais.
+     *
+     * Le souvenir, lui, s'ecrit dans les deux variantes, et c'est lui qui decide :
+     * le tour se joue une fois, puis plus jamais tant qu'on y a repondu.
+     */
+    @Provides
+    fun tourReplay(): TourReplay = if (BuildConfig.DEBUG) TourReplay(REJOUE_LE_TOUR) else TourReplay.NEVER
 }
+
+/**
+ * Le dial d'essai, **sans effet hors de la variante `debug`**.
+ *
+ * `false` est sa place au repos : le tour se joue une fois, et le souvenir decide seul.
+ * Le passer a `true` le fait rejouer a chaque lancement, ce qui sert a le regarder dix
+ * fois de suite sans effacer les donnees entre deux essais. L'oublier a `true` ne coute
+ * rien a personne d'autre qu'a celui qui developpe : la variante publiee recoit
+ * [TourReplay.NEVER] et ne peut rien recevoir d'autre.
+ */
+private const val REJOUE_LE_TOUR = false

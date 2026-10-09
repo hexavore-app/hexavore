@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Ce que le mode sombre change aux couleurs que le systeme lit lui-meme.
+
+  Une seule pour l'instant : la teinte des notifications. Le theme n'assombrit
+  les six neons que pour le mode clair, et une notification posee sur un volet
+  sombre doit retrouver le neon d'origine (D152).
+-->
+<resources>
+    <color name="neon_notification">#FF00E5FF</color>
+</resources>

@@ -4828,6 +4828,431 @@ La condition regarde maintenant la **taille**. Et la recopie efface la cible ava
 
 ---
 
+## D140 â Une alerte attend d'avoir quelque chose Ã  dire, et le dÃ©sucrage ferme la porte Â· â validÃ©e
+
+**Contexte.** Deux suites de [D139](#d139--lapplication-tient-depuis-android-11-et-un-tour-dÃ©crans-le-vÃ©rifie---validÃ©e), de natures diffÃ©rentes : une alerte qui se dÃ©mentait, et un garde-fou qui manquait.
+
+### Le rouge attendait de savoir
+
+Ã chaque ouverture, la barre du bas s'affichait une demi-seconde en **rouge** â champ verrouillÃ©, appareil photo barrÃ©, avertissement â puis redevenait normale. Chez quelqu'un qui a une clÃ©, donc, l'application annonÃ§ait son absence avant de se corriger.
+
+La cause tient en un mot : `initialValue = false`. Lire le dÃ©pÃ´t et dÃ©chiffrer la clÃ© prend ce temps-lÃ , et partir de `false` revient Ã  **affirmer** qu'il n'y a pas de clÃ© tant qu'on n'a pas regardÃ©.
+
+**`null` plutÃ´t que `false`**, c'est-Ã -dire *on ne sait pas encore*, et la barre ne montre le verrou que sur un `false` avÃ©rÃ©. C'est dÃ©jÃ  l'idiome du dÃ©pÃ´t : `StartDestinationViewModel` ne pose rien tant qu'il ignore oÃ¹ dÃ©marrer, et pour la mÃªme raison.
+
+**Ce que coÃ»te l'inverse n'est pas cosmÃ©tique.** Le mode dÃ©gradÃ© est devenu voyant exprÃ¨s ([D136](#d136--trois-gestes-qui-manquaient-Ã -lusage---validÃ©e)) : il doit se voir. Une alerte qui apparaÃ®t Ã  chaque ouverture et se dÃ©ment aussitÃ´t apprend Ã  ne plus lire les alertes, et c'est prÃ©cisÃ©ment celle-lÃ  qu'on avait besoin de rendre lisible.
+
+Le cas symÃ©trique â quelqu'un **sans** clÃ© voit le neutre une demi-seconde avant le rouge â est le bon sens de la marche : le rouge est son Ã©tat stable, il arrive et il reste.
+
+### Le dÃ©sucrage, et ce qu'on croyait savoir
+
+[D139](#d139--lapplication-tient-depuis-android-11-et-un-tour-dÃ©crans-le-vÃ©rifie---validÃ©e) corrigeait **un** appel de Java 9. Rien n'empÃªchait le suivant d'entrer : `NewApi` ne regarde pas `:domain`, qui est du Kotlin pur, et la JVM du poste a toutes les mÃ©thodes.
+
+`coreLibraryDesugaring` est activÃ© pour tout module Android. D8 rÃ©Ã©crit les appels manquants vers une implÃ©mentation embarquÃ©e, et il le fait sur **tout ce qui est dexÃ©** â donc sur les modules JVM comme sur les autres. C'est ce qui en fait un garde-fou et non un rappel.
+
+**On aurait pu croire que `minSdk = 26` rendait la chose inutile**, puisque `java.time` existe Ã  partir de lÃ . C'est faux, et c'est tout le sujet : l'API 26 porte le `java.time` de Java 8, pas celui de Java 9. La vÃ©rification a Ã©tÃ© faite en remplaÃ§ant **exprÃ¨s** l'appel corrigÃ© par `LocalTime.ofInstant`, puis en rejouant le tour d'Ã©crans sous Android 11 : il passe, sans `NoSuchMethodError`. Sans dÃ©sucrage, le mÃªme binaire fermait l'application.
+
+**L'appel corrigÃ© reste corrigÃ©.** Les deux ne font pas double emploi : `atZone(...).toLocalTime()` dit la mÃªme chose sans rien demander Ã  personne, et le dÃ©sucrage couvre ce que la prochaine distraction Ã©crira.
+
+**CoÃ»t.** L'APK de dÃ©bogage ne bouge pas de faÃ§on mesurable. Celui qui est publiÃ© passe par R8, qui ne garde que ce qui sert.
+
+**Ce que le vert ne prouve pas.** **Que le dÃ©sucrage couvre tout Java 9+.** Il couvre ce que la spÃ©cification de `desugar_jdk_libs` dÃ©clare, et cette liste n'est pas la bibliothÃ¨que standard entiÃ¨re. Ce qui est tenu, c'est le cas qui a cassÃ© â et il l'est par un essai, pas par une lecture.
+
+---
+
+## D141 — Le premier lancement se raconte sur l'application elle-même · ✓ validée
+
+**Contexte.** L'onboarding pose cinq questions et calcule un objectif. Puis il rend la main sur un accueil **vide**, où un hexagone sans aires et six compteurs à zéro n'expliquent rien, et où trois boutons attendent qu'on devine ce qu'ils font. Le geste le plus utile de l'application — décrire son repas en une phrase — est aussi le moins visible, et il demande une clé que personne n'a.
+
+### Des bulles sur l'application réelle
+
+Un voile assombrit l'écran **sauf** ce dont la bulle parle. Le trou se découpe en `BlendMode.Clear` dans une couche hors écran, et chaque élément concerné dépose lui-même sa position : la bulle tombe donc à côté du bouton dont elle parle, quelle que soit la taille de l'écran ou la langue.
+
+**Et non un diaporama.** Des images auraient expliqué une application qui n'est pas à l'écran, et auraient vieilli à la première refonte. Ici il n'y a rien à maintenir en double : ce qu'on montre est ce qui tourne.
+
+### Une journée qui n'a jamais eu lieu
+
+Trois plats d'exemple sont écrits **dans le vrai journal** au début du tour, et repris à la fin. Un par source — une phrase, une photo, une recherche — pour que la liste montre ses trois pastilles de provenance.
+
+Ils passent par le dépôt parce que l'hexagone, les compteurs, la liste et l'anneau de niveau lisent tous le journal : un jeu de données posé à côté aurait demandé de doubler ce chemin dans chacun d'eux. Le prix est qu'il faut les reprendre, et leurs identifiants sont **fixes** : c'est ce qui permet de les retrouver au lancement suivant quand l'application a été fermée au milieu, plutôt que de laisser trois plats fantômes chez quelqu'un.
+
+### L'IA en avant-dernier, et le refus montré
+
+La proposition de clé arrive **après** qu'on a vu à quoi elle sert. Proposée en premier, elle n'est qu'une demande. L'étape dit en gros que **Gemini est gratuit** ([D138](#d138--lia-se-tient-mieux-et-lapplication-sait-dire-ce-qui-a-raté---validée)) et offre deux issues de même poids : *Configurer* et *Plus tard*.
+
+**Un refus mène à une dernière bulle**, et pas à un silence : elle désigne la barre rouge et dit exactement ce qui manque, ce qui continue de marcher, et où poser une clé plus tard. Le mode dégradé est voyant depuis [D136](#d136--trois-gestes-qui-manquaient-à-lusage---validée) ; il lui manquait une phrase.
+
+### Il revient tant qu'on n'y a pas répondu
+
+Le souvenir se pose **à la fin**, et sur les deux seules fins qui sont une réponse : « Passer » et « J'ai compris ». Fermer l'application au milieu d'une bulle ne décide rien, et un tour qui disparaîtrait là-dessus aurait été manqué par celui-là même qu'il visait — le premier lancement est la seule fois où il sert à quelque chose.
+
+**Partir poser une clé n'est pas une réponse non plus.** Quelqu'un qui appuie sur « Configurer » va faire ce que le tour lui demandait : il le retrouve au retour, et la barre y est déverrouillée, ce qu'il était précisément venu voir.
+
+### ConsÃ©quences
+
+Le tour vit dans `:feature:home` parce qu'il se dessine par-dessus l'accueil et lit les positions de ses éléments ; un module à part aurait inversé la dépendance pour rien. Son souvenir est rangé avec les pastilles — l'état de ce que l'écran a déjà dit — et non avec les clés : effacer sa clé d'IA ne doit pas rejouer un tour qu'on a vu.
+
+**Ce que le vert ne prouve pas.** **Que six bulles soient le bon nombre.** C'est le minimum pour couvrir ce qui ne se devine pas ; c'est peut-être déjà deux de trop pour qui veut noter son dîner. Le bouton « Passer » est là pour ça, et il est visible dès la première.
+
+**Que le trou tombe juste partout.** Les positions sont mesurées, donc justes par construction — mais une cible hors de l'écran n'a pas d'ancre, et la bulle parle alors sans rien désigner. Aucune des six n'est dans ce cas aujourd'hui.
+
+---
+
+## D142 — Les lignes sans valeurs, et pourquoi elles arrivaient jusqu'à l'écran · ✓ validée
+
+**Contexte.** Trois signalements, tous de la même forme : des lignes affichées avec un nom, une quantité, et **« ? kcal »**. « travers de porc : 200 g, ? » à côté de « Sauce barbecue, préemballée : 20 g, 27 kcal ».
+
+La forme dit la cause : les lignes complètes portent un **nom du catalogue**, les lignes vides portent le **libellé du modèle**. Ce sont exactement celles que le catalogue n'a pas rejointes — et que le repli d'estimation aurait dû remplir.
+
+### Le repli ne partait pas, ou partait pour rien
+
+Trois défauts se sont additionnés, chacun silencieux.
+
+**Le critère était interne.** `completedByEstimate` ne regardait que les lignes de verdict `NONE`. Une fiche choisie par le modèle mais vide, une fiche `REVIEW` sans valeurs : l'écran affichait « ? », et l'estimation ne partait pas. Le critère est maintenant **celui que l'utilisateur voit** — une ligne sans énergie — et non un classement que lui seul connaissait.
+
+**Le rapprochement était exact.** Les estimations revenaient dans une table indexée par libellé, et la recherche se faisait par égalité de chaînes. Une majuscule, un accent, un mot en plus, et la ligne restait vide **sans que rien ne le dise**. Les libellés sont désormais normalisés comme partout ailleurs dans la résolution, et le **rang** sert de filet quand ils ne se rejoignent toujours pas : le modèle répond dans l'ordre où on demande.
+
+**L'analyse approfondie était un réglage.** Éteinte, le modèle rend des libellés et l'application les cherche seule ; allumée, le modèle voit les fiches et choisit. La première voie produit beaucoup plus de lignes vides. Un interrupteur dont une position est toujours moins bonne n'est pas un choix : il disparaît, et l'analyse approfondie se fait **dès que le fournisseur sait appeler des outils**.
+
+### Le signalement montrait le mauvais tour
+
+Les trois traces jointes montraient toutes le **premier** appel d'une analyse profonde — la recherche au catalogue — là où le défaut se voit au dernier. `DraftReporting` prenait `lastOrNull()` d'un journal rendu **du plus récent au plus ancien** ([AiExchangeLog][ia]) : il joignait donc systématiquement le plus vieil échange gardé.
+
+C'est un défaut du défaut : l'outil fait pour comprendre les pannes en cachait une partie. Trois rapports ont été envoyés avec la mauvaise pièce jointe avant qu'on s'en aperçoive.
+
+[ia]: docs/05-ia.md
+
+**Conséquences.** `DeepAnalysisSettings` quitte l'écran d'IA et le chemin des identifiants. `activeConfiguration()` ne prend plus de paramètre : la seule question est la capacité du fournisseur.
+
+**Ce que le vert ne prouve pas.** **Qu'il n'y ait plus de trous.** Les trois causes trouvées sont fermées ; une quatrième — un estimateur qui répond à côté, un fournisseur qui refuse — laisserait encore une ligne vide. Ce qui est tenu, c'est qu'elle ne le restera plus **en silence par construction**.
+
+**Que l'estimation soit juste.** Elle ne l'est pas : elle est signalée comme estimation, et c'est tout ce qu'elle prétend être. Mieux vaut un ordre de grandeur marqué qu'un champ vide qu'on remplira au jugé.
+
+---
+
+## D143 — Le tour désigne un élément, et neuf détails cessent de se faire deviner · ✓ validée
+
+**Contexte.** Le tour guidé de [D141](#d141--le-premier-lancement-se-raconte-sur-lapplication-elle-même---validée) marchait, et il expliquait mal. À côté de lui, une série de choses que l'application laissait deviner — chacune minuscule, et chacune signalée par quelqu'un qui s'en était servi.
+
+### Le tour montrait du doigt sans doigt
+
+**Il éclairait la barre du bas entière** pour parler du champ de description. Trois boutons allumés pour un seul propos : l'œil ne sait pas lequel on lui montre, et c'est précisément l'œil qui découvre. Chaque élément porte maintenant son ancre.
+
+**Et la bulle restait au plafond** pendant qu'un bouton s'éclairait en bas. Elle se glisse désormais **contre sa cible**, du côté où il y a de la place : sous elle quand la cible est haute, au-dessus quand elle est basse. La règle la plus simple qui ne fasse jamais sortir la bulle de l'écran.
+
+### Les six compteurs, un par un
+
+Six étapes nouvelles, et le tour passe à quatorze. C'est long, et c'est le prix : **rien de ce que l'application montre le plus ne se devine**. Une lettre à la pointe d'un hexagone ne dit pas ce qu'est une macro, encore moins si elle est un objectif à atteindre ou un plafond à ne pas franchir — or c'est toute la différence entre une barre verte qu'on veut remplir et une barre qu'on veut laisser courte.
+
+Chaque étape éclaire **sa** barre et nomme sa macro. « Passer » reste visible dès la première bulle, et c'est ce qui rend les quatorze acceptables.
+
+S'y ajoutent le bandeau des sept jours et l'accès aux réglages, qui n'étaient nulle part.
+
+### Neuf détails qui se faisaient deviner
+
+**Le grand chiffre ne disait pas son unité.** Il dit « kcal restantes » plutôt que « restantes ». Deux caractères, et la question la plus fréquemment posée disparaît.
+
+**Le champ de saisie se fondait dans sa barre.** Un contour seul sur `surfaceContainerHigh` : beaucoup de gens ne voyaient pas qu'on pouvait écrire là. Il prend un fond, au ton le plus bas — qui se détache dans les deux thèmes sans devenir un bouton.
+
+**Les journées parfaites ne se voyaient pas.** Leur anneau se **ferme** : les six arcs se touchent et font un tour complet, là où les autres jours montrent six segments brisés. Une forme et non une septième couleur — ce thème s'interdit un rôle de couleur de plus et signale par le dessin, comme le contour pointillé d'une valeur estimée ([D25](#d25--lestimation-ia-se-signale-par-une-forme-pas-par-une-couleur---validée)). La forme ne se lisant pas à voix haute, le lecteur d'écran l'entend par une phrase.
+
+Seulement sur un jour **révolu** : une journée en cours peut être dans sa fourchette à midi et en sortir au dîner, et fermer l'anneau avant la fin promettrait ce que la soirée peut défaire.
+
+**L'adresse de base d'un fournisseur était un champ.** Gemini et Claude en ont une et une seule : la montrer revient à demander de vérifier une chaîne qu'on ne peut ni connaître ni corriger, et à offrir de la casser. Elle ne reste que pour le fournisseur libre, dont l'adresse **est** le réglage.
+
+**Le modèle était un champ libre.** Il devient une liste déroulante qui reste écrivable : la liste évite la faute de frappe sur un nom qui ne se vérifie nulle part — un modèle mal écrit ne se voit qu'au premier repas photographié — et le champ laisse utiliser celui sorti hier.
+
+### Trois gestes dans l'en-tête de l'édition
+
+**Copier le plat sur un autre jour**, par un calendrier. Une copie et non un déplacement : un petit-déjeuner identique se recopie, il ne se déménage pas, et une erreur de date ne coûte alors qu'une suppression. La copie est **un autre plat** — identifiants neufs, heure de la copie, et le lien au favori ne suit pas ([D62](#d62--un-favori-est-un-modèle-vivant-et-létoile-est-son-seul-interrupteur---validée)).
+
+**Supprimer le plat.** C'était déjà possible en vidant ses lignes une à une ([D61](#d61--un-plat-vidé-se-supprime-et-lappui-long-ouvre-ses-actions---validée)), ce qui demandait de comprendre qu'un plat vide se supprime. Le chemin visible existe maintenant, et il garde la confirmation — ce qui la justifie n'est pas l'irréversibilité mais le volume.
+
+**Le bouton de signalement dit ce qu'il fait avant de le faire.** Personne ne clique sur une icône qu'il ne comprend pas, et ceux qui le font ignorent qu'un courriel va s'ouvrir avec leur photo en pièce jointe. La boîte dit les deux, et qu'il n'est pas encore envoyé.
+
+**Les trois demandent avant d'agir, et pour la même raison** : les trois sortent de l'écran. Ils vivent derrière un porteur, comme le nommage d'un favori — les laisser au premier plan poussait le `ViewModel` au-delà du seuil de fonctions, lequel dit précisément qu'une classe fait trop de choses à la fois.
+
+**Ce que le vert ne prouve pas.** **Que quatorze bulles se lisent.** C'est le minimum pour couvrir ce qui ne se devine pas ; c'est peut-être déjà six de trop pour qui veut noter son dîner. Le nombre se réduit en retirant des entrées d'une énumération, et rien d'autre.
+
+**Que l'anneau fermé se lise comme une réussite.** Il se distingue, c'est vérifiable ; qu'il se *comprenne* sans légende ne l'est pas. Le tour n'en parle pas encore.
+
+**Que la copie serve.** Elle répond à une demande, pas à un usage observé. Si personne ne s'en sert, c'est une icône de plus en haut d'un écran qui en porte déjà quatre.
+
+---
+
+## D144 — Copier un plat se dit avec deux feuilles, part d'aujourd'hui, et s'annonce · ✓ validée
+
+**Contexte.** Le bouton « copier » de [D143](#d143--le-tour-désigne-un-élément-et-neuf-détails-cessent-de-se-faire-deviner---validée) a été utilisé, et il s'est révélé faux sur quatre points à la fois. Pris un par un ils semblent cosmétiques ; ensemble ils rendaient le geste inutilisable.
+
+### La date limite venait du plat, pas d'aujourd'hui
+
+La boîte reçoit un jour au-delà duquel on ne peut plus choisir — on note ce qu'on a mangé, et le futur ne se mange pas (décision par défaut n°10). Elle recevait `state.form.date`, c'est-à-dire **la date du plat ouvert**.
+
+Tant qu'on modifiait un plat du jour, les deux se confondaient et rien ne se voyait. Dès qu'on ouvrait un plat d'hier, la limite devenait hier : on pouvait recopier vers n'importe quel jour passé, mais **pas vers aujourd'hui** — le seul jour vers lequel on veut recopier.
+
+C'est la forme d'erreur la plus coûteuse à trouver : deux valeurs qui portent le même type, qui sont égales dans le cas qu'on essaie en premier, et dont la confusion ne produit aucune exception.
+
+### Le calendrier n'était pas le bon signe
+
+L'icône était un calendrier, parce que la boîte qu'elle ouvre en est un. C'était désigner **l'écran d'après** plutôt que l'action : on y lisait « choisir une date », sans savoir ce que la date servirait à faire.
+
+Deux feuilles superposées se lisent comme « copier » depuis trente ans. `material-icons-core` ne les a pas, et la réponse ne change pas depuis [D62](#d62--létoile-nomme-le-favori-et-la-liste-se-trie-par-usage---validée) : vingt lignes de tracé plutôt qu'un jeu d'icônes de plusieurs milliers d'entrées pour en utiliser une.
+
+### La boîte ne disait pas ce qu'elle attendait
+
+Un calendrier qui s'ouvre ne dit rien de ce qui arrivera. Le titre tenait en une étiquette de douze pixels — « Copier ce plat au » —, posée si près du coin arrondi qu'elle y perdait sa première lettre, et aucun jour n'était sélectionné : le bouton « Copier » était gris, sans rien dire de ce qui l'allumerait.
+
+Trois changements, et le même but : le titre à la taille d'un titre, une phrase qui dit que **l'original reste**, et le jour du plat **déjà choisi** — ce qui montre d'où l'on part et rend la copie sur le même jour, c'est-à-dire la duplication, accessible en un appui.
+
+### Rien ne se passait
+
+Une copie atterrit sur une journée qu'on ne regarde pas, et l'écran d'où elle part ne bouge pas d'un pixel. L'écran se refermait, par symétrie avec la suppression — mais la suppression ferme parce qu'il n'y a plus rien à montrer, alors qu'une copie **ne touche pas** le plat ouvert.
+
+L'écran reste donc ouvert, et une barre temporaire nomme le jour atteint. Ce qui permet au passage ce pour quoi le geste existe : recopier le même petit-déjeuner sur trois matins, sans rouvrir le plat entre chaque.
+
+**Ce qui est écarté.** Annoncer la copie avant de savoir qu'elle a réussi. Le cas d'usage rend l'échec rare, mais « copié au 3 octobre » après une écriture ratée serait le seul endroit de l'application où l'on mentirait.
+
+---
+
+## D145 — L'ordre des six couleurs se déduit de la figure, au lieu d'être recopié · ✓ validée
+
+**Contexte.** Les six teintes servent de second canal quand la couleur seule ne suffit pas — daltonisme, écran de mauvaise qualité, coup d'œil trop rapide. [08](08-design-system.md) dit que la **position** porte alors l'information, et qu'elle ne la porte que si elle est la même partout.
+
+Elle ne l'était pas. L'hexagone tient son ordre de sa géométrie ; les barres de l'accueil le recopiaient à la main ; l'anneau du calendrier, lui, parcourait simplement l'énumération des macros — et affichait donc les six mêmes couleurs dans un autre ordre que la figure située vingt pixels plus haut.
+
+Le commentaire de l'anneau affirmait pourtant suivre l'hexagone. Il disait la règle, et le code faisait autre chose : personne ne relit un commentaire pour vérifier qu'il est vrai.
+
+**Décision.** L'ordre du cadran se **calcule** à partir des axes de l'hexagone, qui sont le seul endroit où il existe vraiment. Les trois lecteurs s'y abonnent. Déplacer une macro sur la figure déplace désormais les barres et l'anneau avec elle.
+
+**Pourquoi pas une liste écrite une fois.** Une constante partagée aurait corrigé la divergence sans supprimer sa cause : il resterait deux descriptions du même ordre — les angles, et la liste — qui pourraient encore se contredire. Les angles suffisent à tout dire.
+
+---
+
+## D146 — Une journée tenue de bout en bout vaut une couleur, et c'est la seule · ✓ validée
+
+**Contexte.** Les journées parfaites se signalaient par un **anneau fermé** : six arcs qui se touchent au lieu de six arcs séparés. Le choix de la forme plutôt que de la teinte venait d'une règle du thème — pas de rôle de couleur au-delà de Material et des six macros —, et il suivait le précédent de [D25](#d25--une-valeur-estimée-se-signale-par-la-forme-pas-par-la-couleur---validée).
+
+À l'usage, ça ne marche pas. Dans un bandeau de sept jours, à vingt millimètres de diamètre, un cercle entier ne se distingue d'un cercle brisé qu'en le cherchant. Or **ce qui se veut exceptionnel ne se cherche pas** : une récompense qu'il faut repérer n'en est pas une.
+
+**Décision.** L'anneau d'une journée tenue est **doré**, d'un seul tenant, sans segments.
+
+**Pourquoi l'or ne contredit pas la règle.** La règle interdit une septième couleur qui dirait une septième donnée, parce que la teinte deviendrait alors un canal ambigu. L'or ne dit aucune donnée : il ne se pose jamais à côté des six pour être comparé à elles, et il ne désigne pas un nutriment mais un résultat. C'est aussi pourquoi les couleurs de macros disparaissent de cet anneau — une journée tenue n'est plus six compteurs, elle est une réponse.
+
+**Et le nom suit.** « Série parfaite » devient « série dorée ». Le mot dit ce qu'on voit, et « parfait » promettait une exactitude que la fourchette de [PerfectDay](../domain/src/main/kotlin/app/hexavore/domain/progress/PerfectDay.kt) n'a jamais demandée.
+
+---
+
+## D147 — Le tour fait le tour de l'hexagone, et sa bulle reste à l'écran · ✓ validée
+
+**Contexte.** Le tour de [D143](#d143--le-tour-désigne-un-élément-et-neuf-détails-cessent-de-se-faire-deviner---validée) a été joué en entier par quelqu'un qui ne l'avait pas écrit. Trois défauts, dont deux qui le rendaient illisible.
+
+### La bulle sortait de l'écran par le haut
+
+Elle se posait par alignement et décalage : collée en bas de l'écran, puis remontée de la distance qui la séparait du haut de sa cible. Sur une cible **haute** — le bloc de la journée, l'hexagone —, cette distance vaut presque la hauteur de l'écran, et la bulle montait d'autant. On n'en voyait que le bas.
+
+Elle calcule désormais une position absolue, puis la **borne** entre les deux marges système. Il faut pour cela sa hauteur, qui ne se connaît qu'une fois mesurée : elle se pose donc à zéro le temps d'une image, puis se replace. C'est le prix d'un placement qui tient quelle que soit la longueur du texte.
+
+### L'écran ne suivait pas
+
+Le tour désigne des éléments d'une page qui défile, et rien ne garantissait qu'ils soient visibles au moment où la phrase les concernait. Le voile s'ouvrait alors sur du vide, et la bulle parlait d'un élément resté deux écrans plus bas.
+
+Chaque étape amène donc sa cible **au milieu de l'écran**. Au milieu, et pas seulement « quelque part » : c'est la seule position qui laisse de la place à la bulle des deux côtés, quelle que soit sa hauteur.
+
+### Les six compteurs s'expliquaient sur ce qui n'en avait pas besoin
+
+Les six étapes de macros éclairaient chacune **sa barre**, en bas de l'écran. Or une barre porte son nom, sa valeur, son objectif et une jauge : elle n'a rien à expliquer. Ce qui ne se devine pas, c'est le **triangle** correspondant dans l'hexagone — une pointe de figure, une lettre, et aucune indication de ce qu'elle mesure.
+
+Les six étapes désignent donc la figure, et mettent en avant un quartier chacune, **dans le sens du cadran** : calories en haut, puis le sens horaire. Faire le tour en sautant d'un triangle à son opposé aurait demandé de le chercher à chaque phrase.
+
+**La figure s'éclaire avec son propre mécanisme** — celui du doigt, un quartier qui avance et cinq qui reculent — plutôt qu'avec un découpage du voile. Le tour montre ainsi le comportement réel de l'application, et non une imitation qui s'en écarterait au premier changement.
+
+---
+
+## D148 — Les réglages disent où écrire, et l'IA cesse d'emprunter l'étoile des favoris · ✓ validée
+
+**Contexte.** Deux manques de la même famille : l'application ne disait nulle part comment joindre ses auteurs, et deux sections de réglages se disputaient un signe.
+
+### Il n'y avait aucun chemin vers nous
+
+Le seul courriel que l'application sache ouvrir part du bouton de signalement, qui n'existe que sur un plat proposé par un modèle ([D138](#d138--lia-se-tient-mieux-et-lapplication-sait-dire-ce-qui-a-raté---validée)). Qui voulait écrire pour autre chose — un défaut ailleurs, une idée, une question — n'avait nulle part où aller.
+
+Trois destinations, et pas une de plus : le dépôt pour **lire le code** et ouvrir un ticket, le site pour **savoir ce que c'est**, l'adresse pour **écrire**. Chacune s'adresse à quelqu'un de différent, et aucune ne remplace les deux autres. L'adresse est lue depuis le domaine et non recopiée : deux adresses écrites à deux endroits finissent par différer, et c'est la seconde que personne ne relève.
+
+### L'étoile désignait deux choses
+
+La section d'IA portait une étoile, faute de mieux dans `material-icons-core`. L'étoile désigne les favoris dans tout le reste de l'application — et depuis que les favoris ont leur propre section ([D149](#d149--un-favori-se-corrige-là-où-il-a-été-écrit---validée)), les deux se touchaient dans la même liste.
+
+L'IA prend donc les **deux étincelles** qui marquent déjà ses propositions dans le journal. Le signe était écrit, il n'était simplement pas employé ici.
+
+---
+
+## D149 — Un favori se corrige là où il a été écrit · ✓ validée
+
+**Contexte.** Un favori se crée depuis l'étoile d'un plat, et se rejoue depuis le « + ». Le **corriger** n'avait aucun chemin : il fallait le rejouer dans une journée, le modifier, puis effacer le plat qu'on venait d'écrire. Trois gestes, dont deux qui salissent le journal pour une opération qui ne devait rien y laisser.
+
+**Décision.** Les favoris ont leur section dans les réglages, et toucher l'un d'eux ouvre **l'écran de saisie** sur le favori lui-même.
+
+**Pas un éditeur à part.** L'écran de saisie sait déjà tout faire — ajouter une ligne, changer une quantité, vérifier qu'un nom n'est pas déjà pris — et il savait déjà le faire *sur un favori* : le chemin existait, rien ne le désignait. Un second éditeur aurait fait deux endroits où écrire la même chose, et c'est toujours le second qui oublie une règle.
+
+**La liste est en lecture seule**, et c'est ce qui le permet : elle montre ce qu'il y a, elle ne le modifie pas. Elle énumère les lignes de chaque favori plutôt que de les compter — « Flocons, Lait, Banane » dit lequel c'est, là où « 3 aliments » demande de l'ouvrir pour savoir.
+
+**Où les deux modules se rencontrent.** `:feature:settings` ne dépend pas de `:feature:entry` : il reçoit de `:app` la fonction qui ouvre un favori. C'est ce qui l'empêche de devenir le carrefour par lequel tous les écrans se connaissent.
+
+---
+
+## D150 — Cinq reprises d'usage : la bulle défile, l'or entoure, le signalement expire · ✓ validée
+
+**Contexte.** Le lot de [D144](#d144--copier-un-plat-se-dit-avec-deux-feuilles-part-daujourdhui-et-sannonce---validée) à [D149](#d149--un-favori-se-corrige-là-où-il-a-été-écrit---validée) a été repris en main. Cinq retours, dont trois sur des choix que j'avais faits trop vite.
+
+### Une bulle plus grande que sa place
+
+[D147](#d147--le-tour-fait-le-tour-de-lhexagone-et-sa-bulle-reste-à-lécran---validée) bornait la bulle entre les deux marges système, ce qui suffit tant qu'elle y tient. Elle n'y tient pas toujours : six lignes de texte, un titre, deux boutons, et un appareil réglé sur une grande police suffisent à la rendre plus haute que l'écran. Le calcul la ramenait alors à la marge du haut, et ce qui dépassait sortait par le bas.
+
+**Borner ne suffisait pas, il fallait rendre lisible.** La bulle reçoit une hauteur maximale — la place entre les deux marges — et ce qui dépasse se fait défiler. Une bulle plus grande que l'écran n'a aucune position correcte ; la seule réponse honnête est de laisser atteindre sa fin.
+
+### L'or effaçait ce qu'il récompensait
+
+[D146](#d146--une-journée-tenue-de-bout-en-bout-vaut-une-couleur-et-cest-la-seule---validée) remplaçait les six arcs par un cercle d'or plein. Le signal se voyait, et il coûtait tout le reste : la journée ne disait plus ses six compteurs, et un cercle uni au milieu de pastilles segmentées ressemblait surtout à une journée **vide**.
+
+L'or se pose donc **autour**, dans la marge que la cellule garde déjà entre l'anneau et son bord. Les six couleurs restent ce qu'elles étaient, la récompense se lit par-dessus, et rien n'est échangé contre rien.
+
+### Un titre qui chassait le calendrier
+
+Le titre de la boîte de copie était passé en `headlineSmall` pour corriger une étiquette illisible. Sur deux lignes, il poussait le calendrier assez bas pour que sa première semaine vienne buter contre les initiales des jours. **La correction avait dépassé le défaut** : un titre court à taille de titre, et une ligne d'explication, suffisent.
+
+### Un signalement qui survivait à sa raison d'être
+
+Le bouton de signalement apparaissait sur tout plat dont la source était un modèle — y compris rouvert trois semaines plus tard, relu et corrigé. Ce qui partait n'était alors plus ce que le modèle avait proposé, mais ce que l'utilisateur en avait fait : le rapport décrivait une erreur que la correction avait déjà effacée.
+
+Il ne vaut donc que **sur la proposition elle-même**, avant enregistrement. Un plat écrit porte un identifiant, une proposition n'en a pas encore : la condition se lit en un terme.
+
+### Le tiret long
+
+Les textes de l'application employaient le tiret cadratin comme ponctuation d'incise. C'est une marque d'écriture machine devenue reconnaissable, et elle n'a pas sa place dans ce que l'application dit d'elle-même. Vingt-sept chaînes réécrites, dans les deux langues : deux-points, point-virgule ou phrase séparée, selon ce que l'incise faisait.
+
+**Une exception assumée** : `search_unknown_energy` affiche « — kcal / 100 g » pour une énergie inconnue. Le tiret y est un **symbole** et non une ponctuation : il dit « pas de valeur » là où « 0 kcal » dirait une mesure. Le remplacer demanderait un autre signe qui voudrait dire la même chose moins bien.
+
+La réécriture a servi deux fois : en retirant les incises, on retire aussi ce qu'elles portaient de superflu. Les chaînes concernées ont perdu entre un quart et un tiers de leur longueur sans rien perdre de leur sens.
+
+---
+
+## D151 — Trois pannes qui se cachaient derrière une correction apparente · ✓ validée
+
+**Contexte.** [D150](#d150--cinq-reprises-dusage--la-bulle-défile-lor-entoure-le-signalement-expire---validée) disait avoir borné la bulle du tour. Elle débordait toujours. Les deux autres défauts signalés en même temps avaient la même forme : un symptôme visible, une cause ailleurs que là où on la cherchait.
+
+### Une mesure qui ne se reprenait pas
+
+La bulle se place à partir de sa hauteur mesurée, et cette hauteur était remise à zéro à chaque étape — ce qui semblait prudent, puisque chaque étape a son texte.
+
+C'était l'erreur. `onSizeChanged` ne rappelle que lorsque la taille **change** ; deux étapes dont le texte occupe le même nombre de lignes mesurent pareil, donc ne rappellent pas. La hauteur restait à zéro, la bulle se plaçait comme si elle n'en avait pas, et tout ce qu'elle en avait sortait par le bas. Les calories, les protéines et les sucres tombaient exactement dans ce cas.
+
+**La mesure se garde donc d'une étape à l'autre.** Une hauteur connue vaut mieux qu'une hauteur oubliée, et la seule valeur fausse qu'on puisse en tirer — celle de l'étape précédente — est corrigée à l'image suivante quand elle diffère.
+
+### Un voile qui s'arrêtait à la barre
+
+Le tour et la félicitation vivaient dans le **contenu** du `Scaffold`, donc sous sa barre du bas. Le voile ne la couvrait jamais : elle restait éclairée à chaque étape, et les trois boutons qu'elle porte ne pouvaient pas se détacher les uns des autres puisque aucun n'était dans l'ombre.
+
+Les ancres étaient pourtant justes, et c'est ce qui rendait la panne difficile à voir : le trou de lumière était bien découpé au bon endroit, dans un voile qui ne recouvrait rien à cet endroit-là.
+
+Les deux couches passent donc **au-dessus du `Scaffold`**, dans une boîte qui le contient. Au passage, la félicitation fait enfin ce que son propre commentaire affirmait depuis le début.
+
+### Une liste qui ne défilait pas, et qui n'avait jamais eu à le faire
+
+Le hub des réglages posait ses cartes dans une colonne sans défilement. Sept entrées tenaient à l'écran ; la colonne se comportait donc exactement comme une colonne qui défile, et rien ne distinguait les deux. La neuvième entrée — « Contact » — est tombée dessous, sans aucun moyen d'y arriver.
+
+**Un conteneur qui ne déborde jamais ne prouve pas qu'il sait déborder.** La colonne défile désormais, ce qu'elle aurait dû faire depuis la première carte.
+
+---
+
+## D152 — Une notification porte la marque, et la marque se simplifie pour y tenir · ✓ validée
+
+**Contexte.** Les rappels sortaient avec `android.R.drawable.ic_dialog_info` — le « i » cerclé du système. C'était une valeur de départ que personne n'avait reprise, et elle a exactement l'effet qu'on redoute d'une notification : elle ne ressemble à rien, donc à tout. Dans un volet qui en empile quinze, une notification sans visage se range avec le bruit.
+
+### Un anneau, et non les six quartiers
+
+L'icône de lancement montre six triangles séparés par des fentes de trois unités sur cent huit. Ramenées à vingt-quatre points, puis affichées autour de dix-huit pixels dans la barre d'état, ces fentes font moins d'un pixel : elles disparaissent ou crénellent, et les six triangles deviennent une tache.
+
+Ce qui reste reconnaissable à cette taille est la **silhouette** — l'hexagone à pointes latérales. Le tracé de notification est donc une simplification délibérée, et c'est écrit dans le fichier : il ne doit **pas** être tenu identique aux deux autres, contrairement à ce que `LauncherIconTest` exige de la variante monochrome.
+
+### La teinte vient du thème, écrite deux fois assumées
+
+Le système pose une couleur sur l'icône et sur le nom de l'application. Sans elle, les deux restent gris. C'est la couleur principale du thème — celle des calories —, mais une notification se dessine **avant que Compose n'existe** : elle doit donc exister en ressource.
+
+Le thème calcule la variante claire en assombrissant le néon d'un quart ; ce calcul est posé à la main dans `values/`, et le néon d'origine dans `values-night/`. C'est la même duplication assumée que les six teintes de l'icône de lancement, et pour la même raison.
+
+### Par où elle arrive
+
+`:integration:reminders` sait **quand** rappeler ; il ne sait pas à quoi l'application ressemble. L'icône et la couleur vivent dans le design system, dont une intégration ne dépend pas — c'est cette flèche-là qui tient l'architecture debout.
+
+`:app` assemble les deux et les passe en un porteur, comme il le fait déjà pour le rejeu du tour ([D148](#d148--les-réglages-disent-où-écrire-et-lia-cesse-demprunter-létoile-des-favoris---validée)). Un type plutôt que deux `Int` : une icône et une couleur sont toutes deux des identifiants de ressource, et deux entiers injectés se confondraient à la première inversion d'arguments sans que rien ne le dise.
+
+### Deux autres choses qu'une notification doit faire
+
+**Le texte reste entier.** Une ligne de volet coupe vers quarante caractères, et la phrase qui dit quoi faire en fait davantage : repliée, elle s'arrêtait avant d'avoir dit l'essentiel. `BigTextStyle` la déplie.
+
+**Elle dit ce qu'elle est.** `CATEGORY_REMINDER` permet au système de la ranger, de la laisser passer en mode concentration si l'utilisateur l'autorise, et de ne pas la confondre avec un message.
+
+---
+
+## D153 — Un prompt déclaré sans fichier, un journal éteint, et un inset consommé · ✓ validée
+
+**Contexte.** Quatre défauts signalés ensemble, et les trois premiers se tenaient : une chaîne d'IA dont le garde-fou était mort depuis cinq semaines, des signalements vides, et un bouton qui ne faisait rien.
+
+### Le garde-fou n'existait plus
+
+Un commit du 30 septembre écrivait deux nouveaux prompts d'extraction — `extract_fr_v3`, `extract_en_v2` — et devait faire pointer `extractPromptVersion` dessus. Le changement a atterri dans **`estimatePromptVersion`**.
+
+Deux conséquences, et aucune ne s'est vue :
+
+1. L'extraction a continué de tourner sur l'ancien texte. Tout ce que ce commit apportait — le texte de l'utilisateur fait foi, un libellé nomme un aliment et jamais une plante, un poids sous cinq grammes est une erreur d'échelle — **n'a jamais été actif**.
+2. L'estimation demandait `prompts/estimate_fr_v3.txt`, qui n'existe pas. L'ouverture de l'asset levait, l'exception finissait dans un `runCatching`, et l'estimation **n'a jamais eu lieu**. Toutes les lignes que le catalogue ne rejoignait pas arrivaient vides, et l'étape 4 de [04](04-sources-de-donnees.md) — celle qui existe précisément pour les remplir — était morte sans un bruit.
+
+**Rien ne reliait une constante à un asset.** Ni le compilateur, ni l'analyse statique, ni aucun test : une chaîne d'un côté, un fichier de l'autre. Un test tient désormais les deux égaux **dans les deux sens** — chaque version déclarée a son fichier, et aucun fichier ne dort sans être déclaré. La seconde moitié n'est pas du zèle : ce sont les deux prompts orphelins qui disaient qu'une erreur avait eu lieu.
+
+**Et l'estimation passe en v3.** La v2 autorisait l'omission d'un libellé « dont on ne sait rien », et le modèle s'en servait largement : vol-au-vent, fond d'artichaut, crème de jambon, dessert spéculoos revenaient vides alors qu'ils s'estiment tous par leur famille. La consigne est renversée — tout ce qui se mange s'estime, l'omission est réservée à ce qui ne nomme rien de mangeable.
+
+### Le signalement promettait ce qu'il ne portait pas
+
+Le bouton dit : « envoyez-nous ce qui a été demandé à l'IA et ce qu'elle a répondu ». Il n'envoyait que le corps du courriel, parce que l'intercepteur qui note les échanges **sortait à sa première ligne** quand le mode de mise au point était éteint — et il l'est par défaut.
+
+La règle qui le tenait éteint reste vraie : *ce qui retient ne s'allume pas tout seul*. Mais elle parlait de l'**historique**, pas du dernier échange. Le journal garde donc **un** échange dans tous les cas, et vingt quand on a demandé à accumuler. Rien ne s'accumule sans qu'on l'ait demandé ; on cesse seulement de ne rien retenir du tout, parce qu'une fonction en dépend.
+
+Il vit en mémoire, meurt avec le processus, et ne part que si l'on appuie sur « signaler » **puis** sur « envoyer » dans son client de courriel. La clé n'y est pas : l'intercepteur de rédaction l'a retirée avant.
+
+### Et quand il échouait, il se taisait
+
+Sans application de messagerie, `startActivity` lève, le `runCatching` l'absorbe, et l'appui ne produit **rien** : ni courriel, ni erreur. Le silence était assumé — « un message d'erreur sur un bouton d'entraide serait un reproche de plus ». Sauf qu'un bouton qui ne fait rien se signale bien plus mal qu'une ligne de texte. Une barre nomme le manque, sans rien reprocher.
+
+### L'inset consommé
+
+Le champ de saisie remontait d'une hauteur de clavier de trop. La barre du bas réservait sa place à la barre de navigation par `windowInsetsPadding(navigationBars.exclude(ime))` : la marge de navigation quand le clavier est fermé, rien quand il la recouvre. L'intention était juste.
+
+`windowInsetsPadding` tient compte de ce que les parents ont **consommé**, et l'écran posait un `imePadding` sur son `Scaffold`. L'expression rendait alors 820 points au lieu de zéro.
+
+**Mesuré plutôt que raisonné.** Une sonde posée dans l'application a donné la vérité : la fenêtre ne se rétrécit pas (914 dp dans les deux états), l'inset de clavier vaut 883, et le `Scaffold` lève déjà sa barre basse de `clavier − navigation`. Il ne restait donc que la navigation à réserver, dans les deux états — une lecture **brute**, à un seul endroit.
+
+C'est la troisième fois que cette barre se place mal, et les trois fois pour la même raison : deux endroits connaissaient le clavier. Il n'y en a plus qu'un, et il ne lit rien que personne n'ait pu consommer.
+
+---
+
+## D154 — Restreindre le signalement aux clients de courriel par un sélecteur · ⊘ annulée
+
+**Ce qui était visé.** Signaler une proposition d'IA ouvrait le choisisseur d'Android, avec WhatsApp, Discord, Drive et Telegram. Aucun ne sait écrire à une adresse, et celui qui voulait aider devait d'abord trier.
+
+**Ce qui a été tenté.** `Intent.setSelector` : l'intention principale garde `ACTION_SEND`, sa pièce jointe et ses extras ; un sélecteur portant `ACTION_SENDTO` et le schéma `mailto:` ramène la résolution aux seules applications de courriel. C'est la méthode documentée, et cinq tests sous Robolectric montraient que l'intention construite était bien celle-là.
+
+**Pourquoi c'est annulé.** Sur un téléphone réel, **plus rien ne résolvait** : l'appui ne trouvait aucune application et tombait sur « aucune application de courriel sur ce téléphone ». Le choisisseur était agaçant ; ne plus pouvoir signaler du tout est pire.
+
+### Ce que cet aller-retour apprend
+
+**Un test qui vérifie la forme d'une intention ne dit rien de sa résolution.** Les cinq cas étaient justes et passaient : ils éprouvaient ce qu'on envoie, pas ce qu'Android en fait. La résolution dépend du téléphone, de ses applications et de leurs filtres — et aucune de ces trois choses n'est dans le dépôt. C'est exactement la limite que [D35](#d35--les-tests-qui-demandent-un-appareil-sont-ceux-quon-nexécute-pas---validée) pose, rencontrée par l'autre bout.
+
+**Et une correction de confort ne se livre pas sans l'avoir vue tourner.** Celle-ci est partie avec pour seule preuve un test JVM, parce que l'émulateur n'était plus disponible. Le choisisseur méritait d'attendre.
+
+**La piste reste bonne**, et elle se reprendra autrement : tenter le sélecteur, puis **retomber** sur l'intention sans lui quand rien ne résout. Un repli coûte trois lignes et rend l'échec impossible ; c'est ce qui manquait.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

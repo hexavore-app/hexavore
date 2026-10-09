@@ -16,6 +16,7 @@ import app.hexavore.domain.nutrition.NutrientValues
 import app.hexavore.domain.resolution.MatchVerdict
 import app.hexavore.domain.resolution.PlausibleLine
 import app.hexavore.domain.resolution.convertToGrams
+import app.hexavore.domain.resolution.normaliseLabel
 
 /**
  * Ce qu'une reconnaissance devient : un brouillon, ligne par ligne.
@@ -56,7 +57,7 @@ class ResolveRecognition(
         // langue. La relire par ligne laisserait un plat moitie francais.
         val language = languages.current()
         val resolved = recognition.items.map { resolveLine(it, language) }
-        return create(source, resolved.completedByEstimate())
+        return create(source, resolved.completedByEstimate(language))
     }
 
     /**
@@ -145,17 +146,29 @@ class ResolveRecognition(
      *
      * [sources]: docs/04-sources-de-donnees.md
      */
-    private suspend fun List<DraftLine>.completedByEstimate(): List<DraftLine> {
-        val unresolved = filter { it.suggestion?.verdict == MatchVerdict.NONE }
-        if (unresolved.isEmpty()) return this
+    private suspend fun List<DraftLine>.completedByEstimate(language: ContentLanguage): List<DraftLine> {
+        // **Toute ligne sans énergie**, et non les seules que le catalogue a refusées.
+        // Une fiche choisie par le modèle peut être vide, un verdict peut être `REVIEW`
+        // sur une fiche sans valeurs : dans les deux cas l'écran affichait « ? » et
+        // l'estimation ne partait pas ([D142][decisions]). Le critère est désormais
+        // celui que l'utilisateur voit, pas celui d'un classement interne.
+        val unresolved = filter { it.values.kcal == null }
+        // Une liste vide ne part jamais sur le reseau : c'est le cas courant.
+        val outcome = if (unresolved.isEmpty()) null else estimate.estimate(unresolved.map { it.name })
+        val foods = (outcome as? EstimationOutcome.Estimated)?.foods.orEmpty()
+        if (foods.isEmpty()) return this
 
-        val outcome = estimate.estimate(unresolved.map { it.name })
-        val estimates = (outcome as? EstimationOutcome.Estimated)
-            ?.foods
-            ?.associate { it.label to it.per100g }
-            .orEmpty()
+        val byLabel = foods.associateBy { normaliseLabel(it.label, language) }
+        // Le rang sert de filet quand les libellés ne se rejoignent pas : le modèle
+        // répond dans l'ordre où on a demandé, et il répond autant de lignes.
+        val byRank = foods.takeIf { it.size == unresolved.size }
+        val rank = unresolved.withIndex().associate { (index, line) -> line to index }
 
-        return map { line -> estimates[line.name]?.let { line.estimatedFrom(it) } ?: line }
+        return map { line ->
+            val found = byLabel[normaliseLabel(line.name, language)]
+                ?: rank[line]?.let { byRank?.get(it) }
+            found?.let { line.estimatedFrom(it.per100g) } ?: line
+        }
     }
 
     /**

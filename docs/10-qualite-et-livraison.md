@@ -51,6 +51,20 @@ Il existe parce qu'un appel de Java 9 compilait, passait toute l'analyse statiqu
 adb -s emulator-5554 shell am instrument -w -e class app.hexavore.AppJourneyTest app.hexavore.debug.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
+**Sur toutes les versions à la fois**, depuis une installation neuve à chaque
+fois, avec l'onboarding en premier et le journal des plantages en dernier :
+
+```bash
+./gradlew :app:assembleDebug :app:assembleDebugAndroidTest
+tooling/revue-versions/toutes-les-versions.sh
+```
+
+Les rapports arrivent dans `build/revue-versions/`, un par version, et le
+tableau final dit en trois lignes ce que chacune a répondu. Ce que le harnais
+fait, et ce qu'il refuse de faire, est dans son
+[README](../tooling/revue-versions/README.md) — notamment pourquoi il vérifie le
+nom de l'émulateur qui a démarré avant d'écrire quoi que ce soit.
+
 ### Les tests de contrat
 
 Un port qui gagne une seconde implémentation **rejoint un jeu de tests de contrat** : les cas sont écrits une fois et exécutés sur les deux implémentations, côte à côte dans le même rapport.

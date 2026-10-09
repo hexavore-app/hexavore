@@ -27,9 +27,9 @@
     <string name="profile_privacy">Tout ce que porte cet écran reste sur ce téléphone. Aucun compte, aucun serveur, rien qui parte chez qui que ce soit.</string>
     <string name="profile_work_title">Votre journée de travail</string>
     <string name="profile_work_body">Huit heures par jour, cinq jours sur sept : c\'est le socle. Le sport s\'y ajoute, et se compte ici une fois pour toutes plutôt qu\'au jour le jour.</string>
-    <string name="profile_work_desk">Assis la majeure partie du temps — bureau, conduite, études</string>
-    <string name="profile_work_on_feet">Debout, sans porter de charge — vente, service, enseignement</string>
-    <string name="profile_work_physical">Effort physique soutenu — bâtiment, manutention, agriculture</string>
+    <string name="profile_work_desk">Assis la majeure partie du temps : bureau, conduite, études</string>
+    <string name="profile_work_on_feet">Debout, sans porter de charge : vente, service, enseignement</string>
+    <string name="profile_work_physical">Effort physique soutenu : bâtiment, manutention, agriculture</string>
     <string name="profile_sessions_title">Séances de sport par semaine</string>
     <string name="profile_sessions_none">Aucune</string>
     <string name="profile_sessions_max">%1$d et plus</string>
@@ -341,8 +341,8 @@
     <!-- L\'analyse approfondie : le modele interroge le catalogue avant de conclure,
          au lieu de laisser un score de ressemblance choisir a sa place. -->
     <string name="ai_deep_title">Analyse approfondie</string>
-    <string name="ai_deep_body">Le modèle interroge le catalogue et choisit lui-même la fiche de chaque aliment. Plus lent et plus cher, mais nettement plus juste quand deux aliments portent des noms voisins.</string>
-    <string name="ai_deep_unavailable">Le fournisseur actif ne sait pas appeler d\'outils. Le réglage est conservé et reprendra effet avec un fournisseur qui le sait.</string>
+    <string name="ai_deep_body">Le modèle interroge le catalogue et choisit lui-même la fiche de chaque aliment. Elle est toujours active dès que le fournisseur sait appeler des outils : sans elle, les aliments que le catalogue ne rejoint pas reviennent sans aucune valeur.</string>
+    <string name="ai_deep_unavailable">Le fournisseur actif ne sait pas appeler d\'outils. Les aliments qu\'il ne rejoint pas seront estimés, et signalés comme tels.</string>
 
     <string name="ai_debug_title">Mode debug</string>
     <string name="ai_debug_body">Garde ce qui part chez le fournisseur et ce qui en revient, pour comprendre une réponse inattendue. Rien n\'est écrit sur le disque, les images sont retirées, et la liste disparaît à la fermeture.</string>
@@ -368,4 +368,14 @@
     <string name="reminders_streak_title">Série en jeu</string>
     <string name="reminders_meal_body">Muet dès que ce repas est noté.</string>
     <string name="reminders_streak_body">Le soir, quand rien n\'est noté et qu\'une série court.</string>
+    <string name="settings_favorites_title">Favoris</string>
+    <string name="settings_favorites_subtitle">Les plats enregistrés, et de quoi les corriger.</string>
+    <string name="settings_favorites_edit">Modifier ce favori</string>
+    <string name="settings_favorites_empty">Aucun favori. Touchez l\'étoile sur un plat pour l\'enregistrer ; il reviendra sous le bouton +.</string>
+    <string name="settings_contact_title">Contact</string>
+    <string name="settings_contact_subtitle">Le code, le site, et où écrire.</string>
+    <string name="settings_contact_intro">Hexavore est un logiciel libre. Un défaut, une idée, un mot : les trois nous arrivent.</string>
+    <string name="settings_contact_site">Le site</string>
+    <string name="settings_contact_github">Le code, et les tickets</string>
+    <string name="settings_contact_mail">Nous écrire</string>
 </resources>

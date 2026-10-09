@@ -4,13 +4,14 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +48,12 @@ import app.hexavore.domain.diary.Dish
 import app.hexavore.domain.goal.AdjustmentSuggestion
 import app.hexavore.domain.notice.Notice
 import app.hexavore.domain.usecase.AdjustmentResponse
+import app.hexavore.feature.home.tour.GuidedTour
+import app.hexavore.feature.home.tour.TourAnchors
+import app.hexavore.feature.home.tour.TourStep
+import app.hexavore.feature.home.tour.TourTarget
+import app.hexavore.feature.home.tour.TourViewModel
+import app.hexavore.feature.home.tour.tourAnchorOrNot
 import kotlinx.coroutines.withTimeoutOrNull
 import java.time.LocalDate
 
@@ -72,6 +79,13 @@ fun HomeRoute(routes: HomeRoutes) {
     val dishStyle by viewModel.dishStyle.collectAsStateWithLifecycle()
     val noticeViewModel: NoticeViewModel = hiltViewModel()
     val notices by noticeViewModel.notices.collectAsStateWithLifecycle()
+
+    // Le tour guidé du premier lancement : il se pose par-dessus cet écran-ci, et les
+    // éléments dont il parle déposent leur position dans [anchors] (D141).
+    val tourViewModel: TourViewModel = hiltViewModel()
+    val tourStep by tourViewModel.step.collectAsStateWithLifecycle()
+    val anchors = remember { TourAnchors() }
+
     HomeScreen(
         state = state,
         pendingUndo = pendingUndo,
@@ -106,7 +120,43 @@ fun HomeRoute(routes: HomeRoutes) {
         // Construites la ou elles sont decrites, et non recopiees ici : les deux
         // listes avaient deja diverge une fois.
         actions = remember(viewModel, routes) { routes.toActions(viewModel) },
+        anchors = anchors,
+        tour = tourOverlay(tourStep, anchors, aiConfigured != true, tourViewModel, routes.onConfigureAi),
     )
+}
+
+/**
+ * Le tour guidé à jouer, ou `null` quand il n'y en a pas.
+ *
+ * Sorti de [HomeRoute] quand le seuil de longueur a mordu, et le découpage suit ce que
+ * les choses sont : l'accueil assemble des états, celle-ci décide d'un seul.
+ *
+ * **« Configurer » termine le tour avant de naviguer** : revenir des réglages ne doit
+ * pas retomber au milieu d'une phrase qui parlait d'autre chose.
+ */
+private fun tourOverlay(
+    step: TourStep?,
+    anchors: TourAnchors,
+    keyless: Boolean,
+    viewModel: TourViewModel,
+    onConfigureAi: () -> Unit,
+): (@Composable (ScrollState) -> Unit)? = step?.let {
+    { scroll ->
+        GuidedTour(
+            step = it,
+            anchors = anchors,
+            scroll = scroll,
+            keyless = keyless,
+            onNext = { viewModel.onNext(keyless) },
+            onConfigureAi = {
+                // Pas `onFinish` : partir poser une cle n'est pas renoncer au tour,
+                // et il se represente au retour (D141).
+                viewModel.onLeaveForSettings()
+                onConfigureAi()
+            },
+            onFinish = viewModel::onFinish,
+        )
+    }
 }
 
 /**
@@ -124,7 +174,16 @@ fun HomeScreen(
     pendingUndo: Dish?,
     actions: HomeActions,
     modifier: Modifier = Modifier,
-    aiConfigured: Boolean = false,
+    aiConfigured: Boolean? = null,
+    /** Ou tombent les elements dont le tour guide parle. Inutilise sans tour. */
+    anchors: TourAnchors? = null,
+    /**
+     * Le tour guide, quand il y en a un a jouer.
+     *
+     * Il recoit le defilement de la page : c'est lui qui amene sous les yeux l'element
+     * dont l'etape parle, et ce defilement nait ici (D147).
+     */
+    tour: (@Composable (ScrollState) -> Unit)? = null,
     favoriteNameTaken: Boolean = false,
     onDismissFavoriteError: () -> Unit = {},
     /**
@@ -214,74 +273,102 @@ fun HomeScreen(
     val swipe = rememberDaySwipe()
     val snackbarHostState = rememberUndoBar(pendingUndo, actions.onUndo, actions.onUndoExpired)
 
-    Scaffold(
-        // **C'est l'ecran entier qui remonte, pas la barre.** Poser la marge du clavier
-        // sur la seule barre la faisait monter d'une hauteur de clavier **au-dessus**
-        // de celui-ci : la fenetre s'etait deja retrecie, et la marge s'ajoutait a ce
-        // retrecissement. Ici, le contenu suit la barre, et il n'y a plus qu'un seul
-        // endroit qui connaisse le clavier (D135).
-        modifier = modifier.fillMaxSize().imePadding(),
-        containerColor = MaterialTheme.colorScheme.background,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        // **Une barre du bas et non une couche flottante** (D131). Le `Scaffold` lui
-        // reserve sa place : la page s'arrete au-dessus d'elle, et les calories d'un
-        // plat ne se retrouvent plus coupees en deux par un bouton pose par-dessus.
-        // C'est aussi ce qui permet a la bulle des sources de rester ouverte pendant
-        // qu'on note -- la barre n'est plus sur son chemin.
-        bottomBar = {
-            QuickEntryBar(actions = actions, aiConfigured = aiConfigured, entry = entry)
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = Spacing.screenMargin)
-                .closingTaps(focus),
-            verticalArrangement = Arrangement.spacedBy(Spacing.xl),
-        ) {
-            // Le titre et le calendrier ne defilent pas : docs/02 les veut fixes en
-            // haut, et c'est aussi ce qui permet au mois deplie de defiler pour son
-            // propre compte -- il n'est plus sous la connexion qui replie.
-            DayHeader(actions, day, today, swipe, onBackToToday, notices, progress)
-            calendar(calendarExpanded) { calendarExpanded = it }
-
-            // Le glissement porte sur ce qui defile, jamais sur le calendrier : celui-ci
-            // a son propre defilement horizontal, de semaine en semaine, et les deux
-            // gestes se disputeraient le meme doigt au meme endroit.
-            SwipingDay(
-                state = swipe,
-                shown = day ?: today,
-                today = today,
-                earliest = today.minusMonths(MONTHS_BACK),
-                onDay = onSelectDay,
-                modifier = Modifier.weight(1f),
+    // **Le Scaffold, puis ce qui le recouvre.** Le tour et la felicitation vivaient
+    // dans le contenu du `Scaffold`, donc **sous** sa barre du bas : le voile du tour
+    // s'arretait au-dessus d'elle, si bien que la barre restait eclairee a chaque
+    // etape et qu'aucun de ses trois boutons ne se detachait des deux autres (D151).
+    Box(modifier = modifier.fillMaxSize()) {
+        Scaffold(
+            // **C'est l'ecran entier qui remonte, pas la barre.** Poser la marge du clavier
+            // sur la seule barre la faisait monter d'une hauteur de clavier **au-dessus**
+            // de celui-ci : la fenetre s'etait deja retrecie, et la marge s'ajoutait a ce
+            // **Personne ici ne pose de marge de clavier**, et c'est la correction : le
+            // `Scaffold` leve deja sa barre basse de ce que le clavier prend, moins la
+            // barre de navigation. Une marge posee en plus s'ajoutait a ce levage, et la
+            // barre montait d'une hauteur de clavier de trop (D153).
+            modifier = Modifier.fillMaxSize(),
+            containerColor = MaterialTheme.colorScheme.background,
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            // **Une barre du bas et non une couche flottante** (D131). Le `Scaffold` lui
+            // reserve sa place : la page s'arrete au-dessus d'elle, et les calories d'un
+            // plat ne se retrouvent plus coupees en deux par un bouton pose par-dessus.
+            // C'est aussi ce qui permet a la bulle des sources de rester ouverte pendant
+            // qu'on note -- la barre n'est plus sur son chemin.
+            bottomBar = {
+                QuickEntryBar(actions = actions, aiConfigured = aiConfigured, entry = entry, anchors = anchors)
+            },
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = Spacing.screenMargin)
+                    .closingTaps(focus),
+                verticalArrangement = Arrangement.spacedBy(Spacing.xl),
             ) {
-                DayScroll(collapseOnScroll, dayScroll) {
-                    suggestion?.let {
-                        AdjustmentCard(
-                            suggestion = it,
-                            onAccept = { onAdjustment(AdjustmentResponse.ACCEPT) },
-                            onIgnore = { onAdjustment(AdjustmentResponse.IGNORE) },
-                            onStop = { onAdjustment(AdjustmentResponse.STOP) },
-                        )
+                // Le titre et le calendrier ne defilent pas : docs/02 les veut fixes en
+                // haut, et c'est aussi ce qui permet au mois deplie de defiler pour son
+                // propre compte -- il n'est plus sous la connexion qui replie.
+                DayHeader(actions, day, today, swipe, onBackToToday, notices, progress, anchors)
+                Box(modifier = Modifier.tourAnchorOrNot(anchors, TourTarget.CALENDAR)) {
+                    calendar(calendarExpanded) { calendarExpanded = it }
+                }
+
+                // Le glissement porte sur ce qui defile, jamais sur le calendrier : celui-ci
+                // a son propre defilement horizontal, de semaine en semaine, et les deux
+                // gestes se disputeraient le meme doigt au meme endroit.
+                SwipingDay(
+                    state = swipe,
+                    shown = day ?: today,
+                    today = today,
+                    earliest = today.minusMonths(MONTHS_BACK),
+                    onDay = onSelectDay,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    DayScroll(collapseOnScroll, dayScroll) {
+                        suggestion?.let {
+                            AdjustmentCard(
+                                suggestion = it,
+                                onAccept = { onAdjustment(AdjustmentResponse.ACCEPT) },
+                                onIgnore = { onAdjustment(AdjustmentResponse.IGNORE) },
+                                onStop = { onAdjustment(AdjustmentResponse.STOP) },
+                            )
+                        }
+                        LoadedDay(state, dishStyle, actions, focus, favoriteNameTaken, onDismissFavoriteError, anchors)
                     }
-                    LoadedDay(state, dishStyle, actions, focus, favoriteNameTaken, onDismissFavoriteError)
                 }
             }
         }
 
-        // **Par-dessus tout, et sans rien bloquer** : elle passe, on continue a noter
-        // dessous. Posee dans le `Scaffold` et non dans la colonne, pour qu'elle
-        // couvre aussi le calendrier et la barre du bas.
-        progress.celebrating?.let { badge ->
-            Celebration(
-                title = stringResource(R.string.home_celebration_title),
-                subtitle = badgeLabel(badge),
-                onDone = progress.onCelebrated,
-                modifier = Modifier.padding(padding),
-            )
-        }
+        Overlays(tour, dayScroll, progress)
+    }
+}
+
+/**
+ * Ce qui se pose par-dessus l'accueil, et dans quel ordre.
+ *
+ * **Le tour d'abord, la célébration ensuite.** Les deux ne se croisent qu'au premier
+ * lancement, où les plats d'exemple peuvent débloquer un palier : la félicitation
+ * passerait alors par-dessus une bulle qui explique autre chose, pour un palier obtenu
+ * avec des plats qui vont disparaître.
+ */
+@Composable
+private fun Overlays(tour: (@Composable (ScrollState) -> Unit)?, scroll: ScrollState, progress: ProgressPanel) {
+    if (tour != null) {
+        tour(scroll)
+        return
+    }
+
+    // **Par-dessus tout, et sans rien bloquer** : elle passe, on continue a noter
+    // dessous. Ses marges sont celles du systeme et non celles du `Scaffold` : elle
+    // n'est plus dedans, c'est tout l'interet (D151).
+    progress.celebrating?.let { badge ->
+        Celebration(
+            title = stringResource(R.string.home_celebration_title),
+            subtitle = badgeLabel(badge),
+            onDone = progress.onCelebrated,
+            modifier = Modifier.safeDrawingPadding(),
+        )
     }
 }
 
@@ -303,6 +390,7 @@ private fun LoadedDay(
     focus: MacroFocus,
     favoriteNameTaken: Boolean,
     onDismissFavoriteError: () -> Unit,
+    anchors: TourAnchors? = null,
 ) {
     when (state) {
         HomeUiState.Loading -> Unit
@@ -313,6 +401,7 @@ private fun LoadedDay(
             focus = focus,
             favoriteNameTaken = favoriteNameTaken,
             onDismissFavoriteError = onDismissFavoriteError,
+            anchors = anchors,
         )
 
         HomeUiState.Error -> UnreadableDay(actions.onRetry)
@@ -483,11 +572,17 @@ internal fun DayContent(
     focus: MacroFocus,
     favoriteNameTaken: Boolean,
     onDismissFavoriteError: () -> Unit,
+    anchors: TourAnchors? = null,
 ) {
     val summary = content.summary
     val goal = summary.goal
     if (goal != null) {
-        MacroBlock(summary, goal, focus)
+        // L'ancre du tour tient **le bloc de la journee** et non la colonne entiere :
+        // c'est de l'hexagone et des six compteurs que la premiere bulle parle, et une
+        // ancre posee plus haut aurait fait un trou de la taille de l'ecran (D141).
+        Box(modifier = Modifier.tourAnchorOrNot(anchors, TourTarget.DAY)) {
+            MacroBlock(summary, goal, focus, anchors)
+        }
     } else {
         NoGoal(actions.onSetUpGoal)
         MacroTotalsOnly(summary)

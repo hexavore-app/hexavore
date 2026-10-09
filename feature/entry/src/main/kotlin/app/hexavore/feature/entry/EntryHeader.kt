@@ -7,21 +7,26 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import app.hexavore.core.designsystem.component.CopyGlyph
 import app.hexavore.core.designsystem.component.DraftTextField
 import app.hexavore.core.designsystem.component.NeonChip
 import app.hexavore.core.designsystem.component.SourceBadge
@@ -104,16 +109,39 @@ internal fun DraftHeader(state: EntryUiState.Content, actions: EntryActions, dat
 @Composable
 private fun HeaderActions(state: EntryUiState.Content, actions: EntryActions, titre: String) {
     val context = LocalContext.current
+    var asked by remember { mutableStateOf<HeaderAsk?>(null) }
+
+    // Les libelles se lisent ici : le ViewModel ne connait pas de ressources, comme
+    // pour la proposition de plantage (D138).
+    val sujet = stringResource(R.string.entry_report_subject)
+    val corps = stringResource(R.string.entry_report_body)
+
+    HeaderDialogs(state, actions, sujet, corps, asked) { asked = it }
 
     Row(verticalAlignment = Alignment.CenterVertically) {
+        // Copier et supprimer ne valent que sur un plat deja ecrit : il n'y a rien a
+        // recopier ni a supprimer d'une saisie qu'on est en train de faire (D143).
+        if (state.form.dishId != null) {
+            IconButton(onClick = { asked = HeaderAsk.COPY }) {
+                // Les deux feuilles superposees, et non un calendrier : le calendrier
+                // dit « choisir une date », qui est l'ecran d'apres, la ou ce bouton
+                // dit ce qu'il fait -- recopier (D144).
+                CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurfaceVariant) {
+                    CopyGlyph(contentDescription = stringResource(R.string.entry_copy))
+                }
+            }
+            IconButton(onClick = { asked = HeaderAsk.DELETE }) {
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = stringResource(R.string.entry_delete),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
         // Le signalement n'apparait que sur ce qu'un modele a propose : il n'y a rien a
         // signaler d'une saisie qu'on a faite soi-meme (D138).
         if (state.reportable) {
-            // Les libelles se lisent ici : le ViewModel ne connait pas de ressources,
-            // comme pour la proposition de plantage (D138).
-            val sujet = stringResource(R.string.entry_report_subject)
-            val corps = stringResource(R.string.entry_report_body)
-            IconButton(onClick = { actions.onReport(sujet, corps) }) {
+            IconButton(onClick = { asked = HeaderAsk.REPORT }) {
                 Icon(
                     imageVector = Icons.Filled.Warning,
                     contentDescription = stringResource(R.string.entry_report),
@@ -138,6 +166,58 @@ private fun HeaderActions(state: EntryUiState.Content, actions: EntryActions, ti
                 },
             )
         }
+    }
+}
+
+/** Laquelle des trois questions est posée, ou aucune. */
+internal enum class HeaderAsk { COPY, DELETE, REPORT }
+
+/**
+ * Les boîtes des trois gestes, sorties de l'en-tête quand le seuil de longueur a mordu.
+ *
+ * Un seul état pour les trois : elles ne peuvent pas être ouvertes ensemble, et trois
+ * booléens auraient laissé croire le contraire.
+ */
+@Composable
+private fun HeaderDialogs(
+    state: EntryUiState.Content,
+    actions: EntryActions,
+    subject: String,
+    body: String,
+    asked: HeaderAsk?,
+    onAsked: (HeaderAsk?) -> Unit,
+) {
+    when (asked) {
+        HeaderAsk.COPY -> CopyDateDialog(
+            // Aujourd'hui, et non la date du plat : c'est la limite du calendrier, et
+            // la confondre avec le jour ouvert interdisait de recopier vers aujourd'hui
+            // des qu'on modifiait un plat passe (D144).
+            today = state.today ?: state.form.date,
+            source = state.form.date,
+            onPick = {
+                onAsked(null)
+                actions.onCopyTo(it)
+            },
+            onDismiss = { onAsked(null) },
+        )
+
+        HeaderAsk.DELETE -> DeleteDishDialog(
+            onConfirm = {
+                onAsked(null)
+                actions.onDelete()
+            },
+            onDismiss = { onAsked(null) },
+        )
+
+        HeaderAsk.REPORT -> ReportDialog(
+            onConfirm = {
+                onAsked(null)
+                actions.onReport(subject, body)
+            },
+            onDismiss = { onAsked(null) },
+        )
+
+        null -> Unit
     }
 }
 

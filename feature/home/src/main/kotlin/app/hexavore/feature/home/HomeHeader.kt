@@ -31,6 +31,9 @@ import app.hexavore.core.designsystem.component.WithNoticeDot
 import app.hexavore.core.designsystem.theme.NeonTheme
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.domain.notice.Notice
+import app.hexavore.feature.home.tour.TourAnchors
+import app.hexavore.feature.home.tour.TourTarget
+import app.hexavore.feature.home.tour.tourAnchorOrNot
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -73,9 +76,10 @@ internal fun DayHeader(
      * [decisions]: docs/11-decisions.md
      */
     progress: ProgressPanel,
+    anchors: TourAnchors? = null,
 ) {
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-        DayTitle(actions, day, today, swipe, notices, progress)
+        DayTitle(actions, day, today, swipe, notices, progress, anchors)
         // Rien du tout quand on est aujourd'hui : un bouton grise qui ne fait rien
         // occuperait la place et poserait la question de ce qu'il fait la.
         AnimatedVisibility(visible = day != null) { TodayChip(onBackToToday) }
@@ -119,6 +123,7 @@ private fun DayTitle(
     swipe: DaySwipeState,
     notices: Set<Notice>,
     progress: ProgressPanel,
+    anchors: TourAnchors? = null,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -169,6 +174,7 @@ private fun DayTitle(
                         imageVector = Icons.Filled.Person,
                         contentDescription = stringResource(R.string.home_open_profile),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.tourAnchorOrNot(anchors, TourTarget.SETTINGS),
                     )
                 }
             }

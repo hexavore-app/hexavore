@@ -27,9 +27,9 @@
     <string name="profile_privacy">Everything on this screen stays on this phone. No account, no server, nothing sent to anyone.</string>
     <string name="profile_work_title">Your working day</string>
     <string name="profile_work_body">Eight hours a day, five days a week: this is the floor. Sport adds to it, and is counted here once and for all rather than day by day.</string>
-    <string name="profile_work_desk">Sitting most of the day — office, driving, studying</string>
-    <string name="profile_work_on_feet">On your feet, without carrying loads — shop, service, teaching</string>
-    <string name="profile_work_physical">Sustained physical effort — building, handling, farming</string>
+    <string name="profile_work_desk">Sitting most of the day: office, driving, studying</string>
+    <string name="profile_work_on_feet">On your feet, no heavy loads: shop, service, teaching</string>
+    <string name="profile_work_physical">Sustained physical effort: building, handling, farming</string>
     <string name="profile_sessions_title">Sport sessions per week</string>
     <string name="profile_sessions_none">None</string>
     <string name="profile_sessions_max">%1$d and more</string>
@@ -341,8 +341,8 @@
     <!-- Deep analysis: the model queries the catalogue before concluding, instead of
          letting a similarity score choose in its place. -->
     <string name="ai_deep_title">Deep analysis</string>
-    <string name="ai_deep_body">The model queries the catalogue and picks the entry for each food itself. Slower and more expensive, but markedly more accurate when two foods have similar names.</string>
-    <string name="ai_deep_unavailable">The active provider cannot call tools. The setting is kept and will take effect again with a provider that can.</string>
+    <string name="ai_deep_body">The model queries the catalogue and picks the entry for each food itself. It is always on where the provider can call tools: without it, foods the catalogue does not match come back with no values at all.</string>
+    <string name="ai_deep_unavailable">The active provider cannot call tools. Foods it does not match will be estimated instead, and flagged as estimates.</string>
 
     <string name="ai_debug_title">Debug mode</string>
     <string name="ai_debug_body">Keeps what goes to the provider and what comes back, to make sense of an unexpected answer. Nothing is written to disk, images are stripped out, and the list disappears when you close it.</string>
@@ -368,4 +368,14 @@
     <string name="reminders_streak_title">Streak at stake</string>
     <string name="reminders_meal_body">Quiet once this meal is logged.</string>
     <string name="reminders_streak_body">In the evening, when nothing is logged and a streak is running.</string>
+    <string name="settings_favorites_title">Favourites</string>
+    <string name="settings_favorites_subtitle">The meals you saved, and a way to fix them.</string>
+    <string name="settings_favorites_edit">Edit this favourite</string>
+    <string name="settings_favorites_empty">No favourites yet. Tap the star on a meal to save it; it comes back under the + button.</string>
+    <string name="settings_contact_title">Contact</string>
+    <string name="settings_contact_subtitle">The code, the site, and where to write.</string>
+    <string name="settings_contact_intro">Hexavore is open source. A bug, an idea, a word: all three reach us.</string>
+    <string name="settings_contact_site">The site</string>
+    <string name="settings_contact_github">The code, and the issues</string>
+    <string name="settings_contact_mail">Write to us</string>
 </resources>

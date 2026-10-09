@@ -30,7 +30,16 @@ import app.hexavore.domain.nutrition.Macro
  * d'un hexagone ne se distinguent plus, alors que six arcs de cercle restent lisibles.
  * L'ordre angulaire est celui de l'hexagone et des barres de l'accueil — la position
  * sert de second canal en cas de daltonisme, et elle ne renseigne que si elle est la
- * même partout ([08][design]).
+ * même partout ([08][design]). Il se lit dans [macroDialOrder], qui le **déduit** de la
+ * géométrie : ce composant suivait l'ordre de déclaration de l'énumération, et montrait
+ * donc les six mêmes couleurs dans un autre ordre que la figure juste au-dessus
+ * ([D145][decisions]).
+ *
+ * **Une journée tenue de bout en bout ne se dit pas ici non plus.** L'or qui la
+ * récompense se pose **autour** de cet anneau, dans la cellule du calendrier : les six
+ * couleurs restent ce qu'elles étaient, et la récompense se lit par-dessus sans rien
+ * leur retirer ([D150][decisions]). Remplacer les segments par un cercle d'or effaçait
+ * ce que la journée disait, et la rendait difficile à distinguer d'un jour vide.
  *
  * **Une journée sans saisie ne s'appelle pas ici.** Ce composant dessine des
  * progressions ; l'absence de journée est l'affaire de l'écran, qui ne le compose
@@ -40,6 +49,7 @@ import app.hexavore.domain.nutrition.Macro
  *
  * [parcours]: docs/02-parcours-et-ecrans.md
  * [design]: docs/08-design-system.md
+ * [decisions]: docs/11-decisions.md
  */
 @Composable
 fun MacroSegmentRing(
@@ -70,7 +80,10 @@ fun MacroSegmentRing(
     ) {
         Canvas(Modifier.matchParentSize()) {
             val stroke = strokeWidth.toPx()
-            Macro.entries.forEachIndexed { index, macro ->
+            // L'ordre du cadran, et non celui de l'enumeration : six couleurs posees
+            // dans un autre ordre que l'hexagone juste au-dessus retirent a la
+            // position toute valeur d'indice (D145).
+            macroDialOrder.forEachIndexed { index, macro ->
                 val start = START_ANGLE + index * SEGMENT_SWEEP
                 drawSegment(trackColor, start, SEGMENT_SWEEP - SEGMENT_GAP, stroke)
                 val filled = (progress[macro] ?: 0f).coerceIn(0f, 1f)

@@ -11,7 +11,7 @@
     <string name="reminder_breakfast_title">Breakfast?</string>
     <string name="reminder_breakfast_body">Nothing logged yet this morning.</string>
     <string name="reminder_lunch_title">Lunch?</string>
-    <string name="reminder_lunch_body">A sentence is enough — Hexavore works out the rest.</string>
+    <string name="reminder_lunch_body">A sentence is enough. Hexavore works out the rest.</string>
     <string name="reminder_dinner_title">Dinner?</string>
     <string name="reminder_dinner_body">Your day is nearly done. One last entry?</string>
 
