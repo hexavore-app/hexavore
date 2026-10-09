@@ -28,6 +28,30 @@ class QuantityConversionTest {
     }
 
     @Test
+    fun `en grammes, le poids du modele l emporte sur sa quantite`() {
+        // Le defaut signale : « chou-fleur, 1 G, grams 30 » entrait au journal a un
+        // gramme. Le modele avait compte une part la ou on attendait un poids, et
+        // l identite « un gramme vaut un gramme » multipliait sa part par un.
+        val rendu = convertToGrams(1.0, EstimatedUnit.G, FR, estimated = 30.0)
+
+        assertEquals(30.0, rendu.grams, TOLERANCE)
+        assertFalse(rendu.guessed, "un gramme reste un gramme, rien n a ete devine")
+    }
+
+    @Test
+    fun `en grammes, les deux champs d accord ne changent rien`() {
+        assertEquals(150.0, convertToGrams(150.0, EstimatedUnit.G, FR, estimated = 150.0).grams, TOLERANCE)
+    }
+
+    @Test
+    fun `en grammes, un poids absent laisse la quantite faire foi`() {
+        // Le modele a le droit de se taire sur le poids ; la quantite est alors le
+        // seul chiffre, et c est deja un nombre de grammes.
+        assertEquals(80.0, convertToGrams(80.0, EstimatedUnit.G, FR, estimated = null).grams, TOLERANCE)
+        assertEquals(80.0, convertToGrams(80.0, EstimatedUnit.G, FR, estimated = 0.0).grams, TOLERANCE)
+    }
+
+    @Test
     fun `sans densite, un millilitre pese un gramme et le dit`() {
         val rendu = convertToGrams(200.0, EstimatedUnit.ML, FR)
 

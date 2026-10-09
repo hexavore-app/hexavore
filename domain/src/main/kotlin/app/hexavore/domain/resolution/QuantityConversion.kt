@@ -25,6 +25,14 @@ import app.hexavore.domain.language.ContentLanguage
  * ou pomme — là où le modèle a regardé l'assiette. Le forfait ne sert donc plus que
  * lorsque personne ne s'est prononcé.
  *
+ * **Et `G` n'est ni l'un ni l'autre.** [D112][decisions] a écrit cette règle avec deux
+ * cas en tête — ce qu'on a mesuré, ce qu'on a deviné — et il en existait un troisième :
+ * l'unité qui **est déjà** celle du journal. Convertir un gramme en gramme ne demande de
+ * savoir ni la fiche ni la densité ; c'est l'identité, et elle n'a donc aucune mesure à
+ * faire valoir. Ce qu'elle protégeait n'était pas une donnée, c'était la `quantity` du
+ * modèle — contre le `grams` du **même** modèle, qui dit le poids total de la ligne
+ * ([D155][decisions]).
+ *
  * @param food la fiche visée, ou `null` quand la résolution n'a rien trouvé.
  * @param density en g/ml, quand on la connaît. **Elle ne vient pas de [food]**, et
  *   ce n'est pas un oubli : aucune source ne la publie aujourd'hui — CIQUAL ne la
@@ -45,13 +53,23 @@ fun convertToGrams(
     estimated: Double? = null,
 ): ConvertedQuantity {
     val perUnit = gramsPerUnit(unit, language, food, density)
+    val converti = ConvertedQuantity(grams = quantity * perUnit.grams, guessed = perUnit.guessed)
+    val weight = estimated?.takeIf { it > 0.0 } ?: return converti
 
-    // Il reste une estimation -- il n'a rien pesé -- mais une estimation informée, et
-    // elle ne remplace jamais qu'un forfait.
-    if (perUnit.guessed && estimated != null && estimated > 0.0) {
-        return guessed(estimated)
+    return when {
+        // En grammes, les deux champs disent la meme chose dans la meme unite. Quand
+        // ils se contredisent, c'est `grams` qui fait foi : c'est lui que le prompt
+        // definit comme le poids total de la ligne, la ou `quantity` change de sens
+        // avec l'unite -- et qu'un modele remplit a « 1 » comme on compte une part.
+        // Rien n'est devine ici : un gramme reste un gramme.
+        unit == EstimatedUnit.G -> known(weight)
+
+        // Il reste une estimation -- il n'a rien pese -- mais une estimation informee,
+        // et elle ne remplace jamais qu'un forfait.
+        perUnit.guessed -> guessed(weight)
+
+        else -> converti
     }
-    return ConvertedQuantity(grams = quantity * perUnit.grams, guessed = perUnit.guessed)
 }
 
 /**
@@ -121,6 +139,12 @@ private fun known(grams: Double) = ConvertedQuantity(grams, guessed = false)
 
 private fun guessed(grams: Double) = ConvertedQuantity(grams, guessed = true)
 
+/**
+ * L'identité, et elle ne sert plus que lorsque le modèle s'est tu sur le poids.
+ *
+ * Elle reste `known` : un gramme est un gramme, et une ligne en grammes n'a jamais à
+ * porter le marqueur de ce qui a été deviné.
+ */
 private const val ONE_GRAM = 1.0
 
 /** Un millilitre pèse un gramme, faute de mieux — et c'est toujours une supposition. */
