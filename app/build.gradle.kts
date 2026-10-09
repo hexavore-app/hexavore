@@ -41,6 +41,13 @@ android {
                 .get()
                 .toInt()
         versionName = libs.versions.versionName.get()
+
+        // Le lanceur des tests sur appareil. `AndroidJUnitRunner` et non un lanceur
+        // Hilt : le tour de l'application se joue sur **le vrai graphe**, celui que
+        // `HexavoreApplication` assemble. Un graphe de test aurait remplace les
+        // adaptateurs par des faux, et c'est precisement les adaptateurs qu'on veut
+        // voir tourner sur chaque version d'Android (D139).
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     // La langue par application, declaree au systeme.
@@ -147,4 +154,13 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
+
+    // Le tour de l'application, joue sur un appareil ou un emulateur.
+    androidTestImplementation(libs.junit4)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.core)
+    // UiAutomator et non le testeur de Compose : celui-ci ne voit que la fenetre de
+    // l'activite, et la feuille du  +  est une fenetre a elle (D139).
+    androidTestImplementation(libs.androidx.test.uiautomator)
 }

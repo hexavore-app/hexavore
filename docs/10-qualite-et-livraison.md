@@ -37,6 +37,20 @@ Cinq, pas plus — ils sont lents et fragiles, on les réserve à ce qui ne doit
 
 Le scan et l'IA ne sont pas testés de bout en bout : ils dépendent de la caméra et d'un service tiers. Leurs adaptateurs sont testés unitairement contre des réponses enregistrées.
 
+### Le tour d'écrans, une fois par version d'Android
+
+`AppJourneyTest`, dans `:app/src/androidTest`, ouvre l'accueil, le menu d'ajout, la recherche, la saisie, l'édition, les réglages, le journal de poids et la progression. Il ne juge **ni la mise en page ni les chiffres** : il répond à une seule question, posée sur chaque version d'Android — *est-ce que ça s'ouvre* ([D139](11-decisions.md#d139--lapplication-tient-depuis-android-11-et-un-tour-décrans-le-vérifie---validée)).
+
+Il existe parce qu'un appel de Java 9 compilait, passait toute l'analyse statique, et fermait l'application sous Android 11. Ce genre de panne ne se voit qu'en ouvrant l'écran sur la version concernée.
+
+**Sur le vrai graphe** : aucun adaptateur n'est remplacé, puisque ce sont justement les adaptateurs qui changent de comportement d'une version à l'autre. Le profil et l'objectif sont écrits par ce même graphe, via un point d'entrée Hilt qui n'existe qu'en `debug`.
+
+**Avec UiAutomator** et non le testeur de Compose : celui-ci ne voit que la fenêtre de l'activité, et la feuille du « + » est une fenêtre à elle.
+
+```bash
+adb -s emulator-5554 shell am instrument -w -e class app.hexavore.AppJourneyTest app.hexavore.debug.test/androidx.test.runner.AndroidJUnitRunner
+```
+
 ### Les tests de contrat
 
 Un port qui gagne une seconde implémentation **rejoint un jeu de tests de contrat** : les cas sont écrits une fois et exécutés sur les deux implémentations, côte à côte dans le même rapport.
@@ -195,7 +209,15 @@ Ce qui rend le piège coûteux : le code compile, les DTO se relisent sans rien 
 
 ### Vérifier sur un appareil
 
-Il n'y a pas d'émulateur dans l'environnement de développement assisté : `./gradlew check` ne prouve que la compilation, les tests et leurs hypothèses. **Ce qui s'affiche n'est jamais prouvé par un vert**, et un compte rendu de travail dit ce que le vert ne prouve pas.
+`./gradlew check` ne prouve que la compilation, les tests et leurs hypothèses. **Ce qui s'affiche n'est jamais prouvé par un vert**, et un compte rendu de travail dit ce que le vert ne prouve pas.
+
+Des émulateurs sont installés, de l'**API 30 à 36** — Android 11 à 16 ([D139](11-decisions.md#d139--lapplication-tient-depuis-android-11-et-un-tour-décrans-le-vérifie---validée)). Android 17 n'a pas encore d'image système. Les AVD s'appellent `Hexavore_API<n>` ; ils ont été écrits à la main dans `~/.android/avd/`, `avdmanager` ne tournant pas sous le JDK installé.
+
+```bash
+"$ANDROID_HOME/emulator/emulator" -avd Hexavore_API30 -no-boot-anim -no-snapshot-save
+```
+
+**Une version d'Android se vérifie en rejouant le tour d'écrans dessus**, pas en la regardant : c'est ce que la section précédente décrit.
 
 ```bash
 ./gradlew installDebug
