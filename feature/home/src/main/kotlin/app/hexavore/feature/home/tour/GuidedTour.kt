@@ -1,5 +1,6 @@
 package app.hexavore.feature.home.tour
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.gestures.animateScrollBy
@@ -72,11 +73,16 @@ import kotlin.math.roundToInt
  * Une bulle collée au plafond pendant qu'un bouton s'éclaire en bas laisse à l'œil le
  * soin de faire le lien — et cet œil-là découvre l'application.
  *
- * ### Rien ne passe au travers
+ * ### Rien ne passe au travers, sauf le retour
  *
  * Le voile prend tous les gestes. Pendant un tour, les seuls boutons qui répondent sont
  * ceux de la bulle — on ne veut pas que quelqu'un ouvre la recherche au milieu d'une
  * phrase qui parle d'autre chose, et retrouve l'accueil sans savoir ce qui l'a quitté.
+ *
+ * **Le geste de retour, lui, sort toujours**, et il vaut « Passer ». Un écran qui prend
+ * tous les appuis doit garder une porte que le mécanisme d'interception ne peut pas
+ * fermer : celle-ci n'arrive pas par l'arbre de pointeurs mais par l'activité. Sans elle,
+ * la moindre panne d'appui enferme pour de bon — ce qui est arrivé.
  *
  * [decisions]: docs/11-decisions.md
  */
@@ -90,6 +96,22 @@ internal fun GuidedTour(
     onConfigureAi: () -> Unit,
     onFinish: () -> Unit,
 ) {
+    // **Le retour du systeme congedie le tour**, comme  Passer .
+    //
+    // C'est une sortie que rien ne peut avaler : le geste arrive par l'activite, et non
+    // par l'arbre de pointeurs que le voile intercepte. Quoi qu'il advienne des appuis --
+    // une consommation de trop, une bulle hors ecran, une boite systeme qui prend le
+    // dessus --, il reste une porte.
+    //
+    // Elle n'existait pas, et son absence a couté cher : un utilisateur bloque devant la
+    // premiere bulle n'avait aucun moyen d'en sortir, et le retour le faisait quitter
+    // l'application -- l'accueil ne retient le geste que lorsqu'on regarde un autre jour.
+    //
+    // `onFinish` et non une fermeture passagere : quelqu'un qui fait demi-tour devant la
+    // premiere bulle a repondu. Reposer la question au lancement suivant serait la
+    // reposer indefiniment, et c'est precisement le piege qu'on vient de refermer.
+    BackHandler { onFinish() }
+
     val cible = step.target?.let { anchors[it] }
 
     SuitLaCible(step, anchors, scroll, cible != null) { cible }
@@ -335,15 +357,47 @@ private fun Actions(
 }
 
 /**
- * Le voile avale les gestes : pendant un tour, seule la bulle répond.
+ * Le voile retient les gestes, **sans les consommer**.
  *
  * `pointerInput` et non `clickable` : on ne veut ni l'ondulation, ni le rôle de bouton
  * annoncé au lecteur d'écran. Ce n'est pas un bouton, c'est un mur.
+ *
+ * ### Pourquoi il ne consomme rien
+ *
+ * Il l'a fait, et c'est ce qui a enfermé un utilisateur dans le tour pendant toute la
+ * 0.8.0. Ce modificateur est posé **au-dessus de la bulle dans l'arbre** : consommer sur
+ * la passe `Main`, c'est consommer **après** les boutons, qui ont déjà commencé leur
+ * appui. Or `Modifier.clickable` annule son appui dès qu'il voit un changement consommé
+ * sur la passe `Final` — autrement dit au premier `ACTION_MOVE` qui suit l'enfoncement.
+ *
+ * Un doigt tremble toujours. Une souris posée sur un pixel, non. Le tour marchait donc
+ * sur la machine de développement et sur aucun téléphone : **un pixel de mouvement
+ * séparait l'appui reçu de l'appui mort**, et le testeur qui s'en est sorti l'a fait avec
+ * un auto-clicker.
+ *
+ * ### Ce qui retient l'accueil, alors
+ *
+ * La **présence** du nœud, et elle seule. Compose teste les frères du dessus vers le bas
+ * et **s'arrête au premier qui est touché** : ce mur-ci couvre tout l'écran, il est donc
+ * toujours celui-là, et le `Scaffold` qui vit dessous n'entre jamais dans le trajet du
+ * geste. Rien n'a besoin d'être consommé pour qu'il ne reçoive rien.
+ *
+ * La bulle, elle, reste **en dessous de ce mur dans l'arbre** : il voit donc tous ses
+ * appuis, comme avant. Ce qui change est qu'il les laisse passer — un bouton qui a
+ * commencé son appui va maintenant jusqu'au bout.
+ *
+ * C'est `le_voile_retient_ce_qui_est_dessous` qui tient cette moitié-là, et il était vert
+ * avant la correction comme après : c'est pour ça qu'il a été écrit alors qu'il passait
+ * déjà. Une correction qui aurait rendu la bulle cliquable en ouvrant l'accueil aurait
+ * déplacé le défaut au lieu de le réparer, et lui seul pouvait le dire.
+ *
+ * La boucle paraît ne rien faire. C'est exact, et c'est le but : elle existe pour que le
+ * nœud existe.
  */
 private fun Modifier.blockingTaps(): Modifier = pointerInput(Unit) {
     awaitPointerEventScope {
         while (true) {
-            awaitPointerEvent().changes.forEach { it.consume() }
+            awaitPointerEvent()
         }
     }
 }

@@ -26,7 +26,7 @@ jvmToolchain = "17"
 
 # --- Identite de l'application ------------------------------------------------
 # applicationId verrouille a la premiere publication Play : docs/10-qualite-et-livraison.md.
-versionName = "0.8.1"
+versionName = "0.8.2"
 # Un code televerse ne se reprend jamais, meme sur une release supprimee : la Console
 # refuse tout bundle qui ne monte pas. Le 1 et le 2 sont donc partis pour de bon -- le
 # premier par erreur, le second avec le contenu de la 0.6.0.
@@ -34,7 +34,13 @@ versionName = "0.8.1"
 # 3 porte l'Addictive update : la barre du bas, la progression et les rappels (D131 a
 # D135). Le nom de version monte avec lui, parce que le contenu change, la ou la 0.6.0
 # avait garde le sien pour un simple changement de code.
-versionCode = "5"
+#
+# 6 degage le tour guide. Le voile consommait les gestes et annulait l'appui des que le
+# doigt bougeait d'un pixel : le tour s'affichait, ses deux boutons ne repondaient pas,
+# et il revenait a chaque lancement faute de pouvoir y repondre -- la 0.8.0 et la 0.8.1
+# enfermaient donc dans l'application quiconque ne tapait pas parfaitement immobile. Le
+# retour arriere en sort desormais, et c'est une porte qu'aucune panne d'appui ne ferme.
+versionCode = "6"
 
 # --- Bibliotheques ------------------------------------------------------------
 androidxCore = "1.15.0"
@@ -112,6 +118,12 @@ androidxTest = "1.6.1"
 androidxTestRunner = "1.6.2"
 androidxTestJunit = "1.2.1"
 uiautomator = "2.3.0"
+# L'orchestrateur, et la seule raison de l'ajouter : `clearPackageData`. Le tour guide
+# ne se montre qu'a qui ne l'a pas vu, et rien ne permet de l'oublier -- c'est voulu cote
+# produit. Sans une installation remise a neuf entre deux methodes, seule la premiere
+# regarde un tour et les suivantes passent au vert sans sujet. Il isole aussi chaque
+# methode des plats que la precedente a notes, ce que la suite actuelle ne fait pas.
+androidxTestOrchestrator = "1.5.1"
 
 # --- Outillage hors APK -------------------------------------------------------
 # Pilote SQLite pour la JVM de developpement : il embarque sa propre compilation de
@@ -206,6 +218,7 @@ androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTes
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRunner" }
 androidx-test-ext-junit = { module = "androidx.test.ext:junit", version.ref = "androidxTestJunit" }
 androidx-test-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "uiautomator" }
+androidx-test-orchestrator = { module = "androidx.test:orchestrator", version.ref = "androidxTestOrchestrator" }
 
 sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqliteJdbc" }
 calendar-compose = { module = "com.kizitonwose.calendar:compose", version.ref = "kizitonwoseCalendar" }
