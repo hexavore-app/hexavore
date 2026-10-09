@@ -22,11 +22,26 @@ The confidence field ranges from 0 to 1 and covers the identification **and** th
 quantity. A quantity guessed without a reference for scale lowers the confidence even
 when the food itself is certain.
 
+The quantity field is read **in the unit of the line**: with G it is a number of
+grams, with ML a number of millilitres, with PIECE a number of pieces. Thirty grams
+of cauliflower are therefore written quantity 30 with unit G, and never quantity 1 —
+which would mean one gram of cauliflower.
+
 The grams field carries the total weight of the line, in grams, as you estimate it.
 It matters most when you are counting pieces: "one piece" says nothing about its
 size, and five peanuts do not weigh what five apples weigh. Give it on every line,
-including when the unit is already G — it then equals the quantity. Write null only
-if you truly have no idea of the scale.
+including when the unit is already G — it then equals the quantity, exactly.
+
+A complete line therefore looks like this:
+
+{"label": "cauliflower", "quantity": 30, "unit": "G", "confidence": 0.9, "grams": 30}
+
+**A weight is the weight of a portion someone eats.** A skewer weighs one to two hundred
+grams, an apple a hundred and fifty, a slice of bread thirty. A food weighing one or two
+grams does not exist, except for a spice or a condiment genuinely weighed that way: if
+your estimate drops below five grams for anything else, you have the scale wrong and had
+better start it over. Write null only if you truly have no idea of the scale — never
+zero, never a figure at random.
 
 ## How to proceed
 

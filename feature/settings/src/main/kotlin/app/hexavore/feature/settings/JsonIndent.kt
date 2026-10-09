@@ -6,11 +6,11 @@ package app.hexavore.feature.settings
  * ### Pourquoi pas un analyseur
  *
  * `Json.parseToJsonElement` rendrait une mise en page impeccable et **échouerait
- * exactement sur les corps qui intéressent** : le journal les tronque à huit mille
- * caractères, donc les plus longs — ceux d'une boucle d'outillage, ceux d'une réponse
- * inattendue — arrivent ici avec une accolade en moins. Un analyseur les refuserait en
- * bloc et laisserait l'écran afficher une seule ligne illisible, c'est-à-dire
- * précisément l'état qu'on cherchait à corriger.
+ * exactement sur les corps qui intéressent** : le journal borne ce qu'il retient, donc
+ * les plus longs — ceux d'une boucle d'outillage, ceux d'une réponse inattendue —
+ * arrivent ici avec une accolade en moins, et désormais avec un trou nommé au milieu.
+ * Un analyseur les refuserait en bloc et laisserait l'écran afficher une seule ligne
+ * illisible, c'est-à-dire précisément l'état qu'on cherchait à corriger.
  *
  * Celui-ci ne comprend rien à ce qu'il lit. Il déplace des retours à la ligne selon la
  * ponctuation, et une accolade manquante ne lui fait ni chaud ni froid. Ce qui n'est pas
@@ -108,6 +108,7 @@ private const val INDENT = "  "
  * De combien on surdimensionne le tampon.
  *
  * L'indentation ajoute grosso modo un quart de la longueur ; réserver d'avance évite
- * une poignée de recopies sur un corps de huit mille caractères.
+ * une poignée de recopies sur un corps qui se compte en dizaines de milliers de
+ * caractères.
  */
 private const val GROWTH_DIVISOR = 4

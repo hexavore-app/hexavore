@@ -74,11 +74,18 @@ internal class AssetSystemPrompt(
  * `fr_v2` le disait sans que personne s'en serve. Une analyse notée sous `en_v1` se
  * retrouve donc sans qu'aucune colonne de plus ne soit nécessaire — c'est la raison pour
  * laquelle ce format est conservé tel quel plutôt que scindé en deux champs.
+ *
+ * La quatrième version dit ce que `quantity` **signifie** : un nombre de grammes quand
+ * l'unité est G, un nombre de pièces quand elle est PIECE. Le texte ne l'avait jamais
+ * écrit, et un modèle y mettait « 1 » comme on compte une part, pendant qu'il écrivait
+ * le vrai poids dans `grams` ([D155][decisions]).
+ *
+ * [decisions]: docs/11-decisions.md
  */
 val ContentLanguage.extractPromptVersion: String
     get() = when (this) {
-        ContentLanguage.FRENCH -> "fr_v3"
-        ContentLanguage.ENGLISH -> "en_v2"
+        ContentLanguage.FRENCH -> "fr_v4"
+        ContentLanguage.ENGLISH -> "en_v3"
     }
 
 /**
@@ -130,11 +137,20 @@ internal fun estimatePromptAsset(language: ContentLanguage) = "prompts/estimate_
  * ils décriront la même tâche jusqu'au jour où l'un des deux devra en dire plus, et les
  * factoriser dans un fragment commun rendrait chacun illisible pour économiser des
  * lignes que personne ne compte.
+ *
+ * **Mais une duplication qu'on garde se recopie à la main, et celle-ci ne l'a pas
+ * été.** Le garde-fou d'échelle de [D138][decisions] — *un aliment à un ou deux grammes
+ * n'existe pas* — est entré dans l'extraction et jamais ici, pendant trois versions. Le
+ * mode approfondi est précisément celui qui coûte le plus, et il tournait avec le texte
+ * le plus ancien. Les deux débuts sont réalignés par [D155][decisions] ; le jour où l'un
+ * bouge, l'autre se relit.
+ *
+ * [decisions]: docs/11-decisions.md
  */
 internal val ContentLanguage.deepPromptVersion: String
     get() = when (this) {
-        ContentLanguage.FRENCH -> "fr_v2"
-        ContentLanguage.ENGLISH -> "en_v1"
+        ContentLanguage.FRENCH -> "fr_v3"
+        ContentLanguage.ENGLISH -> "en_v2"
     }
 
 internal fun deepPromptAsset(language: ContentLanguage) = "prompts/deep_${language.deepPromptVersion}.txt"

@@ -30,10 +30,15 @@ Le champ confidence vaut de 0 à 1 et porte sur l'identification **et** sur la
 quantité. Une quantité devinée sans référence d'échelle abaisse la confiance même
 quand l'aliment est certain.
 
+Le champ quantity se lit **dans l'unité de la ligne** : avec G c'est un nombre de
+grammes, avec ML un nombre de millilitres, avec PIECE un nombre de pièces. Trente
+grammes de chou-fleur s'écrivent donc quantity 30 avec unit G, et jamais quantity 1 —
+qui voudrait dire un gramme de chou-fleur.
+
 Le champ grams porte le poids total de la ligne, en grammes, tel que tu l'estimes.
 Il compte surtout quand tu comptes des pièces : « une pièce » ne dit rien de sa
 taille, et cinq cacahuètes ne pèsent pas comme cinq pommes. Donne-le sur chaque
-ligne, y compris quand l'unité est déjà G — il vaut alors la quantité.
+ligne, y compris quand l'unité est déjà G — il vaut alors la quantité, à l'identique.
 
 **Un poids est celui d'une portion qu'on mange.** Une brochette pèse cent à deux cents
 grammes, une pomme cent cinquante, une tranche de pain trente. Un aliment à un ou deux
