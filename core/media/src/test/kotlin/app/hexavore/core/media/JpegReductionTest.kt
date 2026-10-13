@@ -1,4 +1,4 @@
-package app.hexavore.feature.capture
+package app.hexavore.core.media
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue

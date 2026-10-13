@@ -1,4 +1,4 @@
-package app.hexavore.feature.capture
+package app.hexavore.core.media
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -28,7 +28,7 @@ import java.io.File
  *
  * [ia]: docs/05-ia.md
  */
-internal fun newPhotoFile(context: Context): File = File(photoCache(context), PHOTO_FILE)
+fun newPhotoFile(context: Context): File = File(photoCache(context), PHOTO_FILE)
 
 /**
  * L'adresse que l'appareil photo du système sait écrire.
@@ -38,7 +38,7 @@ internal fun newPhotoFile(context: Context): File = File(photoCache(context), PH
  * l'`applicationId`, donc distincte en `debug` et en `release` — deux variantes
  * installées côte à côte ne peuvent pas se marcher dessus.
  */
-internal fun photoUri(context: Context, file: File): Uri =
+fun photoUri(context: Context, file: File): Uri =
     FileProvider.getUriForFile(context, context.packageName + FILE_PROVIDER_SUFFIX, file)
 
 /**
@@ -71,7 +71,7 @@ private fun photoCache(context: Context): File = File(context.cacheDir, PHOTO_DI
  * système de fichiers — l'utilisateur a pu choisir un fichier corrompu ou révoquer
  * l'accès entre le choix et la lecture — et l'écran sait le dire.
  */
-internal fun reduceToJpeg(context: Context, uri: Uri): ByteArray? = runCatching {
+fun reduceToJpeg(context: Context, uri: Uri): ByteArray? = runCatching {
     val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
     context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
 
@@ -118,7 +118,7 @@ private fun Bitmap.uprightened(context: Context, uri: Uri): Bitmap {
  * rencontre, et le défaut est de ne rien faire, ce qui est exactement ce qu'il faut
  * pour une image déjà droite.
  */
-internal fun rotationFor(orientation: Int): Float = when (orientation) {
+fun rotationFor(orientation: Int): Float = when (orientation) {
     ExifInterface.ORIENTATION_ROTATE_90 -> DEGREES_90
     ExifInterface.ORIENTATION_ROTATE_180 -> DEGREES_180
     ExifInterface.ORIENTATION_ROTATE_270 -> DEGREES_270

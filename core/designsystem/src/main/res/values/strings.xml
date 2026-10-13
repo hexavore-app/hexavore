@@ -73,6 +73,16 @@
          happened and what can be done about it, never a code. -->
     <string name="ds_ai_error_invalid_key">Your key was refused. Check it, then test again.</string>
     <string name="ds_ai_error_quota">This account is out of quota or credit.</string>
+    <!-- What the screen we come back to announces, home as well as the hub (D157). The
+         sentence says what is now possible: that is the only thing this key was for. -->
+    <!-- The copy calendar, shared by the entry screen and home (D157). -->
+    <string name="ds_copy_title">Copy to another day</string>
+    <string name="ds_copy_explain">The original stays where it is.</string>
+    <string name="ds_copy_confirm">Copy</string>
+    <string name="ds_copy_cancel">Cancel</string>
+    <string name="ds_ai_key_accepted">Key validated. Photo and text analysis are available.</string>
+    <string name="ds_ai_key_accepted_text_only">Key validated. This model does not read images: only text mode will work.</string>
+    <string name="ds_ai_error_busy">The service is overloaded right now. Nothing is wrong with your key: try again in a moment.</string>
     <string name="ds_ai_error_network">No connection. The call never left.</string>
     <string name="ds_ai_error_timeout">The provider did not answer in time.</string>
     <string name="ds_ai_error_vision">This model does not read images.</string>

@@ -1,13 +1,6 @@
 package app.hexavore.feature.capture
 
-import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -28,12 +21,7 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,7 +34,6 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -55,10 +42,7 @@ import app.hexavore.core.designsystem.component.CameraGlyph
 import app.hexavore.core.designsystem.component.GalleryGlyph
 import app.hexavore.core.designsystem.theme.Radius
 import app.hexavore.core.designsystem.theme.Spacing
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import androidx.core.content.ContextCompat as AndroidPermissions
+import app.hexavore.core.media.MealCapture
 
 /**
  * Le cadre du haut : l'image, et les deux façons d'en obtenir une.
@@ -203,80 +187,3 @@ private fun Modifier.dashedFrame(color: Color): Modifier = drawBehind {
 private val DashedStroke: Dp = 1.5.dp
 private val DashOn: Dp = 6.dp
 private val DashOff: Dp = 4.dp
-
-/** Les deux façons d'obtenir une photo, et ce qu'il advient du fichier. */
-@Immutable
-internal class MealCapture(val shoot: () -> Unit, val pick: () -> Unit)
-
-/**
- * Tout ce qui touche à l'appareil, en un seul endroit.
- *
- * **L'appareil photo du système, pas un aperçu à nous.** [docs/02][parcours] décrit un
- * aperçu CameraX ; il demanderait une seconde implémentation — la première sert le
- * scan, qui analyse un flux en continu — pour un écran dont le seul travail est de
- * remettre un JPEG. L'appareil du système apporte sa mise au point, son flash et son
- * zoom, et il écrit directement dans notre cache.
- *
- * **La permission est quand même demandée.** Elle n'est pas nécessaire pour déléguer
- * une prise de vue — sauf quand l'application déclare `CAMERA` dans son manifeste, ce
- * que fait `:integration:scanner` pour le scan. Le système l'exige alors avant de
- * lancer l'appareil photo, et sans ce chemin le déclencheur échouerait sans rien dire.
- *
- * **Le fichier meurt avec sa lecture**, dans un `finally` : succès, échec ou annulation
- * ([docs/05][ia] § Confidentialité). Une image choisie dans la galerie, elle, n'est
- * jamais supprimée — elle ne nous appartient pas.
- *
- * [parcours]: docs/02-parcours-et-ecrans.md
- * [ia]: docs/05-ia.md
- */
-@Composable
-internal fun rememberMealCapture(onJpeg: (ByteArray) -> Unit): MealCapture {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-
-    // L'adresse ou l'appareil photo du systeme ecrira. Nulle des que le fichier est
-    // lu : c'est elle qui dit s'il y a quelque chose a supprimer.
-    var taken by remember { mutableStateOf<Uri?>(null) }
-
-    val reduce: (Uri) -> Unit = { uri ->
-        scope.launch {
-            val jpeg = withContext(Dispatchers.IO) {
-                try {
-                    reduceToJpeg(context, uri)
-                } finally {
-                    taken?.let { context.contentResolver.delete(it, null, null) }
-                    taken = null
-                }
-            }
-            jpeg?.let(onJpeg)
-        }
-    }
-
-    val takePicture = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { captured ->
-        taken?.let { if (captured) reduce(it) }
-    }
-    val pickImage = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { picked ->
-        picked?.let(reduce)
-    }
-    val askCamera = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) taken?.let(takePicture::launch)
-    }
-
-    return remember(context) {
-        MealCapture(
-            shoot = {
-                val uri = photoUri(context, newPhotoFile(context))
-                taken = uri
-                if (context.hasCameraPermission()) {
-                    takePicture.launch(uri)
-                } else {
-                    askCamera.launch(Manifest.permission.CAMERA)
-                }
-            },
-            pick = { pickImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
-        )
-    }
-}
-
-private fun Context.hasCameraPermission(): Boolean =
-    AndroidPermissions.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED

@@ -21,6 +21,23 @@ sealed interface AiError {
     /** `429`, ou crédits épuisés. La clé est bonne, l'appel ne passera pas maintenant. */
     data object QuotaExceeded : AiError
 
+    /**
+     * `503`, `529`. Le fournisseur est **débordé**, et cela n'a rien à voir avec nous.
+     *
+     * **Distinct de [QuotaExceeded]**, qui dit *vous avez trop demandé*, et de [Server],
+     * qui dit *quelque chose s'est mal passé*. Celui-ci dit *revenez dans un instant* —
+     * trois phrases, trois gestes, et les confondre envoyait quelqu'un vérifier une clé
+     * irréprochable. Les modèles gratuits les plus demandés rendent ce code aux heures
+     * de pointe plusieurs fois par jour ([D156][decisions]).
+     *
+     * **Rien n'est facturé**, ce qui est l'argument qui autorise à repartir tout seul :
+     * la relance ne coûte que du temps, et [app.hexavore.domain.usecase.AnalyseMeal] en
+     * tente une avant de remonter cette issue.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    data object ProviderBusy : AiError
+
     data object NoNetwork : AiError
 
     data object Timeout : AiError
@@ -72,3 +89,17 @@ sealed interface AiError {
      */
     data class Server(val status: Int, val detail: String? = null) : AiError
 }
+
+/**
+ * Combien de temps on laisse passer l'embouteillage avant de repartir.
+ *
+ * **Trois secondes, et le chiffre n'est pas calibré** — aucun fournisseur ne publie la
+ * durée de ses pics. Il est choisi contre deux échecs qui se voient : trop court, la
+ * relance tombe dans le même embouteillage et ne sert qu'à doubler la facture de temps ;
+ * trop long, l'attente devient indistinguable d'une application figée.
+ *
+ * Une constante nommée plutôt qu'un littéral, pour que le jour du calibrage n'ait qu'un
+ * mot à changer — et pour que le test qui avance l'horloge virtuelle dise *la durée de
+ * relance* plutôt que *trois mille*.
+ */
+const val BUSY_RETRY_DELAY_MILLIS: Long = 3_000

@@ -6,6 +6,7 @@ import app.hexavore.domain.ai.AiProbe
 import app.hexavore.domain.ai.AiProvider
 import app.hexavore.domain.ai.AiSettings
 import app.hexavore.domain.ai.AiUsageLog
+import app.hexavore.domain.ai.BUSY_RETRY_DELAY_MILLIS
 import app.hexavore.domain.ai.CatalogueTool
 import app.hexavore.domain.ai.EstimationOutcome
 import app.hexavore.domain.ai.FoodRecognizer
@@ -17,6 +18,7 @@ import app.hexavore.domain.ai.TokenUsage
 import app.hexavore.domain.ai.VisionSupport
 import app.hexavore.domain.language.ContentLanguage
 import app.hexavore.domain.language.ContentLanguages
+import kotlinx.coroutines.delay
 
 /**
  * La fabrique : le seul endroit du projet qui sache qu'il existe plusieurs
@@ -125,7 +127,19 @@ internal class ConfiguredRecognizer(
      */
     override suspend fun probe(configuration: AiConfiguration): ProbeOutcome {
         val probe = RecognitionInput.Text(languages.current().probe)
-        return when (val outcome = configuration.provider.recognizer().recognize(probe, configuration)) {
+        val recognizer = configuration.provider.recognizer()
+
+        // **Un fournisseur deborde ne dit rien de la cle**, et c'est pourtant ce que
+        // l'ecran afficherait : quelqu'un qui colle sa premiere cle a l'heure du repas
+        // lirait un echec pour un embouteillage. La relance est muette ici -- l'ecran
+        // est deja sur « Verification » -- la ou l'analyse l'annonce (D156).
+        var outcome = recognizer.recognize(probe, configuration)
+        if (outcome.busy()) {
+            delay(BUSY_RETRY_DELAY_MILLIS)
+            outcome = recognizer.recognize(probe, configuration)
+        }
+
+        return when (outcome) {
             is RecognitionOutcome.Recognized -> configuration.provider.reachable()
             is RecognitionOutcome.Failed -> outcome.error.toProbe(configuration.provider)
         }
@@ -154,6 +168,8 @@ internal class ConfiguredRecognizer(
  * confondre ferait échouer le test pour une phrase que le modèle a mal comprise, et
  * enverrait l'utilisateur corriger une clé qui n'a rien.
  */
+private fun RecognitionOutcome.busy(): Boolean = this is RecognitionOutcome.Failed && error == AiError.ProviderBusy
+
 private fun AiError.toProbe(provider: AiProvider): ProbeOutcome = when (this) {
     AiError.Unparseable, AiError.NothingRecognized -> provider.reachable()
     else -> ProbeOutcome.Failed(this)
@@ -264,4 +280,10 @@ private suspend fun AiUsageLog.recordIfBilled(configuration: AiConfiguration, bi
  * et le chemin ordinaire n'en souffre pas.
  */
 private val AiError.worthRetrying: Boolean
-    get() = this !is AiError.NoNetwork && this !is AiError.InvalidKey && this !is AiError.QuotaExceeded
+    get() = this !is AiError.NoNetwork &&
+        this !is AiError.InvalidKey &&
+        this !is AiError.QuotaExceeded &&
+        // Un fournisseur debordé l'est pour les deux chemins : repartir sans outils
+        // tomberait dans le meme embouteillage. C'est `AnalyseMeal` qui attend, et lui
+        // seul -- deux relances empilees feraient quatre appels pour une assiette (D156).
+        this !is AiError.ProviderBusy

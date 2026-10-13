@@ -63,6 +63,20 @@ internal data class AnalyseUiState(
      */
     val text: String = "",
     val analysing: Boolean = false,
+    /**
+     * `true` pendant la seconde tentative, quand la première s'est heurtée à un
+     * fournisseur débordé.
+     *
+     * **Il faut le dire.** Une attente qui s'allonge sans explication se lit comme une
+     * application figée, et celui qui referme l'écran perd sa photo. La phrase nomme la
+     * cause — le service est saturé — et le fait qu'on s'en occupe ([D156][decisions]).
+     *
+     * Distinct de [analysing], qui reste vrai pendant toute l'opération : celui-ci ne
+     * dit pas *ça travaille* mais *ça a échoué une fois et ça repart*.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val retrying: Boolean = false,
     /** L'issue du dernier essai, quand il a échoué. Effacée dès qu'on relance. */
     val error: AiError? = null,
     /**
@@ -199,7 +213,7 @@ internal class AnalyseViewModel @Inject constructor(
     fun onCancel() {
         analysis?.cancel()
         analysis = null
-        state.update { it.copy(analysing = false) }
+        state.update { it.copy(analysing = false, retrying = false) }
     }
 
     /**
@@ -221,8 +235,12 @@ internal class AnalyseViewModel @Inject constructor(
      * 24 cm » — là où une phrase seule décrit tout le repas.
      */
     private suspend fun analyse(shown: AnalyseUiState) {
-        state.update { it.copy(analysing = true, error = null) }
+        state.update { it.copy(analysing = true, retrying = false, error = null) }
         val written = shown.text.trim()
+
+        // Ce que le cas d'usage appelle quand il repart : l'ecran le dit, et c'est la
+        // seule raison pour laquelle la relance n'est pas un intercepteur HTTP (D156).
+        val onBusy: suspend () -> Unit = { state.update { it.copy(retrying = true) } }
 
         // Rien n'entoure cet appel : une annulation doit traverser. `onCancel` a deja
         // remis l'ecran en etat, et l'attraper ici pour ecrire un echec ferait revivre
@@ -231,14 +249,17 @@ internal class AnalyseViewModel @Inject constructor(
         // Le rangement de la photo et le depot sont dans le cas d'usage, depuis que la
         // barre du bas envoie la meme chose sans ouvrir d'ecran (D131).
         val outcome = when (val photo = shown.photo) {
-            null -> analyseMeal(RecognitionInput.Text(written))
-            else -> analyseMeal(RecognitionInput.Photo(photo.jpeg, written.ifBlank { null }))
+            null -> analyseMeal(RecognitionInput.Text(written), onBusy)
+            else -> analyseMeal(RecognitionInput.Photo(photo.jpeg, written.ifBlank { null }), onBusy)
         }
 
         state.update { current ->
             when (outcome) {
-                is RecognitionOutcome.Recognized -> current.copy(analysing = false, analysed = true)
-                is RecognitionOutcome.Failed -> current.copy(analysing = false, error = outcome.error)
+                is RecognitionOutcome.Recognized ->
+                    current.copy(analysing = false, retrying = false, analysed = true)
+
+                is RecognitionOutcome.Failed ->
+                    current.copy(analysing = false, retrying = false, error = outcome.error)
             }
         }
     }

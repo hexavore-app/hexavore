@@ -4,7 +4,9 @@ Suivi alimentaire pour Android. Libre, gratuit, sans compte, sans publicité, sa
 
 On note ce qu'on mange en quelques secondes — scan d'un code-barres, photo de l'assiette, recherche dans une base de 3 484 aliments, ou simple phrase en français ou en anglais — et l'application tient à jour six compteurs : **calories, protéines, glucides, sucres, lipides, fibres**.
 
-> **Statut** : itération 0 — le socle. Le projet compile, s'installe et affiche une galerie de composants ; il ne suit encore aucun repas. La conception complète est dans `docs/`, le plan de construction dans [12](docs/12-plan-de-developpement.md).
+> **Statut** : 0.9.0, candidate à la publication. Les quatre modes de saisie fonctionnent, le journal, le calendrier, les objectifs, les favoris, la progression, les rappels, la sauvegarde et les deux langues sont livrés. Ce qui reste avant la 1.0 est dans [12](docs/12-plan-de-developpement.md) ; la conception complète est dans `docs/`, et les choix structurants dans [11](docs/11-decisions.md).
+>
+> La dernière livraison retire les trois murs que les testeurs ont rencontrés ([D156](docs/11-decisions.md)) : la clé d'API se récupère par un écran qui annonce ce qu'il faut aller faire, un fournisseur saturé le dit au lieu de se faire passer pour une panne, et l'image d'un plat se remplace au lieu de ne pouvoir que disparaître.
 
 ---
 
@@ -74,7 +76,7 @@ Trois règles [detekt](build-logic/detekt-rules) maison font échouer le build s
 
 ### Modules
 
-Seize, nés au fur et à mesure qu'ils avaient un fichier à contenir.
+Vingt-huit, nés au fur et à mesure qu'ils avaient un fichier à contenir.
 
 | Module | Rôle |
 |---|---|
@@ -84,14 +86,26 @@ Seize, nés au fur et à mesure qu'ils avaient un fichier à contenir.
 | `:core:designsystem` | Palette néon, thème, animations, composants Compose |
 | `:core:database` | Room, migrations, schémas exportés, et la table de l'ANSES en lecture seule |
 | `:core:testing` | Premières implémentations des ports, et les décors partagés |
-| `:data:diary` | Le journal alimentaire |
+| `:core:media` | L'appareil photo du système, la galerie, la réduction JPEG. Partagé par les deux écrans qui prennent des images. |
+| `:data:diary` | Le journal alimentaire, et les photos des plats |
 | `:data:food` | Le catalogue d'aliments |
 | `:data:profile` | Profil, journal de poids, objectifs versionnés |
 | `:data:progress` | Ce que la progression a figé : trois planchers et les paliers |
+| `:data:settings` | Les clés d'API chiffrées, et les réglages qui se rangent avec elles |
+| `:data:backup` | L'export, l'import, et l'effacement qui tient sa promesse |
+| `:integration:openfoodfacts` | Les produits par code-barres, et les fiches reversées |
+| `:integration:scanner` | La caméra et le décodage de code-barres |
+| `:integration:ai` | Six fournisseurs derrière un port, un parseur commun |
+| `:integration:reminders` | Le travail planifié et la notification |
+| `:integration:reports` | Les deux rapports par courriel : un plantage, une proposition fausse |
 | `:feature:home` | L'accueil, son hexagone et sa barre d'ajout |
 | `:feature:progress` | Les deux séries, les paliers, le niveau |
 | `:feature:entry` | L'écran de validation, point de convergence des modes de saisie |
 | `:feature:search` | La recherche et le bandeau de rayons |
+| `:feature:scan` | Le scan d'un code-barres |
+| `:feature:capture` | La photo ou la description soumise à un modèle |
+| `:feature:weight` | Le journal de poids, sa courbe, l'ajustement hebdomadaire |
+| `:feature:settings` | Le hub et ses neuf écrans |
 | `:feature:onboarding` | Les cinq questions |
 | `:tooling:ciqual-import` | Convertit le XML de l'ANSES en `ciqual.db`. Le seul module qui n'entre dans aucun APK. |
 

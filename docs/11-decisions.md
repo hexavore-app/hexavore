@@ -5319,6 +5319,101 @@ Trois corrections, et aucune ne coûte :
 
 ---
 
+## D156 — Les trois murs de la mise en route, et le mode de mise au point qui ne servait plus · ✓ validée
+
+**Contexte.** L'application part sur le Play Store. Tous les testeurs ont buté sur la même marche : **personne n'a réussi à renseigner sa clé d'API seul.** Deux autres défauts se sont ajoutés en observant l'usage réel — un fournisseur saturé qui se faisait passer pour une panne, et une image de plat qu'on ne pouvait que supprimer.
+
+### Le mur de la clé : un lien souligné contre une démarche à faire ailleurs
+
+L'écran demandait une clé d'API et proposait, en petit, « Comment obtenir une clé ? ». Le lien ouvrait trois paragraphes honnêtes qui ne disaient pas la seule chose qui compte : **il va falloir sortir de l'application et faire quelque chose soi-même.** Quelqu'un qui ne sait pas ce qu'est une clé d'API n'a aucune raison d'appuyer sur un lien qui lui en parle comme d'une évidence.
+
+Quatre changements, et chacun retire un geste qu'il fallait deviner :
+
+- **Un écran dédié**, ouvert par un bouton qui dit ce qu'il fait — « Récupérer la clé ». Il porte un avertissement en carte d'erreur : vous allez sortir d'Hexavore, personne ne peut le faire à votre place, comptez deux minutes, **et c'est à faire une seule fois**. Cette dernière phrase est celle qui décide : un effort unique se consent, un effort dont on ignore la fin se refuse.
+- **Des étapes numérotées**, malgré la règle contraire. Le projet refusait toute marche à suivre — les consoles changent de forme plusieurs fois par an, et une documentation fausse est pire qu'aucune. L'arbitrage s'inverse parce que l'absence, elle, a un coût **mesuré** : personne n'y arrive. Les étapes sont donc écrites courtes, sans capture d'écran et sans dépendre d'un libellé : se connecter, créer une clé, la copier — ce qui ne changera pas quand les boutons auront déménagé. La promesse « aucune carte bancaire » vient de `AiProvider.free` et non d'une chaîne, donc elle disparaît le jour où elle cesse d'être vraie.
+- **Le fournisseur recommandé est déplié d'emblée.** Les deux cartes étaient repliées : il fallait deviner qu'une carte se déplie avant de voir qu'il y a une clé à coller.
+- **Un seul bouton d'envoi.** Il y en avait deux — « Tester » puis « Utiliser » — et les deux étaient des pièges : tester sans enregistrer laissait repartir avec un « clé valide » et rien de rangé, enregistrer sans tester laissait découvrir le refus devant une assiette. « Valider la clé » teste **puis** enregistre, et s'arrête au premier refus. Rien n'est rangé que le fournisseur n'ait accepté.
+
+Le succès ne s'annonce pas sur place : l'écran se referme, et le hub affiche « Clé validée. Chargement photo et texte possible. » Une boîte à fermer aurait fait un appui de plus pour une bonne nouvelle. Le refus, lui, reste **sous le champ** qu'il demande de corriger, et s'efface à la frappe suivante.
+
+### Ce que « Effacer la clé » est devenu
+
+Rien. Le bouton est parti : un bouton destructeur sous le champ qu'on vient de remplir, pour un geste que personne ne cherchait. Ce qu'on fait d'une clé, c'est la remplacer — et le champ **sélectionne tout ce qu'il contient dès qu'on le touche**, donc coller écrase. Une clé est une chaîne de trente-neuf caractères sans sens, masquée par des points : on ne la corrige jamais. L'effacement complet reste là où il a toujours été, dans « Tout effacer » de l'écran de sauvegarde, qui emporte déjà les clés.
+
+Le modèle et l'URL de base passent sous **« Réglages avancés »**, replié. Préremplis, ils ne demandaient rien à quelqu'un qui ne peut ni les connaître ni les vérifier — c'est le raisonnement de [D143](#d143--trois-champs-qui-ne-se-reglent-pas-et-un-seuil-qui-dit-vrai---validée) sur l'URL, appliqué au champ voisin. Ils ne disparaissent pas : changer de modèle est le seul recours quand celui qu'on utilise est saturé une heure durant.
+
+### Un fournisseur saturé n'est pas une panne, et ce n'est pas votre clé
+
+`gemini-3.5-flash-lite` rend `503` aux heures de repas — c'est-à-dire exactement quand on photographie une assiette. Le code tombait dans le fourre-tout `AiError.Server`, dont le message est « Le service est indisponible. Réessayez plus tard. » Affiché pendant qu'on vient de coller sa première clé, il se lit comme un refus de cette clé.
+
+**Un cas d'erreur de plus**, `AiError.ProviderBusy`, pour `503` et pour le `529` propre à Anthropic. Sa phrase nomme la cause et dédouane l'utilisateur : *« Le service est saturé en ce moment. Votre clé n'y est pour rien : réessayez dans un instant. »*
+
+**Et une relance automatique**, une seule, après trois secondes. L'argument qui l'autorise est qu'un `503` **n'est pas facturé** : la relance ne coûte que du temps, là où repartir sur un quota dépassé se paierait pour échouer pareil. Elle vit dans `AnalyseMeal` et non dans un intercepteur HTTP, pour une raison qui n'est pas technique : **l'écran doit pouvoir le dire.** Une attente qui s'allonge sans explication se lit comme une application figée, et le texte d'attente passe à « Service saturé, nouvelle tentative… ». Le sondage de la clé relance aussi, mais sans rien dire — l'écran est déjà sur « Vérification ».
+
+### L'image d'un plat se remplace
+
+Il n'y avait qu'une croix. On pouvait donc supprimer l'image qu'une analyse avait apportée, et rien d'autre : ni la remplacer quand le modèle avait photographié de travers, ni en mettre une sur un repas noté à la main ou scanné.
+
+Un appui sur la vignette ouvre désormais une feuille : prendre une photo, choisir dans la galerie, supprimer. Sans image, un **cadre en pointillés** à la même place ouvre la même feuille moins la dernière ligne — le pointillé est la forme que [D25](#d25--une-valeur-estimée-se-signale-par-sa-forme-jamais-par-sa-seule-couleur---validée) réserve à ce qui n'est pas renseigné, et il invite sans une phrase.
+
+Trois choix de conception, et un seul mérite d'être discuté :
+
+- **Le réglage « garder les photos » n'est pas consulté.** Il dit *n'en garde pas automatiquement*, et non *refuse celles que je te donne* : demander à quelqu'un d'aller rallumer un interrupteur ailleurs pour un geste qu'il vient de poser est exactement le genre de mur que cette livraison retire. C'est pourquoi `ChooseDishPhoto` existe à côté de `StageDishPhoto` au lieu d'un paramètre — deux provenances qui n'ont pas les mêmes droits, et la règle est tenue par la forme du constructeur.
+- **Rien n'est effacé avant l'enregistrement**, comme avant : l'image choisie va au dépôt, et c'est l'enregistrement qui la range. Annuler doit rendre le plat tel qu'il était.
+- **Un compteur de révisions**, parce que le dépôt n'a qu'un emplacement : remplacer une image réécrit le même fichier, et `DishPhoto` mémorise son décodage par chemin — à juste titre. Sans lui, la photo précédente restait à l'écran.
+
+La plomberie photo — l'appareil du système, la galerie, le `FileProvider`, la réduction JPEG — quitte `:feature:capture` pour **`:core:media`**. Faire dépendre `:feature:entry` de `:feature:capture` aurait ouvert la porte que [D149](#d149--un-favori-se-corrige-là-où-il-a-été-écrit---validée) tient fermée ; et ce qui est partagé n'est pas un écran.
+
+### Le mode de mise au point s'en va
+
+L'interrupteur « Mode debug » et son écran d'échanges sont **supprimés**. [D153](#d153--un-prompt-déclaré-sans-fichier-un-journal-éteint-et-un-inset-consommé---validée) leur avait retiré leur raison d'être sans le dire : depuis qu'un signalement joint l'échange tout seul, un écran pour le relire à la main ne sert plus personne — et c'était, dans la version publiée, un réglage de plus devant quelqu'un qui n'en cherchait aucun.
+
+Le **journal reste**, à une profondeur et une seule : le dernier échange, celui qu'un signalement emporte. La règle qui tenait l'interrupteur éteint par défaut — ce qui retient ne s'allume pas tout seul — devient donc la seule règle. `DebugSettings`, son magasin chiffré, sa liaison Hilt, son faux de test et les sept chaînes de l'écran partent avec.
+
+**Conséquences.** Un module de plus (`:core:media`), un cas d'erreur de plus, un cas d'usage de plus (`ChooseDishPhoto`), un écran de plus (`AiKeyRetrievalScreen`), deux écrans de moins (l'aide en dialogue, les échanges), quatorze cas de test neufs. Deux signatures publiques bougent : `DishPhoto` gagne une révision, `AnalyseMeal` gagne un rappel d'annonce — les deux avec un défaut, donc aucun appelant existant ne change.
+
+**Ce que le vert ne prouve pas.** **Que la démarche aboutisse.** Les cas affirment qu'une clé acceptée s'enregistre et qu'une clé refusée ne laisse rien ; aucun ne dit qu'une personne qui n'a jamais pris de clé d'API y arrive maintenant. C'est une question qui ne se répond qu'avec des gens — et c'est exactement ce qui avait manqué à l'écran précédent, dont chaque ligne était défendable.
+
+**Que trois secondes soient le bon délai.** Aucun fournisseur ne publie la durée de ses pics ; la constante est nommée pour que le jour du calibrage n'ait qu'un mot à changer.
+
+---
+
+## D157 — Le bandeau qui n'arrivait pas, le site qui ne ramenait pas, et la copie qui manquait à l'accueil · ✓ validée
+
+**Contexte.** Un premier essai de la 0.9.0 sur un vrai téléphone, au lendemain de [D156](#d156--les-trois-murs-de-la-mise-en-route-et-le-mode-de-mise-au-point-qui-ne-servait-plus---validée). Deux défauts dans ce qui venait d'être livré, et un geste qui manquait depuis longtemps.
+
+### Le bandeau ne se lisait que là où presque personne ne revient
+
+D156 annonçait la clé validée sur le **hub des réglages** : la nouvelle était posée sur l'écran précédent, dans l'état de la pile de navigation, et le hub savait l'y lire. Le raisonnement supposait qu'on arrive à l'écran des clés par le hub. **C'est le chemin le moins fréquent.** Le tour guidé et le bouton d'analyse grisé — c'est-à-dire tout ce qu'une installation neuve propose pour configurer l'IA — y mènent **depuis l'accueil**. On validait, on revenait sur l'accueil, et rien ne disait que c'était fait.
+
+Le commentaire de D156 l'avait d'ailleurs écrit, en le présentant comme acceptable : *« venu de l'accueil, personne ne la lit — et l'accueil dit la même chose autrement, puisque ses deux boutons d'analyse s'allument. »* Un bouton qui change de teinte n'est pas une phrase, et ce n'était pas acceptable.
+
+**Un port plutôt qu'un résultat de navigation.** `KeyAcceptance`, dans `:domain`, tient la nouvelle en mémoire ; l'écran des clés l'y pose avant de se refermer, et **l'écran qui reprend la main la dit**, quel qu'il soit. Celui qui écrit ne connaît pas ceux qui lisent : c'est ce qui manquait au résultat de navigation, qui exige de savoir où l'on revient. L'implémentation vit dans `:core:common` à côté du jour regardé, pour la même raison — un état d'application sans rangement.
+
+La phrase et son affichage sont dans `:core:designsystem` (`AnnounceKeyAcceptance`), pour que l'accueil et le hub disent exactement la même chose. Elle reste affichée la durée longue, avec une croix : c'est la conclusion d'une démarche qui a demandé de sortir de l'application. Elle **ne chasse pas** la barre en cours — sur l'accueil, ce peut être celle qui rattrape un plat supprimé, et la fermer avant terme rendrait la suppression définitive.
+
+### Le site s'ouvrait, et il fallait encore revenir
+
+« Ouvrir le site de Google Gemini » ouvrait le navigateur et laissait l'écran d'explications derrière lui : au retour, on retombait sur des étapes déjà lues, qu'il fallait quitter d'un appui de plus pour atteindre le champ. **Le bouton ouvre le site et referme l'écran dans le même geste.** Il ne le referme que si le site s'est ouvert : sans navigateur, l'écran reste là pour dire ce qu'il y avait à faire.
+
+**Et la clé se colle d'un bouton.** Coller demandait un appui long sur le champ, puis de viser la bulle du système — sur un champ masqué par des points, où l'on ne voit même pas si le texte est arrivé. C'est le geste qu'on rate au moment précis où l'on revient du navigateur avec la clé en poche. « Coller la clé » lit le presse-papiers **à l'appui et à l'appui seulement** — Android annonce chaque lecture, et une lecture que personne n'a demandée serait une indiscrétion —, retire les blancs qu'un navigateur ajoute souvent, et dit quand il n'y a rien à coller.
+
+**Un seul bouton plein à la fois, et c'est le prochain geste** : « Récupérer » tant qu'on n'est parti chercher aucune clé, « Coller » au retour, « Valider » dès que le champ a quelque chose à valider. Le souvenir d'être parti survit au détour parce qu'il est sauvegardable : la navigation garde l'état d'un écran pendant qu'un autre est par-dessus.
+
+### Copier manquait à l'appui long
+
+L'appui long d'un plat proposait de modifier, de supprimer et de mettre en favori. Copier existait — sur l'écran de saisie, depuis [D144](#d144--copier-un-plat-se-dit-avec-deux-feuilles-part-daujourdhui-et-sannonce---validée) — mais pas là où l'on regarde sa journée. Il y est, en deuxième position, entre « Modifier » et « Mettre en favori » : les deux premiers gardent le plat, les deux derniers le transforment ou l'emportent.
+
+**Le même calendrier**, et non une copie : `CopyDateDialog` quitte `:feature:entry` pour le design system. Même titre, même phrase qui dit que l'original reste, même borne des jours à venir — une borne qui avait déjà été corrigée une fois, et qui aurait divergé à la seconde.
+
+**Un bandeau, sans bouton « Voir ».** On reste sur le jour qu'on regardait, ce qui permet de recopier le même plat trois matins de suite sans revenir le chercher. **La photo ne suit pas**, ni ici ni sur l'écran de saisie : elle montre une assiette précise, un jour précis ; la copie est le même repas mangé une autre fois, et elle peut recevoir sa propre image.
+
+**Conséquences.** Un port de plus (`KeyAcceptance`) et son implémentation en mémoire ; deux petits modèles qui la lisent, un par module d'écran, puisque ces modules ne se voient pas ([D149](#d149--un-favori-se-corrige-là-où-il-a-été-écrit---validée)). Le résultat de navigation et sa clé d'état disparaissent du graphe des réglages. `DishGestures` gagne son quatrième geste, comme son commentaire le prévoyait. Huit cas de test neufs.
+
+**Ce que le vert ne prouve pas.** Que le bandeau soit vu : les cas affirment que la nouvelle attend, se dit et s'oublie ; aucun ne regarde un écran. Et que « Coller la clé » trouve la clé : certains navigateurs copient la clé entourée de texte, et le bouton collerait alors une phrase que le fournisseur refuserait — ce qui se dirait, au moins, sous le champ.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

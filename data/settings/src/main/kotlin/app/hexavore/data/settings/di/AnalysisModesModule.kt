@@ -1,9 +1,7 @@
 package app.hexavore.data.settings.di
 
 import android.content.SharedPreferences
-import app.hexavore.data.settings.StoredDebugSettings
 import app.hexavore.data.settings.StoredDeepAnalysisSettings
-import app.hexavore.domain.ai.DebugSettings
 import app.hexavore.domain.ai.DeepAnalysisSettings
 import app.hexavore.domain.concurrency.DispatcherProvider
 import dagger.Module
@@ -44,15 +42,4 @@ internal object AnalysisModesModule {
 
     @Provides
     fun deepAnalysis(stored: StoredDeepAnalysisSettings): DeepAnalysisSettings = stored
-
-    /** Le mode debug : les echanges avec le fournisseur, retenus en memoire. */
-    @Provides
-    @Singleton
-    fun storedDebug(
-        @Named(AI_PREFERENCES) preferences: SharedPreferences,
-        dispatchers: DispatcherProvider,
-    ): StoredDebugSettings = StoredDebugSettings(preferences, dispatchers)
-
-    @Provides
-    fun debug(stored: StoredDebugSettings): DebugSettings = stored
 }

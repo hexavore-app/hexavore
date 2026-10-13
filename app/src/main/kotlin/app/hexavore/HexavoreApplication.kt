@@ -3,13 +3,13 @@ package app.hexavore
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import app.hexavore.core.media.sweepCapturePhotos
 import app.hexavore.domain.concurrency.DispatcherProvider
 import app.hexavore.domain.language.LanguageSettings
 import app.hexavore.domain.reminder.PostedReminders
 import app.hexavore.domain.reminder.ReminderScheduler
 import app.hexavore.domain.reminder.ReminderSettings
 import app.hexavore.domain.usecase.SweepDishPhotos
-import app.hexavore.feature.capture.sweepCapturePhotos
 import app.hexavore.integration.reports.FileCrashReports
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope

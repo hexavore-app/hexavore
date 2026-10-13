@@ -65,6 +65,10 @@
          modification, le menu donne accès à ce qui n'a pas sa place sur le plat. -->
     <string name="home_dish_menu">ouvrir le menu du plat</string>
     <string name="home_dish_menu_edit">Modifier</string>
+    <!-- Le geste qui manquait a l'appui long : il existait sur l'ecran de saisie
+         seulement (D157). -->
+    <string name="home_dish_menu_copy">Copier sur un autre jour</string>
+    <string name="home_dish_copied_to">Plat copié au %1$s</string>
     <string name="home_dish_menu_delete">Supprimer</string>
     <string name="home_dish_menu_favorite">Mettre en favori</string>
     <string name="home_dish_menu_unfavorite">Retirer des favoris</string>
@@ -88,6 +92,7 @@
     <string name="home_send_description">Analyser ce repas</string>
     <string name="home_shoot">Photographier le repas</string>
     <string name="home_analysing">Analyse en cours…</string>
+    <string name="home_analysing_busy">Service saturé, nouvelle tentative…</string>
     <string name="home_analyse_cancel">Annuler</string>
     <!-- Un fournisseur en panne ne doit jamais empêcher de noter son repas. -->
     <string name="home_analyse_manual">Ajouter à la main</string>

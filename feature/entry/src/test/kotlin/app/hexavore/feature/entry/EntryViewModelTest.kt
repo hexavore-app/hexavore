@@ -34,6 +34,7 @@ import app.hexavore.domain.nutrition.Macros
 import app.hexavore.domain.nutrition.NutrientValues
 import app.hexavore.domain.usecase.AddFoodLine
 import app.hexavore.domain.usecase.AttachDishPhoto
+import app.hexavore.domain.usecase.ChooseDishPhoto
 import app.hexavore.domain.usecase.CopyDishToDate
 import app.hexavore.domain.usecase.CreateDraft
 import app.hexavore.domain.usecase.DeleteDish
@@ -492,6 +493,64 @@ class EntryViewModelTest {
         assertEquals(EntrySource.MANUAL, relu.form.source)
     }
 
+    /**
+     * **Choisir une image la montre tout de suite**, sans attendre l'enregistrement.
+     *
+     * C'est ce qui distingue le geste d'une promesse : le depot est ecrit, l'ecran le
+     * relit, et la vignette remplace le cadre en pointilles (D156).
+     */
+    @Test
+    fun `choisir une image la depose et l affiche`() = runTest(dispatcher) {
+        val viewModel = viewModel()
+
+        viewModel.onPhotoChosen(image)
+        advanceUntilIdle()
+
+        assertNotNull(viewModel.content().photo, "la vignette doit remplacer le cadre vide")
+        assertEquals(1, viewModel.content().photoRevision)
+    }
+
+    /**
+     * Deux choix de suite **changent deux fois** la revision.
+     *
+     * Le depot n'a qu'un emplacement : la seconde image porte le meme chemin que la
+     * premiere, et le composant qui l'affiche memorise son decodage par chemin. Sans un
+     * compteur qui avance a chaque choix, la photo precedente restait a l'ecran.
+     */
+    @Test
+    fun `chaque image choisie fait avancer la revision`() = runTest(dispatcher) {
+        val viewModel = viewModel()
+
+        viewModel.onPhotoChosen(image)
+        advanceUntilIdle()
+        viewModel.onPhotoChosen(autreImage)
+        advanceUntilIdle()
+
+        assertEquals(2, viewModel.content().photoRevision)
+    }
+
+    /**
+     * Retirer puis choisir **garde la nouvelle**.
+     *
+     * Le cas qui casserait en silence : le souvenir d'avoir retire l'image survivait au
+     * choix suivant, et l'enregistrement jetait la neuve en croyant obeir a la
+     * suppression.
+     */
+    @Test
+    fun `retirer puis choisir une image la garde a l enregistrement`() = runTest(dispatcher) {
+        val viewModel = viewModel()
+        remplir(viewModel, viewModel.content().form.lines.single().id)
+
+        viewModel.onRemovePhoto()
+        viewModel.onPhotoChosen(image)
+        advanceUntilIdle()
+        viewModel.onSave()
+        advanceUntilIdle()
+
+        val plat = diary.dishes.single().id
+        assertNotNull(photos.photos[plat], "l image choisie apres un retrait doit survivre")
+    }
+
     // --- Decor ---------------------------------------------------------------
 
     private fun platDeja(kcal: Double): Dish {
@@ -588,6 +647,7 @@ class EntryViewModelTest {
             observeUnitSystem = ObserveUnitSystem(profils),
             openDraftPhoto = OpenDraftPhoto(photos),
             attachDishPhoto = AttachDishPhoto(photos),
+            chooseDishPhoto = ChooseDishPhoto(photos),
         ),
         getDaySummary = GetDaySummary(diary, goals, clock),
         saveDraft = SaveDraft(LogDish(diary, catalogue, favoris, clock, ids), UpdateDish(diary, ids)),
@@ -611,6 +671,10 @@ class EntryViewModelTest {
 
     private val profils = InMemoryProfiles()
     private val photos = InMemoryDishPhotos()
+
+    /** Deux images de decor : ce port designe un fichier, il ne le lit jamais. */
+    private val image = byteArrayOf(1, 2, 3)
+    private val autreImage = byteArrayOf(4, 5, 6)
 
     private val favoris = InMemoryFavoriteDishes()
 

@@ -183,26 +183,43 @@
     <string name="ai_base_url_label">URL de base</string>
     <string name="ai_reveal">Afficher la clé</string>
     <string name="ai_hide">Masquer la clé</string>
-    <string name="ai_test">Tester</string>
-    <string name="ai_testing">Essai en cours…</string>
-    <!-- « Utiliser » et non « Enregistrer » : le geste ne range pas une clé, il choisit
-         qui analysera les prochaines photos. -->
-    <string name="ai_use">Utiliser</string>
+    <!-- Un seul geste la ou il y en avait deux : valider teste, puis enregistre, et
+         s'arrete au premier refus (D156). « Tester » et « Effacer la cle » sont partis. -->
+    <string name="ai_validate">Valider la clé</string>
+    <string name="ai_validating">Vérification…</string>
     <string name="ai_in_use">Utilisé</string>
+    <string name="ai_advanced">Réglages avancés</string>
 
-    <!-- L’aide à la clé : trois questions qu’on se pose toutes en même temps. -->
-    <string name="ai_key_help_link">Comment obtenir une clé ?</string>
-    <string name="ai_key_help_title">Une clé %1$s</string>
-    <string name="ai_key_help_what">Une clé d\'API est un mot de passe que vous créez chez le fournisseur. Elle autorise Hexavore à lui envoyer vos photos et vos descriptions de repas pour analyse.</string>
-    <string name="ai_key_help_where">Le bouton ci-dessous ouvre la page de %1$s où l\'on crée une clé. Copiez-la, puis revenez la coller ici.</string>
-    <string name="ai_key_help_billing">La clé reste sur cet appareil, chiffrée par son trousseau. Les appels partent en direct, et c\'est votre fournisseur qui les compte et les facture.</string>
-    <string name="ai_key_help_open">Ouvrir la page</string>
-    <string name="ai_key_help_close">Fermer</string>
-    <string name="ai_forget">Effacer la clé</string>
+    <!-- Le bouton qui ouvre l'ecran de recuperation. Le seul mur sur lequel tous les
+         testeurs se sont arretes etait un lien souligne en petit (D156). -->
+    <string name="ai_key_get">Récupérer la clé</string>
 
-    <!-- Ce que l'essai apprend. Il coûte un appel : son résultat reste affiché. -->
-    <string name="ai_probe_ok_vision">Clé valide. Photo et texte sont disponibles.</string>
-    <string name="ai_probe_ok_text_only">Clé valide. Ce modèle ne lit pas les images : seul le mode texte fonctionnera.</string>
+    <!-- Coller demande un appui long puis une bulle du systeme a viser, sur un champ
+         masque par des points : le geste que les testeurs ratent au retour du
+         navigateur. Un bouton le reduit a un appui (D157). -->
+    <string name="ai_key_paste">Coller la clé</string>
+    <string name="ai_key_paste_empty">Rien à coller : copiez d\'abord la clé sur le site, puis revenez ici.</string>
+
+    <!-- ===== Récupérer une clé =====================================================
+         Un ecran, et non un lien discret : il annonce la sortie de l'application, dit
+         qu'elle ne peut pas etre faite a la place de quelqu'un, et qu'elle ne se fait
+         qu'une fois (D156). Les etapes sont courtes et ne dependent d'aucun libelle
+         precis : les consoles changent de forme plusieurs fois par an. -->
+    <string name="ai_get_title">Récupérer une clé</string>
+    <string name="ai_get_close">Fermer</string>
+    <string name="ai_get_warning_title">Vous allez sortir d\'Hexavore</string>
+    <string name="ai_get_warning_body">La clé se crée chez %1$s, sur son site. Personne ne peut le faire à votre place : il faut un compte à votre nom, et c\'est %1$s qui vous remet la clé.</string>
+    <string name="ai_get_warning_once">Comptez deux minutes — et c\'est à faire une seule fois.</string>
+    <string name="ai_get_steps_title">Ce que vous aurez à faire</string>
+    <string name="ai_get_step_open">Appuyez sur le bouton en bas de cet écran : le site de %1$s s\'ouvre dans votre navigateur.</string>
+    <string name="ai_get_step_account_free">Connectez-vous, ou créez un compte si vous n\'en avez pas. Aucune carte bancaire n\'est demandée.</string>
+    <string name="ai_get_step_account">Connectez-vous, ou créez un compte si vous n\'en avez pas.</string>
+    <string name="ai_get_step_create">Cherchez le bouton qui crée une clé d\'API — il est souvent en anglais : « Create API key ».</string>
+    <string name="ai_get_step_paste">Copiez la clé, revenez dans Hexavore, et appuyez sur « Coller la clé ».</string>
+    <string name="ai_get_step_copy_once">Copiez-la avant de quitter la page : certains fournisseurs ne l\'affichent qu\'une seule fois.</string>
+    <string name="ai_get_privacy">La clé restera sur ce téléphone, chiffrée par son trousseau. Les appels partiront en direct chez %1$s : Hexavore n\'a pas de serveur et ne voit rien passer.</string>
+    <string name="ai_get_open">Ouvrir le site de %1$s</string>
+    <string name="ai_get_back">Revenir</string>
 
     <!-- Un code HTTP ne remonte jamais à l'écran : chaque issue a son message, et la
          plupart ont une action. -->
@@ -335,26 +352,11 @@
     <string name="notices_yesterday_title">Hier n\'a rien de noté</string>
     <string name="notices_yesterday_body">Sur la pastille d\'hier dans le calendrier. Toucher cette journée permet d\'y noter le repas oublié.</string>
 
-    <!-- ===== Mise au point ========================================================
-         Un instrument, pas un reglage : il s\'allume le jour où quelque chose ne va
-         pas. Rien n\'est écrit sur le disque, la liste meurt avec le processus. -->
     <!-- L\'analyse approfondie : le modele interroge le catalogue avant de conclure,
          au lieu de laisser un score de ressemblance choisir a sa place. -->
     <string name="ai_deep_title">Analyse approfondie</string>
     <string name="ai_deep_body">Le modèle interroge le catalogue et choisit lui-même la fiche de chaque aliment. Elle est toujours active dès que le fournisseur sait appeler des outils : sans elle, les aliments que le catalogue ne rejoint pas reviennent sans aucune valeur.</string>
     <string name="ai_deep_unavailable">Le fournisseur actif ne sait pas appeler d\'outils. Les aliments qu\'il ne rejoint pas seront estimés, et signalés comme tels.</string>
-
-    <string name="ai_debug_title">Mode debug</string>
-    <string name="ai_debug_body">Garde ce qui part chez le fournisseur et ce qui en revient, pour comprendre une réponse inattendue. Rien n\'est écrit sur le disque, les images sont retirées, et la liste disparaît à la fermeture.</string>
-    <string name="ai_debug_open">Voir les échanges</string>
-
-    <string name="exchanges_title">Échanges avec l\'IA</string>
-    <string name="exchanges_close">Fermer</string>
-    <string name="exchanges_clear">Vider</string>
-    <string name="exchanges_empty">Aucun échange pour l\'instant. Lancez une analyse, puis revenez ici.</string>
-    <string name="exchanges_indent">Mise en page</string>
-    <string name="exchanges_sent">Envoyé</string>
-    <string name="exchanges_received">Reçu</string>
 
     <!-- Les rappels : la seconde moitie de cet ecran. Ils sonnent dehors, la ou les
          pastilles se voient en ouvrant l'application. -->

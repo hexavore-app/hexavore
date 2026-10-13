@@ -1,8 +1,11 @@
 package app.hexavore.feature.settings
 
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
+import app.hexavore.domain.ai.AiProvider
 import app.hexavore.domain.diary.FavoriteDishId
 import kotlinx.serialization.Serializable
 
@@ -46,9 +49,15 @@ data object AppearanceDestination
 @Serializable
 data object PhotoSettingsDestination
 
-/** Les derniers échanges avec un fournisseur. Ouverte depuis les réglages d'IA. */
+/**
+ * Comment obtenir une clé chez ce fournisseur. Ouverte depuis les réglages d'IA.
+ *
+ * **Le fournisseur voyage en chaîne et non en énumération** : une route est un
+ * identifiant sérialisé, et `AiProvider` est un type du domaine qui n'a aucune raison
+ * d'apprendre à se sérialiser pour que la navigation en parle.
+ */
 @Serializable
-data object AiExchangesDestination
+data class AiKeyRetrievalDestination(val provider: String)
 
 /** Les plats enregistrés, et le chemin pour les corriger. Aucun argument. */
 @Serializable
@@ -97,12 +106,7 @@ fun NavGraphBuilder.settingsScreens(
     composable<ProfileDestination> {
         ProfileRoute(onClose = { navController.popBackStack() })
     }
-    composable<AiSettingsDestination> {
-        AiSettingsRoute(
-            onClose = { navController.popBackStack() },
-            onOpenExchanges = { navController.navigate(AiExchangesDestination) },
-        )
-    }
+    aiScreens(navController)
     composable<ContributionSettingsDestination> {
         ContributionSettingsRoute(onClose = { navController.popBackStack() })
     }
@@ -118,13 +122,49 @@ fun NavGraphBuilder.settingsScreens(
     composable<PhotoSettingsDestination> {
         PhotoSettingsRoute(onClose = { navController.popBackStack() })
     }
-    composable<AiExchangesDestination> {
-        AiExchangesRoute(onClose = { navController.popBackStack() })
-    }
     composable<FavoritesSettingsDestination> {
         FavoritesSettingsRoute(onClose = { navController.popBackStack() }, onEdit = onEditFavorite)
     }
     composable<ContactDestination> {
         ContactRoute(onClose = { navController.popBackStack() })
+    }
+}
+
+/**
+ * Les deux écrans de l'IA : les fournisseurs, et comment obtenir une clé.
+ *
+ * **Sortis du graphe des réglages quand son seuil de longueur a mordu**, et le découpage
+ * suit ce que les choses sont : les neuf autres destinations se déclarent en deux lignes
+ * chacune — une route, un retour — là où celles-ci en demandent dix, parce qu'elles se
+ * passent quelque chose : l'une ouvre l'autre en lui nommant un fournisseur, et l'autre
+ * se referme d'elle-même une fois le site ouvert ([D156][decisions], [D157][decisions]).
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+private fun NavGraphBuilder.aiScreens(navController: NavController) {
+    composable<AiSettingsDestination> {
+        AiSettingsRoute(
+            onClose = { navController.popBackStack() },
+            onGetKey = { navController.navigate(AiKeyRetrievalDestination(it.name)) },
+            // **Un simple retour.** La nouvelle est deja partie par `KeyAcceptance`, et
+            // c'est l'ecran sur lequel on revient qui la dit. Elle etait posee sur
+            // l'ecran precedent dans l'etat de navigation, et seul le hub savait l'y
+            // lire : venus de l'accueil -- c'est-a-dire presque tout le monde --, on ne
+            // voyait rien (D157).
+            onValidated = { navController.popBackStack() },
+        )
+    }
+    composable<AiKeyRetrievalDestination> { entry ->
+        // Le fournisseur est relu par son nom plutot que par `valueOf` : une route
+        // forgee a la main ou survivante d'une version ou l'entree existait ne doit pas
+        // faire tomber l'application. Sans fournisseur, il n'y a rien a expliquer.
+        val named = entry.toRoute<AiKeyRetrievalDestination>().provider
+        val provider = AiProvider.entries.firstOrNull { it.name == named }
+
+        if (provider == null) {
+            LaunchedEffect(named) { navController.popBackStack() }
+        } else {
+            AiKeyRetrievalRoute(provider = provider, onClose = { navController.popBackStack() })
+        }
     }
 }

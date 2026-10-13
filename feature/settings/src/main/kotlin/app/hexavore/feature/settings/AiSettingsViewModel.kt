@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.hexavore.core.designsystem.component.diagnostic
 import app.hexavore.core.designsystem.component.messageRes
+import app.hexavore.domain.ai.AcceptedKey
 import app.hexavore.domain.ai.AiConfiguration
 import app.hexavore.domain.ai.AiCredentials
 import app.hexavore.domain.ai.AiProbe
@@ -12,6 +13,7 @@ import app.hexavore.domain.ai.AiSetup
 import app.hexavore.domain.ai.AiUsageEntry
 import app.hexavore.domain.ai.AiUsageLog
 import app.hexavore.domain.ai.ApiKey
+import app.hexavore.domain.ai.KeyAcceptance
 import app.hexavore.domain.ai.ProbeOutcome
 import app.hexavore.domain.ai.ProviderCredentials
 import app.hexavore.domain.ai.ProviderStatus
@@ -35,10 +37,14 @@ import javax.inject.Inject
  * une configuration. Les confondre aurait fait qu'une frappe atteigne le trousseau, et
  * qu'un test porte sur autre chose que ce qu'on lit à l'écran.
  *
- * **Tester n'enregistre pas, et enregistrer ne teste pas.** Ce sont deux gestes parce
- * qu'ils répondent à deux questions : « est-ce que ça marche » et « garde ça ». Les
- * lier obligerait à écrire une clé fausse pour découvrir qu'elle est fausse, ou à
- * repayer un appel à chaque correction de modèle.
+ * **Valider teste puis enregistre, dans cet ordre, et s'arrête au premier refus.**
+ * C'étaient deux boutons — « Tester » et « Utiliser » —, et les deux se sont révélés
+ * des pièges : tester sans enregistrer laissait quelqu'un sur un « clé valide » en
+ * croyant avoir fini, et enregistrer sans tester laissait découvrir le refus devant une
+ * assiette. Un seul geste, et rien n'est rangé que le fournisseur n'ait accepté
+ * ([D156][decisions]).
+ *
+ * [decisions]: docs/11-decisions.md
  */
 /**
  * Les fournisseurs proposés, le gratuit d'abord.
@@ -49,7 +55,8 @@ import javax.inject.Inject
  * cherchait aucune — et à noyer le seul qui soit gratuit ([D138][decisions]).
  *
  * L'ordre n'est pas celui de l'énumération : le gratuit passe devant, parce que c'est
- * la seule information qui décide vraiment.
+ * la seule information qui décide vraiment — et parce que **c'est lui qu'on déplie à
+ * l'arrivée** ([D156][decisions]).
  *
  * [decisions]: docs/11-decisions.md
  */
@@ -62,24 +69,36 @@ class AiSettingsViewModel @Inject constructor(
     private val credentials: AiCredentials,
     private val rejection: KeyRejection,
     private val probe: AiProbe,
+    private val acceptance: KeyAcceptance,
     usageLog: AiUsageLog,
 ) : ViewModel() {
     private val editor = MutableStateFlow(Editor())
 
     /**
+     * Ce qui est enregistré, **ou `null` tant que le trousseau n'a pas répondu**.
+     *
+     * La valeur nulle n'est pas une commodité : c'est elle qui empêche le formulaire de
+     * s'ouvrir sur un champ vide. Le champ de saisie du projet ne lit sa valeur initiale
+     * qu'à sa première composition ([DraftTextField][app.hexavore.core.designsystem.component.DraftTextField],
+     * et pour de bonnes raisons) ; or le fournisseur recommandé est désormais déplié
+     * d'office, donc le champ se composerait avant la lecture du trousseau et garderait
+     * la clé vide d'une personne qui en a une ([D156][decisions]).
+     *
      * **`Eagerly` et non `WhileSubscribed`.** Cet objet vit exactement le temps de
      * l ecran ; suspendre la collecte cinq secondes apres que la vue s en detache
      * n economise rien et rend `value` dependant de l existence d un abonne -- une
      * subtilite qui se paie au premier test comme au premier bug d affichage.
+     *
+     * [decisions]: docs/11-decisions.md
      */
-    private val setup: StateFlow<AiSetup> =
-        credentials.observe().stateIn(viewModelScope, SharingStarted.Eagerly, AiSetup())
+    private val setup: StateFlow<AiSetup?> =
+        credentials.observe().stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     /**
      * Le compteur, observé et non relu.
      *
-     * L'écran reste ouvert pendant qu'on appuie sur « Tester » : un compteur qui ne
-     * bougerait qu'à la réouverture laisserait croire que l'essai n'a rien coûté.
+     * L'écran reste ouvert pendant qu'on valide : un compteur qui ne bougerait qu'à la
+     * réouverture laisserait croire que la vérification n'a rien coûté.
      */
     private val usage: StateFlow<List<UsageRow>> = usageLog
         .observe()
@@ -89,6 +108,12 @@ class AiSettingsViewModel @Inject constructor(
 
     val uiState: StateFlow<AiSettingsUiState> =
         combine(setup, editor, usage) { stored, edited, counted ->
+            // **Rien ne s'affiche avant la lecture du trousseau**, cartes comprises :
+            // un ecran qui annonce « aucune cle » puis se corrige dit deux choses
+            // contradictoires en un clin d'oeil, et la premiere est celle qui inquiete.
+            if (stored == null) return@combine AiSettingsUiState()
+
+            val form = edited.formFor(stored)
             AiSettingsUiState(
                 // **Les fournisseurs en reserve ne s'affichent plus** (D138). Les
                 // montrer griss avec « bientot » donnait six choix a faire a qui n'en
@@ -102,15 +127,17 @@ class AiSettingsViewModel @Inject constructor(
                     )
                 },
                 open = edited.open,
-                form = edited.form,
-                probe = edited.probe,
+                form = form,
+                check = edited.check,
                 usage = counted,
-                // « Utilise » et non « Utiliser » : le fournisseur ouvert sert deja, et
-                // rien n'a bouge depuis. La comparaison porte sur le formulaire prerempli
-                // -- actif seul dirait « Utilise » sous une cle qu'on vient de modifier.
+                // « Utilise » et non « Valider la cle » : le fournisseur ouvert sert
+                // deja, et rien n'a bouge depuis. La comparaison porte sur le formulaire
+                // prerempli -- actif seul dirait « Utilise » sous une cle qu'on vient de
+                // modifier.
                 inUse = edited.open != null &&
                     edited.open == stored.active &&
-                    edited.form.sameValuesAs(stored.formFor(edited.open)),
+                    form.sameValuesAs(stored.formFor(edited.open)),
+                validated = edited.validated,
             )
         }.stateIn(viewModelScope, SharingStarted.Eagerly, AiSettingsUiState())
 
@@ -121,11 +148,7 @@ class AiSettingsViewModel @Inject constructor(
      * cela évite un second bouton dont personne ne chercherait la place.
      */
     fun onOpen(provider: AiProvider) {
-        if (editor.value.open == provider) {
-            editor.value = Editor()
-        } else {
-            editor.value = Editor(open = provider, form = setup.value.formFor(provider))
-        }
+        editor.value = if (editor.value.open == provider) Editor(open = null) else Editor(open = provider)
     }
 
     fun onKey(value: String) = editForm { it.copy(apiKey = value) }
@@ -137,66 +160,113 @@ class AiSettingsViewModel @Inject constructor(
     fun onReveal() = editForm { it.copy(revealed = !it.revealed) }
 
     /**
-     * Un appel réel avec **ce qui est dans le formulaire**.
+     * Un appel réel avec **ce qui est dans le formulaire**, puis l'enregistrement.
      *
-     * L'issue reste affichée jusqu'à la frappe suivante : un résultat qui s'efface
-     * seul oblige à retester pour se rappeler ce qu'il disait.
+     * ### Pourquoi l'ordre ne s'inverse pas
+     *
+     * Enregistrer d'abord rendrait le fournisseur actif avec une clé que personne n'a
+     * éprouvée : les boutons d'analyse s'allumeraient, et le refus se découvrirait
+     * devant une assiette. C'est le pire moment pour l'apprendre, et c'était la raison
+     * d'être du bouton « Tester » — qu'on ne demande plus d'appuyer, puisque la
+     * validation le fait ([D156][decisions]).
+     *
+     * ### Ce qu'un refus laisse derrière lui
+     *
+     * **Rien.** Ni clé rangée, ni fournisseur activé : l'écran garde le formulaire tel
+     * quel, affiche ce que le fournisseur a répondu, et on reste là. Une clé mal
+     * recopiée se corrige à l'endroit où elle est fausse.
+     *
+     * [decisions]: docs/11-decisions.md
      */
-    fun onTest() {
-        val provider = editor.value.open ?: return
-        val form = editor.value.form
-        if (!form.complete) return
+    fun onValidate() {
+        // Les trois conditions en une : pas de fournisseur ouvert, pas de trousseau lu,
+        // ou un formulaire incomplet -- et dans les trois cas, rien ne part au reseau.
+        val provider = editor.value.open
+        val form = setup.value?.let { editor.value.formFor(it) }
+        if (provider == null || form == null || !form.complete) return
 
-        editor.value = editor.value.copy(probe = ProbeState.Running)
+        editor.value = editor.value.copy(check = KeyCheck.Running)
         viewModelScope.launch {
-            editor.value = editor.value.copy(probe = probe.probe(form.configurationFor(provider)).toState())
-        }
-    }
-
-    fun onSave() {
-        val provider = editor.value.open ?: return
-        val form = editor.value.form
-        if (!form.complete) return
-
-        viewModelScope.launch {
-            credentials.save(provider, form.credentials())
-            // La cle qui avait ete refusee n'est plus celle-la : la pastille n'a plus
-            // rien a designer. Elle se rallumera d'elle-meme si la neuve est refusee
-            // aussi -- ce qui est une information, et non un souvenir.
-            rejection.clear()
-            // **Le formulaire reste ouvert**, contrairement a avant. Il se refermait
-            // pour ne pas inviter a corriger ce qu'on venait d'ecrire ; mais le bouton
-            // dit maintenant « Utilise », et une confirmation doit se lire la ou le
-            // doigt a appuye. Une carte qui se replie emporte sa reponse avec elle.
-            editor.value = editor.value.copy(probe = ProbeState.Idle)
-        }
-    }
-
-    fun onForget() {
-        val provider = editor.value.open ?: return
-        viewModelScope.launch {
-            credentials.forget(provider)
-            editor.value = Editor()
+            when (val outcome = probe.probe(form.configurationFor(provider))) {
+                is ProbeOutcome.Reachable -> keep(provider, form, outcome.vision)
+                is ProbeOutcome.Failed ->
+                    editor.value = editor.value.copy(
+                        check = KeyCheck.Refused(outcome.error.messageRes, outcome.error.diagnostic),
+                    )
+            }
         }
     }
 
     /**
-     * Toute frappe efface l'issue du dernier essai.
+     * L'écran s'est refermé : il n'y a plus rien à consommer.
      *
-     * Sans cela, un « clé valide » resterait affiché sous une clé qu'on vient de
-     * modifier — la pire forme d'information périmée, puisqu'elle a l'air fraîche.
+     * Sans cela, revenir sur l'écran — le geste de quelqu'un qui veut vérifier ce qu'il
+     * vient d'enregistrer — le refermerait aussitôt.
+     */
+    fun onValidationShown() {
+        editor.value = editor.value.copy(validated = false)
+    }
+
+    /**
+     * Range la clé que le fournisseur vient d'accepter, et annonce la nouvelle.
+     *
+     * **La nouvelle part avant que l'écran ne se referme**, et elle part ailleurs que
+     * dans son état : cet écran ne survit pas à son propre succès. C'est l'écran sur
+     * lequel on revient — l'accueil le plus souvent, le hub parfois — qui la dira
+     * ([D157][decisions]).
+     *
+     * La pastille de refus est éteinte au passage : la clé qui avait été refusée n'est
+     * plus celle-là, et la pastille n'a plus rien à désigner. Elle se rallumera d'elle-
+     * même si la neuve est refusée en analyse — ce qui est une information, et non un
+     * souvenir.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    private suspend fun keep(provider: AiProvider, form: ProviderForm, vision: Boolean) {
+        credentials.save(provider, form.credentials())
+        rejection.clear()
+        acceptance.announce(AcceptedKey(vision))
+        editor.value = editor.value.copy(check = KeyCheck.Idle, validated = true)
+    }
+
+    /**
+     * Toute frappe efface le refus du dernier essai.
+     *
+     * Sans cela, un « clé refusée » resterait affiché sous une clé qu'on vient de
+     * corriger — la pire forme d'information périmée, puisqu'elle a l'air fraîche.
      */
     private fun editForm(change: (ProviderForm) -> ProviderForm) {
-        editor.value = editor.value.copy(form = change(editor.value.form), probe = ProbeState.Idle)
+        val current = editor.value
+        val stored = setup.value ?: return
+        editor.value = current.copy(draft = change(current.formFor(stored)), check = KeyCheck.Idle)
     }
 }
 
-/** Le brouillon de l'écran : quel fournisseur est ouvert, ce qu'on y a tapé, et l'essai. */
+/**
+ * Le brouillon de l'écran : quel fournisseur est ouvert, ce qu'on y a tapé, et l'essai.
+ *
+ * **[draft] est nul tant que personne n'a tapé**, et c'est ce qui permet au formulaire
+ * d'être prérempli sans que le modèle attende les réglages pour s'ouvrir : la valeur
+ * affichée est alors celle qui est enregistrée, relue à chaque recomposition. Un
+ * brouillon initialisé à vide aurait affiché un champ vide le temps que le trousseau
+ * réponde, puis l'aurait gardé vide — un formulaire qui efface la clé de quelqu'un
+ * parce qu'il s'est ouvert trop vite.
+ *
+ * **[open] démarre sur le fournisseur qu'on met en avant** ([D156][decisions]) : c'est
+ * lui qu'on vient configurer dans la quasi-totalité des cas, et le déplier d'office
+ * retire un appui qu'il fallait deviner.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
 private data class Editor(
-    val open: AiProvider? = null,
-    val form: ProviderForm = ProviderForm(),
-    val probe: ProbeState = ProbeState.Idle,
-)
+    val open: AiProvider? = OFFERED.firstOrNull(),
+    val draft: ProviderForm? = null,
+    val check: KeyCheck = KeyCheck.Idle,
+    val validated: Boolean = false,
+) {
+    /** Ce qu'on a tapé, ou ce qui est rangé pour le fournisseur ouvert. */
+    fun formFor(stored: AiSetup): ProviderForm = draft ?: open?.let(stored::formFor) ?: ProviderForm()
+}
 
 /**
  * Le formulaire d'un fournisseur, prérempli.
@@ -218,8 +288,8 @@ private fun AiSetup.formFor(provider: AiProvider): ProviderForm {
  * Les trois valeurs saisies sont-elles celles d'un autre formulaire ?
  *
  * **La révélation ne compte pas.** Montrer sa clé ne la modifie pas, et un
- * `equals` de structure ferait passer le bouton de « Utilisé » à « Utiliser » parce
- * qu'on a appuyé sur l'œil.
+ * `equals` de structure ferait passer le bouton de « Utilisé » à « Valider la clé »
+ * parce qu'on a appuyé sur l'œil.
  */
 private fun ProviderForm.sameValuesAs(other: ProviderForm): Boolean =
     apiKey == other.apiKey && model == other.model && baseUrl == other.baseUrl
@@ -233,11 +303,6 @@ private fun ProviderForm.configurationFor(provider: AiProvider) = AiConfiguratio
     model = model.trim(),
     baseUrl = baseUrl.trim(),
 )
-
-private fun ProbeOutcome.toState(): ProbeState = when (this) {
-    is ProbeOutcome.Reachable -> ProbeState.Succeeded(vision)
-    is ProbeOutcome.Failed -> ProbeState.Failed(error.messageRes, error.diagnostic)
-}
 
 /** Un compte du domaine, prêt à s'afficher : les appels, et les jetons additionnés. */
 private fun AiUsageEntry.toRow() = UsageRow(

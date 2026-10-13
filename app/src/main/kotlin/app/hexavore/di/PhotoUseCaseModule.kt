@@ -4,6 +4,7 @@ import app.hexavore.domain.diary.DiaryRepository
 import app.hexavore.domain.diary.DishPhotos
 import app.hexavore.domain.diary.PhotoSettings
 import app.hexavore.domain.usecase.AttachDishPhoto
+import app.hexavore.domain.usecase.ChooseDishPhoto
 import app.hexavore.domain.usecase.ChoosePhotoKeeping
 import app.hexavore.domain.usecase.ObserveDishPhotos
 import app.hexavore.domain.usecase.ObservePhotoKeeping
@@ -38,6 +39,11 @@ object PhotoUseCaseModule {
 
     @Provides
     fun attachDishPhoto(photos: DishPhotos): AttachDishPhoto = AttachDishPhoto(photos)
+
+    // Sans `PhotoSettings`, et c'est tout le sujet : un geste explicite l'emporte sur
+    // un reglage qui ne parle que de ce qu'on garde **automatiquement** (D156).
+    @Provides
+    fun chooseDishPhoto(photos: DishPhotos): ChooseDishPhoto = ChooseDishPhoto(photos)
 
     @Provides
     fun observeDishPhotos(photos: DishPhotos): ObserveDishPhotos = ObserveDishPhotos(photos)

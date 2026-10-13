@@ -39,7 +39,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import app.hexavore.core.designsystem.component.AdjustmentCard
 import app.hexavore.core.designsystem.component.Celebration
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.core.designsystem.theme.Timing
@@ -77,6 +76,11 @@ fun HomeRoute(routes: HomeRoutes) {
     val suggestion by viewModel.suggestion.collectAsStateWithLifecycle()
     val day by viewModel.selectedDay.collectAsStateWithLifecycle()
     val dishStyle by viewModel.dishStyle.collectAsStateWithLifecycle()
+    val copiedTo by viewModel.copiedTo.collectAsStateWithLifecycle()
+    // La cle acceptee sur l'ecran des cles : on y arrive le plus souvent d'ici, par le
+    // tour guide ou par un bouton d'analyse grise, et c'est donc ici qu'on revient (D157).
+    val acceptance: KeyAcceptanceViewModel = hiltViewModel()
+    val accepted by acceptance.accepted.collectAsStateWithLifecycle()
     val noticeViewModel: NoticeViewModel = hiltViewModel()
     val notices by noticeViewModel.notices.collectAsStateWithLifecycle()
 
@@ -122,6 +126,12 @@ fun HomeRoute(routes: HomeRoutes) {
         actions = remember(viewModel, routes) { routes.toActions(viewModel) },
         anchors = anchors,
         tour = tourOverlay(tourStep, anchors, aiConfigured != true, tourViewModel, routes.onConfigureAi),
+        news = HomeNews(
+            copiedTo = copiedTo,
+            onCopyShown = viewModel::onCopyShown,
+            keyAccepted = accepted,
+            onKeyAcceptedShown = acceptance::onShown,
+        ),
     )
 }
 
@@ -251,6 +261,8 @@ fun HomeScreen(
      * vit la ou le geste arrive, et non dans ce qu'il replie.
      */
     calendar: @Composable (expanded: Boolean, onExpandedChange: (Boolean) -> Unit) -> Unit = { _, _ -> },
+    /** Ce qu'il y a à annoncer : une copie partie ailleurs, une clé acceptée (D157). */
+    news: HomeNews = HomeNews(),
 ) {
     var calendarExpanded by rememberSaveable { mutableStateOf(false) }
 
@@ -272,6 +284,7 @@ fun HomeScreen(
     // voisins, le calendrier etant entre les deux.
     val swipe = rememberDaySwipe()
     val snackbarHostState = rememberUndoBar(pendingUndo, actions.onUndo, actions.onUndoExpired)
+    AnnonceLesNouvelles(news, snackbarHostState)
 
     // **Le Scaffold, puis ce qui le recouvre.** Le tour et la felicitation vivaient
     // dans le contenu du `Scaffold`, donc **sous** sa barre du bas : le voile du tour
@@ -326,15 +339,17 @@ fun HomeScreen(
                     modifier = Modifier.weight(1f),
                 ) {
                     DayScroll(collapseOnScroll, dayScroll) {
-                        suggestion?.let {
-                            AdjustmentCard(
-                                suggestion = it,
-                                onAccept = { onAdjustment(AdjustmentResponse.ACCEPT) },
-                                onIgnore = { onAdjustment(AdjustmentResponse.IGNORE) },
-                                onStop = { onAdjustment(AdjustmentResponse.STOP) },
-                            )
-                        }
-                        LoadedDay(state, dishStyle, actions, focus, favoriteNameTaken, onDismissFavoriteError, anchors)
+                        suggestion?.let { SuggestionCard(it, onAdjustment) }
+                        LoadedDay(
+                            state = state,
+                            dishStyle = dishStyle,
+                            actions = actions,
+                            focus = focus,
+                            favoriteNameTaken = favoriteNameTaken,
+                            onDismissFavoriteError = onDismissFavoriteError,
+                            today = today,
+                            anchors = anchors,
+                        )
                     }
                 }
             }
@@ -390,6 +405,7 @@ private fun LoadedDay(
     focus: MacroFocus,
     favoriteNameTaken: Boolean,
     onDismissFavoriteError: () -> Unit,
+    today: LocalDate,
     anchors: TourAnchors? = null,
 ) {
     when (state) {
@@ -401,6 +417,7 @@ private fun LoadedDay(
             focus = focus,
             favoriteNameTaken = favoriteNameTaken,
             onDismissFavoriteError = onDismissFavoriteError,
+            today = today,
             anchors = anchors,
         )
 
@@ -572,6 +589,7 @@ internal fun DayContent(
     focus: MacroFocus,
     favoriteNameTaken: Boolean,
     onDismissFavoriteError: () -> Unit,
+    today: LocalDate,
     anchors: TourAnchors? = null,
 ) {
     val summary = content.summary
@@ -594,6 +612,7 @@ internal fun DayContent(
             actions = actions,
             favoriteNameTaken = favoriteNameTaken,
             onDismissFavoriteError = onDismissFavoriteError,
+            today = today,
         )
     } else {
         EmptyDay()

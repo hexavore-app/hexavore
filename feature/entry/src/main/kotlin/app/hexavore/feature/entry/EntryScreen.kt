@@ -39,6 +39,7 @@ import app.hexavore.core.designsystem.component.NeonButtonAvailability
 import app.hexavore.core.designsystem.component.NeonButtonStyle
 import app.hexavore.core.designsystem.theme.NeonTheme
 import app.hexavore.core.designsystem.theme.Spacing
+import app.hexavore.core.media.rememberMealCapture
 import app.hexavore.domain.diary.DraftImpact
 import app.hexavore.domain.diary.DraftLineId
 import app.hexavore.domain.food.FoodId
@@ -73,9 +74,13 @@ internal fun EntryRoute(
         viewModel.onFoodPicked(id)
     }
 
+    // L'appareil photo du systeme et la galerie, comme sur l'ecran d'analyse : ce qui
+    // revient est un JPEG deja reduit et remis d'aplomb (D156).
+    val capture = rememberMealCapture(onJpeg = viewModel::onPhotoChosen)
+
     EntryScreen(
         state = state,
-        actions = remember(viewModel, onAddFood, onClose) {
+        actions = remember(viewModel, onAddFood, onClose, capture) {
             EntryActions(
                 onLineEdit = viewModel::onLineEdit,
                 onAddFood = onAddFood,
@@ -88,6 +93,8 @@ internal fun EntryRoute(
                 onFavorite = viewModel.favorite::save,
                 onUnfavorite = viewModel.favorite::remove,
                 onRemovePhoto = viewModel::onRemovePhoto,
+                onShootPhoto = capture.shoot,
+                onPickPhoto = capture.pick,
                 onReport = viewModel.filing::report,
                 onCopyTo = viewModel.filing::copyTo,
                 onCopyShown = viewModel.filing::copyShown,
@@ -224,9 +231,23 @@ private fun LazyListScope.draftContent(
 
     // Entre l'en-tete et les lignes : elle dit de quel repas il s'agit, ce qui est
     // exactement ce qu'on veut savoir avant de relire des quantites.
-    state.photo?.let { photo ->
+    //
+    // **Toujours presente, meme sans image** : le cadre en pointilles est ce qui rend
+    // l'ajout trouvable sur un repas note a la main ou scanne (D156).
+    //
+    // **Sauf sur un favori**, qui est un modele et non un repas : l'enregistrement d'un
+    // favori ne rend aucun plat, donc ne range aucune image. Proposer d'en ajouter une
+    // la ferait disparaitre a l'enregistrement, ce qui est la seule chose qu'un ecran
+    // n'a pas le droit de faire.
+    if (!state.editingFavorite) {
         item(key = "photo") {
-            DraftPhoto(photo = photo, onRemove = actions.onRemovePhoto)
+            DraftPhoto(
+                photo = state.photo,
+                revision = state.photoRevision,
+                onShoot = actions.onShootPhoto,
+                onPick = actions.onPickPhoto,
+                onRemove = actions.onRemovePhoto,
+            )
         }
     }
 

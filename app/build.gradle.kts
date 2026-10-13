@@ -213,6 +213,9 @@ dependencies {
     implementation(projects.domain)
     implementation(projects.core.common)
     implementation(projects.core.designsystem)
+    // Le balayage des photos de capture au demarrage : ce qu'un processus tue en cours
+    // de route a laisse dans le cache (D156 l'a deplace de :feature:capture ici).
+    implementation(projects.core.media)
     implementation(projects.feature.home)
     implementation(projects.feature.entry)
     implementation(projects.feature.scan)

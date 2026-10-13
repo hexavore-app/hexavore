@@ -61,8 +61,17 @@ internal data class EntryActions(
     val onFavorite: (String) -> Unit,
     /** Éteindre l'étoile **supprime** le favori : c'est le seul chemin pour l'ôter. */
     val onUnfavorite: () -> Unit,
-    /** La croix de la photo. Elle n'efface le fichier qu'a l'enregistrement. */
+    /**
+     * L'image retiree. Elle n'efface le fichier qu'a l'enregistrement.
+     *
+     * Le seul des trois gestes de la photo qui existait : les deux autres -- la prendre
+     * et la choisir -- sont arrives avec D156.
+     */
     val onRemovePhoto: () -> Unit,
+    /** Ouvre l'appareil photo du systeme. Ce qu'il rend part directement au modele. */
+    val onShootPhoto: () -> Unit,
+    /** Ouvre le selecteur d'images du systeme, pour un repas photographie plus tot. */
+    val onPickPhoto: () -> Unit,
     val onRetry: () -> Unit,
     val onClose: () -> Unit,
 )

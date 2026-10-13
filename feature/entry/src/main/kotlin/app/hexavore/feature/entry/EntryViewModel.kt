@@ -81,6 +81,18 @@ internal class EntryViewModel @Inject constructor(
     private var photoRemoved = false
 
     /**
+     * Combien de fois l'image a été choisie à la main sur cet écran.
+     *
+     * **Un compteur et non un booléen** : le dépôt n'a qu'un emplacement, donc deux
+     * images choisies de suite portent le même chemin, et le composant qui les affiche
+     * mémorise son décodage par chemin. Ce qui change doit donc changer à **chaque**
+     * choix, pas une seule fois ([D156][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    private val photoChoices = MutableStateFlow(0)
+
+    /**
      * L'étoile et sa boîte de nom, avec leur état.
      *
      * Elles vivent à part parce qu'elles sont à part : ce `ViewModel` porte la saisie
@@ -148,6 +160,9 @@ internal class EntryViewModel @Inject constructor(
             // etats. L'ajouter au-dessus garde la regle qui les distingue lisible.
             .combine(photo) { state, image ->
                 if (state is EntryUiState.Content) state.copy(photo = image) else state
+            }
+            .combine(photoChoices) { state, choices ->
+                if (state is EntryUiState.Content) state.copy(photoRevision = choices) else state
             }
             // La copie se greffe de la meme facon, et pour la meme raison : c'est une
             // nouvelle a annoncer une fois, pas une sixieme piece de l'etat.
@@ -239,7 +254,7 @@ internal class EntryViewModel @Inject constructor(
     }
 
     /**
-     * La croix sur la photo.
+     * L'image retirée.
      *
      * **Elle n'efface rien tout de suite.** Annuler la modification doit rendre le plat
      * tel qu'il était ; ce n'est qu'à l'enregistrement que le fichier part.
@@ -247,6 +262,32 @@ internal class EntryViewModel @Inject constructor(
     fun onRemovePhoto() {
         photoRemoved = true
         photo.value = null
+    }
+
+    /**
+     * L'image que l'utilisateur vient de prendre ou de choisir.
+     *
+     * **Elle efface le souvenir d'avoir retiré la précédente**, et c'est la ligne qui
+     * compte : sans elle, retirer une image puis en choisir une autre déposerait la
+     * nouvelle et l'enregistrement la jetterait aussitôt, parce qu'il croirait obéir à
+     * la suppression ([D156][decisions]).
+     *
+     * **Rien n'est attaché au plat ici** : l'image va au dépôt, et l'enregistrement la
+     * range. Un écran qu'on quitte sans enregistrer ne laisse donc que le dépôt, qu'une
+     * ouverture suivante écarte d'elle-même.
+     *
+     * Le réglage « garder les photos » n'est pas consulté : il dit *n'en garde pas
+     * automatiquement*, pas *refuse celles que je te donne*.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    fun onPhotoChosen(jpeg: ByteArray) {
+        viewModelScope.launch {
+            val staged = runCatching { composition.choosePhoto(jpeg) }.getOrNull() ?: return@launch
+            photoRemoved = false
+            photo.value = staged
+            photoChoices.update { it + 1 }
+        }
     }
 
     /**

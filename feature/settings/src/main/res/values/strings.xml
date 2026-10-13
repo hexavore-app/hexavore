@@ -184,26 +184,43 @@
     <string name="ai_base_url_label">Base URL</string>
     <string name="ai_reveal">Show the key</string>
     <string name="ai_hide">Hide the key</string>
-    <string name="ai_test">Test</string>
-    <string name="ai_testing">Testing…</string>
-    <!-- "Use" and not "Save": the gesture does not put a key away, it chooses who will
-         analyse the next photos. -->
-    <string name="ai_use">Use</string>
+    <!-- One gesture where there were two: validating tests, then saves, and stops at the
+         first refusal (D156). "Test" and "Erase the key" are gone. -->
+    <string name="ai_validate">Validate the key</string>
+    <string name="ai_validating">Checking…</string>
     <string name="ai_in_use">In use</string>
+    <string name="ai_advanced">Advanced settings</string>
 
-    <!-- Help with the key: three questions you ask yourself all at once. -->
-    <string name="ai_key_help_link">How do I get a key?</string>
-    <string name="ai_key_help_title">A %1$s key</string>
-    <string name="ai_key_help_what">An API key is a password you create at the provider. It lets Hexavore send them your photos and your meal descriptions for analysis.</string>
-    <string name="ai_key_help_where">The button below opens the %1$s page where a key is created. Copy it, then come back and paste it here.</string>
-    <string name="ai_key_help_billing">The key stays on this device, encrypted by its keystore. Calls go out directly, and it is your provider who counts and bills them.</string>
-    <string name="ai_key_help_open">Open the page</string>
-    <string name="ai_key_help_close">Close</string>
-    <string name="ai_forget">Erase the key</string>
+    <!-- The button that opens the retrieval screen. The one wall every tester stopped at
+         was a small underlined link (D156). -->
+    <string name="ai_key_get">Get the key</string>
 
-    <!-- What the test teaches. It costs one call: its result stays on screen. -->
-    <string name="ai_probe_ok_vision">Key valid. Photo and text are both available.</string>
-    <string name="ai_probe_ok_text_only">Key valid. This model does not read images: only text mode will work.</string>
+    <!-- Pasting takes a long press then a system bubble to aim at, on a field masked by
+         dots: the gesture testers miss on their way back from the browser. A button
+         reduces it to one tap (D157). -->
+    <string name="ai_key_paste">Paste the key</string>
+    <string name="ai_key_paste_empty">Nothing to paste: copy the key on the site first, then come back here.</string>
+
+    <!-- ===== Getting a key =========================================================
+         A screen, not a discreet link: it announces that you are leaving the app, says
+         nobody can do this step for you, and that it is done only once (D156). The steps
+         are short and depend on no exact label: consoles change shape several times a
+         year. -->
+    <string name="ai_get_title">Get a key</string>
+    <string name="ai_get_close">Close</string>
+    <string name="ai_get_warning_title">You are about to leave Hexavore</string>
+    <string name="ai_get_warning_body">The key is created at %1$s, on their site. Nobody can do it for you: it takes an account in your name, and it is %1$s who hands you the key.</string>
+    <string name="ai_get_warning_once">Allow two minutes — and it is done only once.</string>
+    <string name="ai_get_steps_title">What you will have to do</string>
+    <string name="ai_get_step_open">Tap the button at the bottom of this screen: the %1$s site opens in your browser.</string>
+    <string name="ai_get_step_account_free">Sign in, or create an account if you do not have one. No bank card is asked for.</string>
+    <string name="ai_get_step_account">Sign in, or create an account if you do not have one.</string>
+    <string name="ai_get_step_create">Look for the button that creates an API key — often labelled “Create API key”.</string>
+    <string name="ai_get_step_paste">Copy the key, come back to Hexavore, and tap “Paste the key”.</string>
+    <string name="ai_get_step_copy_once">Copy it before leaving the page: some providers show it only once.</string>
+    <string name="ai_get_privacy">The key will stay on this phone, encrypted by its keystore. Calls will go straight to %1$s: Hexavore has no server and sees nothing go by.</string>
+    <string name="ai_get_open">Open the %1$s site</string>
+    <string name="ai_get_back">Go back</string>
 
     <!-- An HTTP code never reaches the screen: every outcome has its message, and most
          have an action. -->
@@ -335,26 +352,11 @@
     <string name="notices_yesterday_title">Yesterday has nothing noted</string>
     <string name="notices_yesterday_body">On yesterday\'s dot in the calendar. Touching that day lets you note the meal you forgot.</string>
 
-    <!-- ===== Diagnostics ==========================================================
-         An instrument, not a setting: it is switched on the day something goes wrong.
-         Nothing is written to disk, the list dies with the process. -->
     <!-- Deep analysis: the model queries the catalogue before concluding, instead of
          letting a similarity score choose in its place. -->
     <string name="ai_deep_title">Deep analysis</string>
     <string name="ai_deep_body">The model queries the catalogue and picks the entry for each food itself. It is always on where the provider can call tools: without it, foods the catalogue does not match come back with no values at all.</string>
     <string name="ai_deep_unavailable">The active provider cannot call tools. Foods it does not match will be estimated instead, and flagged as estimates.</string>
-
-    <string name="ai_debug_title">Debug mode</string>
-    <string name="ai_debug_body">Keeps what goes to the provider and what comes back, to make sense of an unexpected answer. Nothing is written to disk, images are stripped out, and the list disappears when you close it.</string>
-    <string name="ai_debug_open">See the exchanges</string>
-
-    <string name="exchanges_title">AI exchanges</string>
-    <string name="exchanges_close">Close</string>
-    <string name="exchanges_clear">Clear</string>
-    <string name="exchanges_empty">No exchanges for now. Run an analysis, then come back here.</string>
-    <string name="exchanges_indent">Layout</string>
-    <string name="exchanges_sent">Sent</string>
-    <string name="exchanges_received">Received</string>
 
     <!-- Les rappels : la seconde moitie de cet ecran. Ils sonnent dehors, la ou les
          pastilles se voient en ouvrant l'application. -->

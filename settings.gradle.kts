@@ -127,6 +127,15 @@ include(":integration:ai")
 // la meme sortie : les separer en deux modules ferait deux fois le meme etat.
 include(":feature:capture")
 
+// :core:media naît quand un deuxieme ecran prend des photos.
+//
+// L'ecran de validation permet desormais de remplacer ou d'ajouter l'image d'un plat,
+// et non plus seulement de la retirer (D156). La plomberie -- l'appareil photo du
+// systeme, le selecteur de galerie, le fournisseur de fichiers, la reduction JPEG --
+// servait deja :feature:capture et n'appartient a aucun des deux ecrans. La laisser
+// chez l'un aurait fait dependre un :feature d'un autre, ce que D149 refuse.
+include(":core:media")
+
 // Tranche 7. Le journal de poids, sa courbe, et l'adaptation hebdomadaire.
 //
 // Un module a lui plutot qu'une section de :feature:settings : le journal se consulte

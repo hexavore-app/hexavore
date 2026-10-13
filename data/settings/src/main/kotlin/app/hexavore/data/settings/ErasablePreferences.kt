@@ -56,15 +56,14 @@ internal class ErasablePreferences(
  * previendrait pas, et l'ecran continuerait d'annoncer une cle qui n'existe plus.
  *
  * Le groupe est ne quand le seuil de parametres a mordu, et il dit quelque chose de
- * vrai : un septieme magasin sans flux n'aurait rien a faire ici, et c'est la question
- * qu'on se posera en l'ajoutant.
+ * vrai : un magasin sans flux n'aurait rien a faire ici, et c'est la question qu'on se
+ * posera en l'ajoutant.
  */
 internal data class FlowBackedStores(
     val credentials: StoredAiCredentials,
     val contribution: StoredContributionSettings,
     val adjustment: StoredAdjustmentSettings,
     val notices: StoredNoticeSettings,
-    val debug: StoredDebugSettings,
     val deep: StoredDeepAnalysisSettings,
     val reminders: StoredReminderSettings,
 ) {
@@ -74,7 +73,6 @@ internal data class FlowBackedStores(
         contribution.forget()
         adjustment.forget()
         notices.forget()
-        debug.forget()
         deep.forget()
         reminders.forget()
     }

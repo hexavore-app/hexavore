@@ -52,49 +52,18 @@ interface AiExchangeLog {
 }
 
 /**
- * Si l'on **accumule** les échanges.
- *
- * **Éteint par défaut**, à la différence des pastilles : celles-ci décrivent, celui-ci
- * retient. Ce qui retient ne s'allume pas tout seul.
- *
- * Il ne gouverne plus que la **profondeur** de l'historique, et non le fait d'enregistrer
- * ou non : le dernier échange est gardé dans tous les cas, faute de quoi le signalement
- * d'une proposition fausse part sans ce qu'il promet de porter ([REPORTABLE_HISTORY]).
- */
-interface DebugSettings {
-    fun observe(): Flow<Boolean>
-
-    /**
-     * L'état courant, **sans suspendre**.
-     *
-     * Même raison que [AiExchangeLog.record] : c'est un intercepteur qui pose la
-     * question, et il la pose sur le fil d'OkHttp. La valeur est en mémoire — il n'y a
-     * rien à lire sur un disque.
-     */
-    fun enabled(): Boolean
-
-    suspend fun setEnabled(enabled: Boolean)
-}
-
-/**
- * Le nombre d'échanges conservés.
- *
- * Vingt : de quoi remonter une boucle d'outillage entière — trois tours, plus les
- * appels qui l'ont précédée — sans garder la séance de la veille.
- */
-const val EXCHANGE_HISTORY = 20
-
-/**
- * Ce qu'on garde **toujours**, mode de mise au point éteint.
+ * Ce qu'on garde, et **tout ce qu'on garde**.
  *
  * Un seul échange : celui qu'un signalement joint. Le bouton de signalement promet
  * d'envoyer « ce qui a été demandé à l'IA et ce qu'elle a répondu » ; sans cette
- * mémoire-là il n'envoyait que le corps du courriel, et la promesse était fausse pour
- * quiconque n'avait pas d'abord découvert le mode de mise au point ([D153][decisions]).
+ * mémoire-là il n'envoyait que le corps du courriel, et la promesse était fausse
+ * ([D153][decisions]).
  *
- * **Un, et pas vingt.** La règle qui tenait le journal éteint par défaut — ce qui
- * retient ne s'allume pas tout seul — reste vraie de l'historique : rien ne
- * s'**accumule** sans qu'on l'ait demandé. Ce qui change est qu'on cesse de ne rien
+ * **C'est devenu la seule profondeur.** Il y en avait deux : vingt échanges quand le
+ * mode de mise au point était allumé, un sinon. L'interrupteur est parti avec l'écran
+ * qu'il ouvrait — signaler un plat joint déjà l'échange, donc un écran pour le relire
+ * à la main ne servait plus personne ([D156][decisions]). Ce qui reste est la règle qui
+ * valait déjà par défaut : rien ne s'**accumule**, et on cesse seulement de ne rien
  * retenir du tout, parce qu'une fonction de l'application en dépend.
  *
  * Il vit en mémoire, meurt avec le processus, ne part que si l'utilisateur appuie sur

@@ -2,6 +2,10 @@
 <!--
     Le fournisseur de fichiers par lequel l'appareil photo du systeme ecrit la photo.
 
+    Il vit dans :core:media avec le reste de la plomberie photo. Deux ecrans prennent
+    des images, l'analyse et la validation, et une autorite declaree deux fois ferait
+    echouer la fusion des manifestes (D156).
+
     L'autorite derive de l'applicationId, donc elle differe entre debug et release :
     deux variantes installees cote a cote ne peuvent pas se disputer la meme.
 

@@ -1,4 +1,4 @@
-package app.hexavore.feature.capture
+package app.hexavore.core.media
 
 /**
  * Ce que devient une image avant de partir : 1024 px sur le côté long, JPEG 80.
@@ -10,10 +10,10 @@ package app.hexavore.feature.capture
  *
  * [ia]: docs/05-ia.md
  */
-internal const val LONG_SIDE_PX = 1024
+const val LONG_SIDE_PX = 1024
 
 /** JPEG 80 : au-delà, on paie des octets qu'aucun modèle ne regarde. */
-internal const val JPEG_QUALITY = 80
+const val JPEG_QUALITY = 80
 
 /**
  * Le facteur d'échantillonnage à donner au décodeur.
@@ -29,7 +29,7 @@ internal const val JPEG_QUALITY = 80
  * grand qui laisse encore le côté long au-dessus de [LONG_SIDE_PX], pour que la mise à
  * l'échelle finale réduise au lieu d'agrandir.
  */
-internal fun sampleSizeFor(width: Int, height: Int, target: Int = LONG_SIDE_PX): Int {
+fun sampleSizeFor(width: Int, height: Int, target: Int = LONG_SIDE_PX): Int {
     var sample = 1
     var longSide = maxOf(width, height)
     while (longSide / 2 >= target) {
@@ -49,7 +49,7 @@ internal fun sampleSizeFor(width: Int, height: Int, target: Int = LONG_SIDE_PX):
  * de ticket, un panorama dégénéré — donnerait zéro par arrondi, et un bitmap de
  * hauteur nulle jette.
  */
-internal fun scaledSizeFor(width: Int, height: Int, target: Int = LONG_SIDE_PX): Pair<Int, Int> {
+fun scaledSizeFor(width: Int, height: Int, target: Int = LONG_SIDE_PX): Pair<Int, Int> {
     val longSide = maxOf(width, height)
     if (longSide <= target || longSide == 0) return width to height
 
