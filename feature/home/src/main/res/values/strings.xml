@@ -65,6 +65,10 @@
          the menu gives access to what has no place on the dish itself. -->
     <string name="home_dish_menu">open the dish menu</string>
     <string name="home_dish_menu_edit">Edit</string>
+    <!-- The gesture the long press was missing: it only existed on the entry screen
+         (D157). -->
+    <string name="home_dish_menu_copy">Copy to another day</string>
+    <string name="home_dish_copied_to">Dish copied to %1$s</string>
     <string name="home_dish_menu_delete">Delete</string>
     <string name="home_dish_menu_favorite">Add to favourites</string>
     <string name="home_dish_menu_unfavorite">Remove from favourites</string>
@@ -86,6 +90,7 @@
     <string name="home_send_description">Analyse this meal</string>
     <string name="home_shoot">Photograph the meal</string>
     <string name="home_analysing">Analysing…</string>
+    <string name="home_analysing_busy">Service overloaded, trying again…</string>
     <string name="home_analyse_cancel">Cancel</string>
     <!-- A provider that is down must never stop you from logging a meal. -->
     <string name="home_analyse_manual">Add by hand</string>

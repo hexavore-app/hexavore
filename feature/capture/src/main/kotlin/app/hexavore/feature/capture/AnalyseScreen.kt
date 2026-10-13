@@ -38,6 +38,8 @@ import app.hexavore.core.designsystem.component.ScreenTopBar
 import app.hexavore.core.designsystem.component.aiErrorMessage
 import app.hexavore.core.designsystem.component.diagnostic
 import app.hexavore.core.designsystem.theme.Spacing
+import app.hexavore.core.media.MealCapture
+import app.hexavore.core.media.rememberMealCapture
 
 /** L'écran d'IA, branché sur le graphe d'injection. */
 @Composable
@@ -201,7 +203,15 @@ private fun Analysis(state: AnalyseUiState, onAnalyse: () -> Unit, onCancel: () 
             verticalAlignment = Alignment.CenterVertically,
         ) {
             CircularProgressIndicator(modifier = Modifier.padding(Spacing.xs))
-            Text(text = stringResource(R.string.analyse_running), style = MaterialTheme.typography.bodyMedium)
+            // Le meme emplacement pour les deux phrases, et non une ligne de plus : ce
+            // qui change est la raison d'attendre, pas le fait d'attendre (D156).
+            Text(
+                text = stringResource(
+                    if (state.retrying) R.string.analyse_running_busy else R.string.analyse_running,
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f),
+            )
             TextButton(onClick = onCancel) { Text(stringResource(R.string.analyse_cancel)) }
         }
         return

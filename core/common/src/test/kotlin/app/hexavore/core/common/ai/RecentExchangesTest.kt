@@ -1,8 +1,6 @@
 package app.hexavore.core.common.ai
 
-import app.hexavore.core.testing.InMemoryDebugSettings
 import app.hexavore.domain.ai.AiExchange
-import app.hexavore.domain.ai.EXCHANGE_HISTORY
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -10,20 +8,23 @@ import org.junit.jupiter.api.Test
 import java.time.Instant
 
 /**
- * Ce que le journal garde, selon qu'on accumule ou non.
+ * Ce que le journal garde : le dernier échange, et lui seul.
  *
- * **Deux profondeurs, et aucune des deux n'est zéro.** Le journal ne retenait rien tant
- * que le mode de mise au point restait éteint, si bien que le bouton de signalement
- * promettait d'envoyer l'échange et n'envoyait que le corps du courriel. Il en garde
- * désormais **un** dans tous les cas, et vingt quand on a demandé à accumuler
+ * **La profondeur n'est pas zéro**, et c'est le cas qui comptait : le journal ne
+ * retenait rien tant que le mode de mise au point restait éteint, si bien que le bouton
+ * de signalement promettait d'envoyer l'échange et n'envoyait que le corps du courriel
  * ([D153][decisions]).
+ *
+ * **Et elle n'est plus qu'une.** Il y en avait deux — vingt, mode de mise au point
+ * allumé — et l'interrupteur est parti avec l'écran qu'il ouvrait ([D156][decisions]).
+ * Ce qui restait à éprouver est la borne, et qu'elle s'applique à chaque écriture.
  *
  * [decisions]: docs/11-decisions.md
  */
 class RecentExchangesTest {
     @Test
-    fun `eteint, le dernier echange reste joignable`() = runTest {
-        val journal = RecentExchanges(InMemoryDebugSettings(initial = false))
+    fun `le dernier echange reste joignable`() = runTest {
+        val journal = RecentExchanges()
 
         journal.record(echange("premier"))
         journal.record(echange("second"))
@@ -33,32 +34,30 @@ class RecentExchangesTest {
         assertEquals("second", gardes.single().endpoint)
     }
 
-    @Test
-    fun `allume, l historique s accumule jusqu a sa borne`() = runTest {
-        val journal = RecentExchanges(InMemoryDebugSettings(initial = true))
-
-        repeat(EXCHANGE_HISTORY + 5) { journal.record(echange("appel $it")) }
-
-        assertEquals(EXCHANGE_HISTORY, journal.observe().first().size)
-    }
-
     /**
-     * Éteindre fait **retomber** l'historique, et ne le fige pas à vingt.
+     * Rien ne s'accumule, **quel que soit le nombre d'appels**.
      *
-     * La profondeur se relit à chaque écriture : sans cela, une séance de mise au point
-     * laisserait vingt échanges en mémoire pour le reste de la vie du processus, alors
-     * même qu'on vient de dire qu'on ne voulait plus accumuler.
+     * Une analyse approfondie part en trois tours : sans cette borne, une seule assiette
+     * laisserait trois échanges en mémoire, puis six, puis neuf — l'accumulation que le
+     * journal refuse par principe.
      */
     @Test
-    fun `eteindre fait retomber l historique a un`() = runTest {
-        val reglage = InMemoryDebugSettings(initial = true)
-        val journal = RecentExchanges(reglage)
-        repeat(5) { journal.record(echange("appel $it")) }
+    fun `l historique ne s accumule pas`() = runTest {
+        val journal = RecentExchanges()
 
-        reglage.setEnabled(false)
-        journal.record(echange("apres"))
+        repeat(ASSEZ_D_APPELS) { journal.record(echange("appel $it")) }
 
         assertEquals(1, journal.observe().first().size)
+    }
+
+    @Test
+    fun `vider le journal ne laisse rien`() = runTest {
+        val journal = RecentExchanges()
+        journal.record(echange("un"))
+
+        journal.clear()
+
+        assertEquals(emptyList<AiExchange>(), journal.observe().first())
     }
 
     private fun echange(endpoint: String) = AiExchange(
@@ -68,4 +67,9 @@ class RecentExchangesTest {
         request = "{}",
         response = "{}",
     )
+
+    private companion object {
+        /** De quoi couvrir une boucle d'outillage entiere, et au-dela. */
+        const val ASSEZ_D_APPELS = 25
+    }
 }

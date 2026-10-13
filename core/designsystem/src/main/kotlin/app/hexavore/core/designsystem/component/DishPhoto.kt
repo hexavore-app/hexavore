@@ -36,17 +36,24 @@ import kotlinx.coroutines.withContext
  * bénéfice de l'échantillonnage.
  *
  * @param path ce que `DishPhotos` a rendu. Le composant ne le fabrique jamais.
+ * @param revision ce qui change quand **le contenu du fichier** change sans que son
+ *   chemin bouge. Le dépôt des brouillons n'a qu'un emplacement : remplacer l'image d'un
+ *   plat avant de l'enregistrer réécrit le même fichier, et la mémoire par chemin — qui
+ *   est tout l'intérêt de ce composant — montrerait l'ancienne ([D156][decisions]). Zéro
+ *   pour les photos rangées, dont le chemin suffit à identifier le contenu.
  * @see app.hexavore.domain.diary.DishPhotos
+ *
+ * [decisions]: docs/11-decisions.md
  */
 @Composable
-fun DishPhoto(path: String, contentDescription: String?, modifier: Modifier = Modifier) {
+fun DishPhoto(path: String, contentDescription: String?, modifier: Modifier = Modifier, revision: Int = 0) {
     BoxWithConstraints(modifier) {
         val target = longestSide(constraints)
         // `remember` cle sur le fichier et sur la taille, plutot qu'un `produceState` :
         // l'image repart a null des que l'un des deux change, ce qui evite qu'une
         // vignette recyclee montre un instant celle du plat precedent.
-        var image by remember(path, target) { mutableStateOf<ImageBitmap?>(null) }
-        LaunchedEffect(path, target) {
+        var image by remember(path, target, revision) { mutableStateOf<ImageBitmap?>(null) }
+        LaunchedEffect(path, target, revision) {
             image = withContext(Dispatchers.IO) { decodeAtMost(path, target) }
         }
 

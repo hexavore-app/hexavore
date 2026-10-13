@@ -20,9 +20,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -35,38 +35,55 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import app.hexavore.core.designsystem.component.NeonButton
 import app.hexavore.core.designsystem.component.ScreenTopBar
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.domain.ai.AiProvider
 import app.hexavore.domain.ai.ProviderStatus
 
-/** L'écran des fournisseurs, branché sur le graphe d'injection. */
+/**
+ * L'écran des fournisseurs, branché sur le graphe d'injection.
+ *
+ * **Une clé acceptée referme l'écran**, et la confirmation s'affiche sur celui où l'on
+ * revient : l'écran qu'on quitte n'a pas le temps de dire quoi que ce soit, et une boîte
+ * à fermer avant de partir aurait fait un appui de plus pour une bonne nouvelle
+ * ([D156][decisions], [D157][decisions]).
+ *
+ * [decisions]: docs/11-decisions.md
+ */
 @Composable
 internal fun AiSettingsRoute(
     onClose: () -> Unit,
-    onOpenExchanges: () -> Unit,
+    onGetKey: (AiProvider) -> Unit,
+    onValidated: () -> Unit,
     viewModel: AiSettingsViewModel = hiltViewModel(),
     modes: AnalysisModesViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val modesState by modes.uiState.collectAsStateWithLifecycle()
 
+    // La nouvelle est consommee **avant** la navigation : revenir sur l'ecran ne doit
+    // pas repartir vers le hub, et c'est la forme que le projet donne deja a
+    // `analysed` sur l'ecran d'IA.
+    if (state.validated) {
+        LaunchedEffect(Unit) {
+            viewModel.onValidationShown()
+            onValidated()
+        }
+    }
+
     AiSettingsScreen(
         state = state,
         modes = modesState,
-        onDebug = modes::onDebug,
-        onOpenExchanges = onOpenExchanges,
-        actions = remember(viewModel, onClose) {
+        actions = remember(viewModel, onClose, onGetKey) {
             AiSettingsActions(
                 onOpen = viewModel::onOpen,
                 onKey = viewModel::onKey,
                 onModel = viewModel::onModel,
                 onBaseUrl = viewModel::onBaseUrl,
                 onReveal = viewModel::onReveal,
-                onTest = viewModel::onTest,
-                onSave = viewModel::onSave,
-                onForget = viewModel::onForget,
+                onValidate = viewModel::onValidate,
+                onValidationShown = viewModel::onValidationShown,
+                onGetKey = onGetKey,
                 onClose = onClose,
             )
         },
@@ -88,8 +105,6 @@ internal fun AiSettingsScreen(
     state: AiSettingsUiState,
     actions: AiSettingsActions,
     modes: ModesUiState = ModesUiState(),
-    onDebug: (Boolean) -> Unit = {},
-    onOpenExchanges: () -> Unit = {},
 ) {
     Scaffold(
         topBar = {
@@ -121,7 +136,7 @@ internal fun AiSettingsScreen(
                     row = row,
                     open = row.provider == state.open,
                     form = state.form,
-                    probe = state.probe,
+                    check = state.check,
                     inUse = state.inUse,
                     actions = actions,
                 )
@@ -130,8 +145,6 @@ internal fun AiSettingsScreen(
             DeepAnalysisCard(available = modes.toolingAvailable)
 
             UsageCounter(state.usage)
-
-            DebugCard(enabled = modes.debug, onToggle = onDebug, onOpenExchanges = onOpenExchanges)
 
             // De l'air sous la derniere carte : le clavier remonte le contenu, et un
             // bouton colle au bord bas se manque.
@@ -194,7 +207,7 @@ private fun ProviderCard(
     row: ProviderRow,
     open: Boolean,
     form: ProviderForm,
-    probe: ProbeState,
+    check: KeyCheck,
     inUse: Boolean,
     actions: AiSettingsActions,
 ) {
@@ -212,7 +225,7 @@ private fun ProviderCard(
             ProviderHeader(row)
 
             if (open && !row.suspended) {
-                ProviderEditor(row.provider, form, probe, inUse, actions)
+                ProviderEditor(row.provider, form, check, inUse, actions)
             }
         }
     }
@@ -296,44 +309,6 @@ private val ProviderRow.statusRes: Int
  * et assez peu pour que l'œil ne s'y arrête pas en cherchant où coller sa clé.
  */
 private const val SUSPENDED_ALPHA = 0.45f
-
-/**
- * L'interrupteur de mise au point, et la porte qu'il ouvre.
- *
- * **En bas de l'écran, après le compteur.** Ce n'est pas un réglage qu'on vient poser :
- * c'est un instrument qu'on allume le jour où quelque chose ne va pas, et le mettre en
- * tête ferait croire qu'il faut s'en occuper.
- *
- * La porte n'apparaît que s'il est allumé — un écran d'échanges vides ne dit rien de ce
- * qu'il montrerait, et laisserait chercher pourquoi il ne montre rien.
- */
-@Composable
-private fun DebugCard(enabled: Boolean, onToggle: (Boolean) -> Unit, onOpenExchanges: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(Spacing.cardPadding),
-            verticalArrangement = Arrangement.spacedBy(Spacing.sm),
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.ai_debug_title),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Text(
-                        text = stringResource(R.string.ai_debug_body),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                Switch(checked = enabled, onCheckedChange = onToggle)
-            }
-            if (enabled) {
-                NeonButton(text = stringResource(R.string.ai_debug_open), onClick = onOpenExchanges)
-            }
-        }
-    }
-}
 
 /**
  * L'analyse approfondie : plus lente, plus précise, et décochée par défaut.

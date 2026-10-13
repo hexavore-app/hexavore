@@ -47,6 +47,32 @@ class DishPhotoTest {
         assertNull(photos.staged())
     }
 
+    /**
+     * Une image **choisie a la main** se depose, et le reglage n'a pas voix au chapitre.
+     *
+     * `ChooseDishPhoto` ne recoit pas `PhotoSettings`, et c'est la toute la regle : elle
+     * est tenue par la forme du constructeur, pas par une condition qu'un cas pourrait
+     * surveiller. Ce que ce cas verifie est l'autre moitie -- que le depot aboutisse et
+     * qu'il dise ou lire, pour que l'ecran montre l'image sans attendre (D156).
+     */
+    @Test
+    fun `une image choisie se depose et dit ou la lire`() = runTest {
+        val depose = ChooseDishPhoto(photos)(JPEG)
+
+        assertNotNull(depose, "l'ecran doit pouvoir l'afficher tout de suite")
+        assertEquals(photos.staged(), depose)
+    }
+
+    /** Choisir **remplace** : le depot n'a qu'un emplacement, et c'est voulu. */
+    @Test
+    fun `une image choisie remplace celle qui attendait`() = runTest {
+        photos.stage(JPEG)
+
+        ChooseDishPhoto(photos)(AUTRE_JPEG)
+
+        assertEquals(AUTRE_JPEG.toList(), photos.stagedBytes?.toList())
+    }
+
     @Test
     fun `eteindre le reglage vide ce qui attendait`() = runTest {
         // Quelqu'un qui vient d'eteindre entre deux analyses ne doit pas voir arriver

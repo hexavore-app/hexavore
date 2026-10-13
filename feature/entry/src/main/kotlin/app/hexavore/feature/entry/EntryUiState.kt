@@ -86,10 +86,24 @@ internal sealed interface EntryUiState {
          * La photo de ce plat, ou celle que le scan ou l'analyse viennent d'apporter.
          *
          * `null` dans le cas courant : une saisie manuelle, une recherche et un favori
-         * rejoué n'ont aucune image à montrer. `null` aussi dès que la croix a été
-         * touchée, sans que rien n'ait encore été effacé sur le disque.
+         * rejoué n'ont aucune image à montrer. `null` aussi dès que l'image a été
+         * retirée, sans que rien n'ait encore été effacé sur le disque.
+         *
+         * **L'écran en propose désormais une quand il n'y en a pas** ([D156][decisions]) :
+         * `null` n'est plus une absence définitive, c'est un cadre à remplir.
+         *
+         * [decisions]: docs/11-decisions.md
          */
         val photo: PhotoFile? = null,
+        /**
+         * Combien de fois l'image a été choisie à la main depuis l'ouverture de l'écran.
+         *
+         * Le dépôt n'a qu'un emplacement : remplacer une image réécrit le même fichier,
+         * et le composant qui l'affiche mémorise son décodage par chemin. Ce compteur est
+         * ce qui lui dit que le contenu a changé — sans lui, la photo précédente restait
+         * à l'écran.
+         */
+        val photoRevision: Int = 0,
     ) : EntryUiState {
         /**
          * Le jour que cette saisie va écrire, **quand ce n'est pas aujourd'hui**.

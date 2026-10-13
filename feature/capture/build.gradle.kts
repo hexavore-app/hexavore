@@ -7,11 +7,7 @@ android {
 }
 
 dependencies {
-    // Le declencheur photo et le selecteur de galerie sont deux contrats de resultat
-    // d'activite : c'est le systeme qui prend la photo, pas nous.
-    implementation(libs.androidx.activity.compose)
-
-    // FileProvider : depuis Android 7, remettre un chemin brut a une autre
-    // application leve FileUriExposedException.
-    implementation(libs.androidx.core.ktx)
+    // L'appareil photo du systeme, la galerie et la reduction JPEG : partages avec
+    // l'ecran de validation depuis qu'il sait remplacer l'image d'un plat (D156).
+    implementation(projects.core.media)
 }

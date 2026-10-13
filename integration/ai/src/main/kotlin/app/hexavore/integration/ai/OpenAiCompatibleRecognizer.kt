@@ -184,6 +184,9 @@ private fun OpenAiUsage.toChatUsage() = TokenUsage(input = promptTokens, output 
 private fun Response<OpenAiResponse>.chatError(): AiError = when (code()) {
     CHAT_UNAUTHORIZED, CHAT_FORBIDDEN -> AiError.InvalidKey
     CHAT_PAYMENT_REQUIRED, CHAT_TOO_MANY_REQUESTS -> AiError.QuotaExceeded
+    // Un relais devant un modele sature rend ce code tel quel : la traduction est la
+    // meme que chez les deux autres, et l'embouteillage se lit partout pareil (D156).
+    CHAT_UNAVAILABLE, CHAT_OVERLOADED -> AiError.ProviderBusy
     else -> AiError.Server(code(), chatDetail())
 }
 
@@ -219,5 +222,7 @@ private const val CHAT_UNAUTHORIZED = 401
 private const val CHAT_PAYMENT_REQUIRED = 402
 private const val CHAT_FORBIDDEN = 403
 private const val CHAT_TOO_MANY_REQUESTS = 429
+private const val CHAT_UNAVAILABLE = 503
+private const val CHAT_OVERLOADED = 529
 private const val CHAT_DETAIL_LIMIT = 400
 private const val CHAT_PHOTO_REQUEST = "Analyse ce repas."

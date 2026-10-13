@@ -30,6 +30,16 @@ import javax.inject.Inject
 @Immutable
 data class QuickEntryUiState(
     val analysing: Boolean = false,
+    /**
+     * `true` pendant la seconde tentative, le fournisseur s'étant annoncé débordé.
+     *
+     * **La même phrase que l'écran d'IA**, sur la ligne d'attente de la barre : les
+     * deux chemins traversent le même cas d'usage, et une attente expliquée d'un côté
+     * et muette de l'autre serait deux comportements pour un seul code ([D156][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val retrying: Boolean = false,
     /** L'issue du dernier envoi, quand il a échoué. Effacée dès qu'on relance. */
     val error: AiError? = null,
     /**
@@ -77,16 +87,21 @@ internal class QuickEntryViewModel @Inject constructor(private val analyseMeal: 
         val written = text.trim()
         if (written.isEmpty() || state.value.analysing) return
 
-        state.update { it.copy(analysing = true, error = null) }
+        state.update { it.copy(analysing = true, retrying = false, error = null) }
         analysis = viewModelScope.launch {
             // Rien n'entoure cet appel : une annulation doit traverser. `onCancel` a
             // deja remis la barre en etat, et l'attraper ici ferait revivre un etat
             // que l'utilisateur vient de quitter.
-            val outcome = analyseMeal(RecognitionInput.Text(written))
+            val outcome = analyseMeal(RecognitionInput.Text(written)) {
+                state.update { it.copy(retrying = true) }
+            }
             state.update {
                 when (outcome) {
-                    is RecognitionOutcome.Recognized -> it.copy(analysing = false, proposed = true)
-                    is RecognitionOutcome.Failed -> it.copy(analysing = false, error = outcome.error)
+                    is RecognitionOutcome.Recognized ->
+                        it.copy(analysing = false, retrying = false, proposed = true)
+
+                    is RecognitionOutcome.Failed ->
+                        it.copy(analysing = false, retrying = false, error = outcome.error)
                 }
             }
         }
@@ -95,7 +110,7 @@ internal class QuickEntryViewModel @Inject constructor(private val analyseMeal: 
     fun onCancel() {
         analysis?.cancel()
         analysis = null
-        state.update { it.copy(analysing = false) }
+        state.update { it.copy(analysing = false, retrying = false) }
     }
 
     /**

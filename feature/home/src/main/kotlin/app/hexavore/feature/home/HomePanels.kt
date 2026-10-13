@@ -6,8 +6,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.hexavore.core.designsystem.component.AdjustmentCard
+import app.hexavore.domain.goal.AdjustmentSuggestion
 import app.hexavore.domain.progress.Badge
 import app.hexavore.domain.progress.Progress
+import app.hexavore.domain.usecase.AdjustmentResponse
 
 /**
  * La barre du bas, en un seul objet : ce qu'elle montre et ce qu'elle déclenche.
@@ -107,4 +110,24 @@ private fun ProposalHandoff(proposed: Boolean, onNavigated: () -> Unit, onPropos
         onNavigated()
         onProposal()
     }
+}
+
+/**
+ * La correction que l'adaptation propose, et ses trois réponses.
+ *
+ * Un morceau de l'accueil qui vient d'ailleurs, comme la barre du bas et la
+ * progression : sortie de [HomeScreen] quand ses seuils ont mordu, à l'arrivée des
+ * annonces ([D157][decisions]). Trois rappels qui traduisent un bouton en réponse, là où
+ * l'écran assemble une page.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+@Composable
+internal fun SuggestionCard(suggestion: AdjustmentSuggestion, onAdjustment: (AdjustmentResponse) -> Unit) {
+    AdjustmentCard(
+        suggestion = suggestion,
+        onAccept = { onAdjustment(AdjustmentResponse.ACCEPT) },
+        onIgnore = { onAdjustment(AdjustmentResponse.IGNORE) },
+        onStop = { onAdjustment(AdjustmentResponse.STOP) },
+    )
 }

@@ -24,21 +24,26 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.hexavore.core.designsystem.component.AnnounceKeyAcceptance
 import app.hexavore.core.designsystem.component.NoticeDot
 import app.hexavore.core.designsystem.component.ScreenTopBar
 import app.hexavore.core.designsystem.component.SparkleGlyph
 import app.hexavore.core.designsystem.theme.Spacing
+import app.hexavore.domain.ai.AcceptedKey
 import app.hexavore.domain.notice.Notice
 
 /**
@@ -69,13 +74,17 @@ internal fun SettingsHubRoute(
     sections: SettingsSections,
     onClose: () -> Unit,
     viewModel: NoticeSettingsViewModel = hiltViewModel(),
+    acceptance: KeyAcceptanceViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val accepted by acceptance.accepted.collectAsStateWithLifecycle()
 
     SettingsHubScreen(
         sections = sections,
         onClose = onClose,
         aiFlagged = state.active.any { it == Notice.AI_NOT_CONFIGURED || it == Notice.AI_KEY_REJECTED },
+        keyAccepted = accepted,
+        onKeyAcceptedShown = acceptance::onShown,
     )
 }
 
@@ -106,7 +115,24 @@ internal fun SettingsHubScreen(
     onClose: () -> Unit,
     /** La section d'IA porte une pastille : aucune clé ne sert, ou la dernière a été refusée. */
     aiFlagged: Boolean = false,
+    /**
+     * Non nul quand une clé vient d'être acceptée sur l'écran d'IA, qui s'est refermé.
+     *
+     * **La confirmation se lit où l'on revient.** Une boîte posée sur l'écran d'IA
+     * aurait demandé un appui de plus pour une bonne nouvelle, et l'écran se referme de
+     * toute façon : la nouvelle le suit plutôt que de le retenir. Le hub n'est qu'un des
+     * deux endroits où l'on revient — l'accueil est l'autre, et le plus fréquent
+     * ([D157][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    keyAccepted: AcceptedKey? = null,
+    onKeyAcceptedShown: () -> Unit = {},
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    AnnounceKeyAcceptance(accepted = keyAccepted, host = snackbarHostState, onShown = onKeyAcceptedShown)
+
     Scaffold(
         topBar = {
             ScreenTopBar(
@@ -115,6 +141,7 @@ internal fun SettingsHubScreen(
                 closeLabel = stringResource(R.string.settings_close),
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         Column(
             modifier = Modifier

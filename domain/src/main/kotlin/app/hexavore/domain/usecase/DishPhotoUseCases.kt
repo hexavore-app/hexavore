@@ -50,11 +50,48 @@ class OpenDraftPhoto(private val photos: DishPhotos) {
 }
 
 /**
+ * Dépose l'image que l'utilisateur vient de **choisir pour ce plat-là**.
+ *
+ * ### Pourquoi il ne consulte pas le réglage
+ *
+ * [StageDishPhoto] le consulte, et c'est juste : il range ce qu'une analyse a produit en
+ * passant, sans que personne n'ait rien demandé pour cette image-là. Ici, quelqu'un vient
+ * d'ouvrir une galerie et de désigner une photo pour ce plat : refuser au nom d'un
+ * réglage nommé « garder les photos » reviendrait à lui demander d'aller rallumer un
+ * interrupteur ailleurs pour un geste qu'il vient de poser ([D156][decisions]).
+ *
+ * Le réglage dit *n'en garde pas automatiquement*, et non *refuse celles que je te
+ * donne*. C'est pourquoi les deux verbes existent plutôt qu'un paramètre : ce ne sont
+ * pas deux variantes d'un même rangement, ce sont deux provenances qui n'ont pas les
+ * mêmes droits.
+ *
+ * ### Rien n'est encore attaché
+ *
+ * L'image va au **dépôt**, pas au plat : c'est l'enregistrement qui l'y range
+ * ([AttachDishPhoto]), et annuler la modification doit rendre le plat tel qu'il était.
+ *
+ * @return où lire l'image déposée, pour que l'écran la montre tout de suite. `null` si
+ *   le dépôt n'a pas abouti — l'écran garde alors ce qu'il affichait.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+class ChooseDishPhoto(private val photos: DishPhotos) {
+    suspend operator fun invoke(jpeg: ByteArray): PhotoFile? {
+        photos.stage(jpeg)
+        return photos.staged()
+    }
+}
+
+/**
  * Range l'image du brouillon avec le plat que l'enregistrement vient de nommer.
  *
- * @param keep faux quand la croix a retiré l'image à l'écran. La photo du plat part
- *   alors avec le dépôt : retirer l'image d'un plat qu'on corrige et refuser celle qui
- *   vient d'arriver sont le même geste pour qui le fait.
+ * @param keep faux quand l'image a été retirée à l'écran. La photo du plat part alors
+ *   avec le dépôt : retirer l'image d'un plat qu'on corrige et refuser celle qui vient
+ *   d'arriver sont le même geste pour qui le fait.
+ *
+ *   Vrai couvre les deux autres gestes sans les distinguer : garder celle qui était là,
+ *   et ranger celle que [ChooseDishPhoto] vient de déposer. Le rangement écrase, donc
+ *   remplacer n'a rien de particulier à faire ([D156][decisions]).
  */
 class AttachDishPhoto(private val photos: DishPhotos) {
     suspend operator fun invoke(dish: DishId, keep: Boolean) {

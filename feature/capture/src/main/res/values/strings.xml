@@ -32,6 +32,7 @@
 
     <string name="analyse_submit">Analyse</string>
     <string name="analyse_running">Analysing…</string>
+    <string name="analyse_running_busy">Service overloaded, trying again…</string>
     <string name="analyse_cancel">Cancel</string>
     <string name="analyse_manual">Enter this meal by hand</string>
 

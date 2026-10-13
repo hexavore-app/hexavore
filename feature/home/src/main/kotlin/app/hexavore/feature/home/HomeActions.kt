@@ -3,6 +3,7 @@ package app.hexavore.feature.home
 import androidx.compose.runtime.Immutable
 import app.hexavore.domain.diary.Dish
 import app.hexavore.domain.diary.DishId
+import java.time.LocalDate
 
 /**
  * Ce que l'accueil peut déclencher.
@@ -43,6 +44,15 @@ data class HomeActions(
      * plat le dit déjà.
      */
     val onToggleFavorite: (Dish, name: String?) -> Unit,
+    /**
+     * Recopie le plat sur le jour choisi. L'original reste, et l'accueil aussi.
+     *
+     * Atteint par l'appui long, comme les trois autres gestes sur un plat : il
+     * manquait à ce menu alors que l'écran de saisie l'offrait déjà ([D157][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val onCopyDish: (DishId, LocalDate) -> Unit,
     /**
      * Ouvre l'écran d'IA — une photo, une phrase, ou les deux.
      *
@@ -130,6 +140,7 @@ internal fun HomeRoutes.toActions(viewModel: HomeViewModel) = HomeActions(
     onOpenSettings = onOpenSettings,
     onConfigureAi = onConfigureAi,
     onToggleFavorite = viewModel::onToggleFavorite,
+    onCopyDish = viewModel::onCopyDish,
     onOpenFavorites = onOpenFavorites,
     onOpenWeight = onOpenWeight,
 )

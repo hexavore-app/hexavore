@@ -19,6 +19,7 @@ import app.hexavore.domain.ai.ProviderCredentials
 import app.hexavore.domain.concurrency.DispatcherProvider
 import app.hexavore.domain.diary.EntrySource
 import app.hexavore.domain.nutrition.Macro
+import app.hexavore.domain.usecase.CopyDishToDate
 import app.hexavore.domain.usecase.DeleteDish
 import app.hexavore.domain.usecase.GetDaySummary
 import app.hexavore.domain.usecase.GetDishDraft
@@ -216,6 +217,56 @@ class HomeViewModelTest {
         assertNull(viewModel.pendingUndo.value)
     }
 
+    /**
+     * **Copier depuis l'appui long** : le geste qui manquait à l'accueil (D157).
+     *
+     * L'original reste, et l'accueil aussi — on peut recopier le même plat trois matins
+     * de suite sans revenir le chercher. Le jour atteint est annoncé, parce qu'une copie
+     * atterrit sur une journée qu'on ne regarde pas.
+     */
+    @Test
+    fun `copier un plat le recopie ailleurs et garde l original`() = runTest(dispatcher) {
+        val diary = InMemoryDiaryRepository(SampleDiary.day(jour))
+        val viewModel = viewModel(diary, FixedClock.atNoon(jour))
+        val plat = viewModel.uiState.filterIsInstance<HomeUiState.Content>().first().summary.dishes.first().dish
+        val veille = jour.minusDays(1)
+
+        viewModel.onCopyDish(plat.id, veille)
+        advanceUntilIdle()
+
+        assertEquals(4, diary.dishes.size, "l'original reste, la copie s'ajoute")
+        assertEquals(1, diary.dishes.count { it.date == veille })
+        assertEquals(veille, viewModel.copiedTo.value, "le jour atteint doit etre annonce")
+    }
+
+    @Test
+    fun `l annonce de la copie ne se dit qu une fois`() = runTest(dispatcher) {
+        val diary = InMemoryDiaryRepository(SampleDiary.day(jour))
+        val viewModel = viewModel(diary, FixedClock.atNoon(jour))
+        val plat = viewModel.uiState.filterIsInstance<HomeUiState.Content>().first().summary.dishes.first().dish
+        viewModel.onCopyDish(plat.id, jour)
+        advanceUntilIdle()
+
+        viewModel.onCopyShown()
+
+        assertNull(viewModel.copiedTo.value, "elle reparaitrait au prochain retour sur l'accueil")
+    }
+
+    @Test
+    fun `un echec de copie ne s annonce pas`() = runTest(dispatcher) {
+        // Dire « copie au 3 octobre » apres un echec d'ecriture serait le seul endroit
+        // de l'accueil ou l'on mentirait.
+        val diary = InMemoryDiaryRepository(SampleDiary.day(jour))
+        val viewModel = viewModel(diary, FixedClock.atNoon(jour))
+        val plat = viewModel.uiState.filterIsInstance<HomeUiState.Content>().first().summary.dishes.first().dish
+        diary.failure = IllegalStateException("base illisible")
+
+        viewModel.onCopyDish(plat.id, jour.minusDays(1))
+        advanceUntilIdle()
+
+        assertNull(viewModel.copiedTo.value)
+    }
+
     @Test
     fun `tant qu on ne sait pas, le mode Decrire ne s annonce pas indisponible`() = runTest(dispatcher) {
         // La barre s'ouvrait en rouge chez quelqu'un qui a une cle : une demi-seconde
@@ -281,6 +332,7 @@ class HomeViewModelTest {
                 save = SaveFavoriteDish(favoris, SequentialIdGenerator("fav")),
                 remove = RemoveFavoriteDish(favoris),
             ),
+            copyDish = CopyDishToDate(diary, clock, SequentialIdGenerator("copie")),
         ),
         // Sans jour choisi : l'accueil lit aujourd'hui, et c'est le `null` qu'une
         // pastille du passe remplace par sa date.

@@ -1,5 +1,6 @@
 package app.hexavore.core.common.di
 
+import app.hexavore.core.common.ai.PendingKeyAcceptance
 import app.hexavore.core.common.ai.RecentExchanges
 import app.hexavore.core.common.concurrency.DefaultDispatcherProvider
 import app.hexavore.core.common.diary.CurrentSelectedDay
@@ -7,6 +8,7 @@ import app.hexavore.core.common.identity.UuidGenerator
 import app.hexavore.core.common.language.SystemLocales
 import app.hexavore.core.common.time.SystemClock
 import app.hexavore.domain.ai.AiExchangeLog
+import app.hexavore.domain.ai.KeyAcceptance
 import app.hexavore.domain.concurrency.DispatcherProvider
 import app.hexavore.domain.diary.SelectedDay
 import app.hexavore.domain.identity.IdGenerator
@@ -52,6 +54,17 @@ abstract class CommonModule {
     @Binds
     @Singleton
     abstract fun exchangeLog(implementation: RecentExchanges): AiExchangeLog
+
+    /**
+     * La nouvelle d'une clé acceptée, le temps d'un retour en arrière.
+     *
+     * Même raison que les échanges : un état d'application sans rangement. Il faut un
+     * singleton pour qu'elle survive à l'écran qui l'écrit — il se referme au moment
+     * même où il l'annonce (D157).
+     */
+    @Binds
+    @Singleton
+    abstract fun keyAcceptance(implementation: PendingKeyAcceptance): KeyAcceptance
 
     /**
      * Les langues du système, au même titre que l'horloge et le fuseau.

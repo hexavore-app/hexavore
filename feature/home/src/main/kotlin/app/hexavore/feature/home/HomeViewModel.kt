@@ -7,6 +7,7 @@ import app.hexavore.domain.ai.activeConfiguration
 import app.hexavore.domain.appearance.DishDisplayStyle
 import app.hexavore.domain.concurrency.DispatcherProvider
 import app.hexavore.domain.diary.Dish
+import app.hexavore.domain.diary.DishId
 import app.hexavore.domain.diary.SelectedDay
 import app.hexavore.domain.goal.AdjustmentSuggestion
 import app.hexavore.domain.usecase.AdjustmentResponse
@@ -279,6 +280,45 @@ class HomeViewModel @Inject constructor(
     /** La fenêtre d'annulation est passée. Le plat cesse d'être rattrapable. */
     fun onUndoExpired() {
         undoable.value = null
+    }
+
+    /**
+     * Le jour où la dernière copie est partie, tant que l'écran ne l'a pas dit.
+     *
+     * Une nouvelle et non un état : elle revient à `null` dès que le bandeau est passé,
+     * sans quoi elle reparaîtrait au prochain retour sur l'accueil.
+     */
+    private val copie = MutableStateFlow<LocalDate?>(null)
+
+    val copiedTo: StateFlow<LocalDate?> = copie.asStateFlow()
+
+    /**
+     * Recopie un plat sur un autre jour, **sans quitter celui qu'on regarde**.
+     *
+     * Le même geste que sur l'écran de saisie ([D144][decisions]), et pour la même
+     * raison : l'original reste, et c'est tout l'intérêt — un petit-déjeuner identique
+     * se recopie, il ne se déménage pas. Rester sur le jour regardé permet de le
+     * recopier trois matins de suite sans revenir le chercher ([D157][decisions]).
+     *
+     * **La photo ne suit pas**, là non plus : elle montre une assiette précise, un jour
+     * précis. On peut en ajouter une à la copie depuis l'écran de saisie.
+     *
+     * Seul un succès s'annonce : dire « copié au 3 octobre » après un échec d'écriture
+     * serait le seul endroit de l'accueil où l'on mentirait.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    fun onCopyDish(dish: DishId, date: LocalDate) {
+        viewModelScope.launch {
+            runCatching { gestures.copyDish(dish, date) }
+                .getOrNull()
+                ?.let { copie.value = date }
+        }
+    }
+
+    /** Le bandeau est passé : il n'y a plus de nouvelle à donner. */
+    fun onCopyShown() {
+        copie.value = null
     }
 
     private companion object {

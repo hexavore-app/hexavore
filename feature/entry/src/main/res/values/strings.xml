@@ -106,8 +106,13 @@
 
     <!-- The photo kept with the dish. Decorative on the home screen, named here: this is
          the only screen where you can act on it. -->
+    <!-- Three gestures where there was only a cross: a dish photo can now be replaced
+         and added, not only removed (D156). -->
     <string name="entry_photo_a11y">The photo of this dish</string>
-    <string name="entry_photo_remove">Remove the photo</string>
+    <string name="entry_photo_add">Add a photo</string>
+    <string name="entry_photo_shoot">Take a photo</string>
+    <string name="entry_photo_pick">Choose from the gallery</string>
+    <string name="entry_photo_remove">Delete the photo</string>
 
     <string name="entry_unavailable_title">Dish unreachable</string>
     <string name="entry_unavailable_body">This dish could not be reopened. It may have been deleted from another screen.</string>
@@ -120,10 +125,6 @@
     <string name="entry_report_subject">Incorrect AI suggestion</string>
     <string name="entry_report_body">The suggestion below was wrong. The exchange and the photo are attached.\n\nWhat the screen showed:\n%1$s\n\nWhat was wrong:\n</string>
     <string name="entry_copy">Copy to another day</string>
-    <string name="entry_copy_title">Copy to another day</string>
-    <string name="entry_copy_explain">The original stays where it is.</string>
-    <string name="entry_copy_confirm">Copy</string>
-    <string name="entry_copy_cancel">Cancel</string>
     <string name="entry_copied_to">Copied to %1$s</string>
     <string name="entry_delete">Delete this meal</string>
     <string name="entry_delete_title">Delete this meal?</string>

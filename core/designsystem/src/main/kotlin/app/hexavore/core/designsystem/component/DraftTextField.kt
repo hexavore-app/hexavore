@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -162,73 +163,145 @@ fun DraftTextField(
      * [decisions]: docs/11-decisions.md
      */
     compact: Boolean = false,
+    /**
+     * `true` quand toucher le champ **sélectionne tout ce qu'il contient**.
+     *
+     * Pour les champs dont on remplace la valeur entière au lieu de la corriger — une
+     * clé d'API en est le cas exemplaire. Une clé fait trente-neuf caractères sans
+     * espace ni sens, masquée par des points : on ne la modifie jamais, on en colle une
+     * autre. Sans cela, il fallait effacer trente-neuf points un par un, ou viser une
+     * poignée de sélection sur du texte illisible — et c'est ce qui a remplacé le bouton
+     * « Effacer la clé » ([D156][decisions]).
+     *
+     * **Faux par défaut**, et il doit le rester : sur un champ qu'on corrige — un nom,
+     * une quantité — tout sélectionner fait perdre la valeur à la première frappe.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    selectAllOnFocus: Boolean = false,
     accept: (String) -> Boolean = { true },
 ) {
     var value by remember { mutableStateOf(TextFieldValue(initial, TextRange(initial.length))) }
     val ink = MaterialTheme.colorScheme.onSurfaceVariant
 
+    // La selection est posee **a la prise de focus** et non a la composition : le champ
+    // garde son curseur en fin de texte le reste du temps, ce qui est ce qu'on veut
+    // quand on vient d'y coller quelque chose.
+    val focused = if (selectAllOnFocus) {
+        modifier.onFocusChanged { state ->
+            if (state.isFocused) value = value.copy(selection = TextRange(0, value.text.length))
+        }
+    } else {
+        modifier
+    }
+
+    // Le champ **refuse** la frappe plutot que de l'accepter puis de la nettoyer :
+    // nettoyer obligerait a reecrire le texte affiche, donc a repositionner le curseur
+    // -- exactement ce que ce composant evite. La regle est ecrite une fois pour les
+    // deux formes du champ.
+    val change: (TextFieldValue) -> Unit = { candidate ->
+        if (accept(candidate.text) && (minLines > 1 || candidate.text.isSingleLine())) {
+            value = candidate
+            onValueChange(candidate.text)
+        }
+    }
+
+    val lines = FieldLines(min = minLines, max = maxOf(minLines, maxLines))
+    val decoration = FieldDecoration(
+        hint = label,
+        hintColor = labelColor,
+        visualTransformation = visualTransformation,
+        trailingIcon = trailingIcon,
+    )
+
     if (compact) {
         CompactField(
             value = value,
-            onValueChange = { candidate ->
-                if (accept(candidate.text) && (minLines > 1 || candidate.text.isSingleLine())) {
-                    value = candidate
-                    onValueChange(candidate.text)
-                }
-            },
-            modifier = modifier,
-            maxLines = maxOf(minLines, maxLines),
+            onValueChange = change,
+            modifier = focused,
+            maxLines = lines.max,
             keyboard = FieldKeyboard(
                 type = keyboardType,
                 action = imeAction ?: ImeAction.Default,
                 onAction = onImeAction,
             ),
-            decoration = FieldDecoration(
-                hint = label,
-                hintColor = labelColor,
-                visualTransformation = visualTransformation,
-                trailingIcon = trailingIcon,
-            ),
+            decoration = decoration,
         )
         return
     }
 
+    FormField(
+        value = value,
+        onValueChange = change,
+        modifier = if (estimated) focused.dashedOutline(ink) else focused,
+        lines = lines,
+        keyboard = FieldKeyboard(
+            type = keyboardType,
+            // Un champ d'une ligne emmene au champ suivant, un champ qui en tolere
+            // plusieurs saute une ligne : le defaut est une regle, pas un choix.
+            action = imeAction ?: if (minLines == 1) ImeAction.Next else ImeAction.Default,
+            onAction = onImeAction,
+        ),
+        decoration = decoration,
+        isError = isError,
+    )
+}
+
+/**
+ * Le champ de formulaire : celui qui porte un libellé flottant et un contour.
+ *
+ * **Sorti du corps de [DraftTextField] quand le seuil de longueur a mordu**, et le
+ * découpage suit ce que les choses sont : la fonction publique décide *laquelle des deux
+ * formes* et applique la règle de frappe, celle-ci dit à quoi ressemble la forme longue.
+ * C'est la symétrie de [CompactField], née de la même façon.
+ */
+@Composable
+private fun FormField(
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    modifier: Modifier,
+    lines: FieldLines,
+    keyboard: FieldKeyboard,
+    decoration: FieldDecoration,
+    isError: Boolean,
+) {
     OutlinedTextField(
         value = value,
-        onValueChange = { candidate ->
-            // Le champ **refuse** la frappe plutot que de l'accepter puis de la
-            // nettoyer : nettoyer obligerait a reecrire le texte affiche, donc a
-            // repositionner le curseur -- exactement ce que ce composant evite.
-            if (accept(candidate.text) && (minLines > 1 || candidate.text.isSingleLine())) {
-                value = candidate
-                onValueChange(candidate.text)
-            }
+        onValueChange = onValueChange,
+        label = {
+            Text(
+                text = decoration.hint,
+                color = if (isError) MaterialTheme.colorScheme.error else decoration.hintColor,
+            )
         },
-        label = { Text(text = label, color = if (isError) MaterialTheme.colorScheme.error else labelColor) },
         isError = isError,
         // `singleLine` fait defiler au lieu de replier : il ne vaut que pour un champ
         // qui ne montre qu'une ligne, jamais pour un champ qui en tolere deux.
-        singleLine = minLines == 1 && maxLines == 1,
-        minLines = minLines,
-        maxLines = maxOf(minLines, maxLines),
-        // Decimal et non Number : le separateur decimal doit etre atteignable, et
-        // la virgule est ce que produit un clavier en francais.
-        keyboardOptions = KeyboardOptions(
-            keyboardType = keyboardType,
-            imeAction = imeAction ?: if (minLines == 1) ImeAction.Next else ImeAction.Default,
-        ),
+        singleLine = lines.min == 1 && lines.max == 1,
+        minLines = lines.min,
+        maxLines = lines.max,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboard.type, imeAction = keyboard.action),
         // Les trois memes gestes : la touche du clavier fait ce que fait le bouton,
         // quelle que soit celle que l'appelant a demandee.
         keyboardActions = KeyboardActions(
-            onSend = { onImeAction() },
-            onDone = { onImeAction() },
-            onGo = { onImeAction() },
+            onSend = { keyboard.onAction() },
+            onDone = { keyboard.onAction() },
+            onGo = { keyboard.onAction() },
         ),
-        trailingIcon = trailingIcon,
-        visualTransformation = visualTransformation,
-        modifier = if (estimated) modifier.dashedOutline(ink) else modifier,
+        trailingIcon = decoration.trailingIcon,
+        visualTransformation = decoration.visualTransformation,
+        modifier = modifier,
     )
 }
+
+/**
+ * La hauteur au repos, et celle au-delà de laquelle le texte ne se déplie plus.
+ *
+ * Les deux vont ensemble : `singleLine` se déduit des deux, et un maximum inférieur au
+ * minimum n'a pas de sens. Les passer en paire évite qu'un appelant les désaccorde.
+ */
+@Immutable
+private data class FieldLines(val min: Int, val max: Int)
 
 /**
  * Le même champ, **plus bas**, pour une barre.

@@ -3,7 +3,9 @@ package app.hexavore.feature.settings
 import app.hexavore.core.designsystem.component.messageRes
 import app.hexavore.core.testing.InMemoryAiCredentials
 import app.hexavore.core.testing.InMemoryAiUsage
+import app.hexavore.core.testing.InMemoryKeyAcceptance
 import app.hexavore.core.testing.InMemoryKeyRejection
+import app.hexavore.domain.ai.AcceptedKey
 import app.hexavore.domain.ai.AiConfiguration
 import app.hexavore.domain.ai.AiError
 import app.hexavore.domain.ai.AiProbe
@@ -33,15 +35,19 @@ import org.junit.jupiter.api.Test
  *
  * L'affichage n'est pas éprouvé ici — il n'y a pas d'émulateur. Ce qui l'est, c'est la
  * séparation qui structure l'écran et qui casserait en silence : **le formulaire n'est
- * pas les réglages enregistrés**. Tester porte sur ce qu'on tape, enregistrer sur ce
- * qu'on garde, et confondre les deux ferait éprouver une clé pendant qu'on en
- * enregistre une autre.
+ * pas les réglages enregistrés**. L'essai porte sur ce qu'on tape, et l'enregistrement
+ * n'a lieu **qu'après** un essai accepté — c'est la règle que [D156][decisions] a
+ * ramenée d'un bouton à l'autre, et celle qui empêche une clé jamais éprouvée d'allumer
+ * les boutons d'analyse.
+ *
+ * [decisions]: docs/11-decisions.md
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class AiSettingsViewModelTest {
     private val dispatcher = UnconfinedTestDispatcher()
     private val credentials = InMemoryAiCredentials()
     private val rejection = InMemoryKeyRejection()
+    private val acceptance = InMemoryKeyAcceptance()
     private val usage = InMemoryAiUsage()
     private var probed: AiConfiguration? = null
     private var outcome: ProbeOutcome = ProbeOutcome.Reachable(vision = true)
@@ -57,12 +63,31 @@ internal class AiSettingsViewModelTest {
     @AfterEach
     fun tearDown() = Dispatchers.resetMain()
 
+    /**
+     * **Le fournisseur recommandé est ouvert dès l'arrivée** ([D156][decisions]).
+     *
+     * C'est le premier des trois murs retirés : tout était replié, et il fallait deviner
+     * qu'une carte se déplie avant de voir qu'il y a une clé à coller. Aucun testeur ne
+     * l'a deviné.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    @Test
+    fun `le fournisseur recommande est deplie d emblee`() = runTest {
+        val viewModel = viewModel()
+        advanceUntilIdle()
+
+        assertEquals(AiProvider.GEMINI, viewModel.uiState.value.open)
+    }
+
     @Test
     fun `ouvrir un fournisseur vierge propose son URL et son premier modele`() = runTest {
         // Un champ obligatoire laisse vide est une enigme : celui qui monte un relais
         // saura remplacer l'URL, celui qui colle une cle ne devrait pas avoir a la
-        // chercher.
+        // chercher. Les deux vivent desormais sous « Reglages avances » (D156), ce qui
+        // ne change rien a la valeur qu'ils portent.
         val viewModel = viewModel()
+        advanceUntilIdle()
 
         viewModel.onOpen(AiProvider.ANTHROPIC)
         advanceUntilIdle()
@@ -90,6 +115,7 @@ internal class AiSettingsViewModelTest {
     @Test
     fun `rouvrir le meme fournisseur le referme`() = runTest {
         val viewModel = viewModel()
+        advanceUntilIdle()
 
         viewModel.onOpen(AiProvider.ANTHROPIC)
         viewModel.onOpen(AiProvider.ANTHROPIC)
@@ -99,7 +125,7 @@ internal class AiSettingsViewModelTest {
     }
 
     @Test
-    fun `tester eprouve ce qui est dans le formulaire, pas ce qui est enregistre`() = runTest {
+    fun `valider eprouve ce qui est dans le formulaire, pas ce qui est enregistre`() = runTest {
         // C'est la regle qui justifie que le formulaire existe. Eprouver l'enregistre
         // obligerait a ecrire une cle fausse pour decouvrir qu'elle est fausse.
         credentials.save(AiProvider.ANTHROPIC, CLE)
@@ -108,67 +134,167 @@ internal class AiSettingsViewModelTest {
         viewModel.onOpen(AiProvider.ANTHROPIC)
 
         viewModel.onKey("sk-ant-tapee-a-l-instant")
-        viewModel.onTest()
+        viewModel.onValidate()
         advanceUntilIdle()
 
         assertEquals(ApiKey("sk-ant-tapee-a-l-instant"), probed?.apiKey)
     }
 
+    /**
+     * **Un refus ne laisse rien derrière lui.**
+     *
+     * C'est la moitié de l'écran qui compte : enregistrer d'abord rendrait le
+     * fournisseur actif avec une clé que personne n'a éprouvée, les boutons d'analyse
+     * s'allumeraient, et le refus se découvrirait devant une assiette.
+     */
     @Test
-    fun `tester n enregistre rien`() = runTest {
+    fun `une cle refusee n est pas enregistree`() = runTest {
+        outcome = ProbeOutcome.Failed(AiError.InvalidKey)
         val viewModel = viewModel()
+        advanceUntilIdle()
         viewModel.onOpen(AiProvider.ANTHROPIC)
         viewModel.onKey(CLE.apiKey.value)
 
-        viewModel.onTest()
+        viewModel.onValidate()
         advanceUntilIdle()
 
-        assertNull(credentials.current(), "un essai ne doit pas ecrire")
+        assertNull(credentials.current(), "une cle refusee ne doit pas s ecrire")
+        assertNull(acceptance.current, "rien a annoncer")
+        assertFalse(viewModel.uiState.value.validated, "l ecran reste ouvert sur le refus")
+    }
+
+    @Test
+    fun `une cle refusee se dit avec un message, jamais avec un code`() = runTest {
+        outcome = ProbeOutcome.Failed(AiError.InvalidKey)
+        val viewModel = viewModel()
+        advanceUntilIdle()
+        viewModel.onOpen(AiProvider.ANTHROPIC)
+        viewModel.onKey(CLE.apiKey.value)
+
+        viewModel.onValidate()
+        advanceUntilIdle()
+
+        assertEquals(KeyCheck.Refused(AiError.InvalidKey.messageRes), viewModel.uiState.value.check)
+    }
+
+    /**
+     * Un fournisseur débordé **n'accuse pas la clé**.
+     *
+     * Le `503` des modèles gratuits les plus demandés arrivait sous la forme « le
+     * service est indisponible », affiché pendant qu'on vient de coller sa première
+     * clé : la phrase se lisait comme un refus de cette clé ([D156][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    @Test
+    fun `un fournisseur deborde a son propre message`() = runTest {
+        outcome = ProbeOutcome.Failed(AiError.ProviderBusy)
+        val viewModel = viewModel()
+        advanceUntilIdle()
+        viewModel.onOpen(AiProvider.ANTHROPIC)
+        viewModel.onKey(CLE.apiKey.value)
+
+        viewModel.onValidate()
+        advanceUntilIdle()
+
+        assertEquals(KeyCheck.Refused(AiError.ProviderBusy.messageRes), viewModel.uiState.value.check)
     }
 
     @Test
     fun `un formulaire incomplet ne part pas sur le reseau`() = runTest {
         // Un modele vide rend un 404 que l'utilisateur lirait comme une cle refusee.
         val viewModel = viewModel()
+        advanceUntilIdle()
         viewModel.onOpen(AiProvider.ANTHROPIC)
         viewModel.onModel("")
 
-        viewModel.onTest()
+        viewModel.onValidate()
         advanceUntilIdle()
 
         assertNull(probed, "rien d incomplet ne se paie")
     }
 
     @Test
-    fun `enregistrer une cle oublie le refus precedent`() = runTest {
+    fun `valider une cle acceptee l ecrit, l active, et le dit sur le bouton`() = runTest {
+        val viewModel = viewModel()
+        advanceUntilIdle()
+        viewModel.onOpen(AiProvider.ANTHROPIC)
+        viewModel.onKey(CLE.apiKey.value)
+
+        viewModel.onValidate()
+        advanceUntilIdle()
+
+        assertEquals(CLE.apiKey, credentials.current()?.apiKey)
+        assertTrue(viewModel.uiState.value.inUse, "le bouton dit « Utilise »")
+    }
+
+    @Test
+    fun `valider une cle acceptee oublie le refus precedent`() = runTest {
         // La cle qui avait ete refusee n'est plus celle-la : la pastille n'a plus rien
         // a designer. Elle se rallumera d'elle-meme si la neuve est refusee aussi.
         rejection.note()
         val viewModel = viewModel()
+        advanceUntilIdle()
         viewModel.onOpen(AiProvider.ANTHROPIC)
         viewModel.onKey(CLE.apiKey.value)
 
-        viewModel.onSave()
+        viewModel.onValidate()
         advanceUntilIdle()
 
         assertFalse(rejection.noted)
     }
 
+    /**
+     * La bonne nouvelle **part ailleurs que dans l'état de l'écran**.
+     *
+     * Cet écran se referme au moment même où il l'annonce : c'est celui sur lequel on
+     * revient — l'accueil le plus souvent — qui la dit. Elle était posée dans l'état de
+     * navigation, et seul le hub savait l'y lire ; venus de l'accueil, on ne voyait rien
+     * (D157).
+     */
     @Test
-    fun `utiliser ecrit, active, et le dit sur le bouton`() = runTest {
-        // **Le formulaire reste ouvert**, contrairement a avant : le bouton passe de
-        // « Utiliser » a « Utilise », et une confirmation doit se lire la ou le doigt a
-        // appuye. Une carte qui se replie emporte sa reponse avec elle.
+    fun `valider annonce la nouvelle a l ecran sur lequel on revient`() = runTest {
         val viewModel = viewModel()
+        advanceUntilIdle()
         viewModel.onOpen(AiProvider.ANTHROPIC)
         viewModel.onKey(CLE.apiKey.value)
 
-        viewModel.onSave()
+        viewModel.onValidate()
         advanceUntilIdle()
 
-        assertEquals(CLE.apiKey, credentials.current()?.apiKey)
-        assertEquals(AiProvider.ANTHROPIC, viewModel.uiState.value.open, "la carte reste ouverte")
-        assertTrue(viewModel.uiState.value.inUse, "le bouton dit « Utilise »")
+        assertEquals(AcceptedKey(vision = true), acceptance.current)
+    }
+
+    @Test
+    fun `valider referme l ecran, une fois`() = runTest {
+        val viewModel = viewModel()
+        advanceUntilIdle()
+        viewModel.onOpen(AiProvider.ANTHROPIC)
+        viewModel.onKey(CLE.apiKey.value)
+
+        viewModel.onValidate()
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.validated)
+
+        // La route l'a consomme : revenir sur l'ecran ne doit pas le refermer aussitot.
+        viewModel.onValidationShown()
+        assertFalse(viewModel.uiState.value.validated)
+    }
+
+    @Test
+    fun `un modele qui ne lit pas les images le dit dans la nouvelle`() = runTest {
+        // Promettre la photo sous un modele qui ne la lit pas serait mentir au moment
+        // precis ou l'on vient d'obtenir la confiance de quelqu'un.
+        outcome = ProbeOutcome.Reachable(vision = false)
+        val viewModel = viewModel()
+        advanceUntilIdle()
+        viewModel.onOpen(AiProvider.ANTHROPIC)
+        viewModel.onKey(CLE.apiKey.value)
+
+        viewModel.onValidate()
+        advanceUntilIdle()
+
+        assertEquals(AcceptedKey(vision = false), acceptance.current)
     }
 
     @Test
@@ -176,14 +302,15 @@ internal class AiSettingsViewModelTest {
         // Sans cela, « Utilise » resterait affiche sous une cle qu'on vient de changer
         // et qui n'est enregistree nulle part -- exactement le contraire de la verite.
         val viewModel = viewModel()
+        advanceUntilIdle()
         viewModel.onOpen(AiProvider.ANTHROPIC)
         viewModel.onKey(CLE.apiKey.value)
-        viewModel.onSave()
+        viewModel.onValidate()
         advanceUntilIdle()
 
         viewModel.onKey("sk-ant-une-autre")
 
-        assertFalse(viewModel.uiState.value.inUse, "le bouton redevient « Utiliser »")
+        assertFalse(viewModel.uiState.value.inUse, "le bouton redevient « Valider la cle »")
     }
 
     @Test
@@ -191,9 +318,10 @@ internal class AiSettingsViewModelTest {
         // Montrer sa cle ne la modifie pas : la comparaison porte sur les trois valeurs
         // saisies, jamais sur la revelation.
         val viewModel = viewModel()
+        advanceUntilIdle()
         viewModel.onOpen(AiProvider.ANTHROPIC)
         viewModel.onKey(CLE.apiKey.value)
-        viewModel.onSave()
+        viewModel.onValidate()
         advanceUntilIdle()
 
         viewModel.onReveal()
@@ -206,9 +334,10 @@ internal class AiSettingsViewModelTest {
         // Deux conditions, pas une : enregistre ne suffit pas, il faut que ce soit
         // celui-la qui analyse.
         val viewModel = viewModel()
+        advanceUntilIdle()
         viewModel.onOpen(AiProvider.ANTHROPIC)
         viewModel.onKey(CLE.apiKey.value)
-        viewModel.onSave()
+        viewModel.onValidate()
         advanceUntilIdle()
 
         viewModel.onOpen(AiProvider.GEMINI)
@@ -217,45 +346,21 @@ internal class AiSettingsViewModelTest {
     }
 
     @Test
-    fun `toute frappe efface l issue du dernier essai`() = runTest {
-        // Un « cle valide » sous une cle qu'on vient de modifier est la pire forme
+    fun `toute frappe efface le refus du dernier essai`() = runTest {
+        // Un « cle refusee » sous une cle qu'on vient de corriger est la pire forme
         // d'information perimee : elle a l'air fraiche.
+        outcome = ProbeOutcome.Failed(AiError.InvalidKey)
         val viewModel = viewModel()
+        advanceUntilIdle()
         viewModel.onOpen(AiProvider.ANTHROPIC)
         viewModel.onKey(CLE.apiKey.value)
-        viewModel.onTest()
+        viewModel.onValidate()
         advanceUntilIdle()
 
         viewModel.onKey("sk-ant-autre-chose")
         advanceUntilIdle()
 
-        assertEquals(ProbeState.Idle, viewModel.uiState.value.probe)
-    }
-
-    @Test
-    fun `une cle refusee se dit avec un message, jamais avec un code`() = runTest {
-        outcome = ProbeOutcome.Failed(AiError.InvalidKey)
-        val viewModel = viewModel()
-        viewModel.onOpen(AiProvider.ANTHROPIC)
-        viewModel.onKey(CLE.apiKey.value)
-
-        viewModel.onTest()
-        advanceUntilIdle()
-
-        assertEquals(ProbeState.Failed(AiError.InvalidKey.messageRes), viewModel.uiState.value.probe)
-    }
-
-    @Test
-    fun `effacer retire la cle et ce qui s en servait`() = runTest {
-        credentials.save(AiProvider.ANTHROPIC, CLE)
-        val viewModel = viewModel()
-        advanceUntilIdle()
-        viewModel.onOpen(AiProvider.ANTHROPIC)
-
-        viewModel.onForget()
-        advanceUntilIdle()
-
-        assertNull(credentials.current())
+        assertEquals(KeyCheck.Idle, viewModel.uiState.value.check)
     }
 
     @Test
@@ -292,7 +397,7 @@ internal class AiSettingsViewModelTest {
         assertTrue(viewModel.uiState.value.rows.none { it.suspended })
     }
 
-    private fun viewModel() = AiSettingsViewModel(credentials, rejection, probe, usage)
+    private fun viewModel() = AiSettingsViewModel(credentials, rejection, probe, acceptance, usage)
 
     private companion object {
         val CLE = ProviderCredentials(

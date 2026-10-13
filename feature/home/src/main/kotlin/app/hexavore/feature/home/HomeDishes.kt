@@ -32,6 +32,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.hexavore.core.designsystem.component.CopyDateDialog
 import app.hexavore.core.designsystem.component.DishPhoto
 import app.hexavore.core.designsystem.component.SourceBadge
 import app.hexavore.core.designsystem.component.dishTitleText
@@ -44,6 +45,7 @@ import app.hexavore.domain.diary.FoodEntry
 import app.hexavore.domain.diary.PhotoFile
 import app.hexavore.domain.goal.DailyGoal
 import app.hexavore.domain.nutrition.Macro
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -64,6 +66,13 @@ internal fun DishList(
     actions: HomeActions,
     favoriteNameTaken: Boolean,
     onDismissFavoriteError: () -> Unit,
+    /**
+     * Le jour de l'horloge, pour borner le calendrier de la copie.
+     *
+     * Il descend jusqu'ici plutôt que d'être relu : deux sources pour « aujourd'hui »,
+     * c'est une application qui change de jour à deux moments différents.
+     */
+    today: LocalDate,
 ) {
     val timeFormatter = remember { DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT) }
     val summary = content.summary
@@ -80,6 +89,7 @@ internal fun DishList(
                 favoriteNameTaken = favoriteNameTaken,
                 onDismissFavoriteError = onDismissFavoriteError,
                 photo = content.photos[dish.dish.id],
+                today = today,
             )
         }
     }
@@ -113,10 +123,10 @@ private fun DishBlock(
     favoriteNameTaken: Boolean,
     onDismissFavoriteError: () -> Unit,
     photo: PhotoFile?,
+    today: LocalDate,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
-    var confirming by remember { mutableStateOf(false) }
-    var naming by remember { mutableStateOf(false) }
+    var asked by remember { mutableStateOf<DishAsk?>(null) }
     val favorite = summary.dish.favoriteId != null
 
     Column(
@@ -139,20 +149,22 @@ private fun DishBlock(
             favorite = favorite,
             onDismiss = { menuOpen = false },
             onEdit = { actions.onEditDish(summary.dish.id) },
-            onDelete = { confirming = true },
+            onCopy = { asked = DishAsk.COPY },
+            onDelete = { asked = DishAsk.DELETE },
             // Retirer ne demande pas de nom : le favori est deja designe par le
             // plat. Le mettre en demande un, et c'est la boite qui le fait saisir.
-            onToggleFavorite = { if (favorite) actions.onToggleFavorite(summary.dish, null) else naming = true },
+            onToggleFavorite = {
+                if (favorite) actions.onToggleFavorite(summary.dish, null) else asked = DishAsk.NAME
+            },
         )
         DishDialogs(
             summary = summary,
             actions = actions,
-            naming = naming,
-            confirming = confirming,
+            asked = asked,
+            onAsked = { asked = it },
             favoriteNameTaken = favoriteNameTaken,
-            onNamingChange = { naming = it },
-            onConfirmingChange = { confirming = it },
             onDismissFavoriteError = onDismissFavoriteError,
+            today = today,
         )
         // La vignette a gauche et le reste a droite. Elle n'est la que quand elle
         // existe : reserver sa place pour les plats qui n'en ont pas decalerait
@@ -196,28 +208,44 @@ private fun DishThumbnail(photo: PhotoFile) {
 /** Assez pour reconnaitre une assiette, assez peu pour que le titre reste le sujet. */
 private val ThumbnailSize: Dp = 56.dp
 
+/** Laquelle des trois questions du plat est posée, ou aucune. */
+private enum class DishAsk { NAME, COPY, DELETE }
+
 /**
- * Les deux boîtes du plat : nommer un favori, confirmer une suppression.
+ * Les trois boîtes du plat : nommer un favori, choisir le jour d'une copie, confirmer
+ * une suppression.
  *
  * Sorties de [DishBlock] pour que celui-ci reste lisible — il portait déjà le clic, le
  * clic long, le menu, l'en-tête, les lignes et les apports.
+ *
+ * **Un seul état pour les trois**, depuis que la copie a rejoint les deux autres
+ * ([D157][decisions]) : elles ne peuvent pas être ouvertes ensemble, et trois booléens
+ * auraient laissé croire le contraire. C'est la forme que l'en-tête de l'écran de
+ * saisie a déjà prise, pour la même raison.
+ *
+ * [decisions]: docs/11-decisions.md
  */
 @Composable
 @Suppress("LongParameterList")
 private fun DishDialogs(
     summary: DishSummary,
     actions: HomeActions,
-    naming: Boolean,
-    confirming: Boolean,
+    asked: DishAsk?,
+    onAsked: (DishAsk?) -> Unit,
     favoriteNameTaken: Boolean,
-    onNamingChange: (Boolean) -> Unit,
-    onConfirmingChange: (Boolean) -> Unit,
     onDismissFavoriteError: () -> Unit,
+    today: LocalDate,
 ) {
     val favorite = summary.dish.favoriteId != null
 
-    if (naming) {
-        FavoriteNameDialog(
+    // La boite de nom se referme des que le plat porte son favori : c'est le seul
+    // signal fiable que l'ecriture a abouti.
+    LaunchedEffect(favorite) {
+        if (favorite && asked == DishAsk.NAME) onAsked(null)
+    }
+
+    when (asked) {
+        DishAsk.NAME -> FavoriteNameDialog(
             // Le titre du plat, et non ses trois premiers aliments : c'est le nom que
             // l'utilisateur a sous les yeux, et celui qu'il reconnaitra dans sa liste
             // de modeles. Les libelles de l'ANSES faisaient des titres de cinquante
@@ -226,25 +254,34 @@ private fun DishDialogs(
             nameTaken = favoriteNameTaken,
             onConfirm = { actions.onToggleFavorite(summary.dish, it) },
             onDismiss = {
-                onNamingChange(false)
+                onAsked(null)
                 onDismissFavoriteError()
             },
         )
-    }
-    // La boite se referme des que le plat porte son favori : c'est le seul signal
-    // fiable que l'ecriture a abouti.
-    LaunchedEffect(favorite) {
-        if (favorite) onNamingChange(false)
-    }
-    if (confirming) {
-        DeleteDishConfirmation(
+
+        // **Le meme calendrier que l'ecran de saisie** : meme titre, meme phrase qui dit
+        // que l'original reste, memes jours permis (D157). Le jour du plat est deja
+        // choisi -- dupliquer un plat sur sa propre journee tient en un appui.
+        DishAsk.COPY -> CopyDateDialog(
+            today = today,
+            source = summary.dish.date,
+            onPick = {
+                onAsked(null)
+                actions.onCopyDish(summary.dish.id, it)
+            },
+            onDismiss = { onAsked(null) },
+        )
+
+        DishAsk.DELETE -> DeleteDishConfirmation(
             lines = summary.entries.size,
             onConfirm = {
-                onConfirmingChange(false)
+                onAsked(null)
                 actions.onDeleteDish(summary.dish)
             },
-            onDismiss = { onConfirmingChange(false) },
+            onDismiss = { onAsked(null) },
         )
+
+        null -> Unit
     }
 }
 
@@ -289,19 +326,27 @@ private fun DishHeader(summary: DishSummary, zone: ZoneId, goal: DailyGoal?, tim
 }
 
 /**
- * Le menu de l'appui long : modifier, supprimer.
+ * Le menu de l'appui long : modifier, copier, mettre en favori, supprimer.
  *
  * **Il double le tap plutôt que de le remplacer.** Le tap ouvre la modification, qui
  * reste le geste courant ; l'appui long donne accès à ce qui n'a pas sa place sur la
  * surface du plat. « Modifier » y figure quand même — un menu dont la moitié des
  * entrées manque oblige à se souvenir de quel geste sert à quoi.
+ *
+ * **« Copier » est arrivé en deuxième**, juste après « Modifier » : les deux gardent le
+ * plat, là où le favori le transforme en modèle et la suppression l'emporte. La
+ * suppression reste en dernier, là où le doigt ne tombe pas par hasard ([D157][decisions]).
+ *
+ * [decisions]: docs/11-decisions.md
  */
 @Composable
+@Suppress("LongParameterList")
 private fun DishMenu(
     expanded: Boolean,
     favorite: Boolean,
     onDismiss: () -> Unit,
     onEdit: () -> Unit,
+    onCopy: () -> Unit,
     onDelete: () -> Unit,
     onToggleFavorite: () -> Unit,
 ) {
@@ -311,6 +356,13 @@ private fun DishMenu(
             onClick = {
                 onDismiss()
                 onEdit()
+            },
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.home_dish_menu_copy)) },
+            onClick = {
+                onDismiss()
+                onCopy()
             },
         )
         DropdownMenuItem(

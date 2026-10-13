@@ -72,6 +72,17 @@
          phrase dit ce qui s'est passe et ce qu'on peut faire, jamais un code. -->
     <string name="ds_ai_error_invalid_key">Votre clé a été refusée. Vérifiez-la, puis testez à nouveau.</string>
     <string name="ds_ai_error_quota">Le quota ou les crédits de ce compte sont épuisés.</string>
+    <!-- Ce que l'ecran sur lequel on revient annonce, l'accueil comme le hub (D157). La
+         phrase dit ce qui est desormais possible : c'est la seule chose qu'on attendait
+         de cette cle. -->
+    <!-- Le calendrier de la copie, partage par l'ecran de saisie et l'accueil (D157). -->
+    <string name="ds_copy_title">Copier sur un autre jour</string>
+    <string name="ds_copy_explain">L\'original reste à sa place.</string>
+    <string name="ds_copy_confirm">Copier</string>
+    <string name="ds_copy_cancel">Annuler</string>
+    <string name="ds_ai_key_accepted">Clé validée. Chargement photo et texte possible.</string>
+    <string name="ds_ai_key_accepted_text_only">Clé validée. Ce modèle ne lit pas les images : seul le mode texte fonctionnera.</string>
+    <string name="ds_ai_error_busy">Le service est saturé en ce moment. Votre clé n\'y est pour rien : réessayez dans un instant.</string>
     <string name="ds_ai_error_network">Pas de connexion. L\'appel n\'est jamais parti.</string>
     <string name="ds_ai_error_timeout">Le fournisseur n\'a pas répondu à temps.</string>
     <string name="ds_ai_error_vision">Ce modèle ne lit pas les images.</string>

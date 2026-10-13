@@ -33,8 +33,14 @@ internal class AnalyseMealTest {
     private val keeping = InMemoryPhotoSettings()
     private var outcome: RecognitionOutcome = RecognitionOutcome.Recognized(Recognition(listOf(RIZ)))
 
+    /** Combien de fois le port a ete appele : c'est ce que la relance change. */
+    private var calls = 0
+
     private val analyse = AnalyseMeal(
-        recognizer = FoodRecognizer { outcome },
+        recognizer = FoodRecognizer {
+            calls++
+            outcome
+        },
         pending = pending,
         stagePhoto = StageDishPhoto(photos, keeping),
     )
@@ -89,6 +95,63 @@ internal class AnalyseMealTest {
 
         assertNull(pending.take())
         assertEquals(RecognitionOutcome.Failed(AiError.NoNetwork), result)
+    }
+
+    /**
+     * Un fournisseur deborde est **reessaye une fois**, et sans qu'on le demande.
+     *
+     * Les modeles gratuits les plus demandes rendent `503` aux heures de repas,
+     * c'est-a-dire exactement quand on photographie une assiette ; l'embouteillage dure
+     * quelques secondes, et rien n'est facture. Afficher une erreur reviendrait a
+     * demander un geste que la machine peut refaire seule (D156).
+     *
+     * **L'attente est sautee par l'horloge virtuelle de `runTest`** : ce que le cas
+     * eprouve est la relance, pas trois secondes.
+     */
+    @Test
+    fun `un fournisseur deborde est reessaye une fois`() = runTest {
+        outcome = RecognitionOutcome.Failed(AiError.ProviderBusy)
+
+        analyse(RecognitionInput.Text("un bol de riz"))
+
+        assertEquals(2, calls, "un 503 ne se montre pas sans avoir ete reessaye")
+    }
+
+    /** La relance s'annonce : une attente qu'on n'explique pas se lit comme une panne. */
+    @Test
+    fun `la relance est annoncee a l ecran`() = runTest {
+        outcome = RecognitionOutcome.Failed(AiError.ProviderBusy)
+        var annonce = 0
+
+        analyse(RecognitionInput.Text("un bol de riz")) { annonce++ }
+
+        assertEquals(1, annonce)
+    }
+
+    /** Deux refus de suite remontent l'issue : l'information utile devient *reviens plus tard*. */
+    @Test
+    fun `deux refus de suite remontent l issue`() = runTest {
+        outcome = RecognitionOutcome.Failed(AiError.ProviderBusy)
+
+        val result = analyse(RecognitionInput.Text("un bol de riz"))
+
+        assertEquals(RecognitionOutcome.Failed(AiError.ProviderBusy), result)
+        assertNull(pending.take())
+    }
+
+    /**
+     * Les autres echecs **ne repartent pas**.
+     *
+     * Une cle refusee le restera, un reseau absent aussi : reessayer coutait une attente
+     * pour echouer deux fois de la meme facon.
+     */
+    @Test
+    fun `une cle refusee ne se reessaie pas`() = runTest {
+        outcome = RecognitionOutcome.Failed(AiError.InvalidKey)
+
+        analyse(RecognitionInput.Text("un bol de riz"))
+
+        assertEquals(1, calls)
     }
 
     private companion object {

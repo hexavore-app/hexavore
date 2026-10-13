@@ -178,6 +178,9 @@ internal fun GeminiUsage.toDomain() = TokenUsage(input = promptTokenCount, outpu
 internal fun Response<GeminiResponse>.geminiError(): AiError = when (code()) {
     GEMINI_UNAUTHORIZED, GEMINI_FORBIDDEN -> AiError.InvalidKey
     GEMINI_TOO_MANY_REQUESTS -> AiError.QuotaExceeded
+    // Le code que les modeles gratuits les plus demandes rendent aux heures de pointe.
+    // Il n'a rien a voir avec la cle, et il se resout en attendant (D156).
+    GEMINI_UNAVAILABLE -> AiError.ProviderBusy
     else -> AiError.Server(code(), geminiDetail())
 }
 
@@ -195,5 +198,6 @@ private const val STOP = "STOP"
 private const val GEMINI_UNAUTHORIZED = 401
 private const val GEMINI_FORBIDDEN = 403
 private const val GEMINI_TOO_MANY_REQUESTS = 429
+private const val GEMINI_UNAVAILABLE = 503
 private const val GEMINI_DETAIL_LIMIT = 400
 private const val GEMINI_PHOTO_REQUEST = "Analyse ce repas."

@@ -149,6 +149,18 @@ class GeminiRecognizerTest {
         assertEquals(BAD_REQUEST, (failure(BAD_REQUEST) as AiError.Server).status)
     }
 
+    /**
+     * Le code que les modeles gratuits les plus demandes rendent aux heures de repas.
+     *
+     * **Il n'a rien a voir avec la cle**, et c'etait pourtant ce que l'ecran laissait
+     * croire : « le service est indisponible » affiche pendant qu'on vient de coller sa
+     * premiere cle se lit comme un refus de cette cle (D156).
+     */
+    @Test
+    fun `un modele sature est un embouteillage, pas une panne`() = runTest {
+        assertEquals(AiError.ProviderBusy, failure(UNAVAILABLE))
+    }
+
     @Test
     fun `ce que Google reproche est conserve`() = runTest {
         val explication = """{"error":{"code":400,"message":"API key not valid","status":"INVALID_ARGUMENT"}}"""
@@ -235,6 +247,7 @@ class GeminiRecognizerTest {
         const val BAD_REQUEST = 400
         const val FORBIDDEN = 403
         const val TOO_MANY_REQUESTS = 429
+        const val UNAVAILABLE = 503
 
         val ESTIMATION = """
             {"foods":[{"label":"tofu fume au sesame","kcal":180,"protein":16}]}

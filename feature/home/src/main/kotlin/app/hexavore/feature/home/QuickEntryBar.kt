@@ -428,7 +428,11 @@ private fun Analysis(state: QuickEntryUiState, onCancel: () -> Unit) {
     ) {
         CircularProgressIndicator(modifier = Modifier.size(SpinnerSize))
         Text(
-            text = stringResource(R.string.home_analysing),
+            // Le meme emplacement pour les deux phrases : ce qui change est la raison
+            // d'attendre, pas le fait d'attendre (D156).
+            text = stringResource(
+                if (state.retrying) R.string.home_analysing_busy else R.string.home_analysing,
+            ),
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f),
         )

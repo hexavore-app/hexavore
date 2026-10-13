@@ -167,6 +167,19 @@ class AnthropicRecognizerTest {
         assertEquals(SERVER_ERROR, (failure(SERVER_ERROR) as AiError.Server).status)
     }
 
+    /**
+     * **Deux codes pour un seul etat**, et c'est le piege de ce fournisseur.
+     *
+     * Anthropic a le sien -- `529`, `overloaded_error` -- en plus du `503` que tout le
+     * monde rend. Les traduire ensemble evite que le meme embouteillage se lise de deux
+     * facons selon le fournisseur (D156).
+     */
+    @Test
+    fun `les deux codes de surcharge disent la meme chose`() = runTest {
+        assertEquals(AiError.ProviderBusy, failure(SERVICE_UNAVAILABLE))
+        assertEquals(AiError.ProviderBusy, failure(OVERLOADED))
+    }
+
     @Test
     fun `ce que le fournisseur reproche est conserve`() = runTest {
         // Sans lui, un 400 qui refuse un champ et un 400 qui annonce un compte sans
@@ -274,6 +287,8 @@ class AnthropicRecognizerTest {
         const val FORBIDDEN = 403
         const val TOO_MANY_REQUESTS = 429
         const val SERVER_ERROR = 500
+        const val SERVICE_UNAVAILABLE = 503
+        const val OVERLOADED = 529
 
         val ESTIMATION = """
             {"foods":[{"label":"tofu fume au sesame","kcal":180,"protein":16}]}

@@ -1,7 +1,6 @@
 package app.hexavore.feature.settings
 
 import app.hexavore.core.testing.InMemoryAiCredentials
-import app.hexavore.core.testing.InMemoryDebugSettings
 import app.hexavore.domain.ai.AiProvider
 import app.hexavore.domain.ai.ApiKey
 import app.hexavore.domain.ai.ProviderCredentials
@@ -19,16 +18,19 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 /**
- * Les deux facons d'analyser, et la case qui se grise sans s'eteindre.
+ * Ce que la section d'analyse approfondie annonce.
  *
- * **La regle qui casserait en silence** : basculer sur un fournisseur sans outillage
- * doit griser la case, pas la decocher. L'eteindre ferait perdre un choix que personne
- * n'a defait, et il ne reviendrait pas en rebranchant le fournisseur precedent.
+ * **Ce n'est pas un reglage** : l'analyse approfondie se fait des qu'elle est possible,
+ * et l'ecran ne fait que dire laquelle des deux voies sera prise (D142). Ce qui
+ * s'eprouve ici est donc une lecture -- le fournisseur actif sait-il appeler des outils
+ * -- et non une bascule.
+ *
+ * Le mode de mise au point vivait dans le meme modele ; il est parti avec l'ecran qu'il
+ * ouvrait (D156).
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class AnalysisModesViewModelTest {
     private val dispatcher = UnconfinedTestDispatcher()
-    private val debug = InMemoryDebugSettings()
     private val credentials = InMemoryAiCredentials()
 
     @BeforeEach
@@ -38,29 +40,19 @@ internal class AnalysisModesViewModelTest {
     fun retirer() = Dispatchers.resetMain()
 
     @Test
-    fun `le mode debug s allume et se lit`() = runTest {
-        val viewModel = viewModel()
-
-        viewModel.onDebug(enabled = true)
-        advanceUntilIdle()
-
-        assertTrue(viewModel.uiState.value.debug)
-    }
-
-    @Test
     fun `sans fournisseur actif, l outillage n est pas disponible`() = runTest {
         assertFalse(viewModel().uiState.value.toolingAvailable)
     }
 
     @Test
-    fun `un fournisseur outille rend la case disponible`() = runTest {
+    fun `un fournisseur outille rend l analyse approfondie disponible`() = runTest {
         credentials.save(AiProvider.ANTHROPIC, CLE)
         advanceUntilIdle()
 
         assertTrue(viewModel().uiState.value.toolingAvailable)
     }
 
-    private fun viewModel() = AnalysisModesViewModel(debug, credentials)
+    private fun viewModel() = AnalysisModesViewModel(credentials)
 
     private companion object {
         val CLE = ProviderCredentials(ApiKey("sk-de-test"), model = "un-modele", baseUrl = "https://exemple/")

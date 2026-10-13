@@ -37,6 +37,10 @@ val AiError.messageRes: Int
     get() = when (this) {
         AiError.InvalidKey -> R.string.ds_ai_error_invalid_key
         AiError.QuotaExceeded -> R.string.ds_ai_error_quota
+        // **La phrase dit que la cle est hors de cause**, ce qui est l'information
+        // qui manquait : un « service indisponible » affiche pendant qu'on vient de
+        // coller sa premiere cle se lit comme un refus de cette cle (D156).
+        AiError.ProviderBusy -> R.string.ds_ai_error_busy
         AiError.NoNetwork -> R.string.ds_ai_error_network
         AiError.Timeout -> R.string.ds_ai_error_timeout
         AiError.VisionUnsupported -> R.string.ds_ai_error_vision

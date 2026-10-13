@@ -204,6 +204,10 @@ internal fun AnthropicUsage.toDomain() = TokenUsage(input = inputTokens, output 
 internal fun Response<AnthropicResponse>.toAiError(): AiError = when (code()) {
     UNAUTHORIZED, FORBIDDEN -> AiError.InvalidKey
     PAYMENT_REQUIRED, TOO_MANY_REQUESTS -> AiError.QuotaExceeded
+    // **Deux codes pour un seul etat.** Anthropic a le sien -- `529`, `overloaded_error`
+    // -- en plus du `503` que tout le monde rend. Les traduire ensemble evite que le
+    // meme embouteillage se lise de deux facons selon le fournisseur (D156).
+    SERVICE_UNAVAILABLE, OVERLOADED -> AiError.ProviderBusy
     else -> AiError.Server(code(), detail())
 }
 
@@ -240,6 +244,8 @@ private const val UNAUTHORIZED = 401
 private const val PAYMENT_REQUIRED = 402
 private const val FORBIDDEN = 403
 private const val TOO_MANY_REQUESTS = 429
+private const val SERVICE_UNAVAILABLE = 503
+private const val OVERLOADED = 529
 
 /** Assez pour la phrase du fournisseur, pas assez pour une page d erreur entiere. */
 private const val DETAIL_LIMIT = 400

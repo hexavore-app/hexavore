@@ -106,8 +106,13 @@
 
     <!-- La photo gardee avec le plat. Decorative a l'accueil, nommee ici :
          c'est le seul ecran ou l'on peut agir dessus. -->
+    <!-- Trois gestes la ou il n'y avait qu'une croix : la photo d'un plat se remplace
+         et s'ajoute, elle ne fait plus que se supprimer (D156). -->
     <string name="entry_photo_a11y">La photo de ce plat</string>
-    <string name="entry_photo_remove">Retirer la photo</string>
+    <string name="entry_photo_add">Ajouter une photo</string>
+    <string name="entry_photo_shoot">Prendre une photo</string>
+    <string name="entry_photo_pick">Choisir dans la galerie</string>
+    <string name="entry_photo_remove">Supprimer la photo</string>
 
     <string name="entry_unavailable_title">Plat inaccessible</string>
     <string name="entry_unavailable_body">Ce plat n\'a pas pu être rouvert. Il a peut-être été supprimé depuis un autre écran.</string>
@@ -120,10 +125,6 @@
     <string name="entry_report_subject">Proposition d\'IA incorrecte</string>
     <string name="entry_report_body">La proposition ci-dessous était fausse. L\'échange et la photo sont en pièce jointe.\n\nCe que l\'écran montrait :\n%1$s\n\nCe qui était faux :\n</string>
     <string name="entry_copy">Copier sur un autre jour</string>
-    <string name="entry_copy_title">Copier sur un autre jour</string>
-    <string name="entry_copy_explain">L\'original reste à sa place.</string>
-    <string name="entry_copy_confirm">Copier</string>
-    <string name="entry_copy_cancel">Annuler</string>
     <string name="entry_copied_to">Plat copié au %1$s</string>
     <string name="entry_delete">Supprimer ce plat</string>
     <string name="entry_delete_title">Supprimer ce plat ?</string>
