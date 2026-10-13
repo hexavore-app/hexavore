@@ -3,9 +3,22 @@
   Ajouts de la seule variante debug. Rien de ce qui suit n'existe en release :
   ce n'est pas masque a l'execution, c'est absent du binaire.
 -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <application>
+    <!--
+      La version debug porte son propre nom. Avec celui de la release, le lanceur
+      montrait deux « Hexavore » qu'on ne savait pas distinguer, a cote de celle du
+      Play Store, et seule la galerie restait reconnaissable.
+    -->
+    <application
+        android:label="@string/debug_launcher_label"
+        tools:replace="android:label">
+
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/debug_launcher_label" />
+
         <activity
             android:name=".gallery.GalleryActivity"
             android:exported="true"

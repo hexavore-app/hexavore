@@ -10,6 +10,7 @@
 -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
 
+    <string name="debug_launcher_label">Hexavore debug</string>
     <string name="gallery_launcher_label">Hexavore — gallery</string>
     <string name="gallery_title">Component gallery</string>
     <string name="gallery_subtitle">Design system check screen. No real data: these values are samples.</string>
