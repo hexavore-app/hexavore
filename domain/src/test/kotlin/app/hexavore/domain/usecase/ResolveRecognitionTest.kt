@@ -71,6 +71,28 @@ class ResolveRecognitionTest {
     }
 
     @Test
+    fun `une ligne en grammes prend le poids du modele, pas sa part`() = runTest {
+        // Le signalement qui a ouvert D155 : « chou-fleur, 1 G, grams 30 » entrait au
+        // journal a un gramme et zero kilocalorie. Le modele avait compte une part la
+        // ou le champ attendait un poids, et « un gramme vaut un gramme » multipliait
+        // sa part par un.
+        val draft = resolve(item("pomme", 1.0, EstimatedUnit.G, grams = 30.0))
+
+        assertEquals(30.0, draft.lines.single().quantity)
+        assertFalse(draft.lines.single().suggestion!!.estimated, "un gramme ne se devine pas")
+    }
+
+    @Test
+    fun `un aliment reellement a un gramme reste signale`() = runTest {
+        // Le garde-fou de D138 ne bouge pas : quand les deux champs s accordent sur un
+        // gramme, c est bien un gramme qui entre -- et l oeil doit aller dessus.
+        val draft = resolve(item("pomme", 1.0, EstimatedUnit.G, grams = 1.0))
+
+        assertEquals(1.0, draft.lines.single().quantity)
+        assertTrue(draft.lines.single().suggestion!!.estimated, "une pomme a un gramme n existe pas")
+    }
+
+    @Test
     fun `le poids du modele ne prend pas le pas sur la fiche`() = runTest {
         // La fiche dit qu une tranche pese 33 g : c est une mesure, et une estimation
         // ne l ecrase pas -- meme quand elle vient de qui a vu l assiette.

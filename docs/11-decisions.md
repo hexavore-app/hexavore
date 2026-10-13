@@ -5253,6 +5253,72 @@ C'est la troisième fois que cette barre se place mal, et les trois fois pour la
 
 ---
 
+## D155 — Un gramme n'était pas une portion, et l'échange joint s'arrêtait au milieu · ✓ validée
+
+**Contexte.** Un signalement, une photo d'assiette, huit lignes. Cinq entraient au journal **à un gramme** : chou-fleur à 0 kcal, œuf brouillé à 2, salade verte à 0, mousse de marron à 2, fromage blanc à 0. Les trois autres — deux parts de tarte et deux œufs durs — étaient justes.
+
+L'échange joint au signalement montrait ce que le modèle avait réellement rendu :
+
+```
+{"label": "chou-fleur",       "quantity": 1, "unit": "G", "grams": 30}
+{"label": "œuf brouillé",     "quantity": 1, "unit": "G", "grams": 50}
+{"label": "mousse de marron", "quantity": 1, "unit": "G", "grams": 80}
+```
+
+Il avait vu l'assiette et estimé des poids corrects. C'est l'application qui les a jetés.
+
+### Le partage qui trie juste, et la ligne qui tombe entre les deux
+
+Les trois lignes justes portaient `SLICE` et `PIECE`, les cinq fausses portaient `G`. La règle de [D112](#d112--le-modèle-pèse-ce-quil-compte-parce-quune-pièce-ne-dit-rien-de-sa-taille---validée) dit que *le poids du modèle remplace ce que nous aurions **deviné**, jamais ce que nous avons **mesuré*** — et `G` n'est ni l'un ni l'autre.
+
+Une tranche de quiche vaut trente grammes « à peu près » : c'est un forfait, donc une supposition, donc le poids du modèle gagne et les 130 g passent. Un gramme vaut un gramme : la conversion est marquée comme **sûre**, puisqu'elle l'est, et le poids du modèle est écarté. `1 × 1 g` entrait au journal.
+
+**Ce que cette certitude protégeait n'était pas une donnée.** Convertir des grammes en grammes ne demande de savoir ni la fiche ni la densité : c'est l'identité, et elle n'a rien à faire valoir. Le seul chiffre qu'elle défendait était la `quantity` du modèle — contre le `grams` du **même** modèle, c'est-à-dire contre lui-même.
+
+En grammes, les deux champs disent la même chose dans la même unité. Quand ils se contredisent, c'est `grams` qui fait foi : c'est lui que le prompt définit comme *le poids total de la ligne*, là où `quantity` change de sens avec l'unité. Et la ligne n'est pas signalée pour autant — un gramme reste un gramme.
+
+### Pourquoi le modèle écrivait « 1 »
+
+Parce que rien ne lui disait quoi écrire. Les trois prompts nommaient les unités disponibles, définissaient `grams`, et ne disaient **nulle part** ce que `quantity` vaut. Une seule phrase l'effleurait : *donne `grams` sur chaque ligne, y compris quand l'unité est déjà G — il vaut alors la quantité*. Elle se lit dans les deux sens, et le modèle l'a lue dans l'autre : une part de chou-fleur, pesant trente grammes.
+
+Les quatre textes l'écrivent désormais, avec le contre-exemple — *quantity 30 avec unit G, et jamais quantity 1, qui voudrait dire un gramme de chou-fleur*. `extract` passe en `fr_v4` / `en_v3`, `deep` en `fr_v3` / `en_v2`.
+
+**Et la correction va dans les deux endroits**, parce que c'est la règle du projet depuis [D138](#d138--lia-se-tient-mieux-et-lapplication-sait-dire-ce-qui-a-raté---validée) : *une consigne se contourne, une vérification non*. Le prompt demande, la conversion vérifie.
+
+### Une duplication assumée qui avait dérivé
+
+`deep` et `extract` commencent par le même texte, et `SystemPrompt` disait que ce n'était pas une duplication à corriger — les factoriser rendrait chacun illisible. L'argument tient. Ce qu'il ne disait pas, c'est qu'une duplication qu'on garde **se recopie à la main**.
+
+Elle ne l'avait pas été. Le garde-fou d'échelle de [D138](#d138--lia-se-tient-mieux-et-lapplication-sait-dire-ce-qui-a-raté---validée) — *un aliment à un ou deux grammes n'existe pas* — est entré dans `extract` et jamais dans `deep`, pendant trois versions. Le mode approfondi est celui qui coûte le plus, et il tournait sur le texte le plus ancien. Les deux débuts sont réalignés.
+
+### L'échange joint s'arrêtait au milieu de la consigne
+
+Le signalement qui a permis tout ce qui précède était lui-même **amputé**, et c'est ce qui a failli coûter le diagnostic : le fichier joint s'interrompait au milieu du prompt système, sur un « (tronqué) » qui ne disait pas ce qu'il emportait.
+
+Le journal bornait chaque corps à **huit mille caractères**, une valeur posée quand une requête valait une consigne, une image et une phrase. L'analyse approfondie renvoie au fournisseur la conversation **complète** à chaque tour : la consigne, les outils déclarés, et tous les résultats de recherche déjà rendus — six libellés valent une trentaine de fiches avec leurs six teneurs. Le corps dépasse la dizaine de milliers de caractères dès le deuxième tour. Le bouton promettait *ce qui a été demandé à l'IA et ce qu'elle a répondu*, et livrait un quart.
+
+Trois corrections, et aucune ne coûte :
+
+- **La borne passe à soixante-quatre mille.** Ce qui pesait vraiment, ce sont les images, et elles sont élidées bien avant d'entrer — c'est le seul calcul de mémoire qui comptait. Le journal ne garde d'ailleurs **un** échange que tant que la mise au point est éteinte.
+- **La coupe garde les deux bouts.** Elle prenait le début et jetait la fin — qui porte les outils déclarés pour une requête, la raison d'arrêt et le compte de jetons pour une réponse, c'est-à-dire ce qu'on vient y chercher.
+- **Elle dit combien de caractères elle emporte.** « Tronqué » ne distingue pas trois lignes de la moitié du fichier.
+
+**Et `peekBody` coupait une quatrième fois, en silence.** Il compte en **octets** quand la borne compte en caractères : une réponse accentuée pouvait être rognée avant même d'arriver au journal, sans aucune marque. La copie est désormais assez large pour que la coupe nommée soit la seule.
+
+### Ce qui n'a pas été fait
+
+**Les descriptions de champ dans le schéma d'outil.** Écrire la règle sur `quantity` au plus près du point où le modèle la remplit aurait été le signal le plus fort. Mais les prompts du projet vivent dans des assets versionnés, et leur version est enregistrée avec chaque analyse ; une consigne glissée dans un schéma Kotlin échapperait à ce versionnement, et plus personne ne saurait quel texte a produit quelle analyse. La piste reste ouverte si une version de plus ne suffit pas.
+
+**Rien pour `ML`.** Le même défaut l'attend — `1 ML` avec `grams: 200` — mais seulement le jour où une densité existera : sans elle, la conversion est déjà une supposition, et le poids du modèle l'emporte déjà. Écrire la règle aujourd'hui serait écrire un cas que rien n'exécute, ce que [D64](#d64--le-cache-prend-date-et-un-code-barres-ne-traverse-pas-deux-espaces-de-noms---validée) refuse.
+
+**Conséquences.** Une branche de plus dans `convertToGrams`, quatre prompts renommés, une borne de journal et une coupe qui se nomme. Aucune signature ne bouge.
+
+**Ce que le vert ne prouve pas.** **Que le modèle écrive maintenant `quantity 30`.** Les cas affirment que l'application ne jette plus son poids ; aucun ne dit qu'un prompt se fait obéir. C'est précisément pourquoi la correction est aussi dans la conversion — et pourquoi la version du prompt est enregistrée avec chaque analyse. Il faut refaire des photos.
+
+**Que soixante-quatre mille suffisent.** C'est de quoi tenir les échanges observés, pas une mesure du pire cas : une boucle d'outillage à trois tours sur une assiette chargée n'a pas été pesée. La coupe dit désormais ce qu'elle emporte, ce qui rendra la prochaine insuffisance lisible au lieu d'être muette.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

@@ -22,11 +22,16 @@ import java.time.LocalDate
 /**
  * Ce que le journal de mise au point retient, et surtout ce qu'il ne retient pas.
  *
- * **Trois promesses, et chacune se casserait en silence.** Une clé qui se retrouverait
+ * **Quatre promesses, et chacune se casserait en silence.** Une clé qui se retrouverait
  * dans le journal n'y serait vue par personne avant qu'une capture d'écran circule ;
  * une image non élidée ferait grossir la mémoire jusqu'à ce que l'application meure
  * sans dire pourquoi ; un corps de réponse consommé par la lecture rendrait vide ce que
  * l'appelant reçoit — un journal qui casse ce qu'il observe.
+ *
+ * Et la quatrième est celle qui a été prise en défaut : **un corps coupé trop tôt**.
+ * Elle ne casse rien, elle rend un fichier qui a l'air entier — et c'est ce qui la rend
+ * pire que les trois autres, puisqu'on ne la découvre qu'en cherchant longtemps dans ce
+ * qu'il ne contient pas (D155).
  */
 class ExchangeInterceptorTest {
     private val server = MockWebServer()
@@ -106,15 +111,71 @@ class ExchangeInterceptorTest {
     }
 
     @Test
-    fun `un corps immense est borne`() {
-        // L'elision ne mord que sur le base64 ; un JSON pathologique doit quand meme
-        // s'arreter quelque part.
+    fun `un tour d analyse approfondie tient en entier`() {
+        // La borne valait huit mille caracteres, soit moins qu'un seul tour : une
+        // analyse approfondie renvoie la conversation complete a chaque fois, et le
+        // signalement partait avec une consigne coupee en son milieu.
         server.enqueue(MockResponse().setBody("{}"))
-        val long = List(3_000) { """{"n":$it}""" }.joinToString(",")
+        val tour = List(1_000) { """{"reference":"$it","kcal":${it * 2}}""" }.joinToString(",")
 
-        appeler(corps = "[$long]")
+        appeler(corps = "[$tour]")
 
-        assertTrue(log.exchanges.single().request.length < long.length, "le corps doit etre tronque")
+        val retenu = log.exchanges.single().request
+        assertTrue(tour.length > 8_000, "le decor doit depasser l'ancienne borne, or ${tour.length}")
+        assertFalse(retenu.contains("coupés ici"), "il tenait, et n'avait donc pas a etre coupe")
+        assertTrue(retenu.contains(""""reference":"999""""), "la fin du corps doit y etre")
+    }
+
+    @Test
+    fun `un corps immense est borne, et la coupe se nomme`() {
+        // L'elision ne mord que sur le base64 ; un JSON pathologique doit quand meme
+        // s'arreter quelque part -- mais en disant combien il emporte, et en gardant
+        // les deux bouts : la fin d'une requete porte les outils declares, celle d'une
+        // reponse sa raison d'arret.
+        server.enqueue(MockResponse().setBody("{}"))
+        val long = List(20_000) { """{"n":$it}""" }.joinToString(",")
+
+        appeler(corps = """{"debut":"ici","milieu":[$long],"fin":"la"}""")
+
+        val retenu = log.exchanges.single().request
+        assertTrue(retenu.length < long.length, "le corps doit etre borne")
+        assertTrue(retenu.contains("""{"debut":"ici""""), "le debut doit survivre, or $retenu")
+        assertTrue(retenu.contains(""""fin":"la"}"""), "la fin doit survivre, or $retenu")
+        assertTrue(retenu.contains("caractères coupés ici"), "la coupe doit se nommer, or $retenu")
+    }
+
+    @Test
+    fun `la coupe dit combien de caracteres elle emporte`() {
+        // Le compte doit boucler : ce qui est retenu plus ce qui est annonce vaut le
+        // corps entier. Sans cela, « tronque » ne distingue pas trois lignes de moitie.
+        server.enqueue(MockResponse().setBody("{}"))
+        val corps = """{"items":[${List(20_000) { """{"n":$it}""" }.joinToString(",")}]}"""
+
+        appeler(corps = corps)
+
+        val retenu = log.exchanges.single().request
+        val annonce = Regex("\n…\\((\\d+) caractères coupés ici\\)…\n").find(retenu)
+        assertTrue(annonce != null, "la coupe doit s'annoncer, or $retenu")
+        assertEquals(
+            corps.length,
+            retenu.length - annonce!!.value.length + annonce.groupValues[1].toInt(),
+            "le compte annonce doit boucler avec ce qui est retenu",
+        )
+    }
+
+    @Test
+    fun `une reponse accentuee n est pas coupee en silence`() {
+        // `peekBody` compte en **octets** et coupe sans rien dire. Soixante mille
+        // caracteres accentues tiennent sous la borne du journal, et pesaient pourtant
+        // deux fois l'ancienne copie : la reponse arrivait amputee, sans aucune marque.
+        val reponse = """{"debut":"ici","texte":"${"é".repeat(60_000)}","fin":"la"}"""
+        server.enqueue(MockResponse().setBody(reponse))
+
+        appeler(corps = "{}")
+
+        val retenu = log.exchanges.single().response
+        assertTrue(retenu.contains(""""fin":"la"}"""), "la fin de la reponse doit survivre")
+        assertEquals(reponse.length, retenu.length, "rien ne doit manquer au milieu non plus")
     }
 
     @Test

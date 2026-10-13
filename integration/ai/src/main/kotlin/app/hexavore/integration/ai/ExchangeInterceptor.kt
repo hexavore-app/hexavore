@@ -25,9 +25,16 @@ import okio.Buffer
  * cherche à lire. Toute longue suite de caractères base64 est remplacée par sa
  * longueur.
  *
+ * **Ce qui reste tient en entier**, et c'est ce qui a changé : la borne valait huit
+ * mille caractères, c'est-à-dire moins qu'un seul tour d'analyse approfondie. Un
+ * signalement partait donc avec une consigne coupée en son milieu, et sans rien dire de
+ * ce qui manquait ([D155][decisions]).
+ *
  * **Le corps de la réponse est lu par [Response.peekBody]**, qui en prend une copie
  * sans consommer le flux : le lire autrement le viderait, et l'appelant recevrait une
  * réponse vide — un défaut de journalisation qui casse ce qu'il observe.
+ *
+ * [decisions]: docs/11-decisions.md
  *
  * @see docs/05-ia.md § Sécurité des clés
  */
@@ -76,10 +83,22 @@ internal val SilentExchanges = Interceptor { chain -> chain.proceed(chain.reques
  * L'ordre compte. Élider d'abord, tronquer ensuite : l'inverse couperait au milieu du
  * base64 d'une photo et laisserait quatre mille caractères de bruit à la place du JSON
  * qu'on voulait voir.
+ *
+ * **La coupe se fait au milieu, et elle dit ce qu'elle emporte.** ~~Elle prenait les
+ * premiers caractères et ajoutait « (tronqué) »~~ : la fin d'un corps est précisément
+ * ce qu'on vient y chercher — les outils déclarés et la configuration pour une requête,
+ * la raison d'arrêt et le compte de jetons pour une réponse. Les garder tous les deux
+ * coûte une ligne ; dire combien de caractères manquent en coûte zéro, et évite de
+ * confondre « il manque trois lignes » avec « il manque la moitié » ([D155][decisions]).
+ *
+ * [decisions]: docs/11-decisions.md
  */
 private fun String.readable(): String {
     val elided = BASE64_RUN.replace(this) { "…${it.value.length} caractères élidés…" }
-    return if (elided.length <= BODY_LIMIT) elided else elided.take(BODY_LIMIT) + "\n…(tronqué)"
+    if (elided.length <= BODY_LIMIT) return elided
+
+    val coupes = elided.length - BODY_HEAD - BODY_TAIL
+    return elided.take(BODY_HEAD) + "\n…($coupes caractères coupés ici)…\n" + elided.takeLast(BODY_TAIL)
 }
 
 /**
@@ -91,5 +110,42 @@ private fun String.readable(): String {
  */
 private val BASE64_RUN = Regex("[A-Za-z0-9+/]{200,}={0,2}")
 
-private const val BODY_LIMIT = 8_000
-private const val PEEK_LIMIT = 64L * 1024
+/**
+ * De quoi tenir un échange entier, mode approfondi compris.
+ *
+ * **Huit mille caractères ne suffisaient pas, et c'est un signalement qui l'a dit.**
+ * Une analyse approfondie renvoie au fournisseur la conversation **complète** à chaque
+ * tour : la consigne système, les outils déclarés, et tous les résultats de recherche
+ * déjà rendus — six libellés valent une trentaine de fiches avec leurs six teneurs
+ * chacune. Le corps dépasse la dizaine de milliers de caractères dès le deuxième tour,
+ * et l'échange joint au signalement s'arrêtait au milieu de la consigne. Le rapport
+ * promettait ce qu'il faut pour comprendre, et livrait un quart.
+ *
+ * Soixante-quatre mille, donc, et la mémoire ne s'en émeut pas : le journal ne garde
+ * **un** échange tant que la mise au point est éteinte (`REPORTABLE_HISTORY`), vingt une
+ * fois allumée — et les images sont élidées bien avant d'y entrer, ce qui est la seule
+ * chose qui pesait vraiment.
+ */
+private const val BODY_LIMIT = 64_000
+
+/**
+ * Ce qu'on garde de la fin, quand il faut couper.
+ *
+ * Un quart : le début porte la conversation dans l'ordre où elle s'est tenue, et c'est
+ * ce qu'on relit le plus. La fin ne porte qu'une poignée de champs — mais ceux qui
+ * disent **comment ça s'est terminé**, et aucun autre endroit ne les porte.
+ */
+private const val BODY_TAIL = BODY_LIMIT / 4
+
+private const val BODY_HEAD = BODY_LIMIT - BODY_TAIL
+
+/**
+ * Ce qu'on copie d'une réponse avant de la borner.
+ *
+ * **Assez large pour que la coupe nommée soit la seule.** `peekBody` compte en octets
+ * et coupe en silence : une réponse rognée là arriverait dans le journal sans aucune
+ * marque — le même défaut que [readable] vient de corriger, en pire, puisque rien ne le
+ * dirait. Trois octets par `Char`, c'est le pire cas d'UTF-8 ; au-delà, un caractère
+ * occupe deux `Char` et la borne tient toujours.
+ */
+private const val PEEK_LIMIT = 3L * BODY_LIMIT
