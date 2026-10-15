@@ -67,10 +67,19 @@ data object FavoritesSettingsDestination
 @Serializable
 data object ContactDestination
 
+/**
+ * La version, la politique de confidentialité, l'avertissement médical, la provenance
+ * des données et les licences ([D161][decisions]). Aucun argument.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+@Serializable
+data object AboutDestination
+
 fun NavController.navigateToSettings() = navigate(SettingsDestination)
 
 /**
- * Déclare les neuf écrans de réglages dans un graphe.
+ * Déclare les écrans de réglages dans un graphe.
  *
  * Ensemble parce qu'ils partagent une sortie et une seule : **le retour rend l'écran
  * précédent**. Le module ne sait pas lequel c'est, ce qui lui évite de dépendre de
@@ -99,6 +108,7 @@ fun NavGraphBuilder.settingsScreens(
                 onOpenAppearance = { navController.navigate(AppearanceDestination) },
                 onOpenFavorites = { navController.navigate(FavoritesSettingsDestination) },
                 onOpenContact = { navController.navigate(ContactDestination) },
+                onOpenAbout = { navController.navigate(AboutDestination) },
             ),
             onClose = { navController.popBackStack() },
         )
@@ -127,6 +137,9 @@ fun NavGraphBuilder.settingsScreens(
     }
     composable<ContactDestination> {
         ContactRoute(onClose = { navController.popBackStack() })
+    }
+    composable<AboutDestination> {
+        AboutRoute(onClose = { navController.popBackStack() })
     }
 }
 

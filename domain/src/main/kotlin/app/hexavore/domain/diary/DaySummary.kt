@@ -61,6 +61,22 @@ data class DaySummary(
     val goal: DailyGoal?,
     val totals: MacroTotals,
     val dishes: List<DishSummary>,
+    /**
+     * `true` quand cette journée n'a pas d'objectif **alors qu'un objectif court
+     * aujourd'hui** : elle précède le premier ([D161][decisions]).
+     *
+     * Ce n'est pas la même absence que celle d'une installation sans objectif, et
+     * l'accueil ne doit pas dire la même chose. Sans objectif du tout, il invite à
+     * répondre aux cinq questions ; ici, l'invitation relançait l'onboarding chez
+     * quelqu'un qui y avait déjà répondu, sur chaque jour où il venait rattraper un
+     * repas d'avant son installation.
+     *
+     * Les objectifs se succèdent sans trou ([D04][decisions]) : une journée sans
+     * objectif, quand un objectif court, ne peut donc être qu'antérieure au premier.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val beforeFirstGoal: Boolean = false,
 ) {
     /** `false` quand la journée ne contient aucune saisie. */
     val logged: Boolean get() = dishes.isNotEmpty()

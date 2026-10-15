@@ -10,6 +10,7 @@ import app.hexavore.domain.usecase.CalculateDailyGoal
 import app.hexavore.domain.usecase.GoalRequest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -129,6 +130,58 @@ class GoalCalculatorTest {
         val plan = calculate(HOMME, GoalRequest(GoalStrategy.MAINTAIN, currentWeightKg = POIDS_ACTUEL))
 
         assertEquals(0.0, plan.weeklyWeightChangeKg, RYTHME_TOLERANCE)
+    }
+
+    /**
+     * **Le sens est celui de la stratégie** (D160).
+     *
+     * Perdre vers 95 kg depuis 88 calculait une prise de 0,3 kg par semaine sous
+     * l'étiquette « perdre ». L'écran refuse ce poids et dit pourquoi ; le calcul, lui, ne
+     * produit plus d'écart du mauvais côté — c'est le filet.
+     */
+    @Test
+    fun `perdre vers un poids plus haut ne calcule pas une prise`() {
+        val plan = calculate(HOMME, REFERENCE.copy(targetWeightKg = 95.0))
+
+        assertEquals(0.0, plan.weeklyWeightChangeKg, RYTHME_TOLERANCE)
+        assertFalse(plan.capped, "un ecart nul n'a rien a borner")
+    }
+
+    @Test
+    fun `prendre vers un poids plus bas ne calcule pas une perte`() {
+        val plan = calculate(HOMME, REFERENCE.copy(strategy = GoalStrategy.GAIN))
+
+        assertEquals(0.0, plan.weeklyWeightChangeKg, RYTHME_TOLERANCE)
+    }
+
+    /**
+     * **Une dépense sous le plancher ne fait pas d'une perte une prise** (D160).
+     *
+     * Femme de 80 ans, 145 cm, 45 kg, assise : 954 kcal de dépense, sous le plancher de
+     * 1 200. Le plancher remontait l'objectif jusqu'à lui — 246 kcal de surplus sous
+     * « perdre ». L'objectif reste désormais sa dépense, et le plan dit quel plancher a
+     * tout retenu, pour que l'écran l'explique.
+     */
+    @Test
+    fun `sous le plancher, une perte reste a la depense et le dit`() {
+        val petite = UserProfile(
+            birthDate = LocalDate.of(1946, 3, 4),
+            sex = Sex.FEMALE,
+            heightCm = 145.0,
+            activity = Activity(WorkActivity.DESK),
+        )
+        val perte = GoalRequest(
+            strategy = GoalStrategy.LOSE,
+            currentWeightKg = 45.0,
+            targetWeightKg = 42.0,
+            targetDate = AUJOURD_HUI.plusDays(182),
+        )
+
+        val plan = calculate(petite, perte)
+
+        assertEquals(1_200.0, plan.withholdingFloorKcal)
+        assertEquals(954.0, plan.goal.kcal, "la depense, et non le plancher")
+        assertNull(plan.reachableOn, "aucun rythme n'atteint ce poids sans passer sous le plancher")
     }
 
     @Test

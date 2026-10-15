@@ -152,7 +152,7 @@ Trois étapes, avec un dialogue de confirmation nommant explicitement ce qui va 
 
 Le remplacement, et pas la fusion. La fusion demande une résolution de conflits par entité — même identifiant, contenus différents, dates de modification proches — qui produit des bugs silencieux et des données corrompues. Tant qu'il n'y a pas de scénario multi-appareils réel à servir, la complexité n'est pas justifiée.
 
-Une **sauvegarde de sécurité locale** est produite juste avant l'écrasement, dans le stockage interne, et conservée jusqu'à la restauration suivante. C'est ce qui permet de revenir en arrière quand quelqu'un restaure le mauvais fichier.
+Une **sauvegarde de sécurité locale** est produite juste avant l'écrasement, dans le stockage interne, et conservée jusqu'à la restauration suivante. C'est ce qui permet de revenir en arrière quand quelqu'un restaure le mauvais fichier — **depuis l'écran de sauvegarde**, qui l'offre après chaque restauration ([D162](11-decisions.md)) ; aucun écran ne la relisait. L'état quitté devient la copie à son tour, et l'effacement complet l'emporte avec le reste.
 
 Le chemin de la fusion reste ouvert : tous les enregistrements portent `id`, `created_at` et `updated_at`, ce qui suffirait à implémenter un dernier-écrivain-gagne par entité.
 
@@ -193,7 +193,7 @@ Désactivé par défaut, parce que le compromis n'est pas évident : `appDataFol
 |---|---|---|
 | `world.openfoodfacts.org` | Un code-barres | À chaque scan d'un produit inconnu |
 | `world.openfoodfacts.org` | Le texte cherché | Sur un tap sur « Chercher dans Open Food Facts » ([D67](11-decisions.md#d67--la-recherche-par-nom-se-demande-et-la-date-appartient-à-celui-qui-récupère---validée)) |
-| `world.openfoodfacts.org` | La fiche, avec l'identifiant et le mot de passe du compte Open Food Facts **de l'utilisateur** | Quand il choisit de la contribuer ([D90](11-decisions.md#d90--la-contribution-part-sous-le-compte-de-lutilisateur-et-jamais-sans-lui---validée)) |
+| ~~`world.openfoodfacts.org`~~ | ~~La fiche, avec l'identifiant et le mot de passe du compte Open Food Facts **de l'utilisateur**~~ | ~~Quand il choisit de la contribuer~~ ([D90](11-decisions.md#d90--la-contribution-part-sous-le-compte-de-lutilisateur-et-jamais-sans-lui---validée)) — **tenue en réserve**, rien ne part ([D158](11-decisions.md)) |
 | Fournisseur d'IA choisi | Une photo ou un texte, avec la clé de l'utilisateur | À chaque analyse |
 | `googleapis.com` (Drive) | Le fichier de sauvegarde | Si la sauvegarde est activée — **pas encore construite** |
 
@@ -226,5 +226,5 @@ Obligatoire pour le Play Store, pour toute application, même une qui ne collect
 
 ## Suppression
 
-- **Bouton « Effacer toutes mes données »** dans les réglages : vide la base, les photos, les préférences, les clés, et propose de supprimer aussi les sauvegardes Drive. Double confirmation, avec saisie du mot `SUPPRIMER` — c'est irréversible et la friction est intentionnelle.
+- **Bouton « Effacer toutes mes données »** dans les réglages : vide la base, les photos, les préférences, les clés, **la copie de sécurité d'avant restauration** ([D162](11-decisions.md)), et propose de supprimer aussi les sauvegardes Drive. Double confirmation, avec saisie du mot `SUPPRIMER` — c'est irréversible et la friction est intentionnelle.
 - **Désinstallation** : Android efface le stockage de l'application. Les fichiers Drive survivent ; la boîte de dialogue de suppression le rappelle et donne le chemin pour les retirer depuis les paramètres du compte Google.

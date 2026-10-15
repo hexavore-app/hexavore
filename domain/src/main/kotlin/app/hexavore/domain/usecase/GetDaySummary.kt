@@ -33,29 +33,36 @@ class GetDaySummary(private val diary: DiaryRepository, private val goals: Goals
      *   appel : un écran resté ouvert pendant la nuit ne doit pas continuer
      *   d'afficher la veille.
      */
-    operator fun invoke(date: LocalDate = clock.today()): Flow<DaySummary> =
-        combine(diary.observeDay(date), goals.observeGoalOn(date)) { dishes, goal ->
-            val zone = clock.zone()
-            // Les titres se calculent ici parce qu'ils se calculent **ensemble** : le
-            // rang d'un deuxieme dejeuner est une propriete de la journee, pas du plat.
-            val titres = dishes.titles(zone)
+    operator fun invoke(date: LocalDate = clock.today()): Flow<DaySummary> = combine(
+        diary.observeDay(date),
+        goals.observeGoalOn(date),
+        // L'objectif courant, pour une seule question : y en a-t-il un ? C'est ce qui
+        // separe une journee anterieure au premier objectif d'une installation qui n'en
+        // a jamais pose (D161).
+        goals.observeCurrent(),
+    ) { dishes, goal, current ->
+        val zone = clock.zone()
+        // Les titres se calculent ici parce qu'ils se calculent **ensemble** : le
+        // rang d'un deuxieme dejeuner est une propriete de la journee, pas du plat.
+        val titres = dishes.titles(zone)
 
-            DaySummary(
-                date = date,
-                zone = zone,
-                goal = goal?.daily,
-                // Recalculé depuis les lignes et non par somme des sous-totaux :
-                // additionner des totaux ferait perdre la trace des valeurs
-                // inconnues, qui est justement ce qu'on cherche à conserver.
-                totals = MacroTotals.of(dishes.flatMap { it.entries }.map { it.macros }),
-                dishes =
-                dishes.mapIndexed { index, dish ->
-                    DishSummary(
-                        dish = dish,
-                        totals = MacroTotals.of(dish.entries.map { it.macros }),
-                        title = titres[index],
-                    )
-                },
-            )
-        }
+        DaySummary(
+            date = date,
+            zone = zone,
+            goal = goal?.daily,
+            // Recalculé depuis les lignes et non par somme des sous-totaux :
+            // additionner des totaux ferait perdre la trace des valeurs
+            // inconnues, qui est justement ce qu'on cherche à conserver.
+            totals = MacroTotals.of(dishes.flatMap { it.entries }.map { it.macros }),
+            dishes =
+            dishes.mapIndexed { index, dish ->
+                DishSummary(
+                    dish = dish,
+                    totals = MacroTotals.of(dish.entries.map { it.macros }),
+                    title = titres[index],
+                )
+            },
+            beforeFirstGoal = goal == null && current != null,
+        )
+    }
 }

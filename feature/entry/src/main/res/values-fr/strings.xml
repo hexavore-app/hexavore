@@ -23,6 +23,9 @@
          incertitudes distinctes : ce que le modele a compris, et le fait que la
          quantite vienne d'un forfait plutot que d'une portion mesuree (docs/04). -->
     <string name="entry_suggestion">Proposé par l\'IA · confiance %1$d %%</string>
+    <!-- Sous 75 %, le seuil où le catalogue cesse lui aussi de remplir seul (D162) : la
+         phrase le dit, en plus de la couleur. -->
+    <string name="entry_suggestion_unsure">Proposé par l\'IA · confiance faible, %1$d %% : à vérifier</string>
     <string name="entry_suggestion_quantity">quantité estimée</string>
     <!-- Le badge que docs/04 exige sur le repli de l'etape 4 : ces chiffres ne
          viennent d'aucune base, et le dire est ce qui les rend utilisables. -->
@@ -91,7 +94,8 @@
     <string name="entry_favorite_name_taken">Un plat en favori porte déjà ce nom.</string>
     <string name="entry_favorite_confirm">Enregistrer</string>
     <string name="entry_favorite_cancel">Annuler</string>
-    <!-- Le pendant d'Enregistrer, et le double du retour arrière. Pas « Fermer » :
+    <!-- Le pendant d'Enregistrer. Il ferme sans rien demander : c'est le retour du
+         système, qui part souvent sans qu'on le veuille, qui demande (D161). Pas « Fermer » :
          cette paire de boutons se lit ensemble, et « Annuler » dit ce qu'il advient
          de la saisie là où « Fermer » ne dit que ce qu'il advient de l'écran. -->
     <string name="entry_cancel">Annuler</string>
@@ -136,4 +140,12 @@
     <string name="entry_report_explain_confirm">Rédiger le signalement</string>
     <string name="entry_report_explain_cancel">Annuler</string>
     <string name="entry_report_no_mail_app">Aucune application de courriel sur ce téléphone : rien n\'a pu partir.</string>
+
+    <!-- Le retour du système, sur un brouillon qui perdrait quelque chose (D161). Une
+         question, deux réponses, et rien derrière : « une fois, sans insister ». Le titre
+         dit ce qui part, la saisie, et non le plat : relu puis modifié, il reste noté. -->
+    <string name="entry_discard_title">Quitter sans enregistrer ?</string>
+    <string name="entry_discard_body">Ce qui n\'a pas été enregistré sera perdu.</string>
+    <string name="entry_discard_confirm">Quitter</string>
+    <string name="entry_discard_cancel">Continuer la saisie</string>
 </resources>

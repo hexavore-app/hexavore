@@ -76,13 +76,14 @@ internal fun DayCell(
         modifier = Modifier
             // La cellule prend sa place, sans en retirer ni en ajouter : c'est ce
             // qui garantit que sept tiennent dans la largeur. Elle ne compte rien
-            // elle-meme, elle consomme ce que `CalendarPane` a calcule.
-            .size(footprint)
+            // elle-meme, elle consomme ce que `CalendarPane` a calcule -- la hauteur
+            // comprise, bornee depuis D163.
+            .size(width = footprint, height = cellHeight(footprint))
             // Un jour a venir n'est pas cliquable : pas de ride au toucher, pas de
             // navigation, et le lecteur d'ecran ne l'annonce pas comme un bouton.
             .let { base -> if (future) base else base.clickable { onOpenDay(date) } },
     ) {
-        SelectedDisc(shown = shown, diameter = footprint)
+        SelectedDisc(shown = shown, diameter = cellHeight(footprint))
         GoldenHalo(visible = parfaite, diameter = ringDiameter(footprint) + HALO_GAP * 2)
 
         MacroSegmentRing(
@@ -117,20 +118,6 @@ internal fun DayCell(
 }
 
 /**
- * Le disque du jour regardé, sous son anneau.
- *
- * **Un chiffre en gras ne suffisait pas.** C'était tout ce qui distinguait le jour
- * affiché de ses six voisins, au milieu de sept anneaux colorés qui attirent l'œil bien
- * davantage — « on ne sait pas trop où on se situe » commençait là. Un disque plein se
- * voit sans être cherché, et il ne coûte aucune couleur de plus : c'est la teinte du
- * texte, très assourdie.
- *
- * **Il grandit à sa place plutôt que de glisser jusqu'à elle.** Celui qu'on quitte se
- * rétracte pendant que celui qu'on rejoint s'ouvre, et l'œil lit un déplacement — sans
- * qu'aucune des deux cellules ait à connaître la position de l'autre, ce qu'un
- * `LazyRow` ne dit de toute façon pas.
- */
-/**
  * Le cercle d'or d'une journée tenue de bout en bout.
  *
  * ### Autour, et non à la place
@@ -160,6 +147,20 @@ private fun BoxScope.GoldenHalo(visible: Boolean, diameter: Dp) {
     }
 }
 
+/**
+ * Le disque du jour regardé, sous son anneau.
+ *
+ * **Un chiffre en gras ne suffisait pas.** C'était tout ce qui distinguait le jour
+ * affiché de ses six voisins, au milieu de sept anneaux colorés qui attirent l'œil bien
+ * davantage — « on ne sait pas trop où on se situe » commençait là. Un disque plein se
+ * voit sans être cherché, et il ne coûte aucune couleur de plus : c'est la teinte du
+ * texte, très assourdie.
+ *
+ * **Il grandit à sa place plutôt que de glisser jusqu'à elle.** Celui qu'on quitte se
+ * rétracte pendant que celui qu'on rejoint s'ouvre, et l'œil lit un déplacement — sans
+ * qu'aucune des deux cellules ait à connaître la position de l'autre, ce qu'un
+ * `LazyRow` ne dit de toute façon pas.
+ */
 @Composable
 private fun BoxScope.SelectedDisc(shown: Boolean, diameter: Dp) {
     val taille by animateFloatAsState(

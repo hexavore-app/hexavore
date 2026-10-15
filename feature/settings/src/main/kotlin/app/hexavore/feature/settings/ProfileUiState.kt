@@ -4,13 +4,17 @@ import androidx.compose.runtime.Immutable
 import app.hexavore.domain.goal.DailyGoal
 import app.hexavore.domain.goal.GoalOrigin
 import app.hexavore.domain.goal.GoalStrategy
+import app.hexavore.domain.goal.TargetProblem
+import app.hexavore.domain.goal.checkTarget
 import app.hexavore.domain.nutrition.Macro
 import app.hexavore.domain.profile.Activity
+import app.hexavore.domain.profile.BodyMeasure
 import app.hexavore.domain.profile.Sex
 import app.hexavore.domain.profile.UnitSystem
 import app.hexavore.domain.profile.UserProfile
 import app.hexavore.domain.profile.WeeklySessions
 import app.hexavore.domain.profile.WorkActivity
+import app.hexavore.domain.profile.implausibleMeasure
 import app.hexavore.domain.usecase.GoalPlan
 import app.hexavore.domain.usecase.GoalRequest
 import java.time.LocalDate
@@ -75,6 +79,27 @@ internal data class ProfileForm(
 
     val horizonComplete: Boolean get() = !horizonRequired || (targetWeightKg != null && targetDate != null)
 
+    /**
+     * Ce que le poids visé a de faux pour la stratégie choisie, ou `null` ([D160][decisions]).
+     *
+     * **Jugé aussi en saisie manuelle.** Le poids visé n'y pilote aucun des six chiffres,
+     * mais il trace la trajectoire du journal de poids : une perte vers la maigreur y
+     * serait dessinée comme un cap.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val targetProblem: TargetProblem?
+        get() {
+            val chosen = strategy
+            val height = heightCm
+            val current = currentWeightKg
+            return if (chosen == null || height == null || current == null) {
+                null
+            } else {
+                checkTarget(chosen, height, current, targetWeightKg)
+            }
+        }
+
     /** Les six chiffres saisis, ou `null` si l'un d'eux manque. */
     fun typedGoal(): DailyGoal? = Macro.entries.fold<Macro, DailyGoal?>(EMPTY_GOAL) { goal, macro ->
         goal?.let { current -> macros[macro]?.let { current.with(macro, it) } }
@@ -83,11 +108,22 @@ internal data class ProfileForm(
 
 private val EMPTY_GOAL = DailyGoal(kcal = 0.0, protein = 0.0, carbs = 0.0, sugars = 0.0, fat = 0.0, fiber = 0.0)
 
-/** Ce qui empêche d'enregistrer. L'écran le traduit en phrase, l'état ne connaît pas les ressources. */
+/**
+ * Ce qui empêche d'enregistrer. L'écran le traduit en phrase, l'état ne connaît pas les ressources.
+ *
+ * [AGE], [HEIGHT], [WEIGHT] et [TARGET] disent qu'une valeur sort de ce qu'un corps peut
+ * être, et non qu'elle manque ([D160][decisions]).
+ *
+ * [decisions]: docs/11-decisions.md
+ */
 internal enum class ProfileBlocker {
     IDENTITY,
+    AGE,
+    HEIGHT,
+    WEIGHT,
     ACTIVITY,
     STRATEGY,
+    TARGET,
     HORIZON,
     EMPTY_MACRO,
 }
@@ -138,14 +174,7 @@ internal data class ProfileUiState(
      * peuvent pas diverger.
      */
     val blocker: ProfileBlocker?
-        get() = when {
-            !form.identityComplete -> ProfileBlocker.IDENTITY
-            form.work == null -> ProfileBlocker.ACTIVITY
-            form.strategy == null -> ProfileBlocker.STRATEGY
-            !form.horizonComplete -> ProfileBlocker.HORIZON
-            form.manual && form.typedGoal() == null -> ProfileBlocker.EMPTY_MACRO
-            else -> null
-        }
+        get() = form.identityBlocker(today) ?: form.choicesBlocker()
 
     val canSave: Boolean get() = blocker == null && !saving
 
@@ -158,6 +187,35 @@ internal data class ProfileUiState(
     val daily: DailyGoal? get() = if (form.manual) form.typedGoal() else plan?.goal
 
     val origin: GoalOrigin get() = if (form.manual) GoalOrigin.MANUAL else GoalOrigin.CALCULATED
+}
+
+/**
+ * « Vous » : rien ne doit manquer, puis tout doit tenir ([D160][decisions]).
+ *
+ * Une naissance enregistrée avant que les bornes ne bougent se dit ici : l'écran ne la
+ * corrige pas tout seul, il demande d'en choisir une autre.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+private fun ProfileForm.identityBlocker(today: LocalDate): ProfileBlocker? = if (!identityComplete) {
+    ProfileBlocker.IDENTITY
+} else {
+    when (implausibleMeasure(birthDate, heightCm, currentWeightKg, today)) {
+        BodyMeasure.BIRTH_DATE -> ProfileBlocker.AGE
+        BodyMeasure.HEIGHT -> ProfileBlocker.HEIGHT
+        BodyMeasure.WEIGHT -> ProfileBlocker.WEIGHT
+        null -> null
+    }
+}
+
+/** L'activité, la stratégie, le poids visé et l'échéance, puis les six chiffres saisis. */
+private fun ProfileForm.choicesBlocker(): ProfileBlocker? = when {
+    work == null -> ProfileBlocker.ACTIVITY
+    strategy == null -> ProfileBlocker.STRATEGY
+    targetProblem != null -> ProfileBlocker.TARGET
+    !horizonComplete -> ProfileBlocker.HORIZON
+    manual && typedGoal() == null -> ProfileBlocker.EMPTY_MACRO
+    else -> null
 }
 
 /**

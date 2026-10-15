@@ -50,12 +50,26 @@ internal fun rememberMacroFocus(): MacroFocus = remember { MacroFocus() }
  * **Une ouverture ramène la figure sous les yeux.** La bulle se pose sous l'hexagone :
  * une barre touchée après avoir défilé jusqu'aux plats l'aurait posée hors de l'écran,
  * et on aurait touché une barre pour ne rien voir.
+ *
+ * **Un changement de jour remonte aussi la page** ([D163][decisions]). Le défilement
+ * est un seul état pour tous les jours : descendu jusqu'aux plats d'hier, on revenait
+ * à aujourd'hui au milieu de sa page, l'hexagone coupé. Pas à la première composition,
+ * ni à celle qui suit une rotation : la page y garde ce qu'on y regardait.
+ *
+ * [decisions]: docs/11-decisions.md
  */
 @Composable
 internal fun rememberDayFocus(day: LocalDate?, scroll: ScrollState): MacroFocus {
     val focus = rememberMacroFocus()
+    val shown = remember { mutableStateOf(day) }
 
-    LaunchedEffect(day) { focus.clear() }
+    LaunchedEffect(day) {
+        focus.clear()
+        if (shown.value != day) {
+            shown.value = day
+            scroll.scrollTo(0)
+        }
+    }
     LaunchedEffect(focus.macro) { if (focus.macro != null) scroll.animateScrollTo(0) }
 
     return focus

@@ -102,26 +102,36 @@ class CiqualDatabase(private val context: Context) {
     private val database: SQLiteDatabase by lazy { open() }
 
     /**
-     * Les aliments dont le nom contient tous les mots de [normalisedQuery], filtrés
-     * aux rayons de [categories].
+     * **Tous** les aliments dont le nom contient tous les mots de [normalisedQuery],
+     * filtrés aux rayons de [categories].
      *
      * La saisie est déjà normalisée par l'appelant, avec la même fonction qui a
      * rempli l'index. C'est la seule règle qui fasse fonctionner cette recherche, et
-     * elle ne peut pas être vérifiée d'ici.
+     * elle ne peut pas être vérifiée d'ici. Une requête vide ne rend rien : feuilleter
+     * un rayon, c'est [browse].
      *
-     * **Une requête vide et un rayon, c'est le mode parcours** : on liste alors les
-     * aliments du rayon sans passer par l'index plein texte. Vide des deux côtés, en
-     * revanche, ne rend rien — 3 484 lignes sans critère ne sont pas une réponse.
+     * **Sans borne, et c'est la correction de [D161][decisions].** La recherche gardait
+     * les N premières correspondances **dans l'ordre de l'index**, c'est-à-dire des
+     * codes de l'ANSES lus comme du texte, et le classement du domaine ne triait que
+     * ce reste. Sur un mot courant, la fiche que tout le monde cherche n'y arrivait
+     * jamais : « pain » en compte 81, et « Pain (aliment moyen) » venait 25ᵉ quand
+     * l'IA n'en lisait que 20 ; « bread » 48ᵉ, quand l'écran en montrait 30. Couper
+     * avant de classer, c'est laisser l'ordre de l'index choisir à la place du
+     * classement.
      *
-     * Le filtre est appliqué en SQL et non après coup : sur 3 484 lignes, filtrer en
-     * Kotlin obligerait à toutes les lire pour en rendre trente. La règle, elle,
-     * reste celle du domaine — c'est `FoodFilter` qui la porte, et le contrat de
-     * `FoodSearch` vérifie que les deux disent la même chose.
+     * Le pire cas est un préfixe de deux lettres : « de » en rend un peu plus de
+     * mille, lus en quelques millisecondes. C'est l'appelant qui classe puis coupe,
+     * parce que c'est lui qui connaît le classement.
+     *
+     * Le filtre de rayon, lui, reste en SQL : la règle est celle du domaine —
+     * `FoodFilter` la porte, et le contrat de `FoodSearch` vérifie que les deux disent
+     * la même chose.
+     *
+     * [decisions]: docs/11-decisions.md
      */
     fun search(
         normalisedQuery: String,
         categories: Set<String>,
-        limit: Int,
         /**
          * L'étiquette de la langue — `fr`, `en` —, et non l'énumération du domaine.
          *
@@ -132,26 +142,46 @@ class CiqualDatabase(private val context: Context) {
          */
         language: String,
     ): List<CiqualFoodRow> {
-        val browsing = normalisedQuery.isBlank()
-        if (browsing && categories.isEmpty()) return emptyList()
+        if (normalisedQuery.isBlank()) return emptyList()
 
-        val filter = categories.placeholders()
-        val sql = if (browsing) browseSql(filter) else searchSql(filter)
         val arguments = buildList {
             // Chaque mot est un prefixe : « creme bru » doit trouver la creme brulee
             // avant que le second mot soit fini, sinon la recherche ne rend rien
             // pendant qu'on ecrit.
-            if (!browsing) add(normalisedQuery.split(' ').filter { it.isNotBlank() }.joinToString(" ") { "$it*" })
+            add(normalisedQuery.split(' ').filter { it.isNotBlank() }.joinToString(" ") { "$it*" })
             // La langue **apres** le MATCH et avant les rayons : l'ordre des `?` est
             // celui du SQL, et l'index plein texte est commun aux langues -- un mot
             // anglais peut apparier une ligne anglaise alors qu'on cherche en francais,
             // et c'est cette clause qui l'ecarte.
             add(language)
             addAll(categories)
+        }
+
+        return database.rawQuery(searchSql(categories.placeholders()), arguments.toTypedArray())
+            .use { cursor -> cursor.map { it.toFoodRow() } }
+    }
+
+    /**
+     * Le mode parcours : les aliments des rayons de [categories], sans aucun mot.
+     *
+     * **Borné à [limit], et trié avant de l'être** : les noms les plus courts d'abord,
+     * qui sont aussi ceux que le classement du domaine met en tête quand aucun mot ne
+     * départage — la coupe ne lui retire donc rien. Sans rayon, rien : 3 484 lignes
+     * sans critère ne sont pas une réponse.
+     *
+     * @param language l'étiquette de la langue, comme pour [search].
+     */
+    fun browse(categories: Set<String>, limit: Int, language: String): List<CiqualFoodRow> {
+        if (categories.isEmpty()) return emptyList()
+
+        val arguments = buildList {
+            add(language)
+            addAll(categories)
             add(limit.toString())
         }
 
-        return database.rawQuery(sql, arguments.toTypedArray()).use { cursor -> cursor.map { it.toFoodRow() } }
+        return database.rawQuery(browseSql(categories.placeholders()), arguments.toTypedArray())
+            .use { cursor -> cursor.map { it.toFoodRow() } }
     }
 
     /** Une fiche par son code CIQUAL, dans une langue. */
@@ -304,6 +334,16 @@ class CiqualDatabase(private val context: Context) {
          */
         fun Set<String>.placeholders(): String = if (isEmpty()) "" else " AND f.category IN (${joinToString { "?" }})"
 
+        /**
+         * La recherche par mots, **sans `LIMIT`** ([D161][decisions]).
+         *
+         * Il y en avait un, et sans `ORDER BY` : SQLite rendait les lignes dans l'ordre
+         * de l'index, et la borne gardait celles-là. Le remettre ici serait refaire le
+         * défaut ; trier ici d'abord demanderait d'écrire en SQL un second classement,
+         * qui finirait par ne plus dire la même chose que `FoodRanking` ([D74][decisions]).
+         *
+         * [decisions]: docs/11-decisions.md
+         */
         fun searchSql(filter: String) =
             """
             $SELECT_COLUMNS
@@ -311,7 +351,6 @@ class CiqualDatabase(private val context: Context) {
             JOIN ciqual_name n ON n.rowid = ciqual_fts.docid
             JOIN ciqual_food f ON f.code = n.code
             WHERE ciqual_fts MATCH ? AND n.language = ?$filter
-            LIMIT ?
             """
 
         /**

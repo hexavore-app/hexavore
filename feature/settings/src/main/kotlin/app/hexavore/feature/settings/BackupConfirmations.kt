@@ -44,12 +44,36 @@ internal fun RestoreWarningDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) 
 }
 
 /**
+ * « Revenir à l'état d'avant ? » ([D162][decisions])
+ *
+ * Le geste remplace le journal présent, comme une restauration, et la boîte le dit. Elle
+ * dit aussi ce qui le rend sans risque : l'état qu'on quitte devient à son tour la copie
+ * de sécurité, et le retour se défait de la même façon.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+@Composable
+internal fun UndoWarningDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.backup_undo_confirm_title)) },
+        text = { Text(stringResource(R.string.backup_undo_confirm_body)) },
+        confirmButton = {
+            TextButton(onClick = onConfirm) { Text(stringResource(R.string.backup_undo_action)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.backup_cancel)) }
+        },
+    )
+}
+
+/**
  * « Effacer toutes mes données », et il faut écrire le mot.
  *
  * **La friction est intentionnelle** ([docs/09][donnees]). C'est le seul geste du
  * projet qui détruit sans retour possible : la barre d'annulation ne le rattrape pas,
- * la copie de sécurité d'avant restauration n'existe pas ici, et une double
- * confirmation par boutons s'apprend à traverser en deux frappes.
+ * la copie de sécurité d'avant restauration part avec le reste ([D162][decisions]), et
+ * une double confirmation par boutons s'apprend à traverser en deux frappes.
  *
  * Taper un mot est le seul verrou qui demande de **lire**. Le champ est un
  * [DraftTextField] comme partout ailleurs — non contrôlé, et il refuse une frappe

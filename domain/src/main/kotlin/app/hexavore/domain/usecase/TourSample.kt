@@ -80,6 +80,23 @@ class HideTourSample(private val diary: DiaryRepository) {
     }
 }
 
+/**
+ * Ce plat est-il l'un de ceux que le tour a posés ?
+ *
+ * **La progression s'en sert pour ne pas les compter** ([D158][decisions]). Ils passent
+ * par le vrai journal — c'est ce qui permet au tour de montrer l'application en train de
+ * fonctionner —, donc tout ce qui lit le journal les voit. L'hexagone et la liste
+ * doivent les voir ; la progression, non : elle décernait « Première photo » et
+ * « Première description » au premier lancement, pour un poke bowl et un porridge que
+ * personne n'avait notés, et **les figeait** — les paliers pris ne se reprennent pas.
+ *
+ * Reconnus à leur identifiant, qui est fixe pour cette raison même : c'est déjà lui qui
+ * permet de les retrouver pour les effacer au lancement suivant.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+internal fun Dish.isTourSample(): Boolean = id.value in TOUR_DISH_IDS
+
 /** Un plat du tour, et ce qu'il montre. */
 private class TourDish(
     val id: String,
@@ -161,3 +178,5 @@ private val TOUR_DISHES = listOf(
 
 /** Une minute entre deux plats : assez pour les ordonner, trop peu pour se remarquer. */
 private const val SECONDS_APART = 60L
+
+private val TOUR_DISH_IDS: Set<String> = TOUR_DISHES.map { it.id }.toSet()

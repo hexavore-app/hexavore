@@ -8,7 +8,6 @@ import app.hexavore.domain.profile.WeightEntry
 import app.hexavore.domain.time.Clock
 import app.hexavore.domain.usecase.AdjustmentResponse
 import app.hexavore.domain.usecase.GetWeightTrend
-import app.hexavore.domain.usecase.ObserveUnitSystem
 import app.hexavore.domain.usecase.RecordWeight
 import app.hexavore.domain.usecase.RespondToAdjustment
 import app.hexavore.domain.usecase.SuggestGoalAdjustment
@@ -31,20 +30,25 @@ import javax.inject.Inject
 @HiltViewModel
 internal class WeightViewModel @Inject constructor(
     getWeightTrend: GetWeightTrend,
-    observeUnitSystem: ObserveUnitSystem,
+    readings: ProfileReadings,
     suggestGoalAdjustment: SuggestGoalAdjustment,
     private val recordWeight: RecordWeight,
     private val respondToAdjustment: RespondToAdjustment,
     private val clock: Clock,
+    private val trendDisplay: TrendDisplay,
 ) : ViewModel() {
-    val uiState: StateFlow<WeightUiState> = combine<WeightTrend, UnitSystem, WeightUiState>(
+    val uiState: StateFlow<WeightUiState> = combine<WeightTrend, UnitSystem, Double?, Boolean, WeightUiState>(
         getWeightTrend(),
-        observeUnitSystem(),
+        readings.units(),
+        readings.height(),
+        trendDisplay.observe(),
     ) {
             trend,
             units,
+            heightCm,
+            trendShown,
         ->
-        WeightUiState.Loaded(trend, clock.today(), units)
+        WeightUiState.Loaded(trend, clock.today(), units, trendShown, heightCm)
     }
         // Une lecture qui echoue ne se deguise pas en journal vide : « vous ne vous
         // etes jamais pese » est une affirmation, pas une absence de reponse.
@@ -89,6 +93,16 @@ internal class WeightViewModel @Inject constructor(
         viewModelScope.launch { recordWeight(WeightEntry(date, weightKg)) }
     }
 
+    /**
+     * La case sous la courbe. Le choix est retenu d'une visite à l'autre (D159).
+     *
+     * Un échec d'écriture laisse la case où elle était : la préférence relue la remet
+     * d'accord avec le disque, et la courbe ne ment pas sur ce qu'elle trace.
+     */
+    fun onTrendShown(shown: Boolean) {
+        viewModelScope.launch { runCatching { trendDisplay.show(shown) } }
+    }
+
     private companion object {
         const val SUBSCRIPTION_TIMEOUT_MILLIS = 5_000L
     }
@@ -111,16 +125,28 @@ internal sealed interface WeightUiState {
         val today: LocalDate,
         /** Le système d'unités : la courbe et la saisie le suivent, la base garde ses kilogrammes. */
         val units: UnitSystem,
+        /** La tendance est-elle tracée ? Allumée par défaut, et retenue ([D159][decisions]). */
+        val trendShown: Boolean = true,
+        /**
+         * La taille du profil : c'est sur elle qu'une pesée se juge avant de s'écrire
+         * ([D160][decisions]). `null` sans profil, et la pesée se juge alors sur les
+         * bornes de toutes les tailles.
+         */
+        val heightCm: Double? = null,
     ) : WeightUiState {
         /** `true` quand aucune pesée n'a jamais été notée. */
         val empty: Boolean get() = trend.points.isEmpty()
 
         /**
-         * `true` quand il y a des pesées mais pas encore de tendance.
+         * `true` quand il n'y a qu'une pesée : une courbe en demande deux.
          *
-         * L'écran le dit plutôt que de laisser chercher pourquoi le tracé en évidence
-         * manque : sous trois pesées dans les sept jours, il n'y a rien à lisser.
+         * L'écran le dit plutôt que de laisser chercher où est passé le graphique. C'était
+         * « pas encore de tendance », sous trois pesées dans la même semaine ; la tendance
+         * existe désormais dès la première pesée, et c'est la courbe entière qui attend la
+         * deuxième ([D159][decisions]).
+         *
+         * [decisions]: docs/11-decisions.md
          */
-        val trendMissing: Boolean get() = !empty && trend.points.none { it.averageKg != null }
+        val curveMissing: Boolean get() = trend.points.size == 1
     }
 }

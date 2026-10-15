@@ -59,3 +59,22 @@ data class ContributionSetup(val account: OffAccount? = null, val sandbox: Boole
      */
     val open: Boolean get() = account?.usable == true
 }
+
+/**
+ * La contribution à Open Food Facts est-elle proposée dans cette version ?
+ *
+ * **Non, et c'est une mise en réserve, pas une suppression** ([D158][decisions]). Le
+ * code existe et passe ses tests — le client, la proposition, le compte chiffré —, mais
+ * aucun envoi réel n'a encore atteint la vraie base, et c'est la seule écriture
+ * **publique** de l'application : une fiche partie sous le compte de quelqu'un ne se
+ * reprend pas. Elle ne sort donc pas avant d'avoir été éprouvée, pour la raison qui
+ * tient quatre fournisseurs d'IA en réserve.
+ *
+ * **Un drapeau plutôt qu'un retrait** : le jour où la contribution est éprouvée, elle
+ * revient en changeant un mot — la section des réglages réapparaît, la proposition qui
+ * suit la création d'une fiche aussi. D'ici là, un compte saisi par un testeur reste
+ * rangé et chiffré, et « Tout effacer » l'emporte comme avant.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+const val CONTRIBUTION_OFFERED: Boolean = false

@@ -138,7 +138,7 @@ class BackupUseCasesTest {
         val photos = InMemoryDishPhotos()
         store.content = RESTAURE
 
-        EraseEverything(store, reglages, photos)()
+        EraseEverything(store, reglages, photos, securite)()
 
         assertNull(store.content)
         assertTrue(reglages.erased, "les reglages et les cles partent avec le journal")
@@ -151,9 +151,68 @@ class BackupUseCasesTest {
         // sans le demander detruirait la seule chose qui restait.
         createBackup()(cible)
 
-        EraseEverything(store, FakeStoredPreferences(), InMemoryDishPhotos())()
+        EraseEverything(store, FakeStoredPreferences(), InMemoryDishPhotos(), securite)()
 
         assertEquals(1, cible.names.size)
+    }
+
+    @Test
+    fun `effacer emporte la copie de securite`() = runTest {
+        // Elle n'est pas rangee par l'utilisateur : c'est le journal entier, dans le
+        // stockage interne. Elle survivait a l'effacement (D162).
+        store.content = RESTAURE
+        restoreArchive()(FICHIER.inputStream())
+
+        EraseEverything(store, FakeStoredPreferences(), InMemoryDishPhotos(), securite)()
+
+        assertTrue(securite.names.isEmpty())
+    }
+
+    // --- Revenir en arriere ----------------------------------------------------------
+
+    @Test
+    fun `sans copie de securite, il n y a rien a defaire`() = runTest {
+        store.content = RESTAURE
+
+        assertNull(undoRestore().available())
+        assertEquals(RestoreOutcome.Unreadable, undoRestore()())
+        assertEquals(RESTAURE, store.content, "rien n'a ete touche")
+    }
+
+    @Test
+    fun `revenir en arriere remet l etat d avant la restauration`() = runTest {
+        // La copie existait, et la boite la promettait : aucun ecran ne la relisait (D162).
+        store.content = AVANT
+        restoreArchive()(FICHIER.inputStream())
+        codec.read = SnapshotRead.Readable(AVANT)
+
+        assertEquals(RestoreOutcome.Restored(0), undoRestore()())
+        assertEquals(AVANT, store.content)
+    }
+
+    @Test
+    fun `revenir en arriere garde l etat quitte en copie`() = runTest {
+        // Le retour se defait comme il s'est fait : se tromper de geste ne perd rien.
+        store.content = AVANT
+        restoreArchive()(FICHIER.inputStream())
+        codec.read = SnapshotRead.Readable(AVANT)
+
+        undoRestore()()
+
+        assertEquals(RESTAURE, codec.encoded, "c'est l'etat qu'on quitte qui devient la copie")
+        assertEquals(1, securite.names.size, "et il n'y en a toujours qu'une")
+    }
+
+    @Test
+    fun `une copie qui ne s ecrit pas empeche de revenir en arriere`() = runTest {
+        // Remplacer l'etat present sans en garder trace serait le perdre pour de bon.
+        store.content = AVANT
+        restoreArchive()(FICHIER.inputStream())
+        codec.read = SnapshotRead.Readable(AVANT)
+        securite.failing = true
+
+        assertEquals(RestoreOutcome.Failed, undoRestore()())
+        assertEquals(RESTAURE, store.content)
     }
 
     // --- Exporter --------------------------------------------------------------------
@@ -183,6 +242,8 @@ class BackupUseCasesTest {
         CreateBackup(ExportBackup(store, codec), FixedClock.atNoon(jour))
 
     private fun restoreArchive() = RestoreArchive(store, FakeArchive(codec), createBackup(), securite)
+
+    private fun undoRestore() = UndoRestore(store, codec, createBackup(), securite)
 
     /**
      * Une archive réduite à ce qu'elle a de commun avec un fichier de journal seul.
@@ -255,6 +316,13 @@ class BackupUseCasesTest {
         val FICHIER = "peu importe".toByteArray()
 
         val VIDE = Snapshot(exportedAt = MAINTENANT, appVersion = "0.4")
+
+        /** Ce que l'appareil portait avant qu'on y restaure le mauvais fichier. */
+        val AVANT = Snapshot(
+            exportedAt = MAINTENANT,
+            appVersion = "0.4",
+            weights = listOf(WeightEntry(LUNDI, 79.0)),
+        )
         val RESTAURE = Snapshot(
             exportedAt = MAINTENANT,
             appVersion = "0.4",

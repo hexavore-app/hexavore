@@ -81,3 +81,20 @@ enum class TourStep(
         else -> entries[ordinal + 1]
     }
 }
+
+/**
+ * Pendant cette étape, l'alerte rouge de la barre doit-elle se taire ?
+ *
+ * **Oui tant que le tour présente**, et c'est presque tout le tour. Il désigne le champ
+ * et l'appareil photo pour dire à quoi ils servent ; les montrer en rouge au même moment
+ * accusait une clé manquante à quelqu'un qui découvre l'application depuis trente
+ * secondes, et contredisait la bulle posée juste au-dessus ([D158][decisions]). La barre
+ * n'est de toute façon pas utilisable : le voile retient tous les gestes.
+ *
+ * **Non à la dernière étape sans clé**, qui dit justement que le champ et l'appareil
+ * photo « restent en rouge » : c'est le moment où le rouge s'explique, et il apparaît
+ * sous la phrase qui le décrit. Hors du tour, rien ne change.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+internal fun TourStep?.hidesKeyWarning(): Boolean = this != null && this != TourStep.DEGRADED

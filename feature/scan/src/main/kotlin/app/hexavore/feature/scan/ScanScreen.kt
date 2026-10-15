@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -144,14 +145,14 @@ private fun ScanScreen(state: ScanUiState, resumeKey: Int, actions: ScanActions)
             // Le bouton flotte sur l'apercu, seul de tout l'ecran a n'avoir aucun
             // panneau sous lui. Un libelle cyan pose sur un rayon de supermarche
             // eclaire ne se lit pas : il lui faut son propre voile.
-            ScrimSurface(modifier = Modifier.align(Alignment.TopStart).padding(Spacing.md), shape = Radius.pill) {
+            ScrimSurface(modifier = Modifier.align(Alignment.TopStart).belowStatusBar(), shape = Radius.pill) {
                 CloseButton(actions.onClose)
             }
         } else {
             PermissionRefused(onAsk = { context.openAppSettings() })
             // Pas de voile ici : l'ecran de refus n'a pas de camera derriere lui, et
             // un panneau sombre y serait une pastille posee sur rien.
-            CloseButton(actions.onClose, Modifier.align(Alignment.TopStart).padding(Spacing.md))
+            CloseButton(actions.onClose, Modifier.align(Alignment.TopStart).belowStatusBar())
         }
     }
 }
@@ -241,7 +242,7 @@ private fun BoxScope.Outcome(
 @Composable
 private fun PermissionRefused(onAsk: () -> Unit) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(Spacing.lg),
+        modifier = Modifier.fillMaxSize().safeDrawingPadding().padding(Spacing.lg),
         verticalArrangement = Arrangement.spacedBy(Spacing.md, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -260,6 +261,7 @@ private fun BoxScope.Hint(text: String) {
     ScrimSurface(
         modifier = Modifier
             .align(Alignment.BottomCenter)
+            .aboveNavigationBar()
             .padding(Spacing.lg),
         shape = RoundedCornerShape(Radius.field),
     ) {
@@ -282,8 +284,10 @@ private fun BoxScope.Overlay(content: @Composable () -> Unit) {
         // que comme un assombrissement de l'apercu.
         shape = RoundedCornerShape(topStart = Radius.sheet, topEnd = Radius.sheet),
     ) {
+        // Le panneau descend sous la barre de geste, comme une feuille ; son contenu
+        // s'arrete au-dessus d'elle.
         Column(
-            modifier = Modifier.padding(Spacing.lg),
+            modifier = Modifier.aboveNavigationBar().padding(Spacing.lg),
             verticalArrangement = Arrangement.spacedBy(Spacing.md),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {

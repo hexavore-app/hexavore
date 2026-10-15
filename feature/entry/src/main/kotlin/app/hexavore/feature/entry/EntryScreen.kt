@@ -26,6 +26,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +35,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.hexavore.core.designsystem.component.CameraRefusedDialog
 import app.hexavore.core.designsystem.component.NeonButton
 import app.hexavore.core.designsystem.component.NeonButtonAvailability
 import app.hexavore.core.designsystem.component.NeonButtonStyle
@@ -75,8 +77,11 @@ internal fun EntryRoute(
     }
 
     // L'appareil photo du systeme et la galerie, comme sur l'ecran d'analyse : ce qui
-    // revient est un JPEG deja reduit et remis d'aplomb (D156).
-    val capture = rememberMealCapture(onJpeg = viewModel::onPhotoChosen)
+    // revient est un JPEG deja reduit et remis d'aplomb (D156). Une camera refusee pour
+    // de bon le dit, au lieu de laisser le bouton muet (D162).
+    var cameraRefused by rememberSaveable { mutableStateOf(false) }
+    val capture = rememberMealCapture(onJpeg = viewModel::onPhotoChosen, onCameraRefused = { cameraRefused = true })
+    if (cameraRefused) CameraRefusedDialog(onDismiss = { cameraRefused = false })
 
     EntryScreen(
         state = state,
@@ -172,6 +177,7 @@ private fun DraftEditor(state: EntryUiState.Content, actions: EntryActions) {
 
     AnnonceLaCopie(state.copiedTo, dateFormatter, snackbarHostState, actions.onCopyShown)
     AnnonceLEchecDuSignalement(state.reportFailed, snackbarHostState, actions.onReportFailureShown)
+    DiscardGuard(state, onDiscard = actions.onClose)
 
     Box(
         modifier = Modifier
@@ -294,9 +300,9 @@ private fun DraftFooter(state: EntryUiState.Content, actions: EntryActions) {
  * invisible — un `labelSmall` gris apparaissant sous le pouce au moment exact où l'œil
  * est sur le bouton ([D56][decisions]).
  *
- * Annuler ne demande pas confirmation : il fait exactement ce que fait le retour
- * arrière, qui est là de toute façon. Un garde-fou sur l'un des deux chemins et pas
- * sur l'autre ne protège rien.
+ * Annuler ne demande pas confirmation : c'est un bouton qui dit ce qu'il fait, et qu'il
+ * faut viser. Le retour du système, lui, demande — il part souvent sans qu'on le veuille
+ * ([DiscardGuard], [D161][decisions]).
  *
  * [decisions]: docs/11-decisions.md
  */

@@ -88,6 +88,37 @@ class FoodRankingTest {
         assertEquals(FoodRanking.sort(listOf(a, b), "riz"), FoodRanking.sort(listOf(b, a), "riz"))
     }
 
+    // --- Le mot entier (D163) ------------------------------------------------------
+
+    @Test
+    fun `lait rend du lait et non de la laitue`() {
+        // « lait » commence « Laitue » : un prefixe de lettres passait devant tous les
+        // laits, et l'IA, qui ecrit « lait », y tombait.
+        val laitue = ciqual("Laitue, crue")
+        val lait = ciqual("Lait demi-écrémé, UHT")
+
+        assertEquals(listOf(lait, laitue), FoodRanking.sort(listOf(laitue, lait), "lait"))
+    }
+
+    @Test
+    fun `le mot entier passe devant ses seules lettres`() {
+        val laitue = ciqual("Laitue, crue")
+        val cafe = ciqual("Café au lait")
+
+        assertEquals(listOf(cafe, laitue), FoodRanking.sort(listOf(laitue, cafe), "lait"))
+    }
+
+    @Test
+    fun `pendant qu on ecrit, un nom qui commence par les lettres passe devant`() {
+        // « lai » n'est encore aucun mot. Le nom qui commence par ces lettres reste
+        // devant celui ou elles n'arrivent qu'au second mot, meme un peu plus long : sans
+        // ce palier, la brievete seule mettrait le petit-lait devant la laitue.
+        val laitue = ciqual("Laitue romaine, crue")
+        val petitLait = ciqual("Petit-lait")
+
+        assertEquals(listOf(laitue, petitLait), FoodRanking.sort(listOf(petitLait, laitue), "lai"))
+    }
+
     // --- La confiance, et ce qu'elle décide ---------------------------------------
 
     @Test

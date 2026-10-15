@@ -8,7 +8,11 @@
          objectif calculé sur des valeurs par défaut est l'objectif de quelqu'un
          d'autre, affiché avec l'autorité d'un chiffre personnel. -->
     <string name="onboarding_welcome_body">Six compteurs, calculés à partir de vos réponses. Cinq questions, une minute.</string>
-    <string name="onboarding_disclaimer">Hexavore est un outil de suivi personnel. Ce n\'est pas un dispositif médical et il ne remplace pas l\'avis d\'un professionnel de santé.</string>
+    <!-- L'avertissement lui-même vit dans le design system (ds_medical_disclaimer) :
+         « À propos » l'affiche aussi, et les deux ne doivent pas diverger (D161). -->
+    <!-- Le libelle de la case, d'une ligne : le paragraphe au-dessus est l'information,
+         ceci est l'accord (D158). -->
+    <string name="onboarding_disclaimer_accept">J\'ai lu et compris</string>
 
     <!-- 2. Vous. Rien n'est pré-rempli : une valeur plausible affichée serait acceptée
          par distraction, et l'objectif serait celui de quelqu'un d'autre. -->
@@ -21,8 +25,10 @@
     <string name="onboarding_sex_female">Femme</string>
     <string name="onboarding_sex_unspecified">Je préfère ne pas répondre</string>
     <string name="onboarding_sex_unspecified_note">Nous utiliserons une estimation intermédiaire, que vous pourrez ajuster ensuite.</string>
-    <string name="onboarding_height">Taille (cm)</string>
-    <string name="onboarding_weight">Poids actuel (kg)</string>
+    <!-- Sans unite : le champ du design system l'ajoute, et c'est lui qui la change le
+         jour ou l'onboarding parlera imperial (D160). -->
+    <string name="onboarding_height">Taille</string>
+    <string name="onboarding_weight">Poids actuel</string>
 
     <!-- Deux questions la ou il n'y en avait qu'une : un macon sans sport depense plus
          qu'un cadre qui court, et les deux se reconnaissaient dans « modere ». -->
@@ -45,7 +51,7 @@
     <string name="onboarding_strategy_lose">Perdre du poids</string>
     <string name="onboarding_strategy_maintain">Maintenir</string>
     <string name="onboarding_strategy_gain">Prendre du poids</string>
-    <string name="onboarding_target_weight">Poids cible (kg)</string>
+    <string name="onboarding_target_weight">Poids cible</string>
 
     <!-- Trois pastilles plutôt qu'un calendrier : une date exacte n'a aucune valeur
          en soi, ce qui compte est le rythme. La quatrième n'apparaît que si les
@@ -57,6 +63,9 @@
     <string name="onboarding_horizon_reachable">Au rythme sûr : %1$s</string>
     <!-- Le rythme réel, après garde-fous, et non celui qu'on espérait. -->
     <string name="onboarding_pace">Soit environ %1$.2f kg par semaine.</string>
+    <!-- La depense estimee est deja sous le plancher : aucun deficit ne tient, et
+         l'apercu disait « 0,00 kg par semaine » sans dire pourquoi (D160). -->
+    <string name="onboarding_no_deficit">Votre dépense estimée (%1$d kcal) est déjà sous le minimum conseillé de %2$d kcal : aucun déficit n\'est proposé, et l\'objectif reste votre dépense. Un professionnel de santé saura vous conseiller.</string>
 
     <!-- 5. Vos objectifs. L'application ne refuse jamais : elle explique et propose. -->
     <string name="onboarding_result_title">Vos objectifs</string>
@@ -75,6 +84,10 @@
     <!-- Une phrase par compteur : un chiffre sans raison est un chiffre qu'on ignore. -->
     <string name="onboarding_why_calories">Votre dépense estimée, ajustée à votre échéance.</string>
     <string name="onboarding_why_protein">Calculé sur votre poids cible, pour préserver la masse maigre.</string>
+    <!-- Les mêmes, pour un maintien (D162) : il n'a ni échéance ni poids cible, et ses
+         protéines se calculent sur le poids actuel. -->
+    <string name="onboarding_why_calories_maintain">Votre dépense estimée : de quoi garder votre poids.</string>
+    <string name="onboarding_why_protein_maintain">Calculé sur votre poids actuel, pour préserver la masse maigre.</string>
     <string name="onboarding_why_fiber">14 g pour 1 000 kcal, jamais rogné au profit des glucides.</string>
     <string name="onboarding_why_carbs">Le solde du budget, une fois les fibres déduites.</string>
     <string name="onboarding_why_sugars">Plafond de l\'OMS, appliqué aux sucres totaux, donc plus strict.</string>
@@ -84,6 +97,7 @@
          qu'il manque quelque chose : « complétez le formulaire » n'aide personne. -->
     <string name="onboarding_blocked_disclaimer">Acceptez l\'avertissement pour continuer.</string>
     <string name="onboarding_blocked_identity">Renseignez votre date de naissance, votre sexe, votre taille et votre poids.</string>
+    <string name="onboarding_blocked_age">Hexavore calcule ses objectifs pour les personnes de %1$d à %2$d ans.</string>
     <string name="onboarding_blocked_activity">Choisissez le niveau qui décrit le mieux vos semaines.</string>
     <string name="onboarding_blocked_objective">Choisissez un objectif, puis un poids cible et une échéance.</string>
 

@@ -93,8 +93,8 @@ class ChartScaleTest {
         // le dise : la courbe la plus en evidence serait la seule tronquee.
         val trend = WeightTrend(
             points = listOf(
-                TrendPoint(LUNDI, weightKg = 80.0, averageKg = 92.0),
-                TrendPoint(LUNDI.plusDays(6), weightKg = 81.0, averageKg = 91.0),
+                TrendPoint(LUNDI, weightKg = 80.0, trendKg = 92.0),
+                TrendPoint(LUNDI.plusDays(6), weightKg = 81.0, trendKg = 91.0),
             ),
         )
 
@@ -144,7 +144,7 @@ class ChartScaleTest {
         assertNotNull(echelle.span)
     }
 
-    private fun point(date: LocalDate, kg: Double) = TrendPoint(date, weightKg = kg, averageKg = null)
+    private fun point(date: LocalDate, kg: Double) = TrendPoint(date, weightKg = kg, trendKg = kg)
 
     private fun courbe(vararg pesees: Pair<LocalDate, Double>) =
         WeightTrend(points = pesees.map { (date, kg) -> point(date, kg) })

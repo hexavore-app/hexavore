@@ -1,5 +1,6 @@
 package app.hexavore.domain.usecase
 
+import app.hexavore.domain.food.CONTRIBUTION_OFFERED
 import app.hexavore.domain.food.ContributionOutcome
 import app.hexavore.domain.food.ContributionSettings
 import app.hexavore.domain.food.FoodContribution
@@ -24,19 +25,37 @@ import kotlinx.coroutines.flow.first
  *
  * [decisions]: docs/11-decisions.md
  */
-class OfferContribution(private val foods: FoodLookup, private val settings: ContributionSettings) {
+class OfferContribution(
+    private val foods: FoodLookup,
+    private val settings: ContributionSettings,
+    /**
+     * La contribution est-elle proposée dans cette version ([CONTRIBUTION_OFFERED]) ?
+     *
+     * Un paramètre plutôt qu'une lecture de la constante, pour que les cas qui
+     * éprouvent la proposition elle-même puissent encore la voir — le code est en
+     * réserve, pas mort ([D158][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    private val offered: Boolean = CONTRIBUTION_OFFERED,
+) {
     /**
      * @return la contribution à proposer, ou `null` s'il n'y a rien à proposer.
      *
-     * **Trois raisons de ne rien proposer, et aucune n'est une erreur** : la fiche
-     * n'est pas contribuable — pas de code-barres, une valeur estimée, un autre
-     * catalogue —, aucun compte n'est configuré, ou la fiche n'a pas pu être relue.
-     * Dans les trois cas l'écran se referme comme avant, sans rien dire : un message
-     * qui expliquerait pourquoi on ne propose pas encombrerait le moment où l'on vient
-     * de finir une saisie.
+     * **Quatre raisons de ne rien proposer, et aucune n'est une erreur** : la
+     * contribution est tenue en réserve dans cette version, la fiche n'est pas
+     * contribuable — pas de code-barres, une valeur estimée, un autre catalogue —,
+     * aucun compte n'est configuré, ou la fiche n'a pas pu être relue. Dans les quatre
+     * cas l'écran se referme comme avant, sans rien dire : un message qui expliquerait
+     * pourquoi on ne propose pas encombrerait le moment où l'on vient de finir une
+     * saisie.
+     *
+     * **La réserve passe avant le compte**, et c'est ce qui compte : un testeur qui a
+     * saisi un compte avant la mise en réserve ne doit pas voir la proposition
+     * reparaître.
      */
     suspend operator fun invoke(id: FoodId): FoodContribution? {
-        if (!settings.observe().first().open) return null
+        if (!offered || !settings.observe().first().open) return null
         return foods.byId(id)?.let(FoodContribution::of)
     }
 }

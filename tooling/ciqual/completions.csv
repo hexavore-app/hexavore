@@ -30,12 +30,29 @@
 # Les deux premieres lignes du fichier -- 11040 et 11055 -- ont ete ecrites a la
 # main avant que la passe ne tourne, par le meme calcul. Elles n'ont pas ete
 # regenerees : ce fichier ne reecrit jamais ce qu'il contient deja.
+#
+# --- Sauf l'alcool, que les quatre teneurs ne voient pas (D162) ---------------
+#
+# Le reglement compte aussi l'alcool, 7 kcal/g, et le calcul ci-dessus l'oublie.
+# Sur une eau-de-vie, il ne reste rien : l'energie de 1024 (calvados) valait 0, et
+# celle de 1010 (pastis allonge) 2 kcal. L'ANSES ne chiffre pas leur alcool, donc il
+# ne se calcule pas non plus : leur energie vient de leur parent mesure.
+#
+# - 1024, eau-de-vie type calvados : celle de 1023, eau-de-vie de vin type armagnac
+#   ou cognac, au meme degre -- 222 kcal.
+# - 1010, pastis pret a boire (1 + 5) : celle de 1000, pastis, divisee par six --
+#   274 / 6, soit 46 kcal. Ses glucides publies (0,5 g) sont bien ceux du pastis
+#   (2,86 g) divises par six.
+#
+# Le baba au rhum artisanal (23021) garde son calcul : l'alcool y est inconnu aussi,
+# mais il n'en porte que ce que le sirop lui laisse, et ses quatre teneurs font
+# l'essentiel de son energie.
 
 code_ciqual,macro,teneur
 10074,CALORIES,79
 10074,PROTEIN,15.5
-1010,CALORIES,2
-1024,CALORIES,0
+1010,CALORIES,46
+1024,CALORIES,222
 10999,SUGARS,5
 11016,SUGARS,4
 11019,SUGARS,1

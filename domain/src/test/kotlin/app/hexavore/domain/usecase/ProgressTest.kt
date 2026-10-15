@@ -97,6 +97,31 @@ internal class ProgressTest {
         assertEquals(120, progress.tally.bestStreak)
     }
 
+    /**
+     * **Les plats d'exemple du tour ne comptent pas** ([D158][decisions]).
+     *
+     * Ils passent par le vrai journal le temps du tour, et la progression décernait
+     * « Première photo » et « Première description » au premier lancement — puis les
+     * figeait, puisqu'un palier pris ne se reprend pas. Le cas regarde jusqu'au bout de
+     * la chaîne : rien ne doit tomber, donc rien ne se range.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    @Test
+    fun `les plats du tour ne rapportent ni points ni paliers`() = runTest {
+        val diary = InMemoryDiaryRepository()
+        ShowTourSample(diary, clock)()
+        val observe = ObserveProgress(diary, InMemoryGoals(listOf(GOAL)), store, clock)
+
+        val progress = observe().first()
+        val fallen = AdvanceProgress(store, clock)(progress)
+
+        assertEquals(0, progress.tally.dishes, "le journal ne porte que les plats du tour")
+        assertEquals(0L, progress.points)
+        assertTrue(fallen.isEmpty(), "aucun palier ne doit tomber pendant le tour")
+        assertTrue(store.stored.unlocked.isEmpty())
+    }
+
     @Test
     fun `avancer fige les paliers atteints, et les rend une seule fois`() = runTest {
         val diary = InMemoryDiaryRepository(dishesOn(TODAY, count = 10))

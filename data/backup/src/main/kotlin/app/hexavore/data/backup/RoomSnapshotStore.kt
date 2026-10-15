@@ -60,7 +60,10 @@ class RoomSnapshotStore @Inject constructor(
 
         Snapshot(
             exportedAt = clock.now(),
-            appVersion = APP_VERSION,
+            // Pour la lecture humaine seulement : c'est SNAPSHOT_FORMAT_VERSION qui decide
+            // de la relecture. Lue dans le catalogue de versions (D162) -- tenue a la
+            // main, elle annoncait la 0.4 jusqu'a la 0.7, puis la 0.7 dans la 0.9.
+            appVersion = BuildConfig.VERSION_LABEL,
             profile = reads.profile()?.toDomain(),
             goals = reads.goals().map { it.toDomain() },
             weights = reads.weights().map { it.toDomain() },
@@ -160,17 +163,3 @@ class RoomSnapshotStore @Inject constructor(
         database.withTransaction { database.eraseUserData() }
     }
 }
-
-/**
- * La version de l'application, telle qu'elle est écrite dans le fichier.
- *
- * Elle n'est là que pour la lecture humaine — [app.hexavore.domain.backup.SNAPSHOT_FORMAT_VERSION]
- * est ce qui décide de la relecture. La brancher sur `BuildConfig` ferait dépendre ce
- * module de la configuration de l'APK pour une chaîne que personne ne compare.
- *
- * **Le prix de ce choix est qu'elle se met à jour à la main**, et elle ne l'avait pas
- * été depuis la 0.4 : trois versions de fichiers annonçaient une application qui
- * n'était plus celle-là. Rien n'en dépend, et c'est bien pourquoi personne ne l'avait
- * vue — mais une date fausse dans un fichier qu'on relira dans cinq ans reste fausse.
- */
-private const val APP_VERSION = "0.7"

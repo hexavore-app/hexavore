@@ -29,11 +29,23 @@ package app.hexavore.domain.food
  * [decisions]: docs/11-decisions.md
  */
 object FoodRanking {
+    /**
+     * Le score est calculé **une fois par aliment**, puis trié.
+     *
+     * Le comparateur le recalculait à chaque comparaison, donc une vingtaine de fois par
+     * aliment, avec une normalisation Unicode à chaque fois. Sur trente lignes cela ne
+     * se voyait pas ; depuis que le classement voit toutes les correspondances — un
+     * millier sur un préfixe de deux lettres ([D161][decisions]) —, c'était l'essentiel
+     * du temps d'une recherche. L'ordre ne change pas : la fonction est pure.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
     fun sort(foods: List<Food>, query: String): List<Food> {
         val normalised = SearchText.normalise(query)
-        return foods.sortedWith(
-            compareByDescending<Food> { score(it, normalised) }.thenBy { it.name },
-        )
+        return foods
+            .map { food -> food to score(food, normalised) }
+            .sortedWith(compareByDescending<Pair<Food, Double>> { it.second }.thenBy { it.first.name })
+            .map { it.first }
     }
 
     /** Visible pour être testée : c'est elle qui porte la règle, pas le tri. */
@@ -72,14 +84,24 @@ object FoodRanking {
     /**
      * À quel point le nom *est* la requête, plutôt que de la contenir.
      *
-     * Quatre paliers et non un score continu : « pomme » doit passer devant « pomme
+     * Des paliers et non un score continu : « pomme » doit passer devant « pomme
      * de terre », et un écart continu laisserait la longueur du nom rattraper la
      * différence sur un libellé CIQUAL à rallonge.
+     *
+     * **Un préfixe s'arrête à la fin d'un mot** ([D163][decisions]). « lait » commence
+     * « Laitue, crue », qui passait devant tous les laits — et l'IA, qui écrit « lait »,
+     * y tombait. Un nom qui ne commence que par les **lettres** de la requête n'est pas
+     * celui qu'on cherche une fois le mot fini ; il passe derrière celui où le mot est
+     * entier. Pendant qu'on écrit, en revanche, tous les candidats sont dans ce cas, et
+     * ce palier les départage encore de ceux où les lettres n'arrivent que plus loin.
+     *
+     * [decisions]: docs/11-decisions.md
      */
     private fun proximity(name: String, query: String): Double = when {
         name == query -> EXACT
-        name.startsWith(query) -> PREFIX
+        name.startsWith("$query ") -> PREFIX
         name.split(' ').any { it == query } -> WHOLE_WORD
+        name.startsWith(query) -> PARTIAL
         else -> SOMEWHERE
     }
 
@@ -88,7 +110,16 @@ object FoodRanking {
      *
      * Un libellé CIQUAL décrit sa préparation — « Pomme de terre, chair et peau,
      * bouillie/cuite à l'eau, sans sel ajouté » — et l'aliment générique porte
-     * toujours le nom le plus court de sa famille.
+     * **le plus souvent** le nom le plus court de sa famille.
+     *
+     * **Pas toujours, et c'est une limite connue** ([D163][decisions]) : la forme qu'on
+     * mange se décrit souvent plus longuement que ses dérivés. « Riz blanc, cru » est
+     * plus court que « Riz blanc, cuit, sans sel ajouté », « Café, moulu » que « Café,
+     * non instantané, sans sucres ajoutés, prêt à boire », « Huile d'avocat » que
+     * « Avocat, chair sans peau, sans noyau, cru ». Rien dans un libellé ne dit laquelle
+     * est la forme qu'on mange ; D163 décrit la table de noms courants qui le dira.
+     *
+     * [decisions]: docs/11-decisions.md
      */
     private fun brevity(name: String): Double = REFERENCE_LENGTH / (REFERENCE_LENGTH + name.length)
 
@@ -119,6 +150,9 @@ object FoodRanking {
     private const val EXACT = 4.0
     private const val PREFIX = 2.0
     private const val WHOLE_WORD = 1.5
+
+    /** Les lettres de la requête en tête, sans le mot entier : « Laitue » pour « lait ». */
+    private const val PARTIAL = 1.25
     private const val SOMEWHERE = 1.0
 
     private const val CONSUMED = 1.5

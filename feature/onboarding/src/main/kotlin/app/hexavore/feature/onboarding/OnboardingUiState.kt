@@ -2,9 +2,13 @@ package app.hexavore.feature.onboarding
 
 import androidx.compose.runtime.Immutable
 import app.hexavore.domain.goal.GoalStrategy
+import app.hexavore.domain.goal.TargetProblem
+import app.hexavore.domain.goal.checkTarget
+import app.hexavore.domain.profile.BodyMeasure
 import app.hexavore.domain.profile.Sex
 import app.hexavore.domain.profile.WeeklySessions
 import app.hexavore.domain.profile.WorkActivity
+import app.hexavore.domain.profile.implausibleMeasure
 import app.hexavore.domain.usecase.GoalPlan
 import java.time.LocalDate
 
@@ -39,17 +43,26 @@ enum class OnboardingStep {
 }
 
 /**
- * Ce qui manque pour franchir l'étape courante.
+ * Ce qui manque pour franchir l'étape courante — ou ce qui ne tient pas.
  *
  * Une énumération et non un booléen : un bouton qui refuse sans dire pourquoi est
  * exactement le défaut qu'on corrige. C'est l'écran qui traduit en phrase — `:feature`
  * connaît les ressources, l'état non.
+ *
+ * [AGE], [HEIGHT], [WEIGHT] et [TARGET] ne disent pas qu'il manque quelque chose, mais
+ * qu'une valeur sort de ce qu'un corps peut être ([D160][decisions]).
+ *
+ * [decisions]: docs/11-decisions.md
  */
 enum class OnboardingBlocker {
     DISCLAIMER,
     IDENTITY,
+    AGE,
+    HEIGHT,
+    WEIGHT,
     ACTIVITY,
     OBJECTIVE,
+    TARGET,
 }
 
 /**
@@ -98,6 +111,27 @@ data class OnboardingAnswers(
             GoalStrategy.MAINTAIN -> true
             else -> targetWeightKg != null && targetDate != null
         }
+
+    /**
+     * Ce que le poids visé a de faux pour la stratégie choisie, ou `null`.
+     *
+     * Un poids du mauvais côté, sous le seuil de la maigreur, ou au-delà de ce que ce
+     * corps peut peser ([D160][decisions]). Calculé ici plutôt que dans l'écran : le
+     * `ViewModel` refuse d'avancer sur la même réponse que celle que le champ affiche.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val targetProblem: TargetProblem?
+        get() {
+            val chosen = strategy
+            val height = heightCm
+            val current = currentWeightKg
+            return if (chosen == null || height == null || current == null) {
+                null
+            } else {
+                checkTarget(chosen, height, current, targetWeightKg)
+            }
+        }
 }
 
 /**
@@ -138,13 +172,44 @@ data class OnboardingUiState(
      * [parcours]: docs/02-parcours-et-ecrans.md
      */
     val blocker: OnboardingBlocker?
-        get() = when {
-            step == OnboardingStep.WELCOME && !answers.disclaimerAccepted -> OnboardingBlocker.DISCLAIMER
-            step == OnboardingStep.ABOUT_YOU && !answers.identityComplete -> OnboardingBlocker.IDENTITY
-            step == OnboardingStep.ACTIVITY && answers.work == null -> OnboardingBlocker.ACTIVITY
-            step == OnboardingStep.OBJECTIVE && !answers.objectiveComplete -> OnboardingBlocker.OBJECTIVE
-            else -> null
+        get() = when (step) {
+            OnboardingStep.WELCOME -> OnboardingBlocker.DISCLAIMER.takeUnless { answers.disclaimerAccepted }
+            OnboardingStep.ABOUT_YOU -> answers.identityBlocker(today)
+            OnboardingStep.ACTIVITY -> OnboardingBlocker.ACTIVITY.takeIf { answers.work == null }
+            OnboardingStep.OBJECTIVE -> answers.objectiveBlocker()
+            OnboardingStep.RESULT -> null
         }
 
     val canContinue: Boolean get() = blocker == null
+}
+
+/**
+ * L'étape « Vous » : rien ne doit manquer, puis tout doit tenir.
+ *
+ * **Dans cet ordre** : une taille absente n'est pas invraisemblable, elle manque — et
+ * « renseignez votre taille » dit mieux ce qu'il faut faire qu'une plage de poids
+ * jugée sur rien.
+ */
+private fun OnboardingAnswers.identityBlocker(today: LocalDate): OnboardingBlocker? = if (!identityComplete) {
+    OnboardingBlocker.IDENTITY
+} else {
+    when (implausibleMeasure(birthDate, heightCm, currentWeightKg, today)) {
+        BodyMeasure.BIRTH_DATE -> OnboardingBlocker.AGE
+        BodyMeasure.HEIGHT -> OnboardingBlocker.HEIGHT
+        BodyMeasure.WEIGHT -> OnboardingBlocker.WEIGHT
+        null -> null
+    }
+}
+
+/**
+ * L'étape « Objectif » : le poids visé se juge **avant** ce qui manque.
+ *
+ * Quelqu'un déjà au seuil de la maigreur qui choisit « Perdre » n'a pas de poids visé à
+ * compléter : lui demander « un poids cible et une échéance » l'enverrait remplir un
+ * champ qui ne pourra jamais aboutir.
+ */
+private fun OnboardingAnswers.objectiveBlocker(): OnboardingBlocker? = when {
+    targetProblem != null -> OnboardingBlocker.TARGET
+    !objectiveComplete -> OnboardingBlocker.OBJECTIVE
+    else -> null
 }

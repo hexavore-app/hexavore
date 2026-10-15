@@ -181,7 +181,7 @@ Le rayon est **ce que trois contraintes laissent**, la plus serrée gagnant : la
 
 Le contour de l'objectif est tracé **par-dessus** les quartiers, en `outline`, 2 dp. Il ne doit jamais être masqué : c'est la référence à laquelle tout le reste se compare.
 
-L'initiale de chaque macro est posée **à l'extérieur** de la zone, sur l'axe de son quartier, dans la teinte de la macro. Six lettres suffisent, tiennent à 200 % de police, et donnent le second canal exigé par la règle de daltonisme — la position en donne déjà un.
+L'initiale de chaque macro est posée **à l'extérieur** de la zone, sur l'axe de son quartier, dans la teinte de la macro. Six initiales suffisent, tiennent à 200 % de police, et donnent le second canal exigé par la règle de daltonisme — la position en donne déjà un. **Ce sont celles des pastilles des plats, dans la langue de l'application** ([D162](11-decisions.md)) : en anglais, « kcal » pour les calories, « C » pour les glucides, « F » pour les lipides, « Fb » pour les fibres. L'hexagone écrivait les siennes en dur, en français, et son « F » désignait les fibres juste au-dessus de plats où « F » désignait les lipides. La zone se règle sur la plus large des six.
 
 **Elles sont écrites en `title`, en gras.** Ce n'est pas un choix esthétique : un second canal qu'il faut chercher des yeux n'en est pas un. En taille de légende, ces lettres se lisaient à peine sur le fond, et la règle de daltonisme reposait alors sur la seule position.
 

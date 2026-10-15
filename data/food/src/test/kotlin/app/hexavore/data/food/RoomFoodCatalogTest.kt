@@ -9,14 +9,17 @@ import app.hexavore.core.testing.FixedLanguage
 import app.hexavore.core.testing.SequentialIdGenerator
 import app.hexavore.core.testing.TestDispatchers
 import app.hexavore.domain.food.Food
+import app.hexavore.domain.food.FoodFilter
 import app.hexavore.domain.food.FoodId
 import app.hexavore.domain.language.ContentLanguage
 import app.hexavore.domain.nutrition.Macro
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -151,6 +154,23 @@ class RoomFoodCatalogTest : FoodCatalogContract() {
     }
 
     /**
+     * Une eau-de-vie complétée porte l'énergie de son alcool (D162).
+     *
+     * Le calcul sur quatre teneurs ne voit pas l'alcool, 7 kcal par gramme : le calvados
+     * valait 0 kcal, et le pastis allongé 2. L'ANSES ne chiffrant pas leur alcool, leur
+     * énergie vient de leur parent mesuré.
+     */
+    @Test
+    fun `une eau-de-vie completee porte l energie de son alcool`() {
+        val calvados = checkNotNull(livree(CODE_CALVADOS)) { "le code $CODE_CALVADOS n'est plus dans la table livree" }
+        val pastis = checkNotNull(livree(CODE_PASTIS_ALLONGE)) { "le code $CODE_PASTIS_ALLONGE n'est plus livre" }
+
+        assertNull("l ANSES ne determine pas cette energie", calvados.kcal100)
+        assertEquals("celle de l eau-de-vie de vin, au meme degre", 222.0, calvados.estimated.kcal100)
+        assertEquals("celle du pastis, divisee par six", 46.0, pastis.estimated.kcal100)
+    }
+
+    /**
      * Ce que l'ANSES publie n'est jamais marqué, et jamais remplacé.
      *
      * Sans ce cas, un mapper qui marquerait tout, ou qui préférerait la complétion,
@@ -229,14 +249,112 @@ class RoomFoodCatalogTest : FoodCatalogContract() {
         assertEquals(francaises.single().grams, anglaises.single().grams, 0.0)
     }
 
+    /**
+     * Un mot courant garde la fiche que tout le monde cherche ([D161][decisions]).
+     *
+     * La table livrée, interrogée avec les bornes de ceux qui l'interrogent : vingt pour
+     * le résolveur de l'IA, trente pour l'écran. « pain » compte 81 correspondances,
+     * « bread » 84, « lait » 188 ; la recherche gardait les premières **dans l'ordre de
+     * l'index** avant de les classer, et la fiche générique n'y était jamais — c'est
+     * ainsi qu'« une tranche de pain » est devenue un sandwich panini aux trois fromages.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    @Test
+    fun `un mot courant garde sa fiche generique dans la borne`() {
+        assertTrue("pain", cherche("pain", borne = RESOLVEUR).any { it.sourceRef == CODE_PAIN })
+        assertTrue("fromage", cherche("fromage", borne = RESOLVEUR).any { it.sourceRef == CODE_FROMAGE })
+        assertTrue("lait", cherche("lait", borne = RESOLVEUR).any { it.sourceRef == CODE_LAIT_DEMI_ECREME })
+        assertTrue("sucre", cherche("sucre", borne = RESOLVEUR).any { it.sourceRef == CODE_SUCRE_BLANC })
+        assertTrue(
+            "bread",
+            cherche("bread", borne = ECRAN, langue = ContentLanguage.ENGLISH).any { it.sourceRef == CODE_PAIN },
+        )
+        assertTrue(
+            "cheese",
+            cherche("cheese", borne = ECRAN, langue = ContentLanguage.ENGLISH).any { it.sourceRef == CODE_FROMAGE },
+        )
+    }
+
+    /**
+     * La borne coupe **après** le classement, jamais avant.
+     *
+     * Le cas précédent nomme quatre mots ; celui-ci énonce la règle elle-même, sur les
+     * pires cas — un préfixe de deux lettres en rend plus de mille. Les premières lignes
+     * d'une recherche bornée doivent être exactement celles de la recherche complète :
+     * une borne remise dans la requête SQL, sans tri, ferait diverger les deux listes.
+     */
+    @Test
+    fun `la borne coupe apres le classement`() {
+        listOf("pain", "lait", "de", "po").forEach { requete ->
+            val complete = cherche(requete, borne = Int.MAX_VALUE)
+            assertEquals(
+                "les six premiers de « $requete »",
+                complete.take(OUTIL).map { it.sourceRef },
+                cherche(requete, borne = OUTIL).map { it.sourceRef },
+            )
+        }
+    }
+
+    /**
+     * La recherche telle que l'écran et l'IA la font, sur la table livrée.
+     *
+     * Un catalogue local vide : c'est la première recherche d'une installation neuve, celle
+     * où la table de l'ANSES est seule à répondre.
+     */
+    private fun cherche(requete: String, borne: Int, langue: ContentLanguage = ContentLanguage.FRENCH): List<Food> {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val base = Room
+            .inMemoryDatabaseBuilder(context, HexavoreDatabase::class.java)
+            .build()
+            .also(bases::add)
+        val catalogue = RoomFoodCatalog(
+            dao = base.foodDao(),
+            marks = base.foodMarksDao(),
+            ciqual = CiqualDatabase(context),
+            languages = FixedLanguage(langue),
+            ids = SequentialIdGenerator("provisoire"),
+            clock = FixedClock(MAINTENANT),
+            dispatchers = TestDispatchers(Dispatchers.IO),
+        )
+        return runBlocking { catalogue.search(requete, FoodFilter.NONE, borne).first() }
+    }
+
     private companion object {
         val MAINTENANT: Instant = Instant.parse("2026-08-10T10:00:00Z")
+
+        /** La borne du résolveur de l'IA (`ResolveFoodLabel`). */
+        const val RESOLVEUR = 20
+
+        /** La borne de l'écran de recherche. */
+        const val ECRAN = 30
+
+        /** La borne de l'outil de l'analyse approfondie (`TOOL_CANDIDATES`). */
+        const val OUTIL = 6
+
+        /** « Pain (aliment moyen) », « Bread (average) ». */
+        const val CODE_PAIN = "7000"
+
+        /** « Fromage (aliment moyen) », « Cheese (average) ». */
+        const val CODE_FROMAGE = "12999"
+
+        /** « Lait demi-écrémé, UHT ». */
+        const val CODE_LAIT_DEMI_ECREME = "19041"
+
+        /** « Sucre blanc ». */
+        const val CODE_SUCRE_BLANC = "31016"
 
         /** « Pomme, chair et peau, crue » : une portion nommée, écrite à la main. */
         const val CODE_AVEC_PORTION = "13039"
 
         /** « Câpres, au vinaigre » : sans énergie déterminée, complétée à la main. */
         const val CODE_COMPLETE = "11040"
+
+        /** « Eau de vie type calvados » : ni énergie ni alcool publiés par l'ANSES. */
+        const val CODE_CALVADOS = "1024"
+
+        /** « Pastis, prêt à boire (1 + 5) » : même trou, sur une boisson allongée. */
+        const val CODE_PASTIS_ALLONGE = "1010"
 
         /** « Poulet, cuisse, viande rôtie/cuite au four », l'une des six lignes écrites à la main. */
         const val CODE_AVEC_TITRE = "36006"

@@ -17,7 +17,7 @@ import kotlin.math.roundToInt
 /**
  * Ce que la journée affiche à la place de ses jauges, quand elle n'en a pas.
  *
- * **Aucun de ces quatre états n'est une liste vide silencieuse.** Chacun dit ce qui se
+ * **Aucun de ces états n'est une liste vide silencieuse.** Chacun dit ce qui se
  * passe et, quand il y a quelque chose à faire, comment le faire — c'est la règle que
  * ce projet applique partout : une absence de réponse ne s'affiche jamais comme un zéro.
  *
@@ -47,6 +47,33 @@ internal fun NoGoal(onSetUpGoal: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         NeonButton(text = stringResource(R.string.home_no_goal_action), onClick = onSetUpGoal)
+    }
+}
+
+/**
+ * Ce qu'on voit sur une journée antérieure au premier objectif ([D161][decisions]).
+ *
+ * **Une explication, et aucun bouton.** Cette journée affichait l'invitation de
+ * [NoGoal] — « Cinq questions suffisent… », puis « Définir mon objectif » — chez
+ * quelqu'un qui venait d'y répondre et revenait rattraper le repas d'avant son
+ * installation. Le bouton relançait alors l'onboarding entier. Ce qu'il faut dire ici
+ * n'est pas qu'un objectif manque, mais qu'il n'en courait pas encore ce jour-là.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+@Composable
+internal fun BeforeFirstGoal() {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+        Text(
+            text = stringResource(R.string.home_before_goal_title),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = stringResource(R.string.home_before_goal_body),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -106,16 +133,28 @@ internal fun UnreadableDay(onRetry: () -> Unit) {
     }
 }
 
+/**
+ * Une journée sans saisie.
+ *
+ * **Le passé ne se dit pas au présent** ([D162][decisions]). « Rien de noté aujourd'hui »
+ * s'affichait sous le titre « Hier », et promettait des compteurs qui se rempliraient à
+ * la première saisie — sur une journée d'avant le premier objectif, qui n'en a pas. Ce
+ * qu'il faut dire d'un jour passé vide, c'est qu'on peut encore y noter l'oubli.
+ *
+ * @param past `true` pour une journée antérieure à aujourd'hui.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
 @Composable
-internal fun EmptyDay() {
+internal fun EmptyDay(past: Boolean) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
         Text(
-            text = stringResource(R.string.home_empty_title),
+            text = stringResource(if (past) R.string.home_empty_past_title else R.string.home_empty_title),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
-            text = stringResource(R.string.home_empty_body),
+            text = stringResource(if (past) R.string.home_empty_past_body else R.string.home_empty_body),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

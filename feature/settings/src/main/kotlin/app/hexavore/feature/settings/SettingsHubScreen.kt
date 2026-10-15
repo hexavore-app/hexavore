@@ -12,6 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Notifications
@@ -44,6 +45,7 @@ import app.hexavore.core.designsystem.component.ScreenTopBar
 import app.hexavore.core.designsystem.component.SparkleGlyph
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.domain.ai.AcceptedKey
+import app.hexavore.domain.food.CONTRIBUTION_OFFERED
 import app.hexavore.domain.notice.Notice
 
 /**
@@ -56,8 +58,10 @@ import app.hexavore.domain.notice.Notice
  *
  * **Sauvegarde arrive avec son écran**, et pas avant : c'est la même règle qui l'avait
  * tenue dehors. **Apparence arrive de la même façon**, le jour où le thème est devenu
- * réglable. ~~À propos n'y figure toujours pas~~, et pour la raison inchangée : elle
- * n'ouvrirait rien.
+ * réglable. **À propos arrive en dernier** ([D161][decisions]) : elle n'ouvrait rien
+ * tant qu'on la pensait faite d'une version et d'un lien de dépôt ; elle porte
+ * désormais ce que la publication exige — la politique de confidentialité, les
+ * attributions des deux bases et les licences.
  *
  * [parcours]: docs/02-parcours-et-ecrans.md
  * [decisions]: docs/11-decisions.md
@@ -107,6 +111,7 @@ internal data class SettingsSections(
     val onOpenAppearance: () -> Unit,
     val onOpenFavorites: () -> Unit,
     val onOpenContact: () -> Unit,
+    val onOpenAbout: () -> Unit,
 )
 
 @Composable
@@ -161,7 +166,7 @@ internal fun SettingsHubScreen(
 }
 
 /**
- * Les sept entrées, dans l'ordre où l'on va les chercher.
+ * Les entrées, dans l'ordre où l'on va les chercher.
  *
  * Sortie du corps de l'écran quand le seuil de longueur a mordu, et le découpage suit
  * ce que les choses sont : une liste de destinations, là où ce qui l'entoure est un
@@ -193,12 +198,7 @@ private fun HubSections(sections: SettingsSections, aiFlagged: Boolean) {
             subtitleRes = R.string.settings_favorites_subtitle,
             onClick = sections.onOpenFavorites,
         )
-        SectionCard(
-            titleRes = R.string.settings_contribution_title,
-            icon = Icons.Filled.Share,
-            subtitleRes = R.string.settings_contribution_subtitle,
-            onClick = sections.onOpenContribution,
-        )
+        ContributionSection(onClick = sections.onOpenContribution)
         SectionCard(
             titleRes = R.string.settings_backup_title,
             icon = Icons.Filled.Lock,
@@ -225,15 +225,57 @@ private fun HubSections(sections: SettingsSections, aiFlagged: Boolean) {
             subtitleRes = R.string.settings_appearance_subtitle,
             onClick = sections.onOpenAppearance,
         )
-        // En dernier, et c'est sa place : on y va quand on a quelque chose a dire, pas
-        // quand on regle quelque chose.
-        SectionCard(
-            titleRes = R.string.settings_contact_title,
-            icon = Icons.Filled.MailOutline,
-            subtitleRes = R.string.settings_contact_subtitle,
-            onClick = sections.onOpenContact,
-        )
+        ProjectSections(sections)
     }
+}
+
+/**
+ * Les deux entrées qui ne règlent rien, en dernier ([D161][decisions]).
+ *
+ * On ne va pas les chercher pour changer quelque chose : on y va quand on a quelque
+ * chose à dire au projet, ou à apprendre de lui. Sorties de [HubSections] quand « À
+ * propos » l'a fait passer au seuil de longueur, et le découpage suit, là encore, ce que
+ * les entrées sont.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+@Composable
+private fun ProjectSections(sections: SettingsSections) {
+    SectionCard(
+        titleRes = R.string.settings_contact_title,
+        icon = Icons.Filled.MailOutline,
+        subtitleRes = R.string.settings_contact_subtitle,
+        onClick = sections.onOpenContact,
+    )
+    // Apres Contact : c'est la page qu'on ouvre le moins souvent, et la seule qu'on
+    // vienne y chercher -- la politique de confidentialite, une licence.
+    SectionCard(
+        titleRes = R.string.settings_about_title,
+        icon = Icons.Filled.Info,
+        subtitleRes = R.string.settings_about_subtitle,
+        onClick = sections.onOpenAbout,
+    )
+}
+
+/**
+ * Open Food Facts, **tenu en réserve** ([D158][decisions]).
+ *
+ * Aucun envoi réel n'a encore atteint la vraie base, et c'est la seule écriture publique
+ * de l'application : la section se tait tant que la contribution n'a pas été éprouvée.
+ * L'écran existe toujours, et la section revient avec le drapeau.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+@Composable
+private fun ContributionSection(onClick: () -> Unit) {
+    if (!CONTRIBUTION_OFFERED) return
+
+    SectionCard(
+        titleRes = R.string.settings_contribution_title,
+        icon = Icons.Filled.Share,
+        subtitleRes = R.string.settings_contribution_subtitle,
+        onClick = onClick,
+    )
 }
 
 /**

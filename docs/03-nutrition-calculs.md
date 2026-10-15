@@ -58,6 +58,19 @@ centièmes de facteur près.
 
 L'exercice est intégré ici, pas ajouté au jour le jour. Un utilisateur qui note ses séances finit systématiquement par surestimer sa dépense et par « manger ses calories brûlées » — les montres et les applications de sport surévaluent la dépense de 20 à 90 % selon les études. Un multiplicateur stable est moins précis un jour donné, mais plus juste sur un mois.
 
+## Les mesures acceptées
+
+Rien ne bornait la saisie : 1 cm, 120 ans ou 999 kg entraient tels quels dans Mifflin-St Jeor ([D160](11-decisions.md)). Les bornes sont celles de **l'impossible ou presque** — elles écartent une faute de frappe, pas un corps rare. Elles vivent dans `BodyBounds`, et l'onboarding, le profil et le journal de poids les lisent au même endroit.
+
+| Mesure | Plage | Pourquoi |
+|---|---|---|
+| Âge | 16 à 100 ans, au jour près | La dépense, les planchers et les seuils d'IMC sont ceux d'un adulte. |
+| Taille | 100 à 250 cm | Hors de là, une taille tapée en mètres, ou à un zéro près. |
+| Poids | 25 à 350 kg | Ce que pèse un adulte, quelle que soit sa taille. |
+| IMC | 12 à 80 | Deux mesures plausibles peuvent faire un couple qui ne l'est pas : 100 cm et 300 kg. |
+
+**Le poids se juge sur la taille**, et c'est la plage en kilos que l'écran annonce : « pour 175 cm, entre 37 et 245 kg » se corrige, « IMC hors limites » ne dit rien à personne. Les bornes de poids sont des **kilos entiers, arrondis vers l'intérieur** : ce que l'écran annonce est exactement ce que la règle accepte.
+
 ---
 
 ## Objectif calorique
@@ -77,12 +90,20 @@ Appliqués dans cet ordre, chacun pouvant réduire l'ambition mais jamais l'augm
 
 1. **Vitesse maximale.** Perte ≤ 1 % du poids corporel par semaine. Prise ≤ 0,5 %. Au-delà, la part de masse maigre perdue (ou de masse grasse prise) grimpe fortement.
 2. **Écart maximal au TDEE.** |Δkcal| ≤ 25 % du TDEE.
-3. **Plancher absolu.** 1 200 kcal (femme) / 1 500 kcal (homme) / 1 350 kcal (non précisé). En dessous, couvrir les besoins en micronutriments devient irréaliste sans supplémentation.
+3. **Plancher absolu.** 1 200 kcal (femme) / 1 500 kcal (homme) / 1 350 kcal (non précisé). En dessous, couvrir les besoins en micronutriments devient irréaliste sans supplémentation. **Il retient un déficit, il ne crée jamais de surplus** ([D160](11-decisions.md)) : quand la dépense estimée est déjà sous le plancher — un petit gabarit, un grand âge —, aucun déficit n'est proposé, l'objectif reste la dépense, et l'écran le dit en conseillant un avis professionnel. Remonter l'objectif jusqu'au plancher faisait d'une perte une prise, et d'un maintien aussi.
 4. **Plafond de prise.** +20 % du TDEE. Au-delà, le surplus part majoritairement en gras.
 
 Quand un garde-fou mord, l'application **ne refuse pas** : elle recalcule la date atteignable et la propose. *« Perdre 12 kg en 2 mois demanderait un déficit trop important. À un rythme sûr, ce serait atteint vers le 14 mars. »* — bouton **Utiliser cette date**, et possibilité de conserver la date initiale en acceptant un objectif tronqué, clairement signalé.
 
 L'interdiction pure et simple pousse les gens à mentir sur leur poids pour contourner l'outil. Expliquer et proposer fonctionne mieux.
+
+### Le poids visé
+
+Les garde-fous bornent un **rythme**, et l'application ne refuse pas une échéance. Le **poids visé**, lui, se refuse quand il ne tient pas ([D160](11-decisions.md)) — c'est une valeur qu'on corrige, pas une ambition qu'on modère :
+
+- **il suit le sens de la stratégie** : plus bas que le poids actuel pour perdre, plus haut pour prendre. Le calcul n'en produit plus d'écart du mauvais côté — un poids visé à contresens y vaut zéro —, et l'écran dit pourquoi il refuse ;
+- **une perte s'arrête au seuil de la maigreur**, un IMC de 18,5, au kilo supérieur : 62 kg pour 182 cm. Quelqu'un qui y est déjà ne se voit plus proposer de perte du tout ;
+- **une prise s'arrête à ce que ce corps peut peser**, la borne haute de la plage du poids.
 
 ---
 
@@ -197,7 +218,7 @@ Le poids brut est inexploitable : ±2 kg d'un jour à l'autre selon l'hydratatio
 
 Il faut au moins **3 pesées** dans chaque fenêtre pour que la pente soit calculée. Sinon, pas de suggestion — un silence vaut mieux qu'un conseil fondé sur une seule pesée.
 
-**Ce plancher gouverne aussi la courbe** ([D94](11-decisions.md#d94--le-journal-de-poids-se-lit-en-trois-traits-et-la-tendance-se-tait-sous-trois-pesées---validée)), et c'est le même argument : une moyenne sur sept jours calculée à partir d'une seule pesée *est* cette pesée. La tracer en évidence, à côté des points bruts qu'elle est censée lisser, affirmerait un lissage qui n'a pas eu lieu. Sous trois pesées, le tracé lissé a un trou — et l'écran dit pourquoi.
+~~**Ce plancher gouverne aussi la courbe** ([D94](11-decisions.md#d94--le-journal-de-poids-se-lit-en-trois-traits-et-la-tendance-se-tait-sous-trois-pesées---validée)) : sous trois pesées, le tracé lissé a un trou — et l'écran dit pourquoi.~~ **La courbe ne suit plus ce plancher** ([D159](11-decisions.md)) : elle trace une tendance qui oublie à proportion du temps écoulé, présente dès la première pesée, et qui suit les pesées espacées sans bout de trait isolé. Les trois pesées restent la règle du **conseil** : un silence vaut mieux qu'un ajustement fondé sur une seule pesée, là où une courbe doit montrer ce qu'il y a.
 
 La **pente visée**, à laquelle on compare, est celle que l'objectif a annoncée : `(poids cible − poids connu au début de l'objectif) ÷ semaines entre son début et son échéance`. Elle ne se recalcule pas depuis aujourd'hui. Le faire durcirait la cible à chaque jour manqué, donc grossirait la correction proposée, qui ferait rater davantage — la boucle exacte que la borne de ±150 kcal sert à contenir.
 
@@ -218,11 +239,11 @@ Toutes doivent être réunies :
 
 Bornée à **±150 kcal** par ajustement. Une correction plus brutale rend le système instable : il surcorrige, l'utilisateur voit son objectif osciller et perd confiance.
 
-Le nouvel objectif repasse par tous les garde-fous.
+Le nouvel objectif repasse par tous les garde-fous. **Ils peuvent annuler la correction, jamais l'inverser** ([D163](11-decisions.md)) : leurs bornes se recalculent sur la dépense du jour, et un objectif posé sur la borne quand on pesait un peu moins se retrouve sous la borne d'aujourd'hui. Le garde-fou y ramenait la correction — « augmenter l'objectif de 7 kcal » à quelqu'un dont le poids ne bouge pas sous un objectif de perte. Une correction retenue de sens contraire à l'écart ne se propose pas.
 
 ### Restitution
 
-Une carte, sur l'écran de poids et en tête de l'accueil, qui explique le raisonnement en deux phrases et laisse trois issues : **Accepter** (crée un nouvel objectif versionné), **Ignorer** (représentée dans deux semaines), **Ne plus proposer** (désactive l'adaptation).
+Une carte, sur l'écran de poids et en tête de l'accueil **quand il montre aujourd'hui** ([D163](11-decisions.md)) — une carte qui parle de trois semaines n'a rien à faire au-dessus d'un jour passé qu'on relit —, qui explique le raisonnement en deux phrases et laisse trois issues : **Accepter** (crée un nouvel objectif versionné), **Ignorer** (représentée dans deux semaines), **Ne plus proposer** (désactive l'adaptation).
 
 Aucune notification n'est envoyée pour ça. La carte suffit.
 

@@ -35,8 +35,7 @@ class CiqualCopyTest {
         copie.parentFile?.mkdirs()
         copie.writeBytes(ByteArray(0))
 
-        val trouve = CiqualDatabase(context).search(
-            normalisedQuery = "",
+        val trouve = CiqualDatabase(context).browse(
             categories = setOf(RAYON),
             limit = LIMITE,
             language = LANGUE,
@@ -50,8 +49,7 @@ class CiqualCopyTest {
     fun `une premiere ouverture copie le catalogue`() {
         File(context.filesDir, FICHIER).delete()
 
-        val trouve = CiqualDatabase(context).search(
-            normalisedQuery = "",
+        val trouve = CiqualDatabase(context).browse(
             categories = setOf(RAYON),
             limit = LIMITE,
             language = LANGUE,

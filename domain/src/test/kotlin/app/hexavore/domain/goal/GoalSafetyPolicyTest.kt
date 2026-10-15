@@ -106,6 +106,50 @@ class GoalSafetyPolicyTest {
         assertEquals(1_350.0, 1_700.0 + budget.dailyDeltaKcal, TOLERANCE)
     }
 
+    // --- 3 bis. Le plancher retient un deficit, il ne cree jamais de surplus -----
+
+    @Test
+    fun `sous le plancher, une perte tombe a zero au lieu de devenir une prise`() {
+        // D160. Femme, depense de 1 000 kcal : le plancher a 1 200 remontait l'objectif
+        // de 200 kcal au-dessus de la depense, et faisait d'une perte une prise.
+        val budget = apply(rawDeltaKcal = -150.0, tdee = 1_000.0, currentWeightKg = 45.0, sex = Sex.FEMALE)
+
+        assertEquals(0.0, budget.dailyDeltaKcal, TOLERANCE)
+        assertEquals(setOf(GoalGuard.FLOOR), budget.guardsApplied)
+        assertEquals(1_200.0, budget.withholdingFloorKcal, "l'ecran doit pouvoir dire quel plancher a tout retenu")
+    }
+
+    @Test
+    fun `sous le plancher, un maintien reste un maintien`() {
+        // Il devenait une prise de la meme facon, sous l'etiquette « maintenir ».
+        val budget = apply(rawDeltaKcal = 0.0, tdee = 1_000.0, currentWeightKg = 45.0, sex = Sex.FEMALE)
+
+        assertEquals(0.0, budget.dailyDeltaKcal, TOLERANCE)
+        assertFalse(budget.capped)
+        assertNull(budget.withholdingFloorKcal)
+    }
+
+    @Test
+    fun `sous le plancher, une prise garde ses propres bornes`() {
+        // Depense de 900 kcal : la vitesse autorise 247,5 kcal, l'ecart 225, le plafond
+        // de prise 180. Le plancher portait la prise a 300 par-dessus les trois, et la
+        // date proposee ne levait alors jamais l'alerte.
+        val budget = apply(rawDeltaKcal = 600.0, tdee = 900.0, currentWeightKg = 45.0, sex = Sex.FEMALE)
+
+        assertEquals(180.0, budget.dailyDeltaKcal, TOLERANCE)
+        assertFalse(GoalGuard.FLOOR in budget.guardsApplied, "le plancher n'a rien a dire d'une prise")
+    }
+
+    @Test
+    fun `au-dessus du plancher, il ne retient qu une part du deficit et n annonce rien`() {
+        // Le cas d'avant D160, inchange : le deficit est reduit, pas annule, et une date
+        // reste a proposer.
+        val budget = apply(rawDeltaKcal = -350.0, tdee = 1_500.0, currentWeightKg = 60.0, sex = Sex.FEMALE)
+
+        assertEquals(-300.0, budget.dailyDeltaKcal, TOLERANCE)
+        assertNull(budget.withholdingFloorKcal)
+    }
+
     // --- 4. Plafond de prise : +20 % du TDEE -----------------------------------
 
     @Test
@@ -132,15 +176,22 @@ class GoalSafetyPolicyTest {
         // La propriete qui rend leur ordre sans importance. Un garde-fou capable de
         // relever un deficit serait un garde-fou qui l'aggrave dans certains cas, et
         // personne ne le verrait -- l'objectif resterait plausible.
+        //
+        // Sur trois depenses, dont deux sous le plancher d'un homme : c'est la que la
+        // propriete ne tenait pas, et un seul TDEE confortable ne pouvait pas le voir
+        // (D160).
         val demandes = listOf(-2_000.0, -900.0, -350.0, -10.0, 0.0, 10.0, 350.0, 900.0, 2_000.0)
+        val depenses = listOf(900.0, 1_400.0, 2_400.0)
 
-        demandes.forEach { raw ->
-            val retenu = apply(rawDeltaKcal = raw, tdee = 2_400.0, currentWeightKg = 75.0).dailyDeltaKcal
-            assertTrue(
-                kotlin.math.abs(retenu) <= kotlin.math.abs(raw) + TOLERANCE,
-                "demande $raw, retenu $retenu : le garde-fou a augmente l ambition",
-            )
-            assertTrue(retenu * raw >= 0, "demande $raw, retenu $retenu : le sens a change")
+        depenses.forEach { tdee ->
+            demandes.forEach { raw ->
+                val retenu = apply(rawDeltaKcal = raw, tdee = tdee, currentWeightKg = 75.0).dailyDeltaKcal
+                assertTrue(
+                    kotlin.math.abs(retenu) <= kotlin.math.abs(raw) + TOLERANCE,
+                    "depense $tdee, demande $raw, retenu $retenu : le garde-fou a augmente l ambition",
+                )
+                assertTrue(retenu * raw >= 0, "depense $tdee, demande $raw, retenu $retenu : le sens a change")
+            }
         }
     }
 

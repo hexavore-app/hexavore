@@ -35,8 +35,10 @@ object GoalUseCaseModule {
     @Provides
     fun getWeightTrend(weights: WeightLog, goals: Goals): GetWeightTrend = GetWeightTrend(weights, goals)
 
+    /** La taille du profil juge la pesee avant qu'elle s'ecrive (D160). */
     @Provides
-    fun recordWeight(weights: WeightLog, clock: Clock): RecordWeight = RecordWeight(weights, clock)
+    fun recordWeight(weights: WeightLog, profiles: Profiles, clock: Clock): RecordWeight =
+        RecordWeight(weights, profiles, clock)
 
     /**
      * L'adaptation hebdomadaire.

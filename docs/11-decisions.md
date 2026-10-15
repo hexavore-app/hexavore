@@ -4779,84 +4779,84 @@ La **proposition d'IA incorrecte** se signale depuis l'édition qui suit l'analy
 
 ---
 
-## D139 â L'application tient depuis Android 11, et un tour d'Ã©crans le vÃ©rifie Â· â validÃ©e
+## D139 — L'application tient depuis Android 11, et un tour d'écrans le vérifie · ✓ validée
 
-**Contexte.** Quelqu'un sous **Android 11** ne pouvait pas ajouter de plat : l'Ã©cran de saisie se fermait d'un coup, et celui d'Ã©dition avec lui. Le reste de l'application marchait. Rien, dans tout ce que le projet sait vÃ©rifier â compilation, `detekt`, `ktlint`, trois cents tests unitaires, `lint` sur tous les modules â n'avait rien Ã  dire.
+**Contexte.** Quelqu'un sous **Android 11** ne pouvait pas ajouter de plat : l'écran de saisie se fermait d'un coup, et celui d'édition avec lui. Le reste de l'application marchait. Rien, dans tout ce que le projet sait vérifier — compilation, `detekt`, `ktlint`, trois cents tests unitaires, `lint` sur tous les modules — n'avait rien à dire.
 
-### Une mÃ©thode qui n'existe pas lÃ -bas
+### Une méthode qui n'existe pas là-bas
 
 ```
 java.lang.NoSuchMethodError: No static method ofInstant(Ljava/time/Instant;Ljava/time/ZoneId;)Ljava/time/LocalTime;
     at app.hexavore.domain.usecase.CreateDraft.moment(CreateDraft.kt:48)
 ```
 
-`LocalTime.ofInstant(Instant, ZoneId)` est arrivÃ©e avec **Java 9**. Le `java.time` d'Android date de l'API 26 et s'arrÃªte Ã  Java 8 ; cette surcharge-lÃ  n'est apparue qu'Ã  l'**API 31**. Entre les deux â Android 8.0 Ã  Android 11, soit `minSdk` jusqu'Ã  l'API 30 â l'appel compile et n'existe pas.
+`LocalTime.ofInstant(Instant, ZoneId)` est arrivée avec **Java 9**. Le `java.time` d'Android date de l'API 26 et s'arrête à Java 8 ; cette surcharge-là n'est apparue qu'à l'**API 31**. Entre les deux — Android 8.0 à Android 11, soit `minSdk` jusqu'à l'API 30 — l'appel compile et n'existe pas.
 
-**Le correctif tient en une ligne** : `clock.now().atZone(clock.zone()).toLocalTime()`. MÃªme rÃ©sultat, mÃªme lisibilitÃ©, et Java 8.
+**Le correctif tient en une ligne** : `clock.now().atZone(clock.zone()).toLocalTime()`. Même résultat, même lisibilité, et Java 8.
 
 ### Pourquoi rien ne l'avait vu
 
-`NewApi`, le contrÃ´le de `lint` qui existe exactement pour Ã§a, **n'a jamais regardÃ© ce fichier** : il ne tourne que sur les modules Android, et `CreateDraft` vit dans `:domain`, qui est un module Kotlin pur. C'est le prix d'une dÃ©cision qu'on ne regrette pas â un domaine sans Android ([D02](#d02--architecture-en-couches-domaine-pur---validÃ©e)) â mais c'est un prix, et il Ã©tait impayÃ© : la JVM du poste de dÃ©veloppement a la mÃ©thode, donc tout Ã©tait vert.
+`NewApi`, le contrôle de `lint` qui existe exactement pour ça, **n'a jamais regardé ce fichier** : il ne tourne que sur les modules Android, et `CreateDraft` vit dans `:domain`, qui est un module Kotlin pur. C'est le prix d'une décision qu'on ne regrette pas — un domaine sans Android ([D02](#d02--architecture-en-couches-domaine-pur---validée)) — mais c'est un prix, et il était impayé : la JVM du poste de développement a la méthode, donc tout était vert.
 
-Les Ã©mulateurs du projet Ã©taient en API 33 et 35. Le dÃ©faut vivait **sous** le plancher de ce qu'on essayait.
+Les émulateurs du projet étaient en API 33 et 35. Le défaut vivait **sous** le plancher de ce qu'on essayait.
 
-### Un tour d'Ã©crans, une fois par version
+### Un tour d'écrans, une fois par version
 
-`AppJourneyTest` ouvre l'accueil, le menu d'ajout, la recherche, la saisie, l'Ã©dition, les rÃ©glages, le journal de poids et la progression. Il ne juge **ni la mise en page ni les chiffres** â les calculs ont leurs tests, rapides et sans appareil. Il rÃ©pond Ã  une seule question, posÃ©e sur chaque version : *est-ce que Ã§a s'ouvre*.
+`AppJourneyTest` ouvre l'accueil, le menu d'ajout, la recherche, la saisie, l'édition, les réglages, le journal de poids et la progression. Il ne juge **ni la mise en page ni les chiffres** — les calculs ont leurs tests, rapides et sans appareil. Il répond à une seule question, posée sur chaque version : *est-ce que ça s'ouvre*.
 
-**Sur le vrai graphe.** Aucun adaptateur n'est remplacÃ© : Room, DataStore, le catalogue embarquÃ© et les ressources sont ceux de l'application. Ce sont prÃ©cisÃ©ment les adaptateurs qui se comportent autrement d'une version Ã  l'autre, et un faux les aurait tous cachÃ©s. Le profil et l'objectif s'Ã©crivent par ce mÃªme graphe, via un point d'entrÃ©e Hilt qui **n'existe qu'en `debug`** : sans objectif, l'application dÃ©marre sur l'onboarding, et traverser cinq questions Ã  la main rendrait chaque test otage de l'Ã©cran qui les pose.
+**Sur le vrai graphe.** Aucun adaptateur n'est remplacé : Room, DataStore, le catalogue embarqué et les ressources sont ceux de l'application. Ce sont précisément les adaptateurs qui se comportent autrement d'une version à l'autre, et un faux les aurait tous cachés. Le profil et l'objectif s'écrivent par ce même graphe, via un point d'entrée Hilt qui **n'existe qu'en `debug`** : sans objectif, l'application démarre sur l'onboarding, et traverser cinq questions à la main rendrait chaque test otage de l'écran qui les pose.
 
-**Avec UiAutomator, et non le testeur de Compose.** Celui-ci ne voit que la fenÃªtre de l'activitÃ© : la feuille du Â« + Â» est une fenÃªtre Ã  elle, et le test passait Ã  cÃ´tÃ© du menu d'ajout tout en le regardant Ã  l'Ã©cran. UiAutomator lit l'arbre d'accessibilitÃ© de **toutes** les fenÃªtres â ce qu'un lecteur d'Ã©cran lit â et ne dÃ©pend ni de la version de Compose ni de sa synchronisation, ce qui compte pour un test qui doit survivre Ã  sept versions d'Android.
+**Avec UiAutomator, et non le testeur de Compose.** Celui-ci ne voit que la fenêtre de l'activité : la feuille du « + » est une fenêtre à elle, et le test passait à côté du menu d'ajout tout en le regardant à l'écran. UiAutomator lit l'arbre d'accessibilité de **toutes** les fenêtres — ce qu'un lecteur d'écran lit — et ne dépend ni de la version de Compose ni de sa synchronisation, ce qui compte pour un test qui doit survivre à sept versions d'Android.
 
-**Il cherche un libellÃ© en texte *ou* en description**, parce que Compose expose les deux : une entrÃ©e de la feuille d'ajout fond son titre et son explication dans une seule description, et le mÃªme libellÃ© est du texte partout ailleurs.
+**Il cherche un libellé en texte *ou* en description**, parce que Compose expose les deux : une entrée de la feuille d'ajout fond son titre et son explication dans une seule description, et le même libellé est du texte partout ailleurs.
 
-**Il s'accroche au Â« + Â» et non au libellÃ© du champ de saisie** : sans clÃ© d'IA, la barre est verrouillÃ©e et dit autre chose ([D136](#d136--trois-gestes-qui-manquaient-Ã -lusage---validÃ©e)). C'est l'Ã©tat d'une installation neuve, donc celui de six Ã©mulateurs sur sept.
+**Il s'accroche au « + » et non au libellé du champ de saisie** : sans clé d'IA, la barre est verrouillée et dit autre chose ([D136](#d136--trois-gestes-qui-manquaient-à-lusage---validée)). C'est l'état d'une installation neuve, donc celui de six émulateurs sur sept.
 
-### Un catalogue vide ne se rÃ©parait jamais
+### Un catalogue vide ne se réparait jamais
 
-Le plantage a laissÃ© une trace : un `ciqual-*.db` de **zÃ©ro octet** dans `filesDir`, le processus ayant Ã©tÃ© emportÃ© pendant la premiÃ¨re copie. Un fichier vide s'ouvre sans broncher â SQLite y lit une base vide â et la condition de recopie ne regardait que l'**existence** du fichier. La recherche rÃ©pondait donc Â« catalogue illisible Â» Ã  chaque fois, dÃ©finitivement, et rÃ©installer Ã©tait le seul recours.
+Le plantage a laissé une trace : un `ciqual-*.db` de **zéro octet** dans `filesDir`, le processus ayant été emporté pendant la première copie. Un fichier vide s'ouvre sans broncher — SQLite y lit une base vide — et la condition de recopie ne regardait que l'**existence** du fichier. La recherche répondait donc « catalogue illisible » à chaque fois, définitivement, et réinstaller était le seul recours.
 
-La condition regarde maintenant la **taille**. Et la recopie efface la cible avant de renommer, parce que `renameTo` ne recouvre pas une destination existante partout â or la recopie sert justement Ã  remplacer un fichier qu'on ne sait pas lire.
+La condition regarde maintenant la **taille**. Et la recopie efface la cible avant de renommer, parce que `renameTo` ne recouvre pas une destination existante partout — or la recopie sert justement à remplacer un fichier qu'on ne sait pas lire.
 
-**ConsÃ©quences.** Android 11 Ã  16 passent les huit Ã©crans. Android 17 n'a pas encore d'image systÃ¨me : la plage s'arrÃªte lÃ , et non par choix.
+**Conséquences.** Android 11 à 16 passent les huit écrans. Android 17 n'a pas encore d'image système : la plage s'arrête là, et non par choix.
 
-**Ce que le vert ne prouve pas.** **Que les API 26 Ã  29 tiennent.** Elles ne sont pas essayÃ©es ici, faute d'images installÃ©es ; le correctif les concerne pourtant au premier chef, puisque le dÃ©faut portait sur tout l'intervalle 26â30. Le tour d'Ã©crans se rejoue sur une image de plus sans qu'on y touche.
+**Ce que le vert ne prouve pas.** **Que les API 26 à 29 tiennent.** Elles ne sont pas essayées ici, faute d'images installées ; le correctif les concerne pourtant au premier chef, puisque le défaut portait sur tout l'intervalle 26–30. Le tour d'écrans se rejoue sur une image de plus sans qu'on y touche.
 
-**Que la famille entiÃ¨re soit sÃ»re.** Une seule mÃ©thode de Java 9 Ã©tait appelÃ©e, et elle est corrigÃ©e ; rien n'empÃªche la suivante d'entrer. Le **dÃ©sucrage de la bibliothÃ¨que standard** (`coreLibraryDesugaring`) la fermerait pour de bon, au prix d'une dÃ©pendance de build et de quelques centaines de kilooctets dans l'APK. Il n'est pas activÃ© : la dÃ©cision se prend sur l'APK publiÃ©, pas en passant.
+**Que la famille entière soit sûre.** Une seule méthode de Java 9 était appelée, et elle est corrigée ; rien n'empêche la suivante d'entrer. Le **désucrage de la bibliothèque standard** (`coreLibraryDesugaring`) la fermerait pour de bon, au prix d'une dépendance de build et de quelques centaines de kilooctets dans l'APK. Il n'est pas activé : la décision se prend sur l'APK publié, pas en passant.
 
-**Que huit Ã©crans soient tous les Ã©crans.** Le scan, la photo, l'analyse par IA et l'onboarding ne sont pas dans le tour â ils demandent une camÃ©ra, un rÃ©seau ou une clÃ©. Ce sont les trois endroits oÃ¹ un dÃ©faut de version resterait invisible.
+**Que huit écrans soient tous les écrans.** Le scan, la photo, l'analyse par IA et l'onboarding ne sont pas dans le tour — ils demandent une caméra, un réseau ou une clé. Ce sont les trois endroits où un défaut de version resterait invisible.
 
 ---
 
-## D140 â Une alerte attend d'avoir quelque chose Ã  dire, et le dÃ©sucrage ferme la porte Â· â validÃ©e
+## D140 — Une alerte attend d'avoir quelque chose à dire, et le désucrage ferme la porte · ✓ validée
 
-**Contexte.** Deux suites de [D139](#d139--lapplication-tient-depuis-android-11-et-un-tour-dÃ©crans-le-vÃ©rifie---validÃ©e), de natures diffÃ©rentes : une alerte qui se dÃ©mentait, et un garde-fou qui manquait.
+**Contexte.** Deux suites de [D139](#d139--lapplication-tient-depuis-android-11-et-un-tour-décrans-le-vérifie---validée), de natures différentes : une alerte qui se démentait, et un garde-fou qui manquait.
 
 ### Le rouge attendait de savoir
 
-Ã chaque ouverture, la barre du bas s'affichait une demi-seconde en **rouge** â champ verrouillÃ©, appareil photo barrÃ©, avertissement â puis redevenait normale. Chez quelqu'un qui a une clÃ©, donc, l'application annonÃ§ait son absence avant de se corriger.
+À chaque ouverture, la barre du bas s'affichait une demi-seconde en **rouge** — champ verrouillé, appareil photo barré, avertissement — puis redevenait normale. Chez quelqu'un qui a une clé, donc, l'application annonçait son absence avant de se corriger.
 
-La cause tient en un mot : `initialValue = false`. Lire le dÃ©pÃ´t et dÃ©chiffrer la clÃ© prend ce temps-lÃ , et partir de `false` revient Ã  **affirmer** qu'il n'y a pas de clÃ© tant qu'on n'a pas regardÃ©.
+La cause tient en un mot : `initialValue = false`. Lire le dépôt et déchiffrer la clé prend ce temps-là, et partir de `false` revient à **affirmer** qu'il n'y a pas de clé tant qu'on n'a pas regardé.
 
-**`null` plutÃ´t que `false`**, c'est-Ã -dire *on ne sait pas encore*, et la barre ne montre le verrou que sur un `false` avÃ©rÃ©. C'est dÃ©jÃ  l'idiome du dÃ©pÃ´t : `StartDestinationViewModel` ne pose rien tant qu'il ignore oÃ¹ dÃ©marrer, et pour la mÃªme raison.
+**`null` plutôt que `false`**, c'est-à-dire *on ne sait pas encore*, et la barre ne montre le verrou que sur un `false` avéré. C'est déjà l'idiome du dépôt : `StartDestinationViewModel` ne pose rien tant qu'il ignore où démarrer, et pour la même raison.
 
-**Ce que coÃ»te l'inverse n'est pas cosmÃ©tique.** Le mode dÃ©gradÃ© est devenu voyant exprÃ¨s ([D136](#d136--trois-gestes-qui-manquaient-Ã -lusage---validÃ©e)) : il doit se voir. Une alerte qui apparaÃ®t Ã  chaque ouverture et se dÃ©ment aussitÃ´t apprend Ã  ne plus lire les alertes, et c'est prÃ©cisÃ©ment celle-lÃ  qu'on avait besoin de rendre lisible.
+**Ce que coûte l'inverse n'est pas cosmétique.** Le mode dégradé est devenu voyant exprès ([D136](#d136--trois-gestes-qui-manquaient-à-lusage---validée)) : il doit se voir. Une alerte qui apparaît à chaque ouverture et se dément aussitôt apprend à ne plus lire les alertes, et c'est précisément celle-là qu'on avait besoin de rendre lisible.
 
-Le cas symÃ©trique â quelqu'un **sans** clÃ© voit le neutre une demi-seconde avant le rouge â est le bon sens de la marche : le rouge est son Ã©tat stable, il arrive et il reste.
+Le cas symétrique — quelqu'un **sans** clé voit le neutre une demi-seconde avant le rouge — est le bon sens de la marche : le rouge est son état stable, il arrive et il reste.
 
-### Le dÃ©sucrage, et ce qu'on croyait savoir
+### Le désucrage, et ce qu'on croyait savoir
 
-[D139](#d139--lapplication-tient-depuis-android-11-et-un-tour-dÃ©crans-le-vÃ©rifie---validÃ©e) corrigeait **un** appel de Java 9. Rien n'empÃªchait le suivant d'entrer : `NewApi` ne regarde pas `:domain`, qui est du Kotlin pur, et la JVM du poste a toutes les mÃ©thodes.
+[D139](#d139--lapplication-tient-depuis-android-11-et-un-tour-décrans-le-vérifie---validée) corrigeait **un** appel de Java 9. Rien n'empêchait le suivant d'entrer : `NewApi` ne regarde pas `:domain`, qui est du Kotlin pur, et la JVM du poste a toutes les méthodes.
 
-`coreLibraryDesugaring` est activÃ© pour tout module Android. D8 rÃ©Ã©crit les appels manquants vers une implÃ©mentation embarquÃ©e, et il le fait sur **tout ce qui est dexÃ©** â donc sur les modules JVM comme sur les autres. C'est ce qui en fait un garde-fou et non un rappel.
+`coreLibraryDesugaring` est activé pour tout module Android. D8 réécrit les appels manquants vers une implémentation embarquée, et il le fait sur **tout ce qui est dexé** — donc sur les modules JVM comme sur les autres. C'est ce qui en fait un garde-fou et non un rappel.
 
-**On aurait pu croire que `minSdk = 26` rendait la chose inutile**, puisque `java.time` existe Ã  partir de lÃ . C'est faux, et c'est tout le sujet : l'API 26 porte le `java.time` de Java 8, pas celui de Java 9. La vÃ©rification a Ã©tÃ© faite en remplaÃ§ant **exprÃ¨s** l'appel corrigÃ© par `LocalTime.ofInstant`, puis en rejouant le tour d'Ã©crans sous Android 11 : il passe, sans `NoSuchMethodError`. Sans dÃ©sucrage, le mÃªme binaire fermait l'application.
+**On aurait pu croire que `minSdk = 26` rendait la chose inutile**, puisque `java.time` existe à partir de là. C'est faux, et c'est tout le sujet : l'API 26 porte le `java.time` de Java 8, pas celui de Java 9. La vérification a été faite en remplaçant **exprès** l'appel corrigé par `LocalTime.ofInstant`, puis en rejouant le tour d'écrans sous Android 11 : il passe, sans `NoSuchMethodError`. Sans désucrage, le même binaire fermait l'application.
 
-**L'appel corrigÃ© reste corrigÃ©.** Les deux ne font pas double emploi : `atZone(...).toLocalTime()` dit la mÃªme chose sans rien demander Ã  personne, et le dÃ©sucrage couvre ce que la prochaine distraction Ã©crira.
+**L'appel corrigé reste corrigé.** Les deux ne font pas double emploi : `atZone(...).toLocalTime()` dit la même chose sans rien demander à personne, et le désucrage couvre ce que la prochaine distraction écrira.
 
-**CoÃ»t.** L'APK de dÃ©bogage ne bouge pas de faÃ§on mesurable. Celui qui est publiÃ© passe par R8, qui ne garde que ce qui sert.
+**Coût.** L'APK de débogage ne bouge pas de façon mesurable. Celui qui est publié passe par R8, qui ne garde que ce qui sert.
 
-**Ce que le vert ne prouve pas.** **Que le dÃ©sucrage couvre tout Java 9+.** Il couvre ce que la spÃ©cification de `desugar_jdk_libs` dÃ©clare, et cette liste n'est pas la bibliothÃ¨que standard entiÃ¨re. Ce qui est tenu, c'est le cas qui a cassÃ© â et il l'est par un essai, pas par une lecture.
+**Ce que le vert ne prouve pas.** **Que le désucrage couvre tout Java 9+.** Il couvre ce que la spécification de `desugar_jdk_libs` déclare, et cette liste n'est pas la bibliothèque standard entière. Ce qui est tenu, c'est le cas qui a cassé — et il l'est par un essai, pas par une lecture.
 
 ---
 
@@ -4888,7 +4888,7 @@ Le souvenir se pose **à la fin**, et sur les deux seules fins qui sont une rép
 
 **Partir poser une clé n'est pas une réponse non plus.** Quelqu'un qui appuie sur « Configurer » va faire ce que le tour lui demandait : il le retrouve au retour, et la barre y est déverrouillée, ce qu'il était précisément venu voir.
 
-### ConsÃ©quences
+### Conséquences
 
 Le tour vit dans `:feature:home` parce qu'il se dessine par-dessus l'accueil et lit les positions de ses éléments ; un module à part aurait inversé la dépendance pour rien. Son souvenir est rangé avec les pastilles — l'état de ce que l'écran a déjà dit — et non avec les clés : effacer sa clé d'IA ne doit pas rejouer un tour qu'on a vu.
 
@@ -5411,6 +5411,307 @@ L'appui long d'un plat proposait de modifier, de supprimer et de mettre en favor
 **Conséquences.** Un port de plus (`KeyAcceptance`) et son implémentation en mémoire ; deux petits modèles qui la lisent, un par module d'écran, puisque ces modules ne se voient pas ([D149](#d149--un-favori-se-corrige-là-où-il-a-été-écrit---validée)). Le résultat de navigation et sa clé d'état disparaissent du graphe des réglages. `DishGestures` gagne son quatrième geste, comme son commentaire le prévoyait. Huit cas de test neufs.
 
 **Ce que le vert ne prouve pas.** Que le bandeau soit vu : les cas affirment que la nouvelle attend, se dit et s'oublie ; aucun ne regarde un écran. Et que « Coller la clé » trouve la clé : certains navigateurs copient la clé entourée de texte, et le bouton collerait alors une phrase que le fournisseur refuserait — ce qui se dirait, au moins, sous le champ.
+
+---
+
+## D158 — La courbe se relie, Open Food Facts attend, le tour ne décerne rien, et le premier écran s'aligne · ✓ validée
+
+**Contexte.** La 0.9.0 est mergée et part vers le Play Store. Quatre défauts relevés en la reprenant depuis une installation neuve, dont un qui écrivait dans les données de quiconque suivait le tour.
+
+### La courbe de poids n'était pas une courbe pour qui se pèse peu
+
+La moyenne mobile ne se trace que là où la fenêtre de sept jours porte trois pesées ([03](03-nutrition-calculs.md)), et les pesées elles-mêmes n'étaient que des points, « et aucun trait entre eux ». Quelqu'un qui se pèse deux fois par semaine n'a jamais trois pesées dans une fenêtre : il ne voyait que des points épars, et lisait l'absence de trait comme une panne.
+
+**Les pesées sont désormais reliées d'un trait fin, quel que soit l'écart.** C'est la mesure et non un lissage : relier deux pesées séparées de trois jours ne prétend rien d'autre que ce qu'elles disent, au contraire d'une moyenne qu'on prolongerait sur un trou — et la moyenne, elle, garde sa règle. Le trait est fin et à moitié effacé, posé **sous** la moyenne : c'est elle qui porte l'information quand elle existe.
+
+### Open Food Facts : la contribution est tenue en réserve
+
+Le code de contribution existe et passe ses tests — le client, la proposition, le compte chiffré —, mais **aucun envoi réel n'a encore atteint la vraie base**, et c'est la seule écriture **publique** de l'application : une fiche partie sous le compte de quelqu'un ne se reprend pas. Elle ne sort pas avant d'avoir été éprouvée, pour la raison qui tient quatre fournisseurs d'IA en réserve.
+
+**Un drapeau plutôt qu'un retrait** : `CONTRIBUTION_OFFERED`, dans `:domain`. Faux, il masque la section des réglages et fait taire la proposition qui suit la création d'une fiche — **avant** de regarder le compte, pour qu'un testeur qui en avait saisi un ne la voie pas reparaître. Le jour où la contribution est éprouvée, elle revient en changeant un mot. La lecture d'Open Food Facts — le scan, la recherche — ne change pas.
+
+**La politique de confidentialité suit**, et avec elle le site, qui la publie telle quelle ([D124](#d124--la-politique-de-confidentialité-vit-à-côté-du-code-et-le-site-ailleurs---validée)) : plus de compte Open Food Facts rangé, plus d'envoi de fiche, plus de fiche publique dans la liste de ce qui quitte le téléphone. Deux autres phrases étaient devenues fausses et partent dans la même passe : **le mode debug**, supprimé par [D156](#d156--les-trois-murs-de-la-mise-en-route-et-le-mode-de-mise-au-point-qui-ne-servait-plus---validée), y était encore décrit — il est remplacé par ce qui existe vraiment, le dernier échange gardé en mémoire pour un signalement — et la politique nommait six fournisseurs d'IA quand deux seulement se choisissent. Le dépôt du site n'a rien à changer : il relit la politique à chaque construction, et sa republication part d'elle-même quand elle change sur `main`.
+
+### Le tour décernait deux paliers, et les figeait
+
+Le tour pose trois plats d'exemple dans le **vrai journal** ([D141](#d141--le-premier-lancement-se-raconte-sur-lapplication-elle-même---validée)) — c'est ce qui lui permet de montrer l'application en train de fonctionner. Deux d'entre eux portent les sources « description » et « photo », et la progression lit le journal : elle décernait « Première description » et « Première photo » au premier lancement, avec leurs célébrations, pour un porridge et un poke bowl que personne n'avait notés.
+
+**Et elle les figeait.** Un palier pris se range et ne se reprend pas ([D132](#d132--la-progression-se-dérive-du-journal-et-ne-range-que-ce-quil-ne-peut-pas-redire---validée)) : effacer les plats à la fin du tour ne rendait rien. `ObserveProgress` écarte désormais les plats du tour **avant tout calcul** — reconnus à leur identifiant fixe, celui-là même qui sert à les effacer au lancement suivant. L'hexagone et la liste les voient toujours ; la progression, non. Aucune étape du tour ne montre l'anneau de niveau, donc rien n'est retiré à ce qu'il raconte.
+
+**Ce qui n'a pas été réparé** : les paliers déjà figés chez les testeurs. Rien ne distingue un palier pris pendant le tour d'un palier gagné puis dont le plat a été supprimé, et retirer le second punirait une correction. L'application n'étant pas encore publiée, les installations neuves partent propres ; un testeur qui veut les siennes propres efface ses données.
+
+### Le rouge accusait une clé manquante pendant qu'on présentait la barre
+
+Le tour désigne le champ et l'appareil photo pour dire à quoi ils servent, et sans clé ils sont rouges, marqués d'un triangle : l'écran accusait une clé manquante à quelqu'un qui découvre l'application depuis trente secondes, sous une bulle qui lui expliquait ces deux gestes. **Pendant le tour, la barre prend l'apparence neutre** — celle de « on ne sait pas encore » ([D140](#d140--une-alerte-attend-davoir-quelque-chose-à-dire-et-le-désucrage-ferme-la-porte---validée)). Elle n'est pas utilisable de toute façon : le voile retient tous les gestes.
+
+**Sauf à la dernière étape sans clé**, qui dit justement que le champ et l'appareil photo « restent en rouge » : c'est le moment où le rouge s'explique, et il apparaît sous la phrase qui le décrit.
+
+### Le premier écran mêlait deux alignements
+
+Le titre et l'hexagone étaient centrés ; la phrase et l'avertissement, calés à gauche dès qu'ils passaient à la ligne ; et la case à cocher pendait en haut d'un paragraphe de quatre lignes qui lui servait de libellé. Rien ne s'alignait sur rien, sur le premier écran de l'application.
+
+**Un seul axe, de haut en bas** : l'hexagone, le titre et la phrase centrés, comme la couverture qu'ils sont ; puis l'avertissement dans une **carte** en pleine largeur, avec son icône d'information, où un paragraphe calé à gauche est à sa place. La case reçoit un libellé d'une ligne — « J'ai lu et compris » — qui se centre avec elle. Toute la carte bascule, et TalkBack l'annonce comme une seule case avec l'avertissement dans la même phrase : on ne peut pas accepter sans entendre ce qu'on accepte. Accepté, le contour passe à la couleur d'accent et s'épaissit.
+
+**Conséquences.** Un drapeau de plus dans `:domain`, un paramètre de plus à `OfferContribution` (avec son défaut), une fonction de reconnaissance des plats du tour, un fichier pour l'écran d'accueil. Cinq cas de test neufs. Les politiques française et anglaise changent ensemble, datées du 13 octobre 2026. Au passage, les sections D139 et D140 de ce journal, doublement encodées depuis leur écriture, se lisent de nouveau.
+
+**Ce que le vert ne prouve pas.** Que la nouvelle carte d'accueil soit plus belle que l'ancienne : aucun cas ne regarde un écran, et c'est sur un téléphone qu'elle se juge. Et que le trait fin reste lisible sous la moyenne sur un écran clair : son effacement est choisi pour le thème sombre par défaut, et n'a été vu dans aucun des deux.
+
+---
+
+## D159 — La courbe se nomme, et sa tendance ne s'interrompt plus · ✓ validée
+
+**Contexte.** Le premier essai de [D158](#d158--la-courbe-se-relie-open-food-facts-attend-le-tour-ne-décerne-rien-et-le-premier-écran-saligne---validée) sur un vrai journal : des pesées espacées, des trous de plus d'une semaine. Le trait fin reliait bien les pesées, mais l'écran portait désormais **deux tracés sans nom** — un gris, un coloré — et le coloré, la moyenne sur sept jours, n'apparaissait qu'en un bout de trait isolé au milieu de la courbe, « comme un cheveu sur la soupe ».
+
+### Pourquoi la moyenne sur sept jours ne pouvait pas mieux faire
+
+Elle ne se calcule que là où la fenêtre porte trois pesées ([docs/03](03-nutrition-calculs.md)). C'est la bonne règle pour **conseiller** — un silence vaut mieux qu'un ajustement fondé sur une pesée —, et la mauvaise pour **dessiner** : avec deux pesées par semaine, elle n'existe jamais ; avec des trous, elle n'existe que par fragments. Aucun réglage de fenêtre ne la sauvait : élargie, elle traîne derrière la réalité ; abaissée à deux pesées, elle lisse ce qui n'a pas à l'être.
+
+### La tendance qui oublie à proportion du temps
+
+La courbe trace désormais une **moyenne exponentielle pondérée par le temps écoulé** — la méthode de *The Hacker's Diet*, que reprennent les applications de pesée qui l'ont suivie. Chaque pesée rapproche la tendance d'elle-même d'une part `1 − 0,9^jours` :
+
+- **pesées quotidiennes** : un dixième du chemin par jour, et l'eau et le sel d'un jour à l'autre s'effacent ;
+- **une pesée par semaine** : un peu plus de la moitié du chemin ;
+- **après trois semaines de silence** : presque tout le chemin, parce que l'ancienne tendance ne dit plus rien du poids d'aujourd'hui.
+
+Elle existe dès la première pesée et ne s'interrompt jamais : plus de bout de trait isolé. Le dixième est une constante nommée, `TREND_DAILY_SMOOTHING`, et c'est la valeur d'origine — elle n'a été calibrée sur aucun journal réel de ce projet.
+
+**La pente de l'adaptation hebdomadaire garde sa règle.** Deux moyennes de sept jours, trois pesées chacune : un conseil sur l'objectif doit se taire quand les données sont maigres, là où une courbe doit montrer ce qu'il y a. Les deux calculs coexistent parce qu'ils ne répondent pas à la même question.
+
+### Une légende, et la case dedans
+
+Sous le graphique, chaque tracé est nommé avec une pastille dessinée exactement comme lui — **Pesées**, **Tendance**, et **Trajectoire visée** quand elle est tracée —, et une ligne dit ce que « tendance » veut dire. La pastille et le trait lisent la même encre (`ChartInk`) : une légende dont la teinte divergerait du trait qu'elle nomme serait une légende fausse.
+
+**La case de la tendance est dans la légende**, à côté de son nom : une case ailleurs demanderait de deviner à quel trait elle s'applique. Toute l'entrée bascule, et TalkBack l'annonce comme une case nommée « Tendance ». Elle est **cochée par défaut** — c'est la tendance qui porte l'information de la courbe — et **retenue** d'une visite à l'autre, rangée avec les préférences d'affichage : une case qu'on recoche à chaque visite n'est pas un réglage. Un fichier illisible vaut « cochée ».
+
+La note qui disait « la tendance apparaît à partir de trois pesées dans la même semaine » n'a plus d'objet ; elle devient « la courbe apparaît à la deuxième pesée », qui est ce qu'une seule pesée laisse en effet chercher.
+
+**Conséquences.** `TrendPoint.averageKg`, nullable, devient `trendKg`, toujours présent. `AppearanceSettings` gagne une préférence, avec ses deux cas d'usage et un porteur dans `:feature:weight`. La légende vit dans son propre fichier. Six cas de test neufs, dont deux sous Robolectric pour la case retenue.
+
+**Ce que le vert ne prouve pas.** Que la tendance paraisse juste à quelqu'un qui la regarde : les cas disent qu'elle parcourt un dixième du chemin par jour, pas que ce rythme est le bon pour ce public. Et que la légende tienne sur une ligne : sur un écran étroit, en grande police, elle passe à la ligne — c'est prévu, pas vérifié.
+
+---
+
+## D160 — Le corps a des bornes, le plancher ne crée plus de surplus, et le calendrier ne s'ouvre plus en 2013 · ✓ validée
+
+**Contexte.** Trois remarques sur un même passage par l'onboarding. Aucune saisie n'était bornée : « on peut faire 1 cm, avoir 120 ans, faire 999 kg ». Avec des proportions absurdes, le calcul du poids à prendre et des calories « bloque un peu, est étrange ». Et le calendrier de la date de naissance s'ouvrait sur 2013.
+
+### Les bornes de l'impossible ou presque
+
+| Mesure | Plage |
+|---|---|
+| Âge | 16 à 100 ans, au jour près |
+| Taille | 100 à 250 cm |
+| Poids | 25 à 350 kg |
+| IMC | 12 à 80 |
+
+Elles écartent une faute de frappe — un zéro de trop, deux champs intervertis, une taille tapée en mètres —, pas un corps rare. **Seize ans** plutôt que dix-huit, qui était proposé au motif que tous les calculs sont ceux d'un adulte : un adolescent de seize ou dix-sept ans obtient un objectif approximatif, mais borné par les mêmes garde-fous, et le seuil de la maigreur plus bas l'empêche de viser une perte qui le mènerait sous un IMC de 18,5. Treize, l'ancienne borne, n'est plus proposé.
+
+**Une borne par mesure ne suffit pas.** 100 cm et 300 kg passent chacun seul ; leur IMC de 300, non. Le poids se juge donc **sur la taille**, et c'est la plage en kilos que l'écran annonce — « pour 175 cm, indiquez un poids entre 37 et 245 kg » —, en kilos entiers arrondis vers l'intérieur : ce qui est annoncé est exactement ce qui est accepté. Quand tout est faux, la taille se dit d'abord, puisque le poids se jugera sur elle.
+
+**Ce qui est refusé se dit en chiffres, sous le champ, au bon moment.** Tout de suite quand aucune frappe ne le corrigera — « 999 » ne redescendra pas en ajoutant un chiffre —, à la sortie du champ quand ce n'est peut-être que le début d'une valeur juste — « 17 » avant « 175 » ; sans cette nuance, chaque première frappe allumait un rouge qui n'avait rien à dire. Un « Continuer » ou un « Enregistrer » refusé referme le clavier : le champ fautif se désigne alors en rouge, et la barre répète **sa** phrase, tenue de la même fonction. Dans le profil, la phrase suit le système d'unités : « entre 82 et 540 lb », « 3 pi 4 po ».
+
+**La même règle aux trois endroits** : l'onboarding, le profil et le journal de poids lisent `BodyBounds`, et les phrases vivent dans le design system, à côté des champs qui les portent. ~~`RecordWeight` : aucune borne haute ni basse, un seuil inventé refuserait un jour la pesée de quelqu'un de réel.~~ Le raisonnement oubliait que la dernière pesée entre dans le calcul de l'objectif : 999 kg passaient de la courbe à l'objectif. La pesée se juge sur la taille du profil, que le journal lit par `ObserveHeight`.
+
+**Ce que ces bornes refusent de réel**, et c'est assumé : une personne de moins d'un mètre, un IMC au-delà de 80. La formule de Mifflin-St Jeor n'a pas été validée pour ces corps non plus, et l'application y annoncerait un chiffre faux avec l'autorité d'un chiffre personnel.
+
+### Le poids visé suit le sens, et une perte s'arrête à la maigreur
+
+Rien ne le vérifiait. Perdre vers un poids plus haut calculait une **prise** sous l'étiquette « perdre », et l'aperçu en annonçait le rythme sans signe.
+
+- **Le sens est celui de la stratégie** : plus bas que le poids actuel pour perdre, plus haut pour prendre. Le calcul n'en produit plus d'écart du mauvais côté — à contresens, l'écart vaut zéro —, et c'est le filet ; l'écran, lui, refuse et dit pourquoi.
+- **Une perte s'arrête au seuil de la maigreur**, un IMC de 18,5, au kilo supérieur : « pour 182 cm, visez au moins 62 kg ». Refusé, avec le minimum, plutôt qu'un avertissement qu'on peut passer : c'était l'autre option, et elle laissait une application de déficits accompagner quelqu'un vers la maigreur. Déjà à ce seuil, « Perdre du poids » se refuse **avant** qu'un poids soit tapé : demander « un poids cible et une échéance » aurait envoyé remplir un champ qui ne pouvait pas aboutir.
+- **Une prise s'arrête à ce que ce corps peut peser.**
+
+**Ce n'est pas contredire « l'application ne refuse jamais »** ([03](03-nutrition-calculs.md#garde-fous)). Les garde-fous bornent un **rythme** : une ambition qu'on modère, et dont on propose la date sûre. Un poids visé à 50 kg pour 182 cm n'est pas une ambition trop pressée, c'est un IMC de 15. Il se corrige ; il ne se modère pas.
+
+Le poids visé se juge **aussi en saisie manuelle** : il n'y pilote aucun compteur, mais il trace la trajectoire du journal de poids, où une perte vers la maigreur serait dessinée comme un cap.
+
+### Ce qui « bloquait » : le plancher qui créait un surplus
+
+Le plancher calorique bornait l'écart par en dessous à `plancher − dépense`. Tant que la dépense dépasse le plancher, cette borne est négative et retient un déficit. **Sous le plancher, elle devient positive**, et tout bascule :
+
+- une **perte** devenait une **prise** — jusqu'à 1 200 kcal pour une dépense de 954, soit 246 kcal de surplus sous « perdre » ;
+- un **maintien** devenait une prise aussi ;
+- une **prise** était portée au-delà des bornes de vitesse et du plafond que les garde-fous précédents venaient de poser. La date atteignable se calculait sur cet écart ; « Utiliser cette date » ramenait la demande au rythme sûr, les garde-fous la bornaient de nouveau, le plancher la remontait encore — et l'alerte ne se levait **jamais**. C'est ce qui « bloquait ».
+
+Des proportions absurdes y mènent tout droit — 1 cm donne un métabolisme de base de quelques centaines de kilocalories —, mais **des proportions plausibles aussi** : une femme de 80 ans, 145 cm et 45 kg, assise, dépense 954 kcal. Les bornes seules n'auraient donc rien réglé.
+
+**Le plancher retient un déficit, il ne crée jamais de surplus** : la borne est désormais `min(plancher − dépense, 0)`. La propriété commune aux quatre garde-fous — réduire l'ambition, jamais l'augmenter, ni changer son sens — tient à toutes les dépenses, et son test parcourt maintenant trois dépenses dont deux sous le plancher : avec une seule dépense confortable, il ne pouvait pas voir le défaut.
+
+**Ce que ça coûte, et c'est assumé : le plancher n'est plus absolu pour qui dépense moins que lui.** L'objectif reste alors la dépense, sous le plancher. Manger 1 200 kcal serait, pour cette personne, une prise de poids que personne n'a demandée. L'écran le dit — « Votre dépense estimée (954 kcal) est déjà sous le minimum conseillé de 1 200 kcal : aucun déficit n'est proposé, et l'objectif reste votre dépense. Un professionnel de santé saura vous conseiller. » — au lieu d'annoncer « 0,00 kg par semaine » sous « Perdre du poids ». `GoalPlan.withholdingFloorKcal` porte le plancher qui a tout retenu : c'est ce qui permet de le nommer.
+
+### Pourquoi 2013
+
+Rien n'étant choisi, le calendrier de Material s'ouvre sur le mois en cours, ramené dans sa grille d'années — donc sur décembre de la dernière année permise : 2013, quand le plus jeune âge accepté était treize ans. Il proposait en premier l'âge le moins probable de tous ceux qu'il acceptait.
+
+`BirthDateField` s'ouvre désormais **trente ans en arrière**, un point de départ au milieu des âges adultes. Ce n'est pas une valeur proposée : le champ reste vide, et « Valider » ne s'allume qu'une fois un jour touché. Les naissances se bornent **au jour près** — la grille des années laissait choisir, en décembre de l'année la plus récente, quelqu'un qui n'avait pas l'âge plancher —, et l'onboarding et le profil ne portent plus chacun leur copie des deux constantes.
+
+**Une naissance enregistrée hors des nouvelles bornes** — un profil de quinze ans, écrit quand treize suffisaient — ne fait pas tomber l'écran : Material refuse un état initial hors de ses années, et le refuse en levant une exception. Le sélecteur s'ouvre alors sur le mois d'ouverture, sans sélection, et le profil dit « choisissez une autre date de naissance ». Le défaut existait déjà, en plus discret : une naissance choisie à la première année de la grille en sortait l'année suivante.
+
+### Au passage
+
+- **Le profil affichait « Taille (cm) (cm) »**, et « Taille (cm) (pieds) » en impérial : ses libellés portaient l'unité que le champ ajoute lui-même. Les libellés du profil, de l'onboarding et du journal ne la portent plus.
+- **L'onboarding prend les champs du design system** — ceux du profil et du journal — au lieu de sa propre copie, pour que les bornes s'y disent avec les mêmes phrases.
+- **Le journal proposait en livres un poids à quatorze décimales** — « 181.66090404033912 » pour 82,4 kg : il reprenait la dernière pesée convertie telle quelle. Il passe par le même champ, arrondi au dixième.
+- **`docs/03` portait encore la règle de la courbe que [D159](#d159--la-courbe-se-nomme-et-sa-tendance-ne-sinterrompt-plus---validée) a remplacée** — « sous trois pesées, le tracé lissé a un trou ». Corrigé.
+
+**Conséquences.** Dans `:domain`, `BodyBounds`, `implausibleMeasure` et `checkTarget` portent les règles ; `SafeEnergyBudget` et `GoalPlan` gagnent `withholdingFloorKcal` ; `RecordWeight` lit le profil, et `ObserveHeight` le donne au journal. Dans le design system, `FieldProblem` et trois fonctions de phrases, `BirthDateField`, et deux paramètres pour `NeonDateField` — la borne ancienne au jour près, et le mois d'ouverture. Les blocages de l'onboarding et du profil gagnent l'âge, la taille, le poids et le poids visé. Quarante-trois cas de test neufs, et le test de propriété des garde-fous élargi.
+
+**Campagne de défaite : dix-huit sabotages, dix-huit cas tombés — au second tour.** Le premier tour n'avait rien exécuté : `gradlew.bat` n'était pas trouvé depuis le harnais, et c'est le décompte des cas exécutés, exigé supérieur à zéro, qui l'a dit au lieu de conclure. Au second, un sabotage a survécu : juger le poids **avant** la taille. Aucun cas ne combinait deux mesures fausses, et avec un poids plausible à côté d'une taille fausse, l'ordre ne se voit pas. Le cas manquant est celui du signalement lui-même — 1 cm et 999 kg —, et il fait tomber le sabotage.
+
+**Ce que le vert ne prouve pas.** Que le message attende vraiment la sortie du champ : le focus se lit sur la colonne qui entoure le champ, et aucun test ne compose d'écran. Que le calendrier s'ouvre bien trente ans en arrière sur chaque version d'Android, et que les phrases tiennent sous un champ étroit, en grande police. `PremierLancementTest` a été adapté à la nouvelle ouverture — il choisit l'année voisine de celle de l'en-tête — et compile ; il n'a pas tourné.
+
+---
+
+## D161 — La recherche classe avant de couper, l'application dit d'où elle vient, et un geste ne jette plus rien · ✓ validée
+
+**Contexte.** Un tour complet avant la publication sur Google Play — le code, l'émulateur avec une clé d'IA, le site — a relevé cinq défauts bloquants. Ils se corrigent ensemble ; le reste du tour attend.
+
+### La recherche ne montrait pas la fiche qu'on cherchait
+
+Sur « lait », « fromage », « pain », « sucre », « bread », « cheese », la fiche générique n'apparaissait jamais. `CiqualDatabase.search` demandait à FTS4 les N premières correspondances — `MATCH … LIMIT ?`, sans ordre, donc dans l'ordre interne de l'index —, et le score de [D74](#d74--un-seul-score-pour-trier-et-pour-décider-et-le-tri-nen-bouge-pas---validée) ne classait que ce qui restait. « pain » a vingt-cinq fiches avant la sienne dans cet ordre, « bread » quarante-huit ; les bornes sont de 30 à l'écran, 20 pour le résolveur de l'IA, 6 en analyse approfondie. L'IA en souffrait le plus, parce qu'elle lit moins loin : « a slice of bread » devenait « Sandwich, panini bread, three-cheese », à 90 % de confiance.
+
+**Classer tout, couper ensuite, habiller enfin.** La requête rend toutes les correspondances, `FoodRanking` les classe — le même score, et un seul —, la borne coupe, et seules les lignes gardées reçoivent un identifiant et leurs portions : lire les portions d'un millier de fiches pour en garder six aurait été le vrai coût. Le pire cas, une requête de deux lettres, classe un millier de lignes en mémoire. `FoodRanking.sort` calcule le score une fois par fiche, et non plus à chaque comparaison.
+
+Le parcours d'un rayon sans mot cherché devient `browse` et garde sa borne en SQL, sur les noms les plus courts d'abord, comme avant : sans mot, il n'y a pas de proximité à mesurer.
+
+### La politique en ligne datait d'avant
+
+Celle que publiait hexavore.app datait du 24 septembre : elle parlait d'une contribution à Open Food Facts avec mot de passe, d'un mode debug et de six fournisseurs. La réécriture du 13 octobre, pas encore fusionnée, ne disait rien des deux courriels que l'application prépare — le signalement d'une proposition, avec l'échange, la photo et les lignes ; la trace d'un plantage, avec les classes, le message d'erreur, les versions et le modèle du téléphone —, qui arrivent au projet quand on choisit de les envoyer. Et elle disait « adultes », quand l'onboarding accepte dès seize ans ([D160](#d160--le-corps-a-des-bornes-le-plancher-ne-crée-plus-de-surplus-et-le-calendrier-ne-souvre-plus-en-2013---validée)).
+
+La version du 14 octobre dit ce que ces courriels contiennent, à quoi ils servent, qu'ils ne sont transmis à personne, **qu'ils sont gardés le temps de traiter le défaut, puis supprimés**, et qu'on peut en demander la suppression. Le public devient « 16 ans et plus : c'est l'âge à partir duquel l'application calcule des objectifs ». La mention « Données personnelles » du site disait « aucune donnée » ; elle dit désormais que l'application n'en transmet au projet que dans les courriels qu'on choisit de lui envoyer.
+
+**Elle n'est en ligne qu'une fois fusionnée** : le site la lit dans `main`, au moment où il se publie.
+
+### « À propos » existe, et la politique se trouve depuis l'application
+
+Google Play veut la politique atteignable **depuis l'application**, et pas seulement depuis la fiche du Store. Aucun écran n'y menait. « À propos », différé depuis la conception parce qu'il « n'ouvrirait rien », ouvre ce que la publication exige :
+
+- **la politique**, en première carte, dans la langue de l'application ;
+- **l'avertissement médical**, accepté une fois à l'onboarding puis introuvable. Il passe dans le design system : les deux écrans disent la même phrase parce qu'ils lisent la même chaîne ;
+- **la provenance des valeurs**, dans les formulations que les licences demandent : la Licence Ouverte veut la source et son édition, l'ODbL qu'il soit dit que l'application contient des informations de la base ;
+- **les licences de ce que l'APK embarque** : la GPL de l'application, l'OFL d'Inter, l'Apache 2.0, la GPLv2 avec exception de la bibliothèque de désucrage, et la MIT du calendrier — la seule reproduite en entier, parce qu'elle tient en trois paragraphes et qu'elle l'exige.
+
+La version affichée vient du catalogue de versions, par un `BuildConfig` du module : écrite à la main, elle aurait menti à la première montée. La carte de lien de Contact devient `LinkCard`, partagée par les deux écrans. Le lien de don attend toujours la variante hors Play Store.
+
+### Un jour d'avant ne relance plus l'onboarding
+
+Une journée antérieure au premier objectif affichait l'invitation d'une installation sans objectif — « Cinq questions suffisent… », puis « Définir mon objectif » — chez quelqu'un qui venait d'y répondre, et revenait noter un repas d'avant son installation. Le bouton relançait l'onboarding entier.
+
+`DaySummary` sait désormais qu'une journée **précède le premier objectif** : elle n'en a pas, et un objectif court aujourd'hui. Les objectifs se succèdent sans trou ([D04](#d04--objectifs-versionnés-plutôt-que-mis-à-jour-en-place---validée)) : une journée sans objectif, quand un objectif court, ne peut être qu'antérieure au premier. L'accueil y dit seulement qu'elle le précède, sans bouton, et garde ses six totaux en texte.
+
+### Le retour du système ne jette plus rien
+
+**Dans l'onboarding, il fermait l'application**, et les réponses partaient avec elle. Il recule désormais d'une étape, comme le bouton « Retour » ; à la première, il rend la main au système.
+
+**Sur l'écran de validation, il jetait le brouillon sans rien demander**, même une proposition d'IA payée, qui ne se rejoue pas. [02](02-parcours-et-ecrans.md#comportements-transverses) demandait depuis la conception qu'une modale contenant une saisie non enregistrée demande confirmation « une fois, sans insister ». L'écran ne le faisait pas, et son commentaire l'assumait : « Annuler » ne demandait rien parce qu'il fait ce que fait le retour, et qu'un garde-fou sur l'un des deux chemins et pas sur l'autre ne protège rien.
+
+C'est vrai de qui veut partir. Ça ne l'est pas de qui part sans le vouloir, et **seul le retour se déclenche sans le vouloir** : un glissement depuis le bord, sur un formulaire qu'on fait défiler du pouce. Le retour demande donc. « Annuler », un bouton qui dit ce qu'il fait et qu'il faut viser, ne demande toujours rien : le confirmer pénaliserait le cas volontaire.
+
+**Ce qui se perdrait décide de la question :**
+
+- un repas **pas encore noté** perd tout ce qu'il porte, même intact, dès qu'une ligne est remplie ou qu'une photo est là ; la ligne vierge d'une saisie neuve ne compte pas ;
+- un plat **déjà écrit**, ou le favori qu'on corrige, ne perd que ce qui a changé depuis l'ouverture.
+
+**« Une fois, sans insister » se lit « une question par tentative ».** « Quitter » ferme ; « Continuer la saisie », un appui à côté ou un second retour rendent l'écran tel qu'il était, et rien ne suit. Une fois pour toutes aurait laissé le second retour accidentel emporter le brouillon que le premier avait sauvé. Pendant l'écriture, le retour ne fait rien, comme « Annuler », grisé au même moment : quitter l'écran à cet instant pourrait couper l'écriture avec le `ViewModel` qui la porte.
+
+### Au passage
+
+- **`docs/02` comptait sept sections de réglages, et en oubliait deux** qui existent, Favoris et Contact. Elles sont neuf avec À propos.
+- **L'onboarding tenait `rememberLauncherForActivityResult` d'une dépendance transitive.** `activity-compose` y est déclarée, comme dans le module de la saisie qui en a besoin à son tour.
+
+**Conséquences.** Dans `:core:database`, `search` rend toutes les correspondances et `browse` porte le parcours des rayons ; `RoomFoodCatalog` classe, coupe, puis habille. Dans `:domain`, `DaySummary.beforeFirstGoal`, que `GetDaySummary` tire de l'objectif courant. Dans le design system, `ds_medical_disclaimer`. Dans `:feature:settings`, `AboutScreen`, `LinkCard`, une destination et une carte de plus. Dans `:feature:home`, `BeforeFirstGoal`. Dans `:feature:entry`, `DiscardGuard` et `EntryUiState.Content.unsaved`. Dans `:feature:onboarding`, un `BackHandler`. La politique, en français et en anglais, et une phrase du site dans chaque langue. Onze cas de test neufs.
+
+**Campagne de défaite : onze sabotages, onze tombés, au premier tour.** Trois sur la journée d'avant : ne plus exiger d'objectif courant, ne plus exiger l'absence d'objectif ce jour-là, ne jamais rien dire. Sept sur ce que quitter perdrait : compter la ligne vierge, traiter le favori qu'on corrige comme un repas neuf, ne plus comparer le formulaire, oublier l'image choisie, ne jamais rien perdre d'un repas neuf, ne pas transmettre la réponse à l'écran, ne pas retenir l'ouverture. Un sur la recherche : couper avant de classer, c'est-à-dire le défaut lui-même, qui fait tomber les deux cas neufs. Chacun a fait tomber au moins un cas, et le décompte des cas exécutés était chaque fois supérieur à zéro.
+
+**Ce que le vert ne prouve pas.** Aucun test ne compose d'écran. Que le retour ouvre la boîte et que chacune de ses réponses fasse ce qu'elle dit, qu'« Annuler » ferme sans question, que l'onboarding recule en gardant les réponses, qu'une journée d'avant s'affiche sans bouton, qu'« À propos » porte la MIT dans l'APK réduit et que sa carte ouvre le navigateur, tout cela a été vérifié à l'émulateur, sur la release, en anglais et en français, mais sur Android 16 seulement et sans grande police. Que la politique soit en ligne : elle ne le sera qu'après fusion, et la fiche Play doit pointer vers elle. ~~Qu'un téléphone sans navigateur survive à l'appui sur un lien : `openUri` lève une exception quand rien ne sait ouvrir l'adresse, ici comme sur Contact, qui le faisait déjà.~~ Réglé par [D162](#d162--le-reste-du-tour--ce-que-lapplication-promettait-sans-le-tenir---validée) : l'échec se dit dans une barre. Les tests instrumentés n'ont pas tourné : l'émulateur géré par Gradle ne démarre pas sur ce poste. La règle de ce qui se perdrait ne reconnaît pas un plat modifié puis remis à l'identique : il demande encore, et c'est le côté sûr.
+
+---
+
+## D162 — Le reste du tour : ce que l'application promettait sans le tenir · ✓ validée
+
+**Contexte.** Le tour d'avant publication avait relevé, au-delà des cinq bloquants de [D161](#d161--la-recherche-classe-avant-de-couper-lapplication-dit-doù-elle-vient-et-un-geste-ne-jette-plus-rien---validée), une quinzaine de défauts ; deux autres sont apparus en vérifiant les premiers. Presque tous ont la même forme : une phrase, un bouton ou un chiffre qui promettait ce que l'application ne faisait pas.
+
+### La question des notifications, posée deux fois
+
+L'onboarding la pose à son dernier geste ([D134](#d134--les-rappels-se-taisent-quand-ils-nont-rien-à-dire---validée)), et l'accueil la pose à la première ouverture pour qui avait installé l'application avant les rappels ([D135](#d135--ce-que-lusage-a-trouvé-en-une-soirée---validée)). L'accueil relisait pour cela `permissionAsked()`, **que l'onboarding n'écrivait jamais** : juste après un « Ne pas autoriser », la boîte revenait, dans sa variante « ne plus demander ». `PremierLancementTest` l'avait relevé et contourné, en notant que la collision restait entière.
+
+L'enregistrement de fin d'onboarding note désormais la question comme posée, et d'abord : c'est elle qui y mène, l'écran ne demandant à enregistrer qu'une fois la boîte du système refermée. Elle se note même si l'écriture échoue — la question a été posée, qu'on réessaie ou non.
+
+### Ce que les écrans disaient de faux
+
+- **Un jour passé vide disait « Rien de noté aujourd'hui »**, sous le titre « Hier », et promettait des compteurs qui se rempliraient — sur une journée d'avant le premier objectif, qui n'en a pas. Il dit « Rien de noté ce jour-là », et qu'on peut encore y noter l'oubli.
+- **Le premier palier doré s'annonçait « 1 journées dorées d'affilée »**, et son indice « Restez dans votre fourchette 1 jours de suite ». Les noms et les indices chiffrés des paliers sont des pluriels, sur l'accueil comme sur la progression.
+- **Une sauvegarde de la 0.9.0 annonçait la 0.7.** La version écrite dans le fichier était une constante tenue à la main, et déjà oubliée une fois, de la 0.4 à la 0.7. Elle vient du catalogue de versions, comme celle d'« À propos » et des traces de plantage.
+- **L'écran des notifications disait « aucune permission » juste au-dessus des rappels**, qui sonnent et en demandent une. La phrase parle désormais des pastilles, et dit que seuls les rappels sonnent. Deux autres y étaient devenues fausses : les boutons d'analyse « grisés » sans clé, quand la barre passe au rouge ([D136](#d136--trois-gestes-qui-manquaient-à-lusage---validée)) ; « la tendance se tait » sans pesées, quand elle ne se tait plus depuis [D159](#d159--la-courbe-se-nomme-et-sa-tendance-ne-sinterrompt-plus---validée) — c'est l'adaptation qui manque d'appui.
+- **Un objectif de maintien s'entendait dire** que ses calories étaient « ajustées à votre échéance » et ses protéines « calculées sur votre poids cible ». Choisir le maintien efface l'un et l'autre, et les protéines se calculent sur le poids actuel. Les deux phrases ont leur variante.
+- **Le README promettait une sauvegarde sur Google Drive**, qui attend toujours ; il dit l'export par fichier. **Le site disait des valeurs nutritionnelles qu'elles venaient « de bases publiques, pas de sa mémoire »** : c'est faux d'une ligne estimée par le modèle quand aucune base ne connaît l'aliment ([D89](#d89--une-valeur-complétée-ne-se-range-pas-où-une-valeur-mesurée-se-range---validée)). Il le dit, et que l'écran le signale.
+
+### Ce que les écrans affichaient mal
+
+- **L'hexagone écrivait ses initiales en dur, en français**, au motif que ce seraient des symboles de figure, les mêmes dans les deux langues. En anglais, « G » et « L » ne disaient rien, et son « F » désignait les fibres juste au-dessus de plats où « F » désignait les lipides. Les initiales vivent dans le design system, lues par l'hexagone et par les pastilles des plats : en anglais, « kcal », « P », « C », « S », « F », « Fb ». La zone de la figure se règle sur la plus large.
+- **L'heure et la batterie devenaient illisibles sous un thème forcé.** `enableEdgeToEdge()` choisit la couleur des icônes d'après le mode du **système** ; un thème sombre sur un téléphone clair les laissait en noir sur noir. Les barres suivent maintenant le thème de l'application, depuis le design system, parce que leurs deux voiles sont des couleurs.
+- **Juste après un changement de langue, le calendrier commençait ses semaines au mauvais jour**, jusqu'au redémarrage. La bibliothèque garde son état d'une recréation à l'autre, premier jour de la semaine compris, et le restaurait sous l'en-tête de la nouvelle langue. L'état est désormais indexé par ce premier jour, et la langue se lit dans la configuration de l'écran plutôt que dans `Locale.getDefault()`.
+- **En impérial, quatre endroits restaient en kilos ou en ordre français** : l'axe du graphique (« 14/10 · 80,0 kg » au-dessus d'une liste en livres), la lecture d'une pesée par le lecteur d'écran, la carte d'ajustement, et le format jour/mois de l'axe, qui se lit à l'envers en anglais américain. L'axe passe par le même libellé que la liste, la lecture a sa phrase en livres, la carte reçoit le système d'unités, et la date suit le motif que la langue préfère. L'accueil n'avait pas les unités ; elles lui arrivent par `DayAdjustment`, la conversation d'ajustement qu'il porte déjà, son modèle étant à son seuil de paramètres.
+- **Une confiance de 20 % s'affichait exactement comme une de 95 %**, alors que [docs/02](02-parcours-et-ecrans.md) veut une correspondance faible signalée. Sous 0,75 — le seuil où le résolveur cesse lui aussi de remplir seul —, la confiance s'écrit « faible : à vérifier », en rouge : la couleur et les mots.
+
+### Ce qui ne marchait pas
+
+- **Une caméra refusée pour de bon rendait « Prendre une photo » muet.** Android ne rouvre plus sa boîte après deux refus et rend « refusé » sans rien afficher. Quand il ne la rouvrira plus — pas au premier refus, qu'on vient de donner en connaissance de cause —, une boîte du design system dit où l'autoriser, nomme la galerie qui marche sans permission, et ouvre les réglages d'Hexavore. Elle sert l'écran d'analyse et l'écran de validation.
+- **Un téléphone sans navigateur tombait à l'appui sur un lien** d'« À propos » ou de Contact : `openUri` lève une exception quand rien ne prend l'adresse. L'échec se dit dans une barre, qui renvoie à l'adresse écrite sur la carte.
+- **Claude Haiku 4.5, que la liste proposait, n'a pas de paramètre `effort`**, et refusait chaque analyse d'un `400`. La liste propose Claude Haiku 5.5, et l'effort est omis pour les modèles d'avant : une liste de ce qui le refuse, et non de ce qui l'accepte, pour qu'un modèle qui sortira demain le reçoive sans attendre une version de l'application.
+- **Le calvados valait 0 kcal, le pastis allongé 2.** L'ANSES ne publie ni leur énergie ni leur alcool ; l'énergie complétée se calculait sur les quatre teneurs du règlement, qui ne voient pas l'alcool, compté à 7 kcal/g. Elle vient maintenant de leur parent mesuré : l'eau-de-vie de vin, au même degré, pour le calvados (222 kcal) ; le pastis pur divisé par six pour le pastis allongé (46 kcal), dont les glucides publiés sont bien ceux du pastis divisés par six. Le baba au rhum artisanal garde son calcul : son alcool est inconnu aussi, mais il n'en porte que ce que le sirop lui laisse. La base se régénère à l'identique sans changement, et seules ces deux lignes bougent.
+- **La restauration promettait un retour en arrière qu'aucun écran n'offrait.** La copie de sécurité existait, dans le stockage interne, hors de portée. « Revenir en arrière » la remet, depuis l'écran de sauvegarde, après confirmation ; la carte ne paraît qu'après une restauration. L'état quitté devient la copie à son tour, si bien que le retour se défait de la même façon, et le retour refuse de remplacer quoi que ce soit si cette nouvelle copie ne s'écrit pas.
+- **Et l'effacement complet laissait cette copie** : le journal entier restait sur le téléphone, quand la politique dit « Effacer toutes mes données » efface le journal. Il l'emporte désormais. Les sauvegardes que l'utilisateur a rangées lui-même, elles, restent intactes, comme avant.
+
+### Ce qui n'est pas fait
+
+- **Le statut « pas encore publiée » du site reste** jusqu'à ce que la fiche Play soit publique : un lien vers une fiche qui n'existe pas encore mènerait à une page d'erreur.
+- **La boîte de l'écran de scan garde sa propre ouverture des réglages** : `:feature:scan` ne dépend pas du design system pour cela, et elle marchait déjà.
+
+**Conséquences.** Dans `:domain`, `UndoRestore`, une dépendance de plus pour `EraseEverything`, `Suggestion.unsure`, et Claude Haiku 5.5 dans les modèles proposés. Dans `:core:testing`, `InMemoryReminderSettings`. Dans le design system, `MacroInitials`, `CameraRefusedDialog`, `edgeToEdgeFollowing`, les unités de `AdjustmentCard`. Dans `:core:media`, le signalement d'un refus définitif. Dans `:integration:ai`, `effortFor`. Dans les écrans, la carte et la boîte du retour en arrière, l'ouverture des liens, les pluriels des paliers, les libellés impériaux, le calendrier indexé. Dans l'outillage, deux énergies de `completions.csv` et la base régénérée. Le README et une phrase du site dans chaque langue.
+
+**Campagne de défaite : douze sabotages, douze tombés.** La question des notifications jamais notée, ou notée seulement après une écriture réussie ; le seuil de doute compté comme un doute, puis descendu à la moitié ; l'effort envoyé à tous les modèles, puis les Opus 4 datés oubliés de la liste ; le retour en arrière qui ignore l'échec de sa nouvelle copie, puis qui ne garde pas l'état quitté ; l'effacement qui laisse la copie, vu du cas d'usage et vu de l'écran ; l'écran qui ne relit pas la copie après un geste ; le retour qui rend le message d'une restauration. Chacun a fait tomber au moins un cas, sur des modules dont on a compté les cas exécutés.
+
+**Ce que le vert ne prouve pas.** Aucun test ne compose d'écran. Vérifié à l'émulateur, sur la release, sous Android 16 : les initiales anglaises de l'hexagone, l'heure lisible sous un thème forcé dans les deux sens, le calendrier qui commence au lundi juste après le passage au français, la date en français à la saisie, la carte « Revenir en arrière » datée après une restauration, les phrases de restauration et d'effacement, les pluriels des paliers, des points et des calories consommées, les phrases des pastilles. **Pas vérifié** : la question des notifications sur un onboarding neuf — l'émulateur l'avait refusée pour de bon, ce que D163 a d'ailleurs révélé —, la boîte d'une caméra refusée pour de bon, la barre d'un lien sans navigateur, les libellés impériaux, la version écrite dans un export, l'énergie du calvados à la recherche. Les tests instrumentés n'ont pas tourné.
+
+---
+
+## D163 — Un mois de vrai journal : ce que l'usage montrait et que les tests ne voyaient pas · ✓ validée
+
+**Contexte.** La reprise du tour a commencé par donner à l'émulateur un mois de vie : un export réel, complété d'une pesée par jour, de trois plats par jour sur vingt-cinq jours et d'un objectif de perte, puis restauré par l'écran. Tout ce qui suit s'est vu ainsi, ou en sondant le code autour de ce qui s'était vu. Une partie est corrigée ; le reste est décrit ici et dans `REPRISE.md`, à la racine du dépôt, avec de quoi le reprendre.
+
+### Ce qui ne marchait pas
+
+- **Le deuxième palier d'une file restait figé à l'écran.** Après un rattrapage — une restauration, une semaine sans ouvrir l'application —, « 10 plats notés » et « 50 plats notés » tombent ensemble. La célébration se relançait sur son titre, « Palier atteint », le même pour tous : le second héritait d'un minuteur déjà écoulé. Animations coupées, son texte restait par-dessus la carte d'ajustement et les plats ; animations allumées, il était invisible et la file ne se vidait plus. Une composition par palier, et une relance sur le titre **et** le sous-titre.
+- **La carte d'ajustement proposait de manger plus à qui ne perdait pas.** « Sur les trois dernières semaines : poids stable. L'objectif visait −0,4 kg par semaine. Augmenter l'objectif de 7 kcal ? » L'objectif était posé sur la borne des 25 % de la dépense ; la borne, recalculée sur le poids du jour, avait monté de 7 kcal, et le garde-fou y ramenait la correction demandée — moins 150. Un garde-fou peut annuler une correction, jamais l'inverser : une proposition de sens contraire à l'écart ne paraît plus. **Et la carte suivait chaque jour touché**, au-dessus d'hier comme d'aujourd'hui, contre ce que son modèle disait déjà : elle ne paraît plus que sur aujourd'hui.
+- **Une photo prise pouvait se perdre sans un mot.** Pendant que l'appareil photo du système est ouvert, Android tue volontiers Hexavore — c'est l'application en arrière-plan qui consomme le plus. La perte s'est vue à l'émulateur, en tuant le processus pendant la prise ; trois choses s'y conjuguent, et elles se lisent dans le code : l'adresse de la prise n'était tenue qu'en mémoire, et revenait nulle à l'écran recréé ; le balayage du lancement effaçait le fichier que l'appareil photo venait d'écrire ; et l'ouverture du brouillon vide le dépôt des photos, si bien qu'une image arrivée pendant était déposée puis jetée. L'adresse est sauvée avec l'écran, le balayage épargne une prise de moins d'une heure, et la photo attend que le brouillon soit ouvert.
+- **« Autoriser les notifications » ne faisait plus rien** une fois la permission refusée pour de bon : Android rend « refusé » sans rien afficher. Le bouton ouvre alors l'écran des notifications d'Hexavore dans Android ; l'avertissement se relit au retour, au lieu de rester affiché jusqu'à ce qu'on quitte l'écran ; et avant Android 13, où il n'y a pas de permission mais où l'on peut éteindre les notifications d'une application, il le voit enfin — la lecture de la seule permission les déclarait permises.
+- **« lait » rendait « Laitue, crue » en premier**, et l'IA, qui écrit « lait », y tombait : un nom qui commençait par les lettres de la requête comptait comme un préfixe. Un préfixe s'arrête désormais à la fin d'un mot ; un nom qui ne commence que par les lettres vaut moins qu'un nom où la requête est un mot entier, et plus qu'un nom où elle n'arrive que plus loin.
+
+### Ce que les écrans affichaient mal
+
+- **L'écran de scan et la liste des favoris passaient sous les barres du système** : « Fermer » sur l'heure, « Vos plats favoris » sous elle, « Retour » et les issues d'un produit inconnu sous la barre de geste. L'aperçu de la caméra reste bord à bord ; ce qui se pose dessus prend ses encarts barre par barre, et la liste fait comme la recherche, sa voisine.
+- **Le disque du jour regardé n'était pas borné**, quand l'anneau l'était « pour qu'une tablette ne montre pas sept médaillons ». Couché, un téléphone montrait une semaine de 130 dp de haut et il restait au journal une bande de quelques pixels. La hauteur de la cellule, et le disque avec elle, s'arrêtent à 64 dp ; le téléphone tenu debout, plus étroit, garde ses cellules carrées. Le paysage reste « non optimisé » ([01](01-perimetre.md)) ; la semaine n'y prend plus que la hauteur qu'elle a sur un téléphone debout.
+- **Changer de jour gardait le défilement** : descendu jusqu'aux plats d'hier, on revenait à aujourd'hui au milieu de sa page, l'hexagone coupé. Un changement de jour remonte la page, sauf à la première composition et après une rotation.
+- **La recherche Open Food Facts n'avait pas de seconde chance.** Son moteur répond « indisponible » par intermittence — 503, 503, puis 200, à quelques secondes d'intervalle —, et la phrase seule laissait l'échec sans issue : il fallait retaper la requête. Un bouton « Réessayer » suit la phrase, qui dit maintenant « n'a pas répondu » plutôt que « n'a pas pu être joint ».
+- **L'export énumérait tout sauf les photos**, que l'archive emporte : « le journal et ses photos ».
+
+### Ce qui n'est pas fait
+
+- **La forme qu'on mange.** Le classement suppose que la fiche générique porte le nom le plus court de sa famille ; c'est souvent faux. « riz » rend le riz cru (350 kcal pour 100 g, contre 155 cuit), « pâtes » les pâtes sèches, « café » le café moulu — 341 kcal pour 100 g, soit cinq cents pour une tasse —, « thé » le thé en feuilles, « avocat » l'huile d'avocat, « pomme » la pomme séchée ; en anglais, « chicken » la graisse de poulet, « salmon » l'huile de saumon, « rice » le son de riz. L'IA, qui écrit des noms simples, en hérite. La correction retenue est une table de **noms courants** par langue, relue à la main comme les titres courts, indexée avec le libellé et pesée par le même score ([D74](#d74--un-seul-score-pour-trier-et-pour-décider-et-le-tri-nen-bouge-pas---validée)) : un nom courant est un nom. Elle a été commencée puis retirée de ce lot, faute d'avoir sa table ; `REPRISE.md` en donne le plan complet.
+- **La saisie ne survit pas à la mort du processus**, que [docs/02](02-parcours-et-ecrans.md) promettait : brouillon de plat — analyse comprise —, aliment personnel, onboarding, profil, pesée. Le report de [D40](#d40--ce-que-la-tranche-2-ne-construit-pas---validée) attendait « le deuxième écran qui a une saisie longue » ; il y en a cinq. Vérifié à l'émulateur sur l'aliment personnel : seul le nom, venu de la route, revient.
+- **Une pesée ne se supprime pas.** Le port n'a que `record` ; une pesée tapée sur la mauvaise date reste dans la courbe, dans la pente de l'adaptation et dans le poids qui sert au calcul.
+- **La liste des favoris montre les noms figés à l'enregistrement**, quand l'éditeur montre ceux de la fiche vivante : après un changement de langue, la liste est en anglais et l'éditeur en français.
+- **Sans animations, la célébration ne dure qu'une image**, alors que son commentaire la dit « remplacée par le seul texte ».
+- **Rien de ce lot n'a été vérifié à l'émulateur après correction.** Les défauts, eux, l'ont été avant.
+
+**Conséquences.** Dans `:domain`, la règle de sens de `SuggestGoalAdjustment` et le palier des préfixes de lettres dans `FoodRanking`. Dans `:core:media`, l'adresse de prise sauvée et la règle du balayage, `abandonedCapture`. Dans le design system, la relance de `Celebration`. Dans les écrans, la file des paliers, la carte limitée à aujourd'hui, la page remontée au changement de jour, la hauteur bornée des cellules, `NotificationAccess`, les encarts du scan et de la liste des favoris, le bouton « Réessayer ». Dans `:app`, l'horloge du domaine donnée au balayage. Deux phrases dans chaque langue.
+
+**Campagne de défaite : huit sabotages, huit tombés.** Le garde-fou qui retourne la correction ; le balayage qui emporte toute prise, puis qui emporte celle posée pile au délai ; la photo qui n'attend plus l'ouverture du brouillon ; la cellule redevenue carrée partout ; le préfixe de lettres compté comme un préfixe ; les lettres valant plus que le mot entier, puis pas plus que la simple présence. Un cas a été affûté avant la campagne : celui de la saisie en cours comparait deux noms que la brièveté départageait déjà, et il aurait survécu au retrait du palier. Vérification complète depuis zéro, sans cache : 2 536 cas exécutés, aucun échec.
+
+**Ce que le vert ne prouve pas.** Aucun test ne compose d'écran : la file des paliers, la carte absente des jours passés, la page remontée, le bouton des notifications, les encarts, le bouton « Réessayer » ne sont éprouvés que par la lecture. La photo sauvée se juge sur un téléphone qu'Android vide pendant la prise ; l'émulateur l'a montrée perdue avant, pas retrouvée après.
 
 ---
 

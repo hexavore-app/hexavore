@@ -15,6 +15,7 @@ import app.hexavore.domain.profile.UserProfile
 import app.hexavore.domain.profile.WeightEntry
 import app.hexavore.domain.profile.WeightLog
 import app.hexavore.domain.profile.WorkActivity
+import app.hexavore.domain.reminder.ReminderSettings
 import app.hexavore.domain.time.Clock
 import app.hexavore.domain.usecase.CalculateDailyGoal
 import app.hexavore.domain.usecase.GoalRequest
@@ -48,6 +49,7 @@ internal class OnboardingViewModel @Inject constructor(
     private val calculate: CalculateDailyGoal,
     private val clock: Clock,
     private val ids: IdGenerator,
+    private val reminders: ReminderSettings,
 ) : ViewModel() {
     private val state = MutableStateFlow(OnboardingUiState(today = clock.today()))
     val uiState: StateFlow<OnboardingUiState> = state
@@ -92,6 +94,15 @@ internal class OnboardingViewModel @Inject constructor(
      * Dans cet ordre, et c'est le même raisonnement que pour `LogDish` : l'objectif
      * découle d'un profil et d'une pesée, et les écrire après lui laisserait un
      * instant pendant lequel l'accueil aurait un objectif sans savoir d'où il vient.
+     *
+     * **La question des notifications est notée comme posée**, et d'abord
+     * ([D162][decisions]). C'est elle qui mène ici : l'écran ne demande à enregistrer
+     * qu'une fois la boîte du système refermée. Personne ne l'écrivait, et l'accueil,
+     * qui la pose aux installations d'avant les rappels, la reposait aussitôt — juste
+     * après un « Ne pas autoriser ». Elle se note même si l'écriture échoue : la question
+     * a été posée, qu'on réessaie d'enregistrer ou non.
+     *
+     * [decisions]: docs/11-decisions.md
      */
     fun onFinish(onDone: () -> Unit) {
         val answers = state.value.answers
@@ -99,6 +110,7 @@ internal class OnboardingViewModel @Inject constructor(
         state.update { it.copy(saving = true, failed = false) }
 
         viewModelScope.launch {
+            runCatching { reminders.markPermissionAsked() }
             val outcome = runCatching {
                 profiles.save(answers.toProfile(clock.today()))
                 weights.record(WeightEntry(clock.today(), answers.weightOrDefault()))

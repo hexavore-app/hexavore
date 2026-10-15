@@ -73,7 +73,9 @@ fun Celebration(title: String, subtitle: String, onDone: () -> Unit, modifier: M
     // monte et s'efface. Deux animations independantes auraient fini a deux moments.
     val run = remember { Animatable(0f) }
 
-    LaunchedEffect(title) {
+    // Relancee par ce qui distingue une celebration d'une autre, et pas par le seul
+    // titre, que plusieurs partagent : le second d'une file ne repartait jamais (D163).
+    LaunchedEffect(title, subtitle) {
         run.snapTo(0f)
         if (millis > 0) run.animateTo(1f, tween(durationMillis = millis * SLOW_FACTOR, easing = LinearEasing))
         finished.value()

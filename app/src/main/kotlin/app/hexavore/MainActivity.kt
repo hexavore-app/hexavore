@@ -6,9 +6,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.hexavore.core.designsystem.theme.NeonTheme
+import app.hexavore.core.designsystem.theme.edgeToEdgeFollowing
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -46,7 +48,16 @@ class MainActivity : AppCompatActivity() {
 
             // Le reglage d'Android arrive ici, et la decision est prise par le domaine :
             // « suivre le systeme » n'a alors qu'un seul endroit ou etre defini.
-            NeonTheme(darkTheme = mode.isDark(isSystemInDarkTheme())) {
+            val dark = mode.isDark(isSystemInDarkTheme())
+
+            // Les icones des barres suivent ce theme-ci, et non celui du systeme : force
+            // a l'inverse de lui, il les laissait illisibles (D162).
+            DisposableEffect(dark) {
+                edgeToEdgeFollowing(dark)
+                onDispose { }
+            }
+
+            NeonTheme(darkTheme = dark) {
                 HexavoreNavHost()
             }
         }

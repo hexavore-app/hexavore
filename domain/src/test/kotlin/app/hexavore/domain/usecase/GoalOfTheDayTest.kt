@@ -11,7 +11,9 @@ import app.hexavore.domain.goal.GoalStrategy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -70,6 +72,28 @@ class GoalOfTheDayTest {
 
         assertNull(summary.goal)
         assertEquals(MI_JUILLET, summary.date)
+    }
+
+    @Test
+    fun `une journee anterieure au premier objectif le sait`() = runTest {
+        // D161 : sans cette marque, l'accueil invitait a repondre aux cinq questions sur
+        // chaque jour d'avant l'installation -- chez quelqu'un qui venait d'y repondre,
+        // et qui relancait l'onboarding en touchant le bouton.
+        val summary = summaryOn(LocalDate.of(2025, 12, 31), InMemoryGoals(listOf(courant)))
+
+        assertTrue(summary.beforeFirstGoal)
+    }
+
+    @Test
+    fun `sans aucun objectif, rien ne precede rien`() = runTest {
+        // L'invitation reste juste ici : il n'y a vraiment pas d'objectif a comparer.
+        assertFalse(summaryOn(MI_JUILLET, InMemoryGoals()).beforeFirstGoal)
+    }
+
+    @Test
+    fun `une journee couverte par un objectif ne precede rien`() = runTest {
+        assertFalse(summaryOn(MI_MAI, InMemoryGoals(listOf(ancien, courant))).beforeFirstGoal)
+        assertFalse(summaryOn(MI_JUILLET, InMemoryGoals(listOf(ancien, courant))).beforeFirstGoal)
     }
 
     @Test

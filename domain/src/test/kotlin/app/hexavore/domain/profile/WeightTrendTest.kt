@@ -21,6 +21,45 @@ import java.time.LocalDate
  * [calculs]: docs/03-nutrition-calculs.md
  */
 class WeightTrendTest {
+    // --- La tendance (D159) -------------------------------------------------------
+
+    @Test
+    fun `la premiere pesee est sa propre tendance`() {
+        assertEquals(80.0, listOf(pesee(LUNDI, 80.0)).trendByDate().getValue(LUNDI))
+    }
+
+    /**
+     * Un jour fait parcourir un dixième du chemin : c'est ce qui efface l'eau et le sel
+     * d'un jour à l'autre chez qui se pèse tous les matins.
+     */
+    @Test
+    fun `un jour fait parcourir un dixieme du chemin`() {
+        val journal = listOf(pesee(LUNDI.minusDays(1), 80.0), pesee(LUNDI, 90.0))
+
+        assertEquals(81.0, journal.trendByDate().getValue(LUNDI), PRECISION)
+    }
+
+    /**
+     * Après trois semaines de silence, la tendance a presque rejoint la nouvelle pesée.
+     *
+     * C'est la propriété qui manquait : l'ancienne tendance ne dit plus rien du poids
+     * d'aujourd'hui, et la garder ferait traîner la courbe derrière la réalité.
+     */
+    @Test
+    fun `apres un long silence la tendance rejoint la nouvelle pesee`() {
+        val journal = listOf(pesee(LUNDI.minusDays(21), 90.0), pesee(LUNDI, 80.0))
+
+        // 1 - 0,9^21 : un peu plus de 89 % du chemin.
+        assertEquals(81.09, journal.trendByDate().getValue(LUNDI), PRECISION)
+    }
+
+    @Test
+    fun `l ordre du journal ne change rien`() {
+        val dans = listOf(pesee(LUNDI.minusDays(1), 80.0), pesee(LUNDI, 90.0))
+
+        assertEquals(dans.trendByDate(), dans.reversed().trendByDate())
+    }
+
     // --- La moyenne mobile ------------------------------------------------------
 
     @Test
@@ -158,5 +197,8 @@ class WeightTrendTest {
     private companion object {
         val LUNDI: LocalDate = LocalDate.of(2026, 8, 17)
         const val TOLERANCE = 1e-9
+
+        /** Les tendances se comparent au centieme de kilo : au-dela, c'est du bruit. */
+        const val PRECISION = 0.01
     }
 }

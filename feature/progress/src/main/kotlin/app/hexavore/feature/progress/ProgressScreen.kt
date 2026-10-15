@@ -141,8 +141,9 @@ private fun LevelBlock(progress: Progress) {
             modifier = Modifier.fillMaxWidth(),
         )
         Text(
-            text = stringResource(
-                R.string.progress_level_points,
+            text = pluralStringResource(
+                R.plurals.progress_level_points,
+                progress.level.pointsInto,
                 progress.level.pointsInto,
                 progress.level.pointsToNext,
             ),

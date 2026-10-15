@@ -11,13 +11,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
-import app.hexavore.core.designsystem.component.DraftTextField
+import app.hexavore.core.designsystem.component.BodyWeightField
 import app.hexavore.core.designsystem.component.NeonDateField
+import app.hexavore.core.designsystem.component.weightProblem
 import app.hexavore.core.designsystem.theme.Spacing
+import app.hexavore.domain.profile.BodyBounds
 import app.hexavore.domain.profile.UnitSystem
-import app.hexavore.domain.profile.kilogramsToPounds
-import app.hexavore.domain.profile.poundsToKilograms
 import java.time.LocalDate
 
 /**
@@ -30,6 +29,11 @@ import java.time.LocalDate
  * **Aucune date à venir n'est proposable.** [NeonDateField] borne son sélecteur à
  * aujourd'hui plutôt que de refuser après coup : un choix impossible qu'on peut faire
  * quand même est un choix qu'il faut ensuite expliquer.
+ *
+ * **Un poids que ce corps ne peut pas peser se dit sous le champ** ([D160][decisions]),
+ * jugé sur la taille du profil, avec la phrase de l'onboarding et du profil : c'est le
+ * même champ. Le bouton s'éteint avec lui — et la phrase dit pourquoi, ce qu'un bouton
+ * éteint seul ne fait pas.
  *
  * Le champ est **non contrôlé** ([D45][decisions]) : il garde sa propre valeur, et
  * l'écran n'y écrit rien pendant la frappe. Un champ décimal contrôlé par un `Double`
@@ -44,28 +48,27 @@ internal fun RecordWeightDialog(
     today: LocalDate,
     initialKg: Double?,
     units: UnitSystem,
+    heightCm: Double?,
     onConfirm: (LocalDate, Double) -> Unit,
     onDismiss: () -> Unit,
 ) {
     var date by remember { mutableStateOf(today) }
-    val imperial = units == UnitSystem.IMPERIAL
     // Ce qui est tape est dans le systeme choisi ; ce qui est enregistre reste en
-    // kilogrammes, comme la colonne qui l accueille.
-    var typed by remember {
-        mutableStateOf(initialKg?.let { formatKg(if (imperial) kilogramsToPounds(it) else it) }.orEmpty())
-    }
-    val weightKg = typed.toWeightKg()?.let { if (imperial) poundsToKilograms(it) else it }
+    // kilogrammes, comme la colonne qui l accueille. Le champ fait la conversion.
+    var weightKg by remember { mutableStateOf(initialKg) }
+    val accepted = weightKg?.takeIf { it in BodyBounds.weightsFor(heightCm) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.weight_add_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
-                DraftTextField(
-                    initial = typed,
-                    onValueChange = { typed = it },
-                    label = stringResource(if (imperial) R.string.weight_field_pound else R.string.weight_field),
-                    keyboardType = KeyboardType.Decimal,
+                BodyWeightField(
+                    kilograms = initialKg,
+                    units = units,
+                    label = stringResource(R.string.weight_field),
+                    onKilograms = { weightKg = it },
+                    problem = weightProblem(weightKg, heightCm, units),
                 )
                 NeonDateField(
                     value = date,
@@ -79,7 +82,7 @@ internal fun RecordWeightDialog(
         confirmButton = {
             // Desactive plutot que refuse : le domaine garde la meme regle en filet,
             // mais un bouton qui echoue en silence ne dit pas ce qui manque.
-            TextButton(onClick = { weightKg?.let { onConfirm(date, it) } }, enabled = weightKg != null) {
+            TextButton(onClick = { accepted?.let { onConfirm(date, it) } }, enabled = accepted != null) {
                 Text(stringResource(R.string.weight_add_confirm))
             }
         },
@@ -88,19 +91,6 @@ internal fun RecordWeightDialog(
         },
     )
 }
-
-/**
- * Le nombre tapé, ou `null` s'il n'en est pas un.
- *
- * **La virgule est acceptée**, parce que c'est la touche que porte un clavier décimal
- * français et que `toDoubleOrNull` ne la connaît pas. Refuser « 82,4 » là où le clavier
- * ne propose rien d'autre serait refuser la saisie elle-même.
- */
-private fun String.toWeightKg(): Double? = replace(',', '.').trim().toDoubleOrNull()?.takeIf { it > 0.0 }
-
-/** Sans décimale inutile : « 82 » plutôt que « 82.0 ». */
-private fun formatKg(value: Double): String =
-    if (value == value.toLong().toDouble()) value.toLong().toString() else value.toString()
 
 /** Dix ans de journal : au-delà, la grille des années n'aide plus à retrouver un jour. */
 private const val JOURNAL_YEARS = 10

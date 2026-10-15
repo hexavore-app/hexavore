@@ -1,21 +1,19 @@
 package app.hexavore.feature.settings
 
-import androidx.annotation.StringRes
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import app.hexavore.core.designsystem.component.ScreenTopBar
 import app.hexavore.core.designsystem.theme.Spacing
@@ -43,9 +41,10 @@ import app.hexavore.domain.report.REPORT_ADDRESS
  *
  * ### Ce qui ouvre quoi
  *
- * [LocalUriHandler] pour les trois, y compris le `mailto:` — c'est le même geste pour
+ * `LocalUriHandler` pour les trois, y compris le `mailto:` — c'est le même geste pour
  * l'utilisateur, et le système sait seul quelle application s'en charge. Un `Intent`
- * construit à la main demanderait de savoir ce qui est installé.
+ * construit à la main demanderait de savoir ce qui est installé. Quand rien ne s'en
+ * charge, [rememberLinkOpener] le dit au lieu de faire tomber l'écran ([D162][decisions]).
  *
  * [decisions]: docs/11-decisions.md
  */
@@ -56,7 +55,8 @@ internal fun ContactRoute(onClose: () -> Unit) {
 
 @Composable
 internal fun ContactScreen(onClose: () -> Unit) {
-    val liens = LocalUriHandler.current
+    val barre = remember { SnackbarHostState() }
+    val ouvrir = rememberLinkOpener(barre)
 
     Scaffold(
         topBar = {
@@ -66,6 +66,7 @@ internal fun ContactScreen(onClose: () -> Unit) {
                 closeLabel = stringResource(R.string.settings_close),
             )
         },
+        snackbarHost = { SnackbarHost(barre) },
     ) { padding ->
         Column(
             modifier = Modifier
@@ -80,36 +81,14 @@ internal fun ContactScreen(onClose: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            ContactCard(R.string.settings_contact_site, SITE_URL) { liens.openUri(SITE_URL) }
-            ContactCard(R.string.settings_contact_github, GITHUB_URL) { liens.openUri(GITHUB_URL) }
-            ContactCard(R.string.settings_contact_mail, REPORT_ADDRESS) { liens.openUri("mailto:$REPORT_ADDRESS") }
+            LinkCard(stringResource(R.string.settings_contact_site), SITE_URL) { ouvrir(SITE_URL) }
+            LinkCard(stringResource(R.string.settings_contact_github), GITHUB_URL) { ouvrir(GITHUB_URL) }
+            LinkCard(stringResource(R.string.settings_contact_mail), REPORT_ADDRESS) {
+                ouvrir("mailto:$REPORT_ADDRESS")
+            }
         }
     }
 }
 
-/**
- * Une destination : ce que c'est, et l'adresse elle-même.
- *
- * **L'adresse est écrite en toutes lettres** et non cachée derrière un libellé. Elle
- * sert deux fois : elle dit où l'on va avant d'y aller — ce qui compte quand on s'apprête
- * à quitter l'application —, et elle reste lisible pour qui voudra la recopier ailleurs.
- */
-@Composable
-private fun ContactCard(@StringRes titleRes: Int, adresse: String, onClick: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(Spacing.cardPadding),
-            verticalArrangement = Arrangement.spacedBy(Spacing.xs),
-        ) {
-            Text(text = stringResource(titleRes), style = MaterialTheme.typography.titleMedium)
-            Text(
-                text = adresse,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary,
-            )
-        }
-    }
-}
-
-private const val SITE_URL = "https://hexavore.app"
-private const val GITHUB_URL = "https://github.com/hexavore-app/hexavore"
+internal const val SITE_URL = "https://hexavore.app"
+internal const val GITHUB_URL = "https://github.com/hexavore-app/hexavore"

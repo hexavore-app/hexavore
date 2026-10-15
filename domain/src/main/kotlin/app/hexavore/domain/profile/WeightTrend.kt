@@ -3,6 +3,7 @@ package app.hexavore.domain.profile
 import app.hexavore.domain.goal.Goal
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import kotlin.math.pow
 
 /** Les sept jours de la fenêtre de lissage. */
 const val TREND_WINDOW_DAYS = 7
@@ -37,6 +38,66 @@ fun List<WeightEntry>.movingAverageOn(day: LocalDate): Double? {
     val floor = day.minusDays(TREND_WINDOW_DAYS - 1L)
     val window = filter { !it.date.isBefore(floor) && !it.date.isAfter(day) }
     return if (window.size < MIN_WEIGHINGS_PER_WINDOW) null else window.sumOf { it.weightKg } / window.size
+}
+
+/**
+ * Ce qu'un jour écoulé fait parcourir à la tendance vers la nouvelle pesée : un dixième.
+ *
+ * **La valeur de *The Hacker's Diet***, celle que reprennent les applications de pesée
+ * qui l'ont suivie : assez lente pour effacer l'eau et le sel d'un jour à l'autre,
+ * assez rapide pour qu'une vraie perte se voie en une semaine. Elle se lit en jours et
+ * non en pesées, et c'est tout son intérêt avec des pesées espacées ([D159][decisions]).
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+const val TREND_DAILY_SMOOTHING = 0.10
+
+/**
+ * La tendance au jour de chaque pesée : une moyenne qui oublie **à proportion du temps
+ * écoulé**.
+ *
+ * ### Pourquoi elle remplace la moyenne sur sept jours dans la courbe
+ *
+ * La moyenne mobile ne se calcule que là où la fenêtre porte trois pesées. Avec des
+ * pesées espacées, elle n'existait que par fragments : un bout de trait isolé au milieu
+ * de la courbe, « comme un cheveu sur la soupe », et rien ailleurs ([D159][decisions]).
+ *
+ * Celle-ci existe dès la première pesée, et ne s'interrompt jamais. Chaque pesée
+ * rapproche la tendance d'elle-même d'une part qui grandit avec le temps écoulé depuis
+ * la précédente — `1 − 0,9^jours` :
+ *
+ * - **pesées quotidiennes** : un dixième du chemin par jour, et le bruit s'efface ;
+ * - **une pesée par semaine** : un peu plus de la moitié du chemin ;
+ * - **après trois semaines de silence** : presque tout le chemin, parce que l'ancienne
+ *   tendance ne dit plus rien du poids d'aujourd'hui.
+ *
+ * ### Ce qu'elle ne remplace pas
+ *
+ * **La pente de l'adaptation hebdomadaire** garde sa règle — deux moyennes de sept jours,
+ * trois pesées chacune ([weeklySlopeOn]) — parce qu'un conseil sur l'objectif doit se
+ * taire quand les données sont maigres, là où une courbe doit montrer ce qu'il y a.
+ *
+ * @return une valeur par date de pesée. Une date pesée deux fois garde la dernière.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+fun List<WeightEntry>.trendByDate(): Map<LocalDate, Double> {
+    val trends = LinkedHashMap<LocalDate, Double>()
+    var previous: WeightEntry? = null
+    var trend = 0.0
+
+    sortedBy { it.date }.forEach { entry ->
+        trend = previous?.let { before ->
+            // Au moins un jour : deux pesees le meme jour ne doivent pas laisser la
+            // seconde sans effet.
+            val days = ChronoUnit.DAYS.between(before.date, entry.date).coerceAtLeast(1)
+            val step = 1.0 - (1.0 - TREND_DAILY_SMOOTHING).pow(days.toDouble())
+            trend + step * (entry.weightKg - trend)
+        } ?: entry.weightKg
+        trends[entry.date] = trend
+        previous = entry
+    }
+    return trends
 }
 
 /**

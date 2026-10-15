@@ -57,6 +57,42 @@
     <string name="ds_unit_kcal_short">kcal</string>
     <string name="ds_unit_kcal_spoken">kilocalories</string>
 
+    <!-- The six initials, read by the hexagon and by the dish chips alike (D162).
+         Protein, Carbs, Sugars, Fat and Fibre have to be told apart from each other, and
+         they are. Calories carry "kcal" rather than a letter: a "C" would read as Carbs,
+         and the hexagon shows both. -->
+    <string name="ds_macro_initial_calories">kcal</string>
+    <string name="ds_macro_initial_protein">P</string>
+    <string name="ds_macro_initial_carbs">C</string>
+    <string name="ds_macro_initial_sugars">S</string>
+    <string name="ds_macro_initial_fat">F</string>
+    <string name="ds_macro_initial_fiber">Fb</string>
+
+    <!-- The camera refused for good (D162): Android no longer asks, and the button did
+         nothing. The sentence says where to allow it, and names the gallery, which works
+         without any permission. -->
+    <string name="ds_camera_refused_title">The camera is not allowed</string>
+    <string name="ds_camera_refused_body">Android will not ask again: the camera can be allowed in Hexavore\'s settings, under permissions. Meanwhile, a photo from the gallery works too.</string>
+    <string name="ds_camera_refused_settings">Open settings</string>
+    <string name="ds_camera_refused_close">Close</string>
+
+    <!-- The body's bounds (D160), in figures and in the chosen system: "between 37 and
+         245 kg" can be fixed, "invalid value" does not say which way to go. -->
+    <string name="ds_body_height_range">Enter a height between %1$s and %2$s.</string>
+    <string name="ds_body_weight_range">Enter a weight between %1$s and %2$s.</string>
+    <string name="ds_body_weight_range_for_height">For %1$s, enter a weight between %2$s and %3$s.</string>
+    <!-- The target weight follows the direction of the goal, and a loss stops at the
+         underweight threshold (D160). -->
+    <string name="ds_target_not_below">To lose weight, aim below your current weight (%1$s).</string>
+    <string name="ds_target_not_above">To gain weight, aim above your current weight (%1$s).</string>
+    <string name="ds_target_below_lean">For %1$s, aim for at least %2$s: below that, your BMI would drop under %3$s, the threshold for underweight.</string>
+    <string name="ds_target_above_range">For %1$s, aim for at most %2$s.</string>
+    <string name="ds_target_no_room">For %1$s, the underweight threshold (BMI %3$s) is %2$s, and your weight is not above it: losing weight is not offered.</string>
+    <string name="ds_value_cm">%1$s cm</string>
+    <string name="ds_value_kg">%1$s kg</string>
+    <string name="ds_value_pound">%1$s lb</string>
+    <string name="ds_value_feet_inches">%1$d ft %2$d in</string>
+
     <!-- Where a dish came from. One dish, one source. -->
     <string name="ds_source_manual">Entered by hand</string>
     <string name="ds_source_barcode">Barcode</string>
@@ -99,6 +135,10 @@
     <string name="ds_adjustment_body">Over the last three weeks: %1$s. The target was aiming for %2$s.</string>
     <string name="ds_adjustment_pace_loss">−%1$.1f kg a week</string>
     <string name="ds_adjustment_pace_gain">+%1$.1f kg a week</string>
+    <!-- The same paces in pounds, for the imperial system (D162): the card spoke in
+         kilograms right next to a weigh-in list written in pounds. -->
+    <string name="ds_adjustment_pace_loss_pounds">−%1$.1f lb a week</string>
+    <string name="ds_adjustment_pace_gain_pounds">+%1$.1f lb a week</string>
     <string name="ds_adjustment_pace_steady">weight holding steady</string>
     <!-- The direction of the correction is said with a verb, never with the sign of a
          number: this is the sentence you tap "Accept" on. -->
@@ -107,5 +147,11 @@
     <string name="ds_adjustment_accept">Accept</string>
     <string name="ds_adjustment_ignore">Ignore</string>
     <string name="ds_adjustment_stop">Stop suggesting</string>
+
+    <!-- The medical disclaimer, written once. The welcome screen has it read before the
+         first question, and "About" keeps it within reach afterwards: two copies of a
+         sentence that commits the project would end up saying two different things
+         (D161). -->
+    <string name="ds_medical_disclaimer">Hexavore is a personal tracking tool. It is not a medical device and it does not replace the advice of a health professional.</string>
 
 </resources>

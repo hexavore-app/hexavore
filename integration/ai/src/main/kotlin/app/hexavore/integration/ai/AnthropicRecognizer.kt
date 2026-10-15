@@ -116,7 +116,7 @@ private fun AiConfiguration.estimateRequest(labels: List<String>, prompt: System
     model = model,
     maxTokens = MAX_TOKENS,
     system = prompt.text(),
-    outputConfig = OutputConfig(effort = EFFORT, format = OutputFormat(schema = ESTIMATION_SCHEMA)),
+    outputConfig = OutputConfig(effort = effortFor(model), format = OutputFormat(schema = ESTIMATION_SCHEMA)),
     messages = listOf(AnthropicMessage(role = "user", content = listOf(TextBlock(labels.asRequest()).asJson()))),
 )
 
@@ -141,7 +141,7 @@ private fun AiConfiguration.request(input: RecognitionInput, prompt: SystemPromp
     model = model,
     maxTokens = MAX_TOKENS,
     system = prompt.text(),
-    outputConfig = OutputConfig(effort = EFFORT, format = OutputFormat(schema = RECOGNITION_SCHEMA)),
+    outputConfig = OutputConfig(effort = effortFor(model), format = OutputFormat(schema = RECOGNITION_SCHEMA)),
     messages = listOf(AnthropicMessage(role = "user", content = input.blocks().map { it.asJson() })),
 )
 
@@ -220,19 +220,6 @@ internal fun Response<AnthropicResponse>.toAiError(): AiError = when (code()) {
  */
 private fun Response<AnthropicResponse>.detail(): String? =
     runCatching { errorBody()?.string() }.getOrNull()?.trim()?.take(DETAIL_LIMIT)?.takeIf { it.isNotEmpty() }
-
-/**
- * Ce qui remplace `temperature = 0.2`, et le levier qu'on déplacera.
- *
- * `low` est la lecture la plus proche de l'intention de [docs/05][ia] — une tâche de
- * perception n'a pas besoin de délibérer — et la moins chère, ce qui compte quand
- * c'est l'utilisateur qui paie. **Il n'a été calibré contre rien** : aucune
- * reconnaissance réelle n'a encore tourné. Une constante nommée, pour qu'un jour de
- * calibrage n'ait qu'un mot à changer.
- *
- * [ia]: docs/05-ia.md
- */
-private const val EFFORT = "low"
 
 /** Large exprès : le plafond couvre le raisonnement autant que la réponse. */
 private const val MAX_TOKENS = 4096

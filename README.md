@@ -21,7 +21,7 @@ On note ce qu'on mange en quelques secondes — scan d'un code-barres, photo de 
 | **Historique** | Calendrier horizontal, chaque jour coloré selon l'atteinte des objectifs, consultable et modifiable. |
 | **Objectif vivant** | Le poids réel est comparé chaque semaine à la trajectoire visée ; l'app propose un ajustement, l'utilisateur décide. |
 | **Deux langues** | Français et anglais, interface **et** noms d'aliments. La langue suit le téléphone, l'anglais est le repli, et elle se force dans les réglages. |
-| **Vos données restent à vous** | Tout est stocké localement. Sauvegarde optionnelle sur votre Google Drive, ou export dans un fichier. |
+| **Vos données restent à vous** | Tout est stocké localement, et s'exporte dans un fichier que vous rangez où vous voulez. La sauvegarde sur Google Drive viendra plus tard. |
 
 ## Ce qu'elle ne fait pas
 

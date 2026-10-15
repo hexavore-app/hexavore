@@ -25,12 +25,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.hexavore.core.designsystem.component.ScreenTopBar
 import app.hexavore.core.designsystem.theme.Spacing
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.util.Locale
 
 /**
  * La sauvegarde locale : emporter ses données, les remettre, ou tout effacer.
@@ -67,6 +73,7 @@ internal fun BackupRoute(onClose: () -> Unit, viewModel: BackupViewModel = hiltV
         state = state,
         onExport = { createDocument.launch(viewModel.proposedName()) },
         onImport = { openDocument.launch(arrayOf(BACKUP_MIME, LEGACY_MIME, ANY_MIME)) },
+        onUndo = viewModel::onUndoRestore,
         onErase = viewModel::onErase,
         onMessageShown = viewModel::onMessageShown,
         onClose = onClose,
@@ -78,12 +85,14 @@ private fun BackupScreen(
     state: BackupUiState,
     onExport: () -> Unit,
     onImport: () -> Unit,
+    onUndo: () -> Unit,
     onErase: () -> Unit,
     onMessageShown: () -> Unit,
     onClose: () -> Unit,
 ) {
-    var confirmingRestore by rememberSaveable { mutableStateOf(false) }
-    var confirmingErase by rememberSaveable { mutableStateOf(false) }
+    // Une seule boite a la fois, et un seul etat pour le dire : trois booleens auraient
+    // laisse croire qu'on peut en ouvrir deux.
+    var asking by rememberSaveable { mutableStateOf<BackupAsk?>(null) }
     val snackbar = remember { SnackbarHostState() }
     val message = state.message?.let { wording(it) }
 
@@ -113,32 +122,51 @@ private fun BackupScreen(
         ) {
             BackupCards(
                 enabled = !state.busy,
+                undoSince = state.undoSince,
                 onExport = onExport,
-                onImport = { confirmingRestore = true },
-                onErase = { confirmingErase = true },
+                onAsk = { asking = it },
             )
         }
     }
 
-    BackupConfirmations(
-        confirmingRestore = confirmingRestore,
-        confirmingErase = confirmingErase,
-        onRestore = {
-            confirmingRestore = false
-            onImport()
-        },
-        onErase = {
-            confirmingErase = false
-            onErase()
-        },
-        onDismissRestore = { confirmingRestore = false },
-        onDismissErase = { confirmingErase = false },
-    )
+    asking?.let { ask ->
+        BackupConfirmation(
+            ask = ask,
+            onConfirm = {
+                asking = null
+                when (ask) {
+                    BackupAsk.RESTORE -> onImport()
+                    BackupAsk.UNDO -> onUndo()
+                    BackupAsk.ERASE -> onErase()
+                }
+            },
+            onDismiss = { asking = null },
+        )
+    }
 }
 
-/** Les trois gestes, dans l'ordre où l'on veut les rencontrer : emporter, remettre, effacer. */
+/**
+ * Les gestes, dans l'ordre où l'on veut les rencontrer : emporter, remettre, revenir en
+ * arrière, effacer.
+ *
+ * **Le retour en arrière ne paraît qu'après une restauration** ([D162][decisions]) :
+ * c'est elle qui laisse la copie, et un bouton qui n'aurait rien à remettre ne se
+ * montre pas. Juste sous la restauration, parce que c'est elle qu'il défait.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
 @Composable
-private fun BackupCards(enabled: Boolean, onExport: () -> Unit, onImport: () -> Unit, onErase: () -> Unit) {
+private fun BackupCards(
+    enabled: Boolean,
+    undoSince: LocalDateTime?,
+    onExport: () -> Unit,
+    onAsk: (BackupAsk) -> Unit,
+) {
+    val locale = LocalConfiguration.current.locales[0] ?: Locale.getDefault()
+    val moment = remember(locale) {
+        DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.SHORT).withLocale(locale)
+    }
+
     ActionCard(
         title = stringResource(R.string.backup_export_title),
         body = stringResource(R.string.backup_export_body),
@@ -151,32 +179,36 @@ private fun BackupCards(enabled: Boolean, onExport: () -> Unit, onImport: () -> 
         body = stringResource(R.string.backup_import_body),
         action = stringResource(R.string.backup_import_action),
         enabled = enabled,
-        onClick = onImport,
+        onClick = { onAsk(BackupAsk.RESTORE) },
     )
-    EraseCard(enabled = enabled, onClick = onErase)
+    undoSince?.let { since ->
+        ActionCard(
+            title = stringResource(R.string.backup_undo_title),
+            body = stringResource(R.string.backup_undo_body, moment.format(since)),
+            action = stringResource(R.string.backup_undo_action),
+            enabled = enabled,
+            onClick = { onAsk(BackupAsk.UNDO) },
+        )
+    }
+    EraseCard(enabled = enabled, onClick = { onAsk(BackupAsk.ERASE) })
 }
 
+/** Les trois boîtes qui gardent les gestes qui remplacent ou détruisent : une à la fois. */
+internal enum class BackupAsk { RESTORE, UNDO, ERASE }
+
 /**
- * Les deux boîtes qui gardent les gestes destructeurs.
+ * La boîte qui garde le geste demandé.
  *
- * Sorties du corps de l'écran quand le seuil de longueur a mordu, et le découpage suit
- * ce que les choses sont : au-dessus, la page et ses trois cartes ; ici, ce qui
- * s'interpose entre un doigt et une donnée qui disparaît.
+ * Sortie du corps de l'écran quand le seuil de longueur a mordu, et le découpage suit
+ * ce que les choses sont : au-dessus, la page et ses cartes ; ici, ce qui s'interpose
+ * entre un doigt et une donnée qui disparaît.
  */
 @Composable
-private fun BackupConfirmations(
-    confirmingRestore: Boolean,
-    confirmingErase: Boolean,
-    onRestore: () -> Unit,
-    onErase: () -> Unit,
-    onDismissRestore: () -> Unit,
-    onDismissErase: () -> Unit,
-) {
-    if (confirmingRestore) {
-        RestoreWarningDialog(onConfirm = onRestore, onDismiss = onDismissRestore)
-    }
-    if (confirmingErase) {
-        EraseConfirmDialog(onConfirm = onErase, onDismiss = onDismissErase)
+private fun BackupConfirmation(ask: BackupAsk, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    when (ask) {
+        BackupAsk.RESTORE -> RestoreWarningDialog(onConfirm = onConfirm, onDismiss = onDismiss)
+        BackupAsk.UNDO -> UndoWarningDialog(onConfirm = onConfirm, onDismiss = onDismiss)
+        BackupAsk.ERASE -> EraseConfirmDialog(onConfirm = onConfirm, onDismiss = onDismiss)
     }
 }
 
@@ -245,7 +277,8 @@ private fun EraseCard(enabled: Boolean, onClick: () -> Unit) {
 private fun wording(message: BackupMessage): String = when (message) {
     is BackupMessage.Exported -> exportedText(message.sizeBytes)
     BackupMessage.ExportFailed -> stringResource(R.string.backup_export_failed)
-    is BackupMessage.Restored -> stringResource(R.string.backup_restored, message.entryCount)
+    is BackupMessage.Restored -> pluralStringResource(R.plurals.backup_restored, message.entryCount, message.entryCount)
+    is BackupMessage.Undone -> pluralStringResource(R.plurals.backup_undone, message.entryCount, message.entryCount)
     is BackupMessage.TooRecent -> stringResource(R.string.backup_too_recent, message.formatVersion)
     BackupMessage.Unreadable -> stringResource(R.string.backup_unreadable)
     BackupMessage.RestoreFailed -> stringResource(R.string.backup_restore_failed)

@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import app.hexavore.core.designsystem.component.AnchoredBubble
 import app.hexavore.core.designsystem.component.MacroBar
@@ -159,7 +160,9 @@ private fun RemainingBlock(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
-                text = stringResource(R.string.home_consumed_of_goal, consumed.roundToInt(), goal.roundToInt()),
+                text = consumed.roundToInt().let {
+                    pluralStringResource(R.plurals.home_consumed_of_goal, it, it, goal.roundToInt())
+                },
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

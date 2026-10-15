@@ -8,6 +8,8 @@ import android.net.Uri
 import androidx.core.content.FileProvider
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.time.Duration
+import java.time.Instant
 
 /**
  * Où atterrit une photo prise, et ce qu'il en reste après.
@@ -47,11 +49,37 @@ fun photoUri(context: Context, file: File): Uri =
  * [docs/05][ia] le demande explicitement. Le cas normal supprime dans un `finally` ;
  * celui-ci couvre l'anormal — l'application tuée entre le déclencheur et la lecture.
  *
+ * **Sauf une prise en cours** ([D163][decisions]). Android tue volontiers Hexavore
+ * pendant que l'appareil photo du système est ouvert, et c'est ce lancement-ci — celui
+ * que provoque l'écriture du fichier, ou le retour de l'appareil photo — qui balayait :
+ * il effaçait la photo qu'on venait de prendre, avant que l'écran ne la lise. Une image
+ * de moins de [CAPTURE_GRACE] reste ; un résidu plus vieux n'est la prise de personne.
+ *
+ * @param now l'instant du lancement, lu par l'appelant sur l'horloge du domaine.
+ *
  * [ia]: docs/05-ia.md
+ * [decisions]: docs/11-decisions.md
  */
-fun sweepCapturePhotos(context: Context) {
-    runCatching { photoCache(context).listFiles()?.forEach { it.delete() } }
+fun sweepCapturePhotos(context: Context, now: Instant) {
+    runCatching {
+        photoCache(context).listFiles()
+            ?.filter { abandonedCapture(Instant.ofEpochMilli(it.lastModified()), now) }
+            ?.forEach { it.delete() }
+    }
 }
+
+/** Une prise est abandonnée quand plus personne ne peut l'attendre : au-delà de [CAPTURE_GRACE]. */
+internal fun abandonedCapture(writtenAt: Instant, now: Instant): Boolean =
+    Duration.between(writtenAt, now) > CAPTURE_GRACE
+
+/**
+ * Le temps qu'une prise peut rester dans l'appareil photo du système.
+ *
+ * Large exprès : un résidu épargné n'est qu'un fichier du cache privé, que la prise
+ * suivante écrase et que le lancement d'après emporte ; une photo effacée est un repas
+ * à reprendre en photo, et l'assiette n'est souvent plus là.
+ */
+internal val CAPTURE_GRACE: Duration = Duration.ofHours(1)
 
 private fun photoCache(context: Context): File = File(context.cacheDir, PHOTO_DIRECTORY).apply { mkdirs() }
 

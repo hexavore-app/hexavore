@@ -18,6 +18,7 @@ import app.hexavore.domain.usecase.GetDaySummary
 import app.hexavore.domain.usecase.SaveDraft
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -65,6 +66,16 @@ internal class EntryViewModel @Inject constructor(
 
     private val form = MutableStateFlow<EntryForm?>(null)
     private val status = MutableStateFlow(Status.LOADING)
+
+    /**
+     * Le formulaire tel qu'il s'est ouvert.
+     *
+     * Il ne sert qu'à une question : quitter perdrait-il quelque chose sur un plat déjà
+     * écrit ([losesOnExit], [D161][decisions]) ?
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    private var opened: EntryForm? = null
 
     /**
      * L'image de ce brouillon, et le souvenir de l'avoir retirée.
@@ -174,6 +185,15 @@ internal class EntryViewModel @Inject constructor(
             .combine(filing.reportFailed) { state, rate ->
                 if (state is EntryUiState.Content) state.copy(reportFailed = rate) else state
             }
+            // Ce que quitter perdrait, en dernier : la regle lit le formulaire, l'image,
+            // et le souvenir de l'avoir retiree, que rien d'autre ne lit (D161).
+            .map { state ->
+                if (state is EntryUiState.Content) {
+                    state.copy(unsaved = state.losesOnExit(opened, photoRemoved))
+                } else {
+                    state
+                }
+            }
             // Aucun `flowOn` ici, contrairement a l'accueil, et c'est deliberé.
             // Ce que produit ce flux a chaque frappe tient en une conversion de
             // quelques lignes et deux additions ; le passer sur un autre
@@ -185,9 +205,17 @@ internal class EntryViewModel @Inject constructor(
                 initialValue = EntryUiState.Loading,
             )
 
-    init {
-        viewModelScope.launch { open() }
-    }
+    /**
+     * L'ouverture du brouillon, gardée pour qu'une photo puisse l'attendre ([D163][decisions]).
+     *
+     * Ouvrir un brouillon qui ne vient ni d'une analyse ni d'un scan **vide le dépôt des
+     * photos**. Quand Android a tué Hexavore pendant la prise de vue, l'image revient à
+     * un écran recréé, donc pendant cette ouverture : déposée d'abord, elle était jetée
+     * juste après.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    private val opening: Job = viewModelScope.launch { open() }
 
     /**
      * La fiche que la recherche vient de rendre : elle s'ajoute au plat en cours.
@@ -283,6 +311,7 @@ internal class EntryViewModel @Inject constructor(
      */
     fun onPhotoChosen(jpeg: ByteArray) {
         viewModelScope.launch {
+            opening.join()
             val staged = runCatching { composition.choosePhoto(jpeg) }.getOrNull() ?: return@launch
             photoRemoved = false
             photo.value = staged
@@ -330,7 +359,9 @@ internal class EntryViewModel @Inject constructor(
         if (relu == null) {
             status.value = Status.UNAVAILABLE
         } else {
-            form.value = EntryForm.of(relu)
+            val ouvert = EntryForm.of(relu)
+            opened = ouvert
+            form.value = ouvert
             status.value = Status.EDITING
         }
     }
@@ -377,3 +408,27 @@ private fun origin(
     scannedFoodId != null -> DraftOrigin.Scanned(scannedFoodId)
     else -> DraftOrigin.New(foodId)
 }
+
+/**
+ * Quitter l'écran perdrait-il quelque chose ? ([D161][decisions])
+ *
+ * **Deux questions, selon ce que le brouillon prolonge.** Un repas pas encore noté
+ * n'existe nulle part ailleurs : tout ce qu'il porte se perd, même intact — c'est le cas
+ * d'une proposition d'IA, payée, et qui ne se rejoue pas. Un plat déjà écrit, ou le
+ * favori qu'on corrige, est en sécurité dans la base : seul se perd ce qui a changé
+ * depuis l'ouverture.
+ *
+ * Une ligne vierge ne compte pas : c'est celle qu'ouvre une saisie neuve, et demander
+ * confirmation pour quitter un formulaire vide serait une question sans objet.
+ *
+ * Hors de la classe, comme [origin] : c'est une règle sur l'état, pas un geste de
+ * l'écran, et le seuil de fonctions n'a pas à la compter.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+private fun EntryUiState.Content.losesOnExit(opened: EntryForm?, photoRemoved: Boolean): Boolean =
+    if (form.dishId == null && !editingFavorite) {
+        photo != null || form.toDraft().lines.any { !it.blank }
+    } else {
+        form != opened || photoRemoved || photoRevision > 0
+    }

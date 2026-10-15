@@ -12,6 +12,10 @@ dependencies {
     // utilisee ici : c'est une dependance de ressources.
     implementation(libs.androidx.appcompat)
 
+    // `enableEdgeToEdge` et ses styles de barres : les barres du systeme suivent le
+    // theme de l'application, et leurs voiles sont des couleurs, donc d'ici (D162).
+    implementation(libs.androidx.activity.compose)
+
     // api : le vocabulaire des macros fait partie de la signature des composants.
     // Un module qui affiche une MacroBar doit pouvoir nommer la macro concernee.
     api(projects.domain)

@@ -7,7 +7,8 @@
     <string name="search_ask_open_food_facts">Search Open Food Facts</string>
     <string name="search_open_food_facts_results">Open Food Facts products</string>
     <string name="search_open_food_facts_nothing">Open Food Facts does not know this name.</string>
-    <string name="search_open_food_facts_offline">Open Food Facts could not be reached.</string>
+    <string name="search_open_food_facts_offline">Open Food Facts did not answer.</string>
+    <string name="search_open_food_facts_retry">Try again</string>
 
     <!-- The code read by the scanner, when the form comes from a product that was not
          found. -->

@@ -7,6 +7,7 @@ import app.hexavore.domain.usecase.EraseEverything
 import app.hexavore.domain.usecase.ExportArchive
 import app.hexavore.domain.usecase.RestoreArchive
 import app.hexavore.domain.usecase.RestoreOutcome
+import app.hexavore.domain.usecase.UndoRestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.InputStream
 import java.io.OutputStream
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 /**
@@ -37,11 +39,19 @@ import javax.inject.Inject
 internal class BackupViewModel @Inject constructor(
     private val exportArchive: ExportArchive,
     private val restoreArchive: RestoreArchive,
+    private val undoRestore: UndoRestore,
     private val eraseEverything: EraseEverything,
     private val clock: Clock,
 ) : ViewModel() {
     private val state = MutableStateFlow(BackupUiState())
     val uiState: StateFlow<BackupUiState> = state.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            val undoSince = undoSince()
+            state.update { it.copy(undoSince = undoSince) }
+        }
+    }
 
     /** Le nom proposé au sélecteur, calculé sur l'horloge du domaine et non sur `now()`. */
     fun proposedName(): String = backupFileName(clock.today())
@@ -74,6 +84,20 @@ internal class BackupViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Remet le journal d'avant la dernière restauration ([D162][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    fun onUndoRestore() = working {
+        when (val outcome = undoRestore()) {
+            is RestoreOutcome.Restored -> BackupMessage.Undone(outcome.entryCount)
+            is RestoreOutcome.TooRecent -> BackupMessage.TooRecent(outcome.formatVersion)
+            RestoreOutcome.Unreadable -> BackupMessage.Unreadable
+            RestoreOutcome.Failed -> BackupMessage.RestoreFailed
+        }
+    }
+
     fun onErase() = working {
         eraseEverything()
         BackupMessage.Erased
@@ -94,7 +118,13 @@ internal class BackupViewModel @Inject constructor(
         state.update { it.copy(busy = true, message = null) }
         viewModelScope.launch {
             val message = block()
-            state.update { it.copy(busy = false, message = message) }
+            // Relue apres chaque geste : une restauration en laisse une, un effacement
+            // l'emporte, et un retour en arriere la remplace par l'etat quitte.
+            val undoSince = undoSince()
+            state.update { it.copy(busy = false, message = message, undoSince = undoSince) }
         }
     }
+
+    /** L'heure de la copie de sécurité, dans le fuseau de l'horloge du domaine. */
+    private suspend fun undoSince(): LocalDateTime? = undoRestore.available()?.atZone(clock.zone())?.toLocalDateTime()
 }

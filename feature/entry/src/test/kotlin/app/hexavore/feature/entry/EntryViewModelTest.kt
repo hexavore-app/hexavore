@@ -20,6 +20,7 @@ import app.hexavore.domain.ai.Recognition
 import app.hexavore.domain.ai.RecognizedItem
 import app.hexavore.domain.diary.Dish
 import app.hexavore.domain.diary.DishId
+import app.hexavore.domain.diary.DishPhotos
 import app.hexavore.domain.diary.DraftLineId
 import app.hexavore.domain.diary.EntryId
 import app.hexavore.domain.diary.EntrySource
@@ -54,6 +55,7 @@ import app.hexavore.domain.usecase.SaveDraft
 import app.hexavore.domain.usecase.SaveFavoriteDish
 import app.hexavore.domain.usecase.UpdateDish
 import app.hexavore.domain.usecase.UpdateFavoriteDish
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.filterIsInstance
@@ -551,6 +553,100 @@ class EntryViewModelTest {
         assertNotNull(photos.photos[plat], "l image choisie apres un retrait doit survivre")
     }
 
+    /**
+     * Une image rendue **pendant l'ouverture** reste (D163).
+     *
+     * Quand Android tue Hexavore pendant la prise de vue, la photo revient à un écran
+     * recréé, dont le brouillon est encore en train de s'ouvrir — et ouvrir un
+     * brouillon neuf vide le dépôt. Déposée d'abord, l'image était jetée juste après.
+     * Le dépôt de ce cas retient son vidage le temps que l'image arrive.
+     */
+    @Test
+    fun `une image rendue pendant l ouverture n est pas jetee`() = runTest(dispatcher) {
+        val depot = DepotRetenu(photos)
+        val viewModel = viewModel(depot = depot)
+
+        viewModel.onPhotoChosen(image)
+        depot.relacher()
+        advanceUntilIdle()
+
+        assertNotNull(viewModel.content().photo, "la photo prise doit survivre a l ouverture du brouillon")
+    }
+
+    // --- Ce que quitter perdrait (D161) ----------------------------------------
+
+    @Test
+    fun `une saisie neuve intacte se quitte sans question`() = runTest(dispatcher) {
+        // Elle s'ouvre sur une ligne vierge : demander confirmation pour quitter un
+        // formulaire vide serait une question sans objet.
+        assertFalse(viewModel().content().unsaved)
+    }
+
+    @Test
+    fun `un nom tape suffit a rendre la saisie precieuse`() = runTest(dispatcher) {
+        val viewModel = viewModel()
+
+        viewModel.onLineEdit(viewModel.content().form.lines.single().id, LineEdit.Name("Riz"))
+
+        assertTrue(viewModel.content().unsaved)
+    }
+
+    @Test
+    fun `une proposition intacte se perdrait, elle ne se rejoue pas`() = runTest(dispatcher) {
+        // Le cas qui a fait poser la question : un glissement depuis le bord emportait
+        // ce qu'un modele venait de proposer, et la proposition est deja reprise.
+        pending.offer(Recognition(listOf(item("riz", 1.0))), EntrySource.TEXT_AI)
+
+        assertTrue(viewModel(proposal = true).content().unsaved)
+    }
+
+    @Test
+    fun `un plat relu ne demande rien tant qu il n a pas change`() = runTest(dispatcher) {
+        // Il est deja dans la base : quitter sans y toucher ne perd rien.
+        val neuf = viewModel()
+        remplir(neuf, neuf.content().form.lines.single().id)
+        neuf.onSave()
+        val relu = viewModel(dishId = diary.dishes.single().id.value)
+
+        assertFalse(relu.content().unsaved, "intact, il se quitte librement")
+
+        relu.onLineEdit(relu.content().form.lines.single().id, LineEdit.Quantity("200"))
+
+        assertTrue(relu.content().unsaved, "modifie, il perdrait la modification")
+    }
+
+    @Test
+    fun `une image choisie sur un plat relu se perdrait`() = runTest(dispatcher) {
+        val neuf = viewModel()
+        remplir(neuf, neuf.content().form.lines.single().id)
+        neuf.onSave()
+        val relu = viewModel(dishId = diary.dishes.single().id.value)
+
+        relu.onPhotoChosen(image)
+        advanceUntilIdle()
+
+        assertTrue(relu.content().unsaved)
+    }
+
+    @Test
+    fun `le favori qu on corrige ne demande que s il a change`() = runTest(dispatcher) {
+        // Le favori n'a pas d'identifiant de plat, comme une saisie neuve : sans la
+        // distinction, ses lignes deja remplies feraient demander a chaque sortie.
+        val premier = viewModel()
+        remplir(premier, premier.content().form.lines.single().id)
+        premier.favorite.propose("Flocons") { nom, rang -> "$nom $rang" }
+        advanceUntilIdle()
+        premier.favorite.save("Flocons")
+        advanceUntilIdle()
+        val editeur = viewModel(favoriteId = favoris.all.single().id.value, editingFavorite = true)
+
+        assertFalse(editeur.content().unsaved, "intact, il se quitte librement")
+
+        remplir(editeur, editeur.content().form.lines.single().id, kcal = "220")
+
+        assertTrue(editeur.content().unsaved, "corrige, il perdrait la correction")
+    }
+
     // --- Decor ---------------------------------------------------------------
 
     private fun platDeja(kcal: Double): Dish {
@@ -610,12 +706,14 @@ class EntryViewModelTest {
         viewModel.onFoodPicked(food.id)
     }
 
+    @Suppress("LongParameterList")
     private fun viewModel(
         dishId: String? = null,
         favoriteId: String? = null,
         scannedFoodId: String? = null,
         proposal: Boolean = false,
         editingFavorite: Boolean = false,
+        depot: DishPhotos = photos,
     ) = EntryViewModel(
         savedStateHandle = SavedStateHandle(
             listOfNotNull(
@@ -645,9 +743,9 @@ class EntryViewModelTest {
             ),
             addFoodLine = AddFoodLine(catalogue, create),
             observeUnitSystem = ObserveUnitSystem(profils),
-            openDraftPhoto = OpenDraftPhoto(photos),
-            attachDishPhoto = AttachDishPhoto(photos),
-            chooseDishPhoto = ChooseDishPhoto(photos),
+            openDraftPhoto = OpenDraftPhoto(depot),
+            attachDishPhoto = AttachDishPhoto(depot),
+            chooseDishPhoto = ChooseDishPhoto(depot),
         ),
         getDaySummary = GetDaySummary(diary, goals, clock),
         saveDraft = SaveDraft(LogDish(diary, catalogue, favoris, clock, ids), UpdateDish(diary, ids)),
@@ -709,5 +807,24 @@ class EntryViewModelTest {
             name = "Poulet roti",
             per100g = NutrientValues(kcal = 200.0),
         )
+    }
+}
+
+/**
+ * Un dépôt dont le vidage attend qu'on le relâche (D163).
+ *
+ * L'ouverture d'un brouillon neuf s'y arrête, comme sur un téléphone où l'image prise
+ * revient pendant que l'écran recréé s'ouvre encore.
+ */
+private class DepotRetenu(private val depot: DishPhotos) : DishPhotos by depot {
+    private val porte = CompletableDeferred<Unit>()
+
+    fun relacher() {
+        porte.complete(Unit)
+    }
+
+    override suspend fun discardStaged() {
+        porte.await()
+        depot.discardStaged()
     }
 }

@@ -3,11 +3,13 @@ package app.hexavore.feature.onboarding
 import app.hexavore.core.testing.FixedClock
 import app.hexavore.core.testing.InMemoryGoals
 import app.hexavore.core.testing.InMemoryProfiles
+import app.hexavore.core.testing.InMemoryReminderSettings
 import app.hexavore.core.testing.InMemoryWeightLog
 import app.hexavore.core.testing.SequentialIdGenerator
 import app.hexavore.domain.goal.GoalHorizon
 import app.hexavore.domain.goal.GoalOrigin
 import app.hexavore.domain.goal.GoalStrategy
+import app.hexavore.domain.goal.TargetProblem
 import app.hexavore.domain.profile.Sex
 import app.hexavore.domain.profile.WeeklySessions
 import app.hexavore.domain.profile.WorkActivity
@@ -44,6 +46,7 @@ class OnboardingViewModelTest {
     private val profiles = InMemoryProfiles()
     private val weights = InMemoryWeightLog()
     private val goals = InMemoryGoals()
+    private val rappels = InMemoryReminderSettings()
 
     @BeforeEach
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -187,6 +190,111 @@ class OnboardingViewModelTest {
         assertFalse(viewModel.uiState.value.plan!!.capped, "se caler sur la date proposee doit lever le garde-fou")
     }
 
+    // --- Les bornes du corps (D160) ---------------------------------------------
+
+    @Test
+    fun `une taille de 1 cm bloque l etape, et dit laquelle`() = runTest(dispatcher) {
+        // Rien ne bornait la saisie : 1 cm entrait tel quel dans Mifflin-St Jeor.
+        val viewModel = viewModel()
+        viewModel.onAnswers(REPONSES.copy(heightCm = 1.0))
+
+        repeat(OnboardingStep.COUNT) { viewModel.onNext() }
+
+        assertEquals(OnboardingStep.ABOUT_YOU, viewModel.uiState.value.step)
+        assertEquals(OnboardingBlocker.HEIGHT, viewModel.uiState.value.blocker)
+    }
+
+    @Test
+    fun `un poids qui ne va pas avec la taille bloque l etape`() = runTest(dispatcher) {
+        // 182 cm et 300 kg : chacun passe seul, leur IMC de 90 non.
+        val viewModel = viewModel()
+        viewModel.onAnswers(REPONSES.copy(currentWeightKg = 300.0))
+
+        repeat(OnboardingStep.COUNT) { viewModel.onNext() }
+
+        assertEquals(OnboardingStep.ABOUT_YOU, viewModel.uiState.value.step)
+        assertEquals(OnboardingBlocker.WEIGHT, viewModel.uiState.value.blocker)
+    }
+
+    @Test
+    fun `une absence se dit avant une invraisemblance`() = runTest(dispatcher) {
+        // « Renseignez votre taille » dit mieux ce qu'il faut faire qu'une plage de poids
+        // jugee sur une taille qui n'existe pas.
+        val viewModel = viewModel()
+        viewModel.onAnswers(REPONSES.copy(heightCm = null, currentWeightKg = 999.0))
+        viewModel.onNext()
+
+        assertEquals(OnboardingBlocker.IDENTITY, viewModel.uiState.value.blocker)
+    }
+
+    @Test
+    fun `perdre vers la maigreur est refuse, chiffre a l appui`() = runTest(dispatcher) {
+        // 182 cm : le seuil de la maigreur est a 62 kg.
+        val viewModel = viewModel()
+        viewModel.onAnswers(REPONSES.copy(targetWeightKg = 55.0))
+
+        repeat(OnboardingStep.COUNT) { viewModel.onNext() }
+
+        assertEquals(OnboardingStep.OBJECTIVE, viewModel.uiState.value.step)
+        assertEquals(OnboardingBlocker.TARGET, viewModel.uiState.value.blocker)
+        assertEquals(TargetProblem.BelowLean(182.0, 62.0), viewModel.uiState.value.answers.targetProblem)
+    }
+
+    @Test
+    fun `perdre vers un poids plus haut est refuse`() = runTest(dispatcher) {
+        // Le calcul en faisait une prise, sous l'etiquette « perdre ».
+        val viewModel = viewModel()
+        viewModel.onAnswers(REPONSES.copy(targetWeightKg = 95.0))
+
+        repeat(OnboardingStep.COUNT) { viewModel.onNext() }
+
+        assertEquals(OnboardingStep.OBJECTIVE, viewModel.uiState.value.step)
+        assertEquals(TargetProblem.NotBelowCurrent(88.0), viewModel.uiState.value.answers.targetProblem)
+    }
+
+    @Test
+    fun `deja au seuil de la maigreur, perdre se refuse avant meme un poids vise`() = runTest(dispatcher) {
+        // Lui demander « un poids cible et une echeance » l'enverrait remplir un champ
+        // qui ne pourrait jamais aboutir.
+        val viewModel = viewModel()
+        viewModel.onAnswers(REPONSES.copy(currentWeightKg = 60.0, targetWeightKg = null, targetDate = null))
+
+        repeat(OnboardingStep.COUNT) { viewModel.onNext() }
+
+        assertEquals(OnboardingBlocker.TARGET, viewModel.uiState.value.blocker, "et non OBJECTIVE")
+    }
+
+    @Test
+    fun `sous le plancher, se caler sur la date proposee leve enfin le garde-fou`() = runTest(dispatcher) {
+        // Femme de 80 ans, 145 cm, 45 kg : 954 kcal de depense, sous le plancher de
+        // 1 200. Le plancher portait la prise au-dela des bornes de vitesse, et la date
+        // proposee ne levait jamais l'alerte : c'est ce qui « bloquait » (D160).
+        val viewModel = viewModel()
+        viewModel.onAnswers(
+            PETITE.copy(strategy = GoalStrategy.GAIN, targetWeightKg = 50.0, targetDate = AUJOURD_HUI.plusMonths(3)),
+        )
+        val plan = viewModel.uiState.value.plan!!
+        assertTrue(plan.capped)
+        assertNotNull(plan.reachableOn)
+
+        viewModel.onUseReachableDate()
+
+        assertFalse(viewModel.uiState.value.plan!!.capped, "se caler sur la date proposee doit lever le garde-fou")
+    }
+
+    @Test
+    fun `sous le plancher, une perte reste a la depense, et le plan dit pourquoi`() = runTest(dispatcher) {
+        // Elle devenait une prise de 246 kcal par jour, sous l'etiquette « perdre ».
+        val viewModel = viewModel()
+        viewModel.onAnswers(PETITE.copy(strategy = GoalStrategy.LOSE, targetWeightKg = 42.0))
+
+        val plan = viewModel.uiState.value.plan!!
+
+        assertEquals(1_200.0, plan.withholdingFloorKcal)
+        assertNull(plan.reachableOn, "aucune date ne rend ce deficit possible")
+        assertTrue(plan.goal.kcal < 1_200.0, "l'objectif reste la depense, pas le plancher")
+    }
+
     @Test
     fun `les trois echeances proposees sont des dates, pas un calendrier`() = runTest(dispatcher) {
         // D56 : trois pastilles remplacent la saisie d'une date. Ce test tient la
@@ -201,6 +309,32 @@ class OnboardingViewModelTest {
             GoalHorizon.of(AUJOURD_HUI, AUJOURD_HUI.plusDays(103)),
             "une date atteignable ne correspond a aucune pastille, et elle a la sienne",
         )
+    }
+
+    @Test
+    fun `terminer note que la question des notifications a ete posee`() = runTest(dispatcher) {
+        // C'est elle qui mene ici. Sans cette trace, l'accueil la reposait aussitot,
+        // juste apres un « Ne pas autoriser » (D162).
+        val viewModel = viewModel()
+        viewModel.onAnswers(REPONSES)
+
+        viewModel.onFinish { }
+        advanceUntilIdle()
+
+        assertTrue(rappels.asked)
+    }
+
+    @Test
+    fun `la question reste notee meme quand l ecriture echoue`() = runTest(dispatcher) {
+        // Elle a ete posee, qu'on reessaie d'enregistrer ou non.
+        val viewModel = viewModel()
+        viewModel.onAnswers(REPONSES)
+        goals.failure = true
+
+        viewModel.onFinish { }
+        advanceUntilIdle()
+
+        assertTrue(rappels.asked)
     }
 
     @Test
@@ -223,6 +357,7 @@ class OnboardingViewModelTest {
         calculate = CalculateDailyGoal(clock),
         clock = clock,
         ids = SequentialIdGenerator("goal"),
+        reminders = rappels,
     )
 
     private companion object {
@@ -240,6 +375,16 @@ class OnboardingViewModelTest {
             strategy = GoalStrategy.LOSE,
             targetWeightKg = 80.0,
             targetDate = AUJOURD_HUI.plusDays(182),
+        )
+
+        /** Femme de 80 ans, 145 cm, 45 kg, assise : une dépense sous le plancher de 1 200 kcal. */
+        val PETITE = REPONSES.copy(
+            birthDate = LocalDate.of(1946, 3, 4),
+            sex = Sex.FEMALE,
+            heightCm = 145.0,
+            currentWeightKg = 45.0,
+            work = WorkActivity.DESK,
+            sessions = WeeklySessions.NONE,
         )
     }
 }

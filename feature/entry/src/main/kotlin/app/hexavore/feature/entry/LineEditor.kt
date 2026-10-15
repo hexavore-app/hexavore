@@ -207,15 +207,21 @@ private fun SuggestionRow(line: EntryFormLine, actions: EntryActions) {
     // chaines : ce que le modele a compris, d'ou vient la quantite, et d'ou viennent
     // les valeurs. Elles se trompent separement, donc elles se lisent separement.
     val marques = listOfNotNull(
-        stringResource(R.string.entry_suggestion, confidence),
+        stringResource(
+            if (suggestion.unsure) R.string.entry_suggestion_unsure else R.string.entry_suggestion,
+            confidence,
+        ),
         stringResource(R.string.entry_suggestion_quantity).takeIf { suggestion.estimated },
         stringResource(R.string.entry_suggestion_macros).takeIf { suggestion.estimatedMacros },
     )
 
+    // Un doute du modele se voit, et se lit : la couleur et les mots, jamais la
+    // couleur seule (D25). Une confiance de 20 % s'affichait dans le gris d'une de
+    // 95 % (D162).
     Text(
         text = marques.joinToString(separator = MARK_SEPARATOR),
         style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        color = if (suggestion.unsure) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
     )
 
     if (suggestion.alternatives.isEmpty()) return

@@ -51,6 +51,7 @@ internal fun WeightRoute(onClose: () -> Unit) {
         onClose = onClose,
         suggestion = suggestion,
         onAdjustment = viewModel::onAdjustment,
+        onTrendShown = viewModel::onTrendShown,
     )
 }
 
@@ -80,6 +81,12 @@ internal fun WeightScreen(
      */
     suggestion: AdjustmentSuggestion? = null,
     onAdjustment: (AdjustmentResponse) -> Unit = {},
+    /**
+     * La case de la tendance, dans la légende de la courbe ([D159][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    onTrendShown: (Boolean) -> Unit = {},
 ) {
     var recording by remember { mutableStateOf(false) }
 
@@ -108,6 +115,8 @@ internal fun WeightScreen(
             suggestion?.let {
                 AdjustmentCard(
                     suggestion = it,
+                    // Le meme systeme que la liste des pesees en dessous (D162).
+                    units = (state as? WeightUiState.Loaded)?.units ?: UnitSystem.METRIC,
                     onAccept = { onAdjustment(AdjustmentResponse.ACCEPT) },
                     onIgnore = { onAdjustment(AdjustmentResponse.IGNORE) },
                     onStop = { onAdjustment(AdjustmentResponse.STOP) },
@@ -117,16 +126,18 @@ internal fun WeightScreen(
             when (state) {
                 WeightUiState.Loading -> Unit
                 WeightUiState.Error -> Unreadable()
-                is WeightUiState.Loaded -> Journal(state)
+                is WeightUiState.Loaded -> Journal(state, onTrendShown)
             }
         }
     }
 
     if (recording) {
+        val loaded = state as? WeightUiState.Loaded
         RecordWeightDialog(
             today = today,
-            initialKg = (state as? WeightUiState.Loaded)?.trend?.latest?.weightKg,
-            units = (state as? WeightUiState.Loaded)?.units ?: UnitSystem.METRIC,
+            initialKg = loaded?.trend?.latest?.weightKg,
+            units = loaded?.units ?: UnitSystem.METRIC,
+            heightCm = loaded?.heightCm,
             onConfirm = { date, kg ->
                 onRecord(date, kg)
                 recording = false
@@ -147,28 +158,38 @@ private fun WeightTitle(onClose: () -> Unit) {
 
 /** La courbe, l'avertissement s'il y a lieu, puis les pesées. */
 @Composable
-private fun Journal(state: WeightUiState.Loaded) {
+private fun Journal(state: WeightUiState.Loaded, onTrendShown: (Boolean) -> Unit) {
     if (state.empty) {
         NothingWeighedYet()
         return
     }
 
-    WeightChart(state.trend)
-    if (state.trendMissing) Note(stringResource(R.string.weight_trend_missing))
+    WeightChart(state.trend, state.units, trendShown = state.trendShown, onTrendShown = onTrendShown)
+    if (state.curveMissing) Note(stringResource(R.string.weight_curve_missing))
 
     LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
         items(state.trend.points.asReversed(), key = { it.date.toString() }) { Weighing(it, state.units) }
     }
 }
 
-/** Une pesée : la date, le poids, et le lissage du jour s'il existe. */
+/** Une pesée : la date, le poids, et la tendance du jour pour qui ne voit pas la courbe. */
 @Composable
 private fun Weighing(point: TrendPoint, units: UnitSystem) {
-    val average = point.averageKg
-    val description = if (average == null) {
-        stringResource(R.string.weight_row_a11y, point.date.longLabel(), point.weightKg)
-    } else {
-        stringResource(R.string.weight_row_smoothed_a11y, point.date.longLabel(), point.weightKg, average)
+    // Dans le systeme de la ligne qu'elle lit (D162) : des livres a l'ecran ne
+    // s'annoncent pas en kilogrammes.
+    val description = when (units) {
+        UnitSystem.METRIC -> stringResource(
+            R.string.weight_row_smoothed_a11y,
+            point.date.longLabel(),
+            point.weightKg,
+            point.trendKg,
+        )
+        UnitSystem.IMPERIAL -> stringResource(
+            R.string.weight_row_smoothed_a11y_pounds,
+            point.date.longLabel(),
+            kilogramsToPounds(point.weightKg),
+            kilogramsToPounds(point.trendKg),
+        )
     }
 
     Row(
@@ -199,7 +220,7 @@ private fun Weighing(point: TrendPoint, units: UnitSystem) {
  * qui change — basculer de réglage ne réécrit pas une seule pesée.
  */
 @Composable
-private fun weightLabel(kilograms: Double, units: UnitSystem): String = when (units) {
+internal fun weightLabel(kilograms: Double, units: UnitSystem): String = when (units) {
     UnitSystem.METRIC -> stringResource(R.string.weight_kg, kilograms)
     UnitSystem.IMPERIAL -> stringResource(R.string.weight_pound, kilogramsToPounds(kilograms))
 }

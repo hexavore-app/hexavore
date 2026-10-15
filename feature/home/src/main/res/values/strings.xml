@@ -16,12 +16,20 @@
          you need at the moment of deciding what to eat. -->
     <string name="home_remaining_label">kcal left</string>
     <string name="home_over_label">kcal over</string>
-    <string name="home_consumed_of_goal">%1$d eaten of %2$d</string>
+    <!-- Plurals, for the languages that agree the participle with the count (D162). -->
+    <plurals name="home_consumed_of_goal">
+        <item quantity="one">%1$d eaten of %2$d</item>
+        <item quantity="other">%1$d eaten of %2$d</item>
+    </plurals>
     <string name="home_ring_a11y">Calories, %1$d of %2$d, %3$d %%</string>
 
     <!-- An empty list says what to do, not just that it is empty. -->
     <string name="home_empty_title">Nothing noted today</string>
     <string name="home_empty_body">The six counters will fill up with your first entry.</string>
+    <!-- The same emptiness, on a past day (D162): it is said in the past, and what can be
+         done there is catch up on a forgotten meal, not fill counters. -->
+    <string name="home_empty_past_title">Nothing noted that day</string>
+    <string name="home_empty_past_body">A forgotten meal can still be logged here: it will be filed under this date.</string>
 
     <!-- A failed read is said out loud, it does not show up as an empty day: an empty
          day is a claim, not an absence of answer. -->
@@ -34,6 +42,12 @@
     <string name="home_no_goal_title">No target yet</string>
     <string name="home_no_goal_body">Five questions are enough to work out your six targets. In the meantime, your totals are noted without being compared to anything.</string>
     <string name="home_no_goal_action">Set my target</string>
+
+    <!-- A day before the first target, while one is running today (D161). An explanation,
+         no button: the invitation above restarted the onboarding for someone who had
+         just answered it and came back to log a meal from before installing. -->
+    <string name="home_before_goal_title">Before your target</string>
+    <string name="home_before_goal_body">This day comes before your first target: its totals are noted, without being compared to anything.</string>
 
     <!-- An icon on its own: it is the least used door on this screen, and nothing should
          compete with the day\'s title for the first line of the eye. -->
@@ -53,7 +67,10 @@
 
     <!-- A row is a single accessibility node: name, quantity, calories, in one sentence
          rather than three stops. -->
-    <string name="home_entry_a11y">%1$s, %2$s %3$s, %4$d kilocalories</string>
+    <plurals name="home_entry_a11y">
+        <item quantity="one">%1$s, %2$s %3$s, %4$d kilocalorie</item>
+        <item quantity="other">%1$s, %2$s %3$s, %4$d kilocalories</item>
+    </plurals>
 
     <!-- A dish: several foods entered at once, placed by their time. -->
     <string name="home_dish_kcal">%1$d kcal</string>
@@ -158,16 +175,8 @@
         <item quantity="other">%1$d others</item>
     </plurals>
 
-    <!-- The five chips are Protein, Carbs, Sugars, Fat and Fibre: those five have to be
-         told apart from each other, and they are. Calories carry "kcal" rather than a
-         letter — no chip shows them, they have their own figure at the top, and a "C"
-         here would have read as Carbs the day someone did show them. -->
-    <string name="macro_initial_calories">kcal</string>
-    <string name="macro_initial_protein">P</string>
-    <string name="macro_initial_carbs">C</string>
-    <string name="macro_initial_sugars">S</string>
-    <string name="macro_initial_fat">F</string>
-    <string name="macro_initial_fiber">Fb</string>
+    <!-- The chip initials live in the design system since D162: the hexagon reads the
+         same ones, and had its own, in French. -->
 
     <!-- The calendar strip and the month view. A day with no entry is announced as such:
          to a screen reader, a missing ring is indistinguishable from an empty one, while
@@ -206,9 +215,20 @@
     <!-- Ce qui passe a l'ecran quand un palier tombe. Rien a fermer : l'animation
          passe, et on continue a noter dessous. -->
     <string name="home_celebration_title">Milestone reached</string>
-    <string name="home_badge_streak">%1$d days in a row</string>
-    <string name="home_badge_volume">%1$d dishes logged</string>
-    <string name="home_badge_perfect">%1$d golden days in a row</string>
+    <!-- Plurals, not strings: the first golden milestone falls at one day, and read
+         "1 golden days in a row" (D162). -->
+    <plurals name="home_badge_streak">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days in a row</item>
+    </plurals>
+    <plurals name="home_badge_volume">
+        <item quantity="one">%1$d dish logged</item>
+        <item quantity="other">%1$d dishes logged</item>
+    </plurals>
+    <plurals name="home_badge_perfect">
+        <item quantity="one">%1$d golden day</item>
+        <item quantity="other">%1$d golden days in a row</item>
+    </plurals>
     <string name="home_badge_first_scan">First scan</string>
     <string name="home_badge_first_photo">First photo</string>
     <string name="home_badge_first_text">First description</string>

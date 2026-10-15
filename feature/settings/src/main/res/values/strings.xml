@@ -18,8 +18,10 @@
     <string name="profile_sex_female">Female</string>
     <string name="profile_sex_unspecified">I would rather not say</string>
     <string name="profile_sex_unspecified_note">We use a middle estimate, the average of the two variants of the formula.</string>
-    <string name="profile_height">Height (cm)</string>
-    <string name="profile_weight">Current weight (kg)</string>
+    <!-- No unit: the field adds it, in the chosen system. With one, the label read
+         "Height (cm) (cm)", and "Height (cm) (feet)" in imperial. -->
+    <string name="profile_height">Height</string>
+    <string name="profile_weight">Current weight</string>
     <!-- A weight reading is a dated fact: opening this screen does not create one. -->
     <string name="profile_weight_note">Correcting this weight records a reading dated today. Leaving it as it is invents none.</string>
 
@@ -43,7 +45,7 @@
     <string name="profile_strategy_lose">Lose weight</string>
     <string name="profile_strategy_maintain">Maintain</string>
     <string name="profile_strategy_gain">Gain weight</string>
-    <string name="profile_target_weight">Target weight (kg)</string>
+    <string name="profile_target_weight">Target weight</string>
 
     <!-- The deadline currently running is a precise date, chosen on another day: it does
          not necessarily match one of the chips, and it is shown as it is rather than
@@ -55,6 +57,10 @@
     <string name="profile_horizon_twelve">In 12 months</string>
     <string name="profile_horizon_reachable">At a safe pace: %1$s</string>
     <string name="profile_pace">That is about %1$.2f kg a week.</string>
+    <!-- The same pace in pounds, for imperial (D162). -->
+    <string name="profile_pace_pounds">That is about %1$.2f lb a week.</string>
+    <!-- The estimated expenditure is already below the floor: no deficit fits (D160). -->
+    <string name="profile_no_deficit">Your estimated expenditure (%1$d kcal) is already below the recommended minimum of %2$d kcal: no deficit is offered, and your target stays at your expenditure. A health professional can advise you.</string>
     <string name="profile_capped">That pace would go past the safety limits. At a safe pace, you would reach your target weight around %1$s.</string>
     <string name="profile_carbs_low">At this calorie level there is little room left for carbs once protein, fat and fibre are covered. A higher target would be easier to hold.</string>
 
@@ -111,6 +117,7 @@
     <!-- What a dimmed button answers when tapped. It says what is missing, not that
          something is missing: "complete the form" helps nobody. -->
     <string name="profile_blocked_identity">Fill in your date of birth, your sex, your height and your weight.</string>
+    <string name="profile_blocked_age">Hexavore works out its targets for people aged %1$d to %2$d. Choose another date of birth.</string>
     <string name="profile_blocked_activity">Choose the level that best describes your weeks.</string>
     <string name="profile_blocked_strategy">Choose a goal: lose, maintain or gain weight.</string>
     <string name="profile_blocked_horizon">Fill in a target weight and a deadline.</string>
@@ -236,7 +243,7 @@
     <string name="backup_cancel">Cancel</string>
 
     <string name="backup_export_title">Export my data</string>
-    <string name="backup_export_body">A file containing everything: the log, the targets, the weight readings, the catalogue and the favourite dishes. You choose where to write it. Neither API keys nor passwords are in it.</string>
+    <string name="backup_export_body">A file containing everything: the log and its photos, the targets, the weight readings, the catalogue and the favourite dishes. You choose where to write it. Neither API keys nor passwords are in it.</string>
     <string name="backup_export_action">Choose a location</string>
     <string name="backup_exported">Exported, %1$d kB</string>
     <!-- Past the megabyte: an archive carrying photos is counted in MB, and "214,072 kB"
@@ -248,15 +255,33 @@
     <string name="backup_import_body">Replaces everything on this device with the contents of the file. A copy of what exists is kept just beforehand.</string>
     <string name="backup_import_action">Choose a file</string>
     <string name="backup_restore_confirm_title">Replace all your data?</string>
-    <string name="backup_restore_confirm_body">The contents of the file will replace everything on this device. The two will not be merged. A copy of the current state is kept just beforehand, so you can go back if you picked the wrong file.</string>
+    <string name="backup_restore_confirm_body">The contents of the file will replace everything on this device. The two will not be merged. A copy of the current state is kept just beforehand, so you can go back from this screen if you picked the wrong file.</string>
     <string name="backup_restore_confirm_accept">Choose a file</string>
-    <string name="backup_restored">Restored, %1$d foods noted</string>
+    <!-- Plurals: a backup holding a single food read "1 foods noted" (D162). -->
+    <plurals name="backup_restored">
+        <item quantity="one">Restored, %1$d food noted</item>
+        <item quantity="other">Restored, %1$d foods noted</item>
+    </plurals>
     <string name="backup_too_recent">This file comes from a more recent version (format %1$d). Nothing was changed: update the application.</string>
     <string name="backup_unreadable">File unreadable. Nothing was changed.</string>
     <string name="backup_restore_failed">The restore failed. A copy of your data from before is on the device.</string>
 
+    <!-- Going back to the safety copy (D162): the restore dialog promised it, and no
+         screen offered it. The card only shows after a restore, which leaves the copy. -->
+    <string name="backup_undo_title">Go back</string>
+    <string name="backup_undo_body">Puts the log back as it was before the restore of %1$s. Photos only come back if the app has not been restarted since.</string>
+    <string name="backup_undo_action">Go back</string>
+    <string name="backup_undo_confirm_title">Go back to the earlier state?</string>
+    <string name="backup_undo_confirm_body">The current log will be replaced by the one from before the last restore. It becomes the safety copy in turn: going back can be undone the same way.</string>
+    <plurals name="backup_undone">
+        <item quantity="one">Back to the earlier state, %1$d food noted</item>
+        <item quantity="other">Back to the earlier state, %1$d foods noted</item>
+    </plurals>
+
     <string name="backup_erase_title">Erase all my data</string>
-    <string name="backup_erase_body">Deletes the log, the profile, the targets, the weight readings, the API keys and the accounts. Files you have already exported are untouched.</string>
+    <!-- The copy kept before a restore is named (D162): it survived the erase, and the
+         whole log stayed on the phone. -->
+    <string name="backup_erase_body">Deletes the log, the photos, the profile, the targets, the weight readings, the API keys and the accounts, as well as the copy kept before the last restore. Files you have already exported are untouched.</string>
     <string name="backup_erase_action">Erase everything</string>
     <string name="backup_erase_confirm_title">Erase everything, with no way back?</string>
     <string name="backup_erase_confirm_body">This action cannot be undone. To confirm, type %1$s below.</string>
@@ -336,18 +361,22 @@
 
     <string name="notices_title">Notifications</string>
     <string name="notices_close">Close</string>
-    <string name="notices_intro">Coloured dots inside the application, nothing more: no sound, nothing on the lock screen, no permission. Each one goes out when the situation it flags has ended.</string>
+    <!-- The dots, and the dots alone (D162): the screen also holds the reminders, which
+         ring and need a permission, and the sentence seemed to speak of them. -->
+    <string name="notices_intro">The dots are coloured marks inside the application, nothing more: no sound, nothing on the lock screen, no permission. Each one goes out when the situation it flags has ended. Only the reminders, further down, ring outside the application.</string>
     <string name="settings_section_flagged">Something to sort out here</string>
     <string name="notices_active_now">On right now</string>
 
     <string name="notices_ai_absent_title">No AI configured</string>
-    <string name="notices_ai_absent_body">On the profile icon, as long as no API key is in use. Both analysis buttons stay dimmed without one.</string>
+    <!-- The bar is no longer dimmed without a key: it turns red and says what is missing (D162). -->
+    <string name="notices_ai_absent_body">On the profile icon, as long as no API key is in use. Without one, the analysis bar turns red and says what is missing.</string>
 
     <string name="notices_ai_rejected_title">API key refused</string>
     <string name="notices_ai_rejected_body">On the profile icon, when the last analysis call was refused. Without it, analysis stops working without anything saying so.</string>
 
     <string name="notices_weight_title">No weight reading for a week</string>
-    <string name="notices_weight_body">On the weight log icon. Without regular readings, the trend falls silent and the weekly adjustment can suggest nothing.</string>
+    <!-- The trend no longer falls silent since D159: it is the adjustment that lacks ground (D162). -->
+    <string name="notices_weight_body">On the weight log icon. Without regular readings, the weekly adjustment has nothing to rely on, and can suggest nothing.</string>
 
     <string name="notices_yesterday_title">Yesterday has nothing noted</string>
     <string name="notices_yesterday_body">On yesterday\'s dot in the calendar. Touching that day lets you note the meal you forgot.</string>
@@ -380,4 +409,38 @@
     <string name="settings_contact_site">The site</string>
     <string name="settings_contact_github">The code, and the issues</string>
     <string name="settings_contact_mail">Write to us</string>
+    <!-- When nothing on the phone can open a card's address, in Contact as in About
+         (D162). It points to the address, written on the card for that reason. -->
+    <string name="settings_link_unavailable">No app on this phone can open this link. The address is written on the card, so you can copy it.</string>
+
+    <!-- ===== About ================================================================
+         What the app is, and what it owes to others (D161): the privacy policy that
+         Google Play wants reachable from inside the app, the medical warning, where the
+         nutrition data comes from, and the licences of what the APK carries. -->
+    <string name="settings_about_title">About</string>
+    <string name="settings_about_subtitle">The version, privacy, where the data comes from, and the licences.</string>
+    <string name="about_close">Close</string>
+    <!-- Proper nouns: the same in every language. -->
+    <string name="about_app_name" translatable="false">Hexavore</string>
+    <string name="about_off_title" translatable="false">Open Food Facts</string>
+    <string name="about_licence_desugar_title" translatable="false">desugar_jdk_libs</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_tagline">Food tracking, free and open source: no account, no server, no ads.</string>
+    <string name="about_privacy_title">Privacy policy</string>
+    <string name="about_privacy_body">What the app keeps, what leaves your phone, and how to erase it.</string>
+    <!-- The policy in the language being read: the site publishes both. -->
+    <string name="about_privacy_url">https://hexavore.app/en/privacy/</string>
+    <string name="about_sources_title">Where the nutrition data comes from</string>
+    <string name="about_ciqual_title">ANSES Ciqual 2025 food composition table</string>
+    <string name="about_ciqual_body">Published by ANSES under the Etalab Open Licence 2.0. The short names, and the values Hexavore completed and marks as estimates, are not part of the table.</string>
+    <string name="about_off_body">Contains information from Open Food Facts, made available by its contributors under the Open Database License (ODbL).</string>
+    <string name="about_licences_title">Licences</string>
+    <string name="about_licence_app_body">Free software, published under the GNU General Public License, version 3.</string>
+    <string name="about_licence_inter_title">Inter typeface</string>
+    <string name="about_licence_inter_body">By Rasmus Andersson and the Inter project, under the SIL Open Font License 1.1.</string>
+    <string name="about_licence_apache_title">Libraries under the Apache 2.0 licence</string>
+    <string name="about_licence_apache_body">AndroidX and Jetpack Compose, Kotlin and kotlinx, Dagger Hilt, Retrofit and OkHttp, zxing-cpp.</string>
+    <string name="about_licence_desugar_body">Java libraries carried back to older versions of Android, under the GNU General Public License, version 2, with the Classpath Exception.</string>
+    <string name="about_licence_calendar_title">Calendar, by Kizito Nwose</string>
+    <string name="about_licence_calendar_body">Under the MIT licence, whose text follows.</string>
 </resources>

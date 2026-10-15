@@ -2,6 +2,7 @@ package app.hexavore.feature.onboarding
 
 import android.Manifest
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -23,15 +24,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.hexavore.core.designsystem.component.NeonButton
 import app.hexavore.core.designsystem.component.NeonButtonAvailability
 import app.hexavore.core.designsystem.component.NeonButtonStyle
+import app.hexavore.core.designsystem.component.heightProblem
+import app.hexavore.core.designsystem.component.targetProblem
+import app.hexavore.core.designsystem.component.weightProblem
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.domain.goal.DailyGoal
+import app.hexavore.domain.goal.GoalStrategy
 import app.hexavore.domain.nutrition.Macro
+import app.hexavore.domain.profile.BodyBounds
+import app.hexavore.domain.profile.UnitSystem
 import app.hexavore.domain.usecase.GoalPlan
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -107,13 +115,25 @@ private fun rememberNotificationRequest(onSettled: () -> Unit): () -> Unit {
  * La barre plutôt qu'un texte sous les boutons : la version discrète existait, et elle
  * était invisible. Ce qui interrompt le regard est ce qui se lit.
  *
+ * **Le refus referme aussi le clavier** ([D160][decisions]) : un champ qu'on quitte dit
+ * ce qui ne va pas sous lui, et c'est ainsi que le chiffre fautif se désigne en rouge au
+ * moment où la barre en parle.
+ *
+ * **Le retour du système recule d'une étape**, comme le bouton « Retour »
+ * ([D161][decisions]). Il fermait l'application, et les réponses déjà données partaient
+ * avec elle : on rouvrait sur la première question. À la première étape, il n'y a rien
+ * derrière, et le système reprend la main.
+ *
  * [decisions]: docs/11-decisions.md
  */
 @Composable
 internal fun OnboardingScreen(state: OnboardingUiState, actions: OnboardingActions) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val blocked = state.blocker?.let { stringResource(it.messageRes) }
+    val focus = LocalFocusManager.current
+    val blocked = state.blocker?.let { blockerMessage(it, state.answers) }
+
+    BackHandler(enabled = state.step != OnboardingStep.WELCOME, onBack = actions.onBack)
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -144,7 +164,7 @@ internal fun OnboardingScreen(state: OnboardingUiState, actions: OnboardingActio
                     OnboardingStep.OBJECTIVE ->
                         ObjectiveStep(state.answers, state.today, state.plan, actions.onAnswers)
 
-                    OnboardingStep.RESULT -> ResultStep(state.plan, actions)
+                    OnboardingStep.RESULT -> ResultStep(state.plan, state.answers.strategy, actions)
                 }
                 if (state.failed) Body(stringResource(R.string.onboarding_save_failed))
             }
@@ -153,6 +173,7 @@ internal fun OnboardingScreen(state: OnboardingUiState, actions: OnboardingActio
                 state = state,
                 actions = actions,
                 onBlocked = {
+                    focus.clearFocus()
                     scope.launch {
                         // `dismissPrevious` implicite : une seule barre a la fois,
                         // sinon trois appuis empilent trois messages identiques.
@@ -221,7 +242,7 @@ private fun Navigation(state: OnboardingUiState, actions: OnboardingActions, onB
  * [calculs]: docs/03-nutrition-calculs.md
  */
 @Composable
-private fun ResultStep(plan: GoalPlan?, actions: OnboardingActions) {
+private fun ResultStep(plan: GoalPlan?, strategy: GoalStrategy?, actions: OnboardingActions) {
     if (plan == null) {
         Body(stringResource(R.string.onboarding_result_unavailable))
         return
@@ -238,14 +259,17 @@ private fun ResultStep(plan: GoalPlan?, actions: OnboardingActions) {
                 style = NeonButtonStyle.OUTLINED,
             )
         }
+        // Le plancher a retenu tout le deficit : il n'y a pas de date a proposer, et
+        // le dire evite de chercher pourquoi la perte demandee ne change rien (D160).
+        if (plan.withholdingFloorKcal != null) Pace(plan)
         if (plan.carbsBelowMinimum) Body(stringResource(R.string.onboarding_carbs_low))
 
-        GoalLines(plan.goal)
+        GoalLines(plan.goal, strategy)
     }
 }
 
 @Composable
-private fun GoalLines(goal: DailyGoal) {
+private fun GoalLines(goal: DailyGoal, strategy: GoalStrategy?) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
         Macro.entries.forEach { macro ->
             Text(
@@ -253,18 +277,33 @@ private fun GoalLines(goal: DailyGoal) {
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            Body(stringResource(macro.explanationRes))
+            Body(stringResource(macro.explanationRes(strategy)))
         }
     }
 }
 
-private val OnboardingBlocker.messageRes: Int
-    get() = when (this) {
-        OnboardingBlocker.DISCLAIMER -> R.string.onboarding_blocked_disclaimer
-        OnboardingBlocker.IDENTITY -> R.string.onboarding_blocked_identity
-        OnboardingBlocker.ACTIVITY -> R.string.onboarding_blocked_activity
-        OnboardingBlocker.OBJECTIVE -> R.string.onboarding_blocked_objective
-    }
+/**
+ * La phrase de la barre, pour ce qui bloque.
+ *
+ * **Une valeur invraisemblable reprend la phrase de son champ** ([D160][decisions]),
+ * mot pour mot : la barre et le rouge sous le champ disent la même plage, parce qu'ils
+ * la tiennent de la même fonction.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+@Composable
+private fun blockerMessage(blocker: OnboardingBlocker, answers: OnboardingAnswers): String = when (blocker) {
+    OnboardingBlocker.DISCLAIMER -> stringResource(R.string.onboarding_blocked_disclaimer)
+    OnboardingBlocker.IDENTITY -> stringResource(R.string.onboarding_blocked_identity)
+    OnboardingBlocker.AGE ->
+        stringResource(R.string.onboarding_blocked_age, BodyBounds.AGES.first, BodyBounds.AGES.last)
+    OnboardingBlocker.HEIGHT -> heightProblem(answers.heightCm, UnitSystem.METRIC)?.text.orEmpty()
+    OnboardingBlocker.WEIGHT ->
+        weightProblem(answers.currentWeightKg, answers.heightCm, UnitSystem.METRIC)?.text.orEmpty()
+    OnboardingBlocker.ACTIVITY -> stringResource(R.string.onboarding_blocked_activity)
+    OnboardingBlocker.OBJECTIVE -> stringResource(R.string.onboarding_blocked_objective)
+    OnboardingBlocker.TARGET -> targetProblem(answers.targetProblem, UnitSystem.METRIC)?.text.orEmpty()
+}
 
 private val Macro.lineRes: Int
     get() = when (this) {
@@ -276,12 +315,25 @@ private val Macro.lineRes: Int
         Macro.FAT -> R.string.onboarding_goal_fat
     }
 
-private val Macro.explanationRes: Int
-    get() = when (this) {
-        Macro.CALORIES -> R.string.onboarding_why_calories
-        Macro.PROTEIN -> R.string.onboarding_why_protein
+/**
+ * La phrase qui explique un compteur, selon l'objectif ([D162][decisions]).
+ *
+ * **Un maintien n'a ni échéance ni poids cible** — le choisir les efface. Il s'entendait
+ * dire que ses calories étaient « ajustées à votre échéance », et ses protéines
+ * « calculées sur votre poids cible », alors qu'elles le sont sur le poids actuel.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+private fun Macro.explanationRes(strategy: GoalStrategy?): Int {
+    val maintaining = strategy == GoalStrategy.MAINTAIN
+    return when (this) {
+        Macro.CALORIES ->
+            if (maintaining) R.string.onboarding_why_calories_maintain else R.string.onboarding_why_calories
+        Macro.PROTEIN ->
+            if (maintaining) R.string.onboarding_why_protein_maintain else R.string.onboarding_why_protein
         Macro.FIBER -> R.string.onboarding_why_fiber
         Macro.CARBS -> R.string.onboarding_why_carbs
         Macro.SUGARS -> R.string.onboarding_why_sugars
         Macro.FAT -> R.string.onboarding_why_fat
     }
+}

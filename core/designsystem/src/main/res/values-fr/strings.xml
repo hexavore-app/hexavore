@@ -56,6 +56,41 @@
     <string name="ds_unit_kcal_short">kcal</string>
     <string name="ds_unit_kcal_spoken">kilocalories</string>
 
+    <!-- Les six initiales, lues par l'hexagone comme par les pastilles des plats (D162).
+         En français, aucune ne se confond avec une autre : Calories, Protéines,
+         Glucides, Sucres, Lipides, Fibres. -->
+    <string name="ds_macro_initial_calories">C</string>
+    <string name="ds_macro_initial_protein">P</string>
+    <string name="ds_macro_initial_carbs">G</string>
+    <string name="ds_macro_initial_sugars">S</string>
+    <string name="ds_macro_initial_fat">L</string>
+    <string name="ds_macro_initial_fiber">F</string>
+
+    <!-- La caméra refusée pour de bon (D162) : Android ne redemande plus, et le bouton
+         ne faisait plus rien. La phrase dit où l'autoriser, et nomme la galerie, qui
+         marche sans permission. -->
+    <string name="ds_camera_refused_title">La caméra est refusée</string>
+    <string name="ds_camera_refused_body">Android ne la redemandera plus : elle s\'autorise dans les réglages d\'Hexavore, à la rubrique des autorisations. En attendant, une photo de la galerie fait aussi l\'affaire.</string>
+    <string name="ds_camera_refused_settings">Ouvrir les réglages</string>
+    <string name="ds_camera_refused_close">Fermer</string>
+
+    <!-- Les bornes du corps (D160), en chiffres et dans le systeme choisi : « entre 37
+         et 245 kg » se corrige, « valeur invalide » ne dit pas dans quel sens aller. -->
+    <string name="ds_body_height_range">Indiquez une taille entre %1$s et %2$s.</string>
+    <string name="ds_body_weight_range">Indiquez un poids entre %1$s et %2$s.</string>
+    <string name="ds_body_weight_range_for_height">Pour %1$s, indiquez un poids entre %2$s et %3$s.</string>
+    <!-- Le poids vise suit le sens de l'objectif, et une perte s'arrete au seuil de la
+         maigreur (D160). -->
+    <string name="ds_target_not_below">Pour perdre du poids, visez moins que votre poids actuel (%1$s).</string>
+    <string name="ds_target_not_above">Pour prendre du poids, visez plus que votre poids actuel (%1$s).</string>
+    <string name="ds_target_below_lean">Pour %1$s, visez au moins %2$s : en dessous, l\'IMC passerait sous %3$s, le seuil de la maigreur.</string>
+    <string name="ds_target_above_range">Pour %1$s, visez au plus %2$s.</string>
+    <string name="ds_target_no_room">Pour %1$s, le seuil de la maigreur (IMC %3$s) est à %2$s, et votre poids n\'est pas au-dessus : une perte de poids n\'est pas proposée.</string>
+    <string name="ds_value_cm">%1$s cm</string>
+    <string name="ds_value_kg">%1$s kg</string>
+    <string name="ds_value_pound">%1$s lb</string>
+    <string name="ds_value_feet_inches">%1$d pi %2$d po</string>
+
     <!-- Origine d'un plat. Un plat, une source. -->
     <string name="ds_source_manual">Saisie manuelle</string>
     <string name="ds_source_barcode">Code-barres</string>
@@ -99,6 +134,10 @@
     <string name="ds_adjustment_body">Sur les trois dernières semaines : %1$s. L\'objectif visait %2$s.</string>
     <string name="ds_adjustment_pace_loss">−%1$.1f kg par semaine</string>
     <string name="ds_adjustment_pace_gain">+%1$.1f kg par semaine</string>
+    <!-- Les mêmes rythmes en livres, pour le système impérial (D162) : la carte parlait
+         en kilos juste à côté d'une liste de pesées écrite en livres. -->
+    <string name="ds_adjustment_pace_loss_pounds">−%1$.1f lb par semaine</string>
+    <string name="ds_adjustment_pace_gain_pounds">+%1$.1f lb par semaine</string>
     <string name="ds_adjustment_pace_steady">poids stable</string>
     <!-- Le sens de la correction est dit par un verbe, jamais par le signe d'un
          nombre : c'est la phrase sur laquelle on appuie « Accepter ». -->
@@ -107,5 +146,11 @@
     <string name="ds_adjustment_accept">Accepter</string>
     <string name="ds_adjustment_ignore">Ignorer</string>
     <string name="ds_adjustment_stop">Ne plus proposer</string>
+
+    <!-- L'avertissement médical, écrit une fois. L'accueil le fait lire avant la
+         première question, et « À propos » le garde à portée ensuite : deux copies
+         d'une phrase qui engage le projet finiraient par dire deux choses différentes
+         (D161). -->
+    <string name="ds_medical_disclaimer">Hexavore est un outil de suivi personnel. Ce n\'est pas un dispositif médical et il ne remplace pas l\'avis d\'un professionnel de santé.</string>
 
 </resources>

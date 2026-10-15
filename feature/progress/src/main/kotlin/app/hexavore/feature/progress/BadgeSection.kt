@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -70,12 +71,16 @@ private fun BadgeRow(badge: Badge, progress: Progress) {
     val discovery = badge.family == Badge.Family.DISCOVERY
     // Le nom se construit du seuil pour les trois familles chiffrees : dix-huit
     // libelles diraient dix-huit fois la meme phrase avec un nombre different, et la
-    // traduction les porterait tous.
-    val name = if (discovery) stringResource(badge.discoveryName()) else stringResource(badge.nameOf(), badge.threshold)
+    // traduction les porterait tous. Des pluriels, parce qu'un seuil vaut un (D162).
+    val name = if (discovery) {
+        stringResource(badge.discoveryName())
+    } else {
+        pluralStringResource(badge.nameOf(), badge.threshold, badge.threshold)
+    }
     val detail = when {
         taken -> stringResource(R.string.progress_badge_on, progress.unlocked.getValue(badge).format())
         discovery -> stringResource(badge.discoveryHint())
-        else -> stringResource(badge.hint(), badge.threshold)
+        else -> pluralStringResource(badge.hint(), badge.threshold, badge.threshold)
     }
 
     Row(
@@ -155,10 +160,10 @@ private fun Badge.Family.label(): Int = when (this) {
 
 /** Le nom d'un palier chiffré : sa famille, et son seuil en paramètre. */
 private fun Badge.nameOf(): Int = when (family) {
-    Badge.Family.STREAK -> R.string.progress_name_streak
-    Badge.Family.VOLUME -> R.string.progress_name_volume
-    Badge.Family.PERFECT -> R.string.progress_name_perfect
-    Badge.Family.DISCOVERY -> R.string.progress_name_streak
+    Badge.Family.STREAK -> R.plurals.progress_name_streak
+    Badge.Family.VOLUME -> R.plurals.progress_name_volume
+    Badge.Family.PERFECT -> R.plurals.progress_name_perfect
+    Badge.Family.DISCOVERY -> R.plurals.progress_name_streak
 }
 
 /**
@@ -168,10 +173,10 @@ private fun Badge.nameOf(): Int = when (family) {
  * la même chose avec un nombre différent, et la traduction les porterait toutes.
  */
 private fun Badge.hint(): Int = when (family) {
-    Badge.Family.STREAK -> R.string.progress_hint_streak
-    Badge.Family.VOLUME -> R.string.progress_hint_volume
-    Badge.Family.PERFECT -> R.string.progress_hint_perfect
-    Badge.Family.DISCOVERY -> R.string.progress_hint_streak
+    Badge.Family.STREAK -> R.plurals.progress_hint_streak
+    Badge.Family.VOLUME -> R.plurals.progress_hint_volume
+    Badge.Family.PERFECT -> R.plurals.progress_hint_perfect
+    Badge.Family.DISCOVERY -> R.plurals.progress_hint_streak
 }
 
 /** Les quatre découvertes ont chacune leur nom : ce sont quatre gestes différents. */

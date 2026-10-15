@@ -2,13 +2,18 @@ package app.hexavore.domain.usecase
 
 import app.hexavore.core.testing.FixedClock
 import app.hexavore.core.testing.InMemoryGoals
+import app.hexavore.core.testing.InMemoryProfiles
 import app.hexavore.core.testing.InMemoryWeightLog
 import app.hexavore.domain.goal.DailyGoal
 import app.hexavore.domain.goal.Goal
 import app.hexavore.domain.goal.GoalId
 import app.hexavore.domain.goal.GoalOrigin
 import app.hexavore.domain.goal.GoalStrategy
+import app.hexavore.domain.profile.Activity
+import app.hexavore.domain.profile.Sex
+import app.hexavore.domain.profile.UserProfile
 import app.hexavore.domain.profile.WeightEntry
+import app.hexavore.domain.profile.WorkActivity
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -24,6 +29,7 @@ import java.time.LocalDate
 class WeightJournalTest {
     private val weights = InMemoryWeightLog()
     private val goals = InMemoryGoals()
+    private val profiles = InMemoryProfiles()
 
     // --- Noter une pesee --------------------------------------------------------
 
@@ -49,6 +55,35 @@ class WeightJournalTest {
         assertFalse(recordWeight()(WeightEntry(AUJOURD_HUI, -5.0)))
 
         assertEquals(emptyList<WeightEntry>(), weights.entries)
+    }
+
+    @Test
+    fun `un poids qu aucun adulte ne pese est refuse`() = runTest {
+        // D160 : 999 kg entraient dans la courbe, puis dans le calcul de l'objectif, qui
+        // lit la derniere pesee.
+        assertFalse(recordWeight()(WeightEntry(AUJOURD_HUI, 999.0)))
+        assertFalse(recordWeight()(WeightEntry(AUJOURD_HUI, 10.0)))
+
+        assertEquals(emptyList<WeightEntry>(), weights.entries)
+    }
+
+    @Test
+    fun `une pesee se juge sur la taille du profil`() = runTest {
+        // 300 kg passent sans taille connue ; a 175 cm, c'est un IMC de 98. La meme
+        // regle que l'onboarding : une pesee que le profil refuserait ne s'ecrit pas.
+        profiles.save(PROFIL_175_CM)
+
+        assertFalse(recordWeight()(WeightEntry(AUJOURD_HUI, 300.0)))
+        assertTrue(recordWeight()(WeightEntry(AUJOURD_HUI, 82.0)))
+    }
+
+    @Test
+    fun `la taille se lit pour juger, et son absence ne bloque rien`() = runTest {
+        assertNull(ObserveHeight(profiles)().first(), "sans profil, pas de taille")
+
+        profiles.save(PROFIL_175_CM)
+
+        assertEquals(175.0, ObserveHeight(profiles)().first())
     }
 
     @Test
@@ -78,18 +113,23 @@ class WeightJournalTest {
         assertEquals(WeightEntry(AUJOURD_HUI, 80.0), tendance.latest)
     }
 
+    /**
+     * **Chaque pesée a sa tendance**, la plus isolée comprise (D159).
+     *
+     * C'était une moyenne sur sept jours, absente sous trois pesées : une pesée isolée
+     * d'il y a un mois n'en avait pas, et le tracé lissé n'existait que par fragments.
+     * La première vaut la pesée elle-même ; après un mois de silence, la tendance a
+     * presque rejoint la nouvelle pesée — l'ancienne ne disait plus rien.
+     */
     @Test
-    fun `un point sans assez de voisins n a pas de moyenne`() = runTest {
-        // Le trace lisse a un trou, et non un zero ni une interpolation : relier deux
-        // moyennes separees par trois semaines de silence dessinerait une progression
-        // que personne n'a mesuree.
+    fun `chaque pesee a sa tendance, meme apres un long silence`() = runTest {
         peser(AUJOURD_HUI.minusDays(30), 90.0)
-        repeat(3) { peser(AUJOURD_HUI.minusDays(it.toLong()), 80.0) }
+        peser(AUJOURD_HUI, 80.0)
 
         val tendance = GetWeightTrend(weights, goals)().first()
 
-        assertNull(tendance.points.first().averageKg, "la pesee isolee d'il y a un mois ne se lisse pas")
-        assertEquals(80.0, tendance.points.last().averageKg)
+        assertEquals(90.0, tendance.points.first().trendKg, "la premiere pesee est sa propre tendance")
+        assertEquals(80.0, tendance.points.last().trendKg, PROCHE_D_UN_DEMI_KILO)
     }
 
     @Test
@@ -125,7 +165,7 @@ class WeightJournalTest {
 
     private suspend fun peser(date: LocalDate, kg: Double) = weights.record(WeightEntry(date, kg))
 
-    private fun recordWeight() = RecordWeight(weights, FixedClock.atNoon(AUJOURD_HUI))
+    private fun recordWeight() = RecordWeight(weights, profiles, FixedClock.atNoon(AUJOURD_HUI))
 
     private fun objectif() = Goal(
         id = GoalId("g"),
@@ -138,8 +178,18 @@ class WeightJournalTest {
     )
 
     private companion object {
+        /** Apres un mois de silence, la tendance est a moins d'un demi-kilo de la pesee. */
+        const val PROCHE_D_UN_DEMI_KILO = 0.5
+
         val AUJOURD_HUI: LocalDate = LocalDate.of(2026, 8, 22)
         val DEBUT: LocalDate = LocalDate.of(2026, 7, 1)
         const val TOLERANCE = 1e-9
+
+        val PROFIL_175_CM = UserProfile(
+            birthDate = LocalDate.of(1991, 3, 4),
+            sex = Sex.MALE,
+            heightCm = 175.0,
+            activity = Activity(WorkActivity.DESK),
+        )
     }
 }

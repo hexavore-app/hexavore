@@ -60,4 +60,20 @@ data class Suggestion(
      * [sources]: docs/04-sources-de-donnees.md
      */
     val estimatedMacros: Boolean = false,
-)
+) {
+    /**
+     * `true` quand le modèle lui-même doute ([D162][decisions]).
+     *
+     * Une confiance de 20 % s'affichait exactement comme une de 95 %, dans le même gris,
+     * alors que [docs/02][parcours] veut une correspondance faible **signalée**. Le seuil
+     * est celui où le résolveur cesse de remplir seul ([MatchVerdict.AUTOMATIC]) : en
+     * deçà, le catalogue demande qu'on relise, et le modèle aussi.
+     *
+     * [decisions]: docs/11-decisions.md
+     * [parcours]: docs/02-parcours-et-ecrans.md
+     */
+    val unsure: Boolean get() = confidence < SURE
+}
+
+/** La confiance à partir de laquelle une proposition se lit sans être signalée. */
+private const val SURE = 0.75f

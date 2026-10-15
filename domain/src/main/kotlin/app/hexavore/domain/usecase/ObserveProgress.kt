@@ -21,6 +21,7 @@ import app.hexavore.domain.progress.perfectStreak
 import app.hexavore.domain.time.Clock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 
 /**
@@ -45,6 +46,13 @@ import java.time.LocalDate
  * vu quand elle le voyait encore. Lire trois ans de journal à chaque frappe pour un
  * chiffre affiché en haut de l'accueil coûterait bien plus que cette approximation.
  *
+ * ### Ce que le journal contient et qu'elle ne compte pas
+ *
+ * **Les plats d'exemple du tour guidé.** Ils sont dans le vrai journal le temps du tour,
+ * et la progression les comptait : deux paliers de découverte décernés et figés au
+ * premier lancement, pour des plats que personne n'avait notés ([D158][decisions]). Ce
+ * qui se range ne se reprend pas, donc le tri se fait ici, avant tout calcul.
+ *
  * [decisions]: docs/11-decisions.md
  */
 class ObserveProgress(
@@ -56,7 +64,7 @@ class ObserveProgress(
     operator fun invoke(): Flow<Progress> {
         val today = clock.today()
         return combine(
-            diary.observeRange(today.minusDays(WINDOW_DAYS), today),
+            diary.observeRange(today.minusDays(WINDOW_DAYS), today).map { it.filterNot(Dish::isTourSample) },
             goals.observeAll(),
             store.observe(),
         ) { dishes, allGoals, stored ->

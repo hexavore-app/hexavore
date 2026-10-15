@@ -5,41 +5,45 @@ import app.hexavore.domain.profile.WeightAim
 import app.hexavore.domain.profile.WeightEntry
 import app.hexavore.domain.profile.WeightLog
 import app.hexavore.domain.profile.declaredAim
-import app.hexavore.domain.profile.movingAverageOn
+import app.hexavore.domain.profile.trendByDate
 import app.hexavore.domain.profile.weeklySlopeOn
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import java.time.LocalDate
 
 /**
- * La courbe de poids : les points bruts, leur lissage, et le cap annoncé.
+ * La courbe de poids : les pesées, leur tendance, et le cap annoncé.
  *
  * **Deux tracés et non un** ([docs/02][parcours]) : le poids brut varie de deux kilos
  * avec l'hydratation, le sel et le transit, et décourage sans raison. Il reste visible
  * — c'est la mesure, et la cacher reviendrait à décider à la place de l'utilisateur ce
- * qu'il a le droit de voir — mais discret, sous une moyenne mobile qui, elle, porte
- * l'information.
+ * qu'il a le droit de voir — mais discret, sous une tendance qui, elle, porte
+ * l'information ([D159][decisions]).
  *
  * [parcours]: docs/02-parcours-et-ecrans.md
+ * [decisions]: docs/11-decisions.md
  */
 class GetWeightTrend(private val weights: WeightLog, private val goals: Goals) {
     operator fun invoke(): Flow<WeightTrend> = combine(weights.observeHistory(), goals.observeCurrent()) { log, goal ->
+        val trends = log.trendByDate()
         WeightTrend(
-            points = log.map { TrendPoint(it.date, it.weightKg, log.movingAverageOn(it.date)) },
+            points = log.map { TrendPoint(it.date, it.weightKg, trends.getValue(it.date)) },
             aim = goal?.declaredAim(log),
         )
     }
 }
 
 /**
- * Un point de la courbe : une pesée, et le lissage au même jour.
+ * Un point de la courbe : une pesée, et la tendance au même jour.
  *
- * [averageKg] manque tant que la fenêtre de sept jours ne porte pas assez de pesées.
- * C'est un trou dans le tracé lissé, pas un zéro et pas une interpolation : relier deux
- * moyennes séparées par trois semaines de silence dessinerait une progression que
- * personne n'a mesurée.
+ * [trendKg] existe pour **chaque** pesée, la première comprise — elle y vaut la pesée
+ * elle-même, puisqu'il n'y a rien avant à lisser. C'était une moyenne sur sept jours,
+ * absente sous trois pesées : avec des pesées espacées, elle ne laissait qu'un bout de
+ * trait isolé au milieu de la courbe ([D159][decisions]).
+ *
+ * [decisions]: docs/11-decisions.md
  */
-data class TrendPoint(val date: LocalDate, val weightKg: Double, val averageKg: Double?)
+data class TrendPoint(val date: LocalDate, val weightKg: Double, val trendKg: Double)
 
 /**
  * La courbe entière, telle que l'écran la dessine.

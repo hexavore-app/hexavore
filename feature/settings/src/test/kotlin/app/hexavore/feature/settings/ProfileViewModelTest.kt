@@ -179,6 +179,54 @@ internal class ProfileViewModelTest {
         assertEquals(ProfileBlocker.HORIZON, viewModel.uiState.value.blocker)
     }
 
+    // --- Les bornes du corps (D160) ---------------------------------------------
+
+    @Test
+    fun `un poids qu aucun adulte ne pese refuse l enregistrement`() = runTest(dispatcher) {
+        // Les bornes de l'onboarding : un profil qu'on corrige n'accepte pas ce que les
+        // cinq questions ont refuse.
+        val viewModel = viewModel(objectifCourant())
+        viewModel.onEdit()
+
+        viewModel.onForm(viewModel.uiState.value.form.copy(currentWeightKg = 999.0))
+
+        assertEquals(ProfileBlocker.WEIGHT, viewModel.uiState.value.blocker)
+        assertFalse(viewModel.uiState.value.canSave)
+    }
+
+    @Test
+    fun `une naissance hors des ages acceptes se dit, et ne s enregistre pas`() = runTest(dispatcher) {
+        // Le cas d'une naissance ecrite avant que l'age plancher ne passe a seize ans.
+        val viewModel = viewModel(objectifCourant())
+        viewModel.onEdit()
+
+        viewModel.onForm(viewModel.uiState.value.form.copy(birthDate = AUJOURD_HUI.minusYears(14)))
+
+        assertEquals(ProfileBlocker.AGE, viewModel.uiState.value.blocker)
+    }
+
+    @Test
+    fun `perdre vers un poids plus haut refuse l enregistrement`() = runTest(dispatcher) {
+        val viewModel = viewModel(objectifCourant())
+        viewModel.onEdit()
+
+        viewModel.onForm(viewModel.uiState.value.form.copy(targetWeightKg = 95.0))
+
+        assertEquals(ProfileBlocker.TARGET, viewModel.uiState.value.blocker)
+    }
+
+    @Test
+    fun `en saisie manuelle aussi, le poids vise suit la strategie`() = runTest(dispatcher) {
+        // Il n'y pilote aucun compteur, mais il trace la trajectoire du journal : une
+        // perte vers la maigreur y serait dessinee comme un cap.
+        val viewModel = viewModel(objectifManuel())
+        viewModel.onEdit()
+
+        viewModel.onForm(viewModel.uiState.value.form.copy(targetWeightKg = 50.0))
+
+        assertEquals(ProfileBlocker.TARGET, viewModel.uiState.value.blocker)
+    }
+
     @Test
     fun `enregistrer demande confirmation quand les six chiffres changent`() = runTest(dispatcher) {
         // Corriger sa taille de quatre centimetres deplace un objectif quotidien. Ca

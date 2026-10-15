@@ -107,7 +107,9 @@ enum class AiProvider(
     ANTHROPIC(
         displayName = "Anthropic",
         defaultBaseUrl = "https://api.anthropic.com/",
-        suggestedModels = listOf("claude-opus-5", "claude-sonnet-5", "claude-haiku-4-5"),
+        // Claude Haiku 5.5 et non 4.5 (D162) : la 4.5 n'a pas de parametre `effort`,
+        // que l'application envoie, et refusait donc chaque analyse d'un 400.
+        suggestedModels = listOf("claude-opus-5", "claude-sonnet-5", "claude-haiku-5-5"),
         vision = VisionSupport.ALWAYS,
         consoleUrl = "https://platform.claude.com/settings/keys",
         tooling = true,
