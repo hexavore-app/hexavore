@@ -1,4 +1,4 @@
-# Reprise — le tour d'avant publication, après D163
+# Reprise — le tour d'avant publication, après D164
 
 Ce fichier dit **où en est le travail et comment le reprendre**, sans rien supposer de
 la conversation qui l'a produit. Il se supprime quand ses chantiers sont faits : ce
@@ -11,13 +11,15 @@ qui doit durer vit dans `docs/`, et les décisions dans `docs/11-decisions.md`.
 - **Branche** : `fix/la-courbe-le-tour-et-le-premier-ecran`, partie de `main` après
   la PR #100 (D157, version 0.9.0). Elle porte **D158 à D163** en un seul commit :
   les décisions et leurs raisons sont dans `docs/11-decisions.md`, du titre
-  « D158 » à la fin du fichier.
+  « D158 » à la fin du fichier. **D164**, la table des noms courants (l'ancien chantier
+  3.1), est faite par-dessus, sur la branche `claude/sweet-shannon-2trz20` partie de
+  ce commit, sans commit à ce jour.
 - **Version** : toujours `0.9.0` / `versionCode 7` dans `gradle/libs.versions.toml`.
   La monter est une décision de publication, pas prise ici.
 - **Vérifié** : `gradlew clean check` vert, sans cache de build, cas exécutés comptés ;
-  campagne de défaite de D162 (12 sabotages, 12 tombés) et de D163 (résultat dans
-  l'entrée D163).
-- **Pas vérifié** : aucune correction de D163 n'a été revue à l'émulateur **après**
+  campagne de défaite de D162 (12 sabotages, 12 tombés), de D163 et de D164 (résultat
+  dans leurs entrées).
+- **Pas vérifié** : aucune correction de D163 ni de D164 n'a été revue à l'émulateur **après**
   correction (les défauts, eux, l'ont été avant) ; plusieurs points de D162 non plus —
   la liste est dans les entrées D162 et D163, § « Ce que le vert ne prouve pas ». Les
   tests instrumentés (`connectedAndroidTest`) n'ont pas tourné.
@@ -53,150 +55,7 @@ qui doit durer vit dans `docs/`, et les décisions dans `docs/11-decisions.md`.
 
 ## 3. Les chantiers, par ordre d'importance
 
-### 3.1 La forme qu'on mange : une table de noms courants — **prioritaire**
-
-**Le défaut.** `FoodRanking` multiplie la proximité par la brièveté du libellé, en
-supposant que la fiche générique porte le nom le plus court de sa famille. Sur CIQUAL,
-c'est souvent faux, et l'IA — qui écrit des noms simples, « riz », « café » — en hérite
-par le même score (D74). Mesuré sur la base livrée :
-
-| Requête | Ce qui sort premier | Ce qu'il fallait |
-|---|---|---|
-| riz | Riz blanc, cru (350 kcal/100 g) | Riz blanc, cuit (155) |
-| pâtes | Pâtes sèches, crues (364) | Pâtes sèches, cuites (167) |
-| café | Café, moulu (341) | Café prêt à boire (6) |
-| thé | Thé, feuille (232) | Thé infusé (0,4) |
-| avocat | Huile d'avocat (900) | Avocat, chair (203) |
-| pomme | Pomme, sèche (247) | Pomme, chair et peau, crue (54) |
-| fromage | Fromage de tête | Fromage (aliment moyen) |
-| eau | Eau de coco | Eau du robinet |
-| chicken | Chicken fat (898) | Chicken, breast, grilled |
-| salmon | Salmon oil (900) | Salmon, cooked |
-| rice | Rice bran (398) | Rice, white, cooked |
-| milk | Milk, bulk | Milk, semi-skimmed, UHT |
-
-« lait → Laitue » est déjà corrigé par D163 (palier des préfixes de lettres).
-
-**La conception retenue** (commencée puis retirée de D163 faute de table) :
-
-1. **Les fichiers** `tooling/ciqual/common-names-fr.csv` et `common-names-en.csv`,
-   en-tête `code_ciqual,nom_courant`, une ligne par nom, plusieurs noms possibles par
-   code, commentaires en `#` comme `short-names-fr.csv`. Relus à la main.
-2. **La lecture** : un `CommonNamesCsv` calqué sur `ShortNamesCsv`
-   (`tooling/ciqual-import/.../ShortNamesCsv.kt`), qui **arrête l'import en nommant la
-   ligne** si : le code n'existe pas ; le nom est vide une fois normalisé ; le même nom
-   normalisé désigne deux codes dans une langue (un nom ne désigne qu'une fiche) ; le
-   nom normalisé est égal au libellé normalisé d'**une autre** fiche (elles seraient à
-   égalité) ou de la sienne (inutile). Normaliser avec `SearchText.normalise`, la même
-   fonction qu'à la lecture.
-3. **`CatalogueFiles.commonNames(language)`** dans `CiqualImport.kt`, lu dans `main`
-   comme les titres courts, et un compte rendu par langue dans `report`.
-4. **L'écriture** (`CiqualDatabaseWriter`) : une colonne `common_names TEXT` dans
-   `ciqual_name` (noms normalisés séparés par `|`, `NULL` sans nom) ; et **l'index plein
-   texte reçoit le libellé suivi des noms courants**, sans quoi « café noir », nom courant
-   d'une fiche qui ne contient pas « noir », ne la trouverait pas.
-5. **`REVISION` 7 → 8** dans `CiqualDatabase` (`core/database`) : sans cela un appareil
-   installé garde sa copie, sans la colonne. Lire la colonne dans `SELECT_COLUMNS`
-   (après `group_name`, en comptant les rangs dans `toFoodRow`), dans `annotationsOf`, et
-   l'ajouter à `CiqualFoodRow` et à `CiqualAnnotations`.
-6. **Le domaine** : `Food.commonNames: Set<String> = emptySet()` (normalisés ; propriété
-   de la référence, relue par code comme le titre court ; vide pour un aliment personnel
-   ou un produit scanné), rempli dans les deux `toDomain` de
-   `data/food/.../FoodMapper.kt`.
-7. **Le score** : le meilleur des noms de la fiche, pesé par la même fonction — un nom
-   courant **est** un nom, pas une règle à côté :
-
-   ```kotlin
-   fun score(food: Food, normalisedQuery: String): Double {
-       val closest = (food.commonNames + SearchText.normalise(food.name))
-           .maxOf { name -> proximity(name, normalisedQuery) * brevity(name) }
-       return closest * food.source.weight * familiarity(food)
-   }
-   ```
-
-   « riz » vaut alors à la fiche du riz cuit une égalité de nom mesurée sur trois
-   lettres (4 × 30/33 ≈ 3,6 → confiance 0,86, automatique), et la saisie « ri » la met
-   en tête au palier des lettres.
-8. **Régénérer** : `gradlew.bat :tooling:ciqual-import:importCiqual`. Vérifier que seules
-   `ciqual_name` et l'index changent (comparer avec une copie de l'ancienne base :
-   `ciqual_food` et `ciqual_serving` identiques ligne à ligne).
-9. **Tests** : dans `FoodRankingTest`, « un nom courant rend la forme qu'on mange »
-   (riz cuit devant riz cru, pour « riz » et « riz blanc »), « un nom courant se remplit
-   tout seul », « un nom courant ne donne rien à une requête qui ne le nomme pas » ; dans
-   les tests de l'outil, chaque refus de `CommonNamesCsv` et la colonne écrite ; dans
-   `RoomFoodCatalogTest` (base réelle), « riz », « café », « lait », « avocat »,
-   « chicken », « salmon » rendent la bonne fiche en premier ; le résolveur
-   (`LabelMatch`) sur les mêmes mots. **Sabotages** : retirer le `max` sur les noms
-   courants ; retirer les noms de l'index plein texte ; oublier la colonne à la lecture.
-10. **Docs** : `docs/04` (§ Classement et § Résolution), `docs/07` (colonne), une
-    décision.
-
-**Une première table, vérifiée contre la base livrée** (code → libellé français /
-anglais). Les noms courants proposés sont des points de départ à relire :
-
-| Code | Libellé (fr) | Libellé (en) | Noms courants fr | Noms courants en |
-|---|---|---|---|---|
-| 9104 | Riz blanc, cuit, sans sel ajouté | Rice, white, cooked, no added salt | riz, riz blanc | rice, white rice |
-| 9103 | Riz complet, cuit, sans sel ajouté | Rice, wholegrain, cooked, no added salt | riz complet | brown rice, wholegrain rice |
-| 9125 | Riz basmati, cuit, sans sel ajouté | Rice, basmati, cooked, no added salt | riz basmati | basmati rice |
-| 9811 | Pâtes sèches, standard, cuites, sans sel ajouté | Pasta, dry, regular, cooked, no added salt | pâtes, spaghetti | pasta, spaghetti |
-| 19041 | Lait demi-écrémé, UHT | Milk, semi-skimmed, UHT | lait | milk |
-| 18004 | Café, non instantané, sans sucres ajoutés, prêt à boire | Coffee, non instant no added sugars, ready-to-drink | café, café noir | coffee, black coffee |
-| 18020 | Thé infusé, sans sucres ajoutés | Tea, brewed, no added sugars | thé | tea |
-| 18066 | Eau du robinet | Water, municipal | eau | water |
-| 7001 | Pain blanc (par ex. : baguette, boule…) | Bread, French bread, baguette | pain, baguette | bread, baguette |
-| 7200 | Pain de mie blanc, préemballé | Sandwich loaf, prepacked | pain de mie | sandwich bread |
-| 12999 | Fromage (aliment moyen) | Cheese (average) | fromage | cheese |
-| 19593 | Yaourt ou lait fermenté, nature | Yogurt or fermented milk, plain | yaourt | yogurt, yoghurt |
-| 19501 | Fromage blanc, nature ou aux fruits (aliment moyen) | Quark, plain or with fruits (average) | fromage blanc | quark |
-| 16400 | Beurre à 80% MG minimum, doux | Butter, 80% fat minimum, unsalted | beurre | butter |
-| 17001 | Huile végétale (aliment moyen) | Vegetable oil (average) | huile | oil |
-| 13039 | Pomme, chair et peau, crue | Apple, flesh and skin, raw | pomme | apple |
-| 13005 | Banane, chair sans peau, crue | Banana, flesh without skin, raw | banane | banana |
-| 13034 | Orange, chair sans peau, sans pépins, crue | Orange, flesh without skin, without seeds, raw | orange | orange |
-| 13004 | Avocat, chair sans peau, sans noyau, cru | Avocado, flesh without skin, pitted, raw | avocat | avocado |
-| 20385 | Tomate sans précision, crue (aliment moyen) | Tomato, raw (average) | tomate | tomato |
-| 25604 | Salade verte, crue, sans assaisonnement | Green salad, raw, without seasoning | salade, salade verte | salad, green salad |
-| 20030 | Haricot vert, cuit | French bean, cooked | haricots verts, haricot vert | green beans |
-| 20037 | Petits pois, cuits | Garden peas, cooked | petits pois | peas |
-| 20351 | Brocoli, cuit (aliment moyen) | Broccoli, cooked (average) | brocoli | broccoli |
-| 20027 | Épinard, cuit | Spinach, cooked | épinards | spinach |
-| 4048 | Pomme de terre, cuite (aliment moyen) | Potato, cooked (average food) | pomme de terre, pommes de terre | potato, potatoes |
-| 4032 | Frites de pommes de terre, surgelées, cuites en friteuse | French fries or chips, frozen, deep-fried | frites | fries, french fries |
-| 4047 | Purée de pomme de terre (aliment moyen) | Mashed potatoes (average) | purée | mashed potatoes |
-| 36018 | Poulet, filet sans peau grillé/poêlé | Chicken, breast, without skin, grilled/pan-fried | poulet, blanc de poulet | chicken, chicken breast |
-| 6259 | Boeuf, steak haché, cuit (aliment moyen) | Beef, ground, cooked (average) | steak haché | burger patty, ground beef |
-| 6200 | Boeuf, steak ou bifteck grillé/poêlé | Beef, steak or beef steak, grilled/pan-fried | steak, boeuf | steak, beef |
-| 28910 | Jambon cuit, choix | Cooked ham, choice | jambon, jambon blanc | ham |
-| 25996 | Saumon, cuit, sans précision (aliment moyen) | Salmon, cooked (average) | saumon | salmon |
-| 26039 | Thon, au naturel, appertisé, égoutté | Tuna, canned in brine, drained | thon | tuna |
-| 26140 | Poisson cuit (aliment moyen) | Fish, cooked (average) | poisson | fish |
-| 6999 | Viande cuite (aliment moyen) | Meat, cooked (average) | viande | meat |
-| 28205 | Porc, viande, cuite (aliment moyen) | Pork, meat, cooked (average) | porc | pork |
-| 22010 | Oeuf dur | Egg, hard-boiled | oeuf, œuf | egg |
-| 2070 | Jus d'orange, pur jus | Orange juice, pure juice | jus d'orange | orange juice |
-| 5001 | Bière "coeur de marché" (4-5° alcool) | Beer, regular (4-5° alcohol) | bière | beer |
-| 5210 | Vin (aliment moyen) | Wine (average) | vin | wine |
-| 18018 | Cola, sucré | Cola, with sugar(s) | coca, cola, soda | cola, coke, soda |
-| 25516 | Pizza (aliment moyen) | Pizza (average) | pizza | pizza |
-| 25969 | Soupe (aliment moyen) | Soup (average) | soupe | soup |
-| 13212 | Compote de pomme, … (aliment moyen) | Apple compote, … (average) | compote | apple sauce |
-| 31120 | Chocolat, tablette (aliment moyen) | Chocolate, bar (average) | chocolat | chocolate |
-| 31006 | Confiture ou marmelade ou gelée, … (aliment moyen) | Jam or marmalade, … (average) | confiture | jam |
-| 31016 | Sucre blanc | Sugar, white | sucre | sugar |
-| 4004 | Chips de pommes de terre nature ou aromatisées | Potato, crisps, plain or flavoured, standard | chips | crisps, chips |
-| 32003 | Céréales pour petit déjeuner (aliment moyen) | Breakfast cereals (average) | céréales | cereal, cereals |
-| 32140 | Flocons d'avoine | Oat flakes | flocons d'avoine | oats, oatmeal |
-| 39515 | Glace ou crème glacée, en bac | Ice cream, in box | glace | ice cream |
-
-À trancher en relisant : « oeuf » (dur, ou laisser « Oeuf cru », de mêmes teneurs) ;
-« poulet » (filet grillé, ou viande et peau rôties) ; « courgette », « carotte » (crue
-ou cuite) ; la crème fraîche, introuvable sous ce nom (« Crème de lait, … ») ; puis une
-seconde passe sur les mots qu'un repas photographié fait écrire au modèle. Le script de
-l'annexe B rejoue le classement sur la base livrée pour une liste de mots : le relancer
-avant et après, et garder sa sortie dans la décision.
-
-### 3.2 La saisie ne survit pas à la mort du processus
+### 3.1 La saisie ne survit pas à la mort du processus
 
 **Le défaut.** `docs/02` le promettait ; [D40](docs/11-decisions.md#d40--ce-que-la-tranche-2-ne-construit-pas---validée) l'a reporté « avec le deuxième écran qui
 a une saisie longue », et il y en a cinq. Vérifié à l'émulateur sur l'aliment personnel :
@@ -224,7 +83,7 @@ la **photo** en cours de prise.
 5. Docs : `docs/02` § Restauration d'état (retirer la phrase de D163 qui dit que ce
    n'est pas tenu), une décision.
 
-### 3.3 Une pesée ne se supprime pas
+### 3.2 Une pesée ne se supprime pas
 
 Le port `WeightLog` (`domain/.../profile/Profiles.kt`) n'a que `record`. Une pesée tapée
 sur la mauvaise date reste dans la courbe, la pente de l'adaptation et le poids du calcul.
@@ -234,7 +93,7 @@ de la liste ouvre « Supprimer », suivi de la barre d'annulation comme pour un 
 (`Timing.UNDO_WINDOW_MILLIS`, la suppression immédiate et la restauration par un
 second geste, comme `onDeleteDish`). Tests du port, du cas d'usage et du `ViewModel`.
 
-### 3.4 Petits défauts relevés, non corrigés
+### 3.3 Petits défauts relevés, non corrigés
 
 - **La liste des favoris** (`feature/settings/FavoritesSettingsScreen.kt` et
   `feature/search/FavoritesScreen.kt`) affiche `components.joinToString { it.name }`, les
@@ -272,6 +131,13 @@ Construire la release (`gradlew.bat :app:assembleRelease`), l'installer sur
 - La photo : nouvelle saisie → « Ajouter une photo » → « Prendre une photo » ; quand
   l'appareil photo du système est ouvert, `adb -s emulator-5554 shell am kill
   app.hexavore` ; prendre et valider ; la vignette doit apparaître.
+
+**D164.** Installer **par-dessus** une version en r7 (la 0.9.0, ou une release d'avant
+D164), pour voir la recopie de la base : rechercher « riz », « café », « café noir »,
+« lait », « avocat » — la forme qu'on mange en premier. Puis, avec la clé de l'auteur
+collée, une photo d'assiette (riz, poulet, haricots verts) : les lignes se remplissent
+sans relecture. Passer l'application en anglais et chercher « chicken », « salmon » : le
+filet grillé, le saumon cuit.
 
 **D162**, jamais vus : la question des notifications sur un onboarding neuf (après
 `adb -s emulator-5554 shell pm clear app.hexavore`, ce qui efface tout) ; la boîte de la
@@ -396,9 +262,12 @@ Les heures sont écrites en UTC : l'émulateur, réglé sur UTC, les affiche tel
 ## Annexe B — Rejouer le classement sur la base livrée
 
 Ce script reproduit la normalisation (`SearchText`), la requête plein texte et le score
-de `FoodRanking` tel qu'il est **après D163** (palier des lettres compris), puis le
-verdict du résolveur (seuils 0,75 et 0,40, saturation 0,6). Il sert à mesurer une table
-de noms courants avant de la livrer.
+de `FoodRanking` tel qu'il est **après D164** — le meilleur du libellé et des noms
+courants qui nomment la requête, palier des lettres compris —, puis le verdict du
+résolveur (seuils 0,75 et 0,40, saturation 0,6). Il lit `common_names` quand la base l'a,
+et l'ignore sinon : il rejoue donc aussi une base d'avant D164. Il sert à mesurer une
+table de noms courants avant de la livrer, ou une seconde passe sur d'autres mots ; sa
+sortie avant/après est dans D164.
 
 ```python
 """python -I resolve.py core/database/src/main/assets/ciqual.db fr riz café lait ..."""
@@ -413,37 +282,42 @@ def normalise(text):
 
 ARTICLES = {"fr": {"de", "du", "des", "d", "le", "la", "les", "un", "une", "l"},
             "en": {"the", "a", "an", "of", "some"}}
+SOMEWHERE = 1.0
 
 def proximity(name, query):
     if name == query: return 4.0
     if name.startswith(query + " "): return 2.0
     if query in name.split(" "): return 1.5
     if name.startswith(query): return 1.25
-    return 1.0
+    return SOMEWHERE
 
-def score(name, query):
+def weigh(name, query):
     return proximity(name, query) * (30.0 / (30.0 + len(name)))
+
+def score(label, common, query):
+    # Le meilleur des noms : le libelle toujours, un nom courant s'il nomme la requete (D164).
+    named = [n for n in (common or "").split("|") if n and proximity(n, query) > SOMEWHERE]
+    return max(weigh(n, query) for n in [normalise(label)] + named)
 
 def verdict(c):
     return "AUTO" if c >= 0.75 else ("REVUE" if c >= 0.40 else "AUCUNE")
 
 db, lang, labels = sys.argv[1], sys.argv[2], sys.argv[3:]
 c = sqlite3.connect(db)
+columns = [r[1] for r in c.execute("pragma table_info(ciqual_name)")]
+common = "n.common_names" if "common_names" in columns else "NULL"
 for label in labels:
     words = [w for w in normalise(label).split(" ") if w]
     while words and words[0] in ARTICLES[lang]:
         words.pop(0)
     q = " ".join(words)
     rows = c.execute(
-        "select n.code, n.name, f.kcal_100 from ciqual_fts join ciqual_name n on n.rowid = ciqual_fts.docid "
+        f"select n.code, n.name, f.kcal_100, {common} from ciqual_fts join ciqual_name n on n.rowid = ciqual_fts.docid "
         "join ciqual_food f on f.code = n.code where ciqual_fts match ? and n.language = ?",
         (" ".join(w + "*" for w in words), lang)).fetchall()
-    ranked = sorted(rows, key=lambda r: (-score(normalise(r[1]), q), r[1]))
+    ranked = sorted(rows, key=lambda r: (-score(r[1], r[3], q), r[1]))
     if not ranked:
-        print(f"{label:>18} -> rien"); continue
-    best = ranked[0]; s = score(normalise(best[1]), q)
-    print(f"{label:>18} -> {verdict(s / (s + 0.6)):6} {s / (s + 0.6):.2f}  {best[1]}  ({best[2]} kcal)")
+        print(f"{label:>16} -> rien"); continue
+    best = ranked[0]; s = score(best[1], best[3], q)
+    print(f"{label:>16} -> {verdict(s / (s + 0.6)):6} {s / (s + 0.6):.2f}  {best[1][:60]}  ({best[2]} kcal)")
 ```
-
-Une fois la colonne `common_names` livrée, faire porter le `max` sur le libellé et les
-noms courants de chaque ligne, comme le fera `FoodRanking`.

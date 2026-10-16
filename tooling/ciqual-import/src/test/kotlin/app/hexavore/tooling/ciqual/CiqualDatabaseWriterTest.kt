@@ -277,6 +277,45 @@ class CiqualDatabaseWriterTest {
         }
     }
 
+    // --- Les noms courants (D164) ----------------------------------------------
+
+    @Test
+    fun `les noms courants sont ecrits normalises dans leur colonne`() {
+        val noms = listOf(CiqualCommonName("18066", "the"), CiqualCommonName("18066", "the infuse chaud"))
+
+        write(foods = listOf(THE, POMME), commonNames = noms).use { connection ->
+            assertEquals("the|the infuse chaud", connection.commonNames("18066"))
+            assertNull(connection.commonNames("13039"), "sans nom courant, la colonne reste nulle")
+            assertEquals("Thé infusé", connection.name("18066"), "le libelle ne bouge pas")
+        }
+    }
+
+    @Test
+    fun `un nom courant trouve sa fiche meme absent du libelle`() {
+        // « Thé infusé » ne dit pas « chaud ». La recherche par mots ne rend que ce que
+        // l'index contient : sans le nom courant dans le document, le classement n'aurait
+        // jamais l'occasion de le peser.
+        val noms = listOf(CiqualCommonName("18066", "the infuse chaud"))
+
+        write(foods = listOf(THE, POMME), commonNames = noms).use { connection ->
+            assertEquals(listOf("Thé infusé"), connection.search("chaud"))
+            assertEquals(listOf("Thé infusé"), connection.search("infusé"), "le libelle reste indexe")
+        }
+    }
+
+    @Test
+    fun `un nom courant francais ne s attache pas a la ligne anglaise`() {
+        // « pomme » trouve la pomme en francais. En anglais, la meme fiche ne doit pas
+        // repondre a un mot francais : chaque langue a sa table.
+        val noms = mapOf(ContentLanguage.FRENCH to listOf(CiqualCommonName("13039", "pomme a croquer")))
+
+        write(foods = listOf(POMME), commonNamesByLanguage = noms).use { connection ->
+            assertEquals("pomme a croquer", connection.commonNames("13039", FR))
+            assertNull(connection.commonNames("13039", EN))
+            assertTrue(connection.search("croquer", EN).isEmpty(), "l index anglais ne connait pas ce nom")
+        }
+    }
+
     private fun Connection.count(table: String): Int =
         prepareStatement("SELECT COUNT(*) FROM $table").use { statement ->
             statement.executeQuery().use { rows ->
@@ -292,6 +331,8 @@ class CiqualDatabaseWriterTest {
         servings: List<CiqualServing> = emptyList(),
         shortNames: List<CiqualShortName> = emptyList(),
         completions: List<CiqualCompletion> = emptyList(),
+        commonNames: List<CiqualCommonName> = emptyList(),
+        commonNamesByLanguage: Map<ContentLanguage, List<CiqualCommonName>> = mapOf(FR to commonNames),
     ): Connection {
         val file = File(directory.toFile(), "ciqual.db")
         // Les titres courts passes sont ceux du francais : c'est la langue des decors de
@@ -301,6 +342,7 @@ class CiqualDatabaseWriterTest {
             servings,
             mapOf(ContentLanguage.FRENCH to shortNames),
             completions,
+            commonNamesByLanguage,
         )
         return DriverManager.getConnection("jdbc:sqlite:${file.absolutePath}")
     }
@@ -358,6 +400,9 @@ class CiqualDatabaseWriterTest {
 
     private fun Connection.shortName(code: String, language: ContentLanguage = FR): String? =
         localisedColumn("short_name", code, language)
+
+    private fun Connection.commonNames(code: String, language: ContentLanguage = FR): String? =
+        localisedColumn("common_names", code, language)
 
     private fun Connection.name(code: String, language: ContentLanguage = FR): String? =
         localisedColumn("name", code, language)

@@ -48,10 +48,30 @@ object FoodRanking {
             .map { it.first }
     }
 
-    /** Visible pour être testée : c'est elle qui porte la règle, pas le tri. */
+    /**
+     * Visible pour être testée : c'est elle qui porte la règle, pas le tri.
+     *
+     * **Le meilleur des noms de la fiche** : son libellé et ses noms courants, pesés par
+     * la même fonction ([D164][decisions]). « riz », nom courant du riz cuit, vaut à
+     * cette fiche une égalité de nom mesurée sur trois lettres, quand le riz cru n'a
+     * que son libellé. Un nom courant n'est pas un bonus ajouté à côté : c'est un nom.
+     *
+     * **Il ne compte que s'il nomme la requête** — égalité, préfixe, mot entier ou
+     * lettres en tête. Le libellé, lui, compte toujours. Sans cette condition, un nom
+     * courant de trois lettres pèserait plus que tout libellé au palier le plus bas, et
+     * gagnerait sur une requête qui le précise : « café sucré » rendait le café « sans
+     * sucres ajoutés », parce que l'index trouve « sucres » dans son libellé et que
+     * « café » est court. Une requête qui ne nomme aucun nom courant se classe
+     * exactement comme avant que la table existe.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
     fun score(food: Food, normalisedQuery: String): Double {
-        val name = SearchText.normalise(food.name)
-        return proximity(name, normalisedQuery) * brevity(name) * food.source.weight * familiarity(food)
+        val closest = food.commonNames
+            .filter { name -> proximity(name, normalisedQuery) > SOMEWHERE }
+            .plus(SearchText.normalise(food.name))
+            .maxOf { name -> proximity(name, normalisedQuery) * brevity(name) }
+        return closest * food.source.weight * familiarity(food)
     }
 
     /**
@@ -112,12 +132,13 @@ object FoodRanking {
      * bouillie/cuite à l'eau, sans sel ajouté » — et l'aliment générique porte
      * **le plus souvent** le nom le plus court de sa famille.
      *
-     * **Pas toujours, et c'est une limite connue** ([D163][decisions]) : la forme qu'on
-     * mange se décrit souvent plus longuement que ses dérivés. « Riz blanc, cru » est
-     * plus court que « Riz blanc, cuit, sans sel ajouté », « Café, moulu » que « Café,
-     * non instantané, sans sucres ajoutés, prêt à boire », « Huile d'avocat » que
-     * « Avocat, chair sans peau, sans noyau, cru ». Rien dans un libellé ne dit laquelle
-     * est la forme qu'on mange ; D163 décrit la table de noms courants qui le dira.
+     * **Pas toujours** ([D163][decisions]) : la forme qu'on mange se décrit souvent plus
+     * longuement que ses dérivés. « Riz blanc, cru » est plus court que « Riz blanc,
+     * cuit, sans sel ajouté », « Café, moulu » que « Café, non instantané, sans sucres
+     * ajoutés, prêt à boire », « Huile d'avocat » que « Avocat, chair sans peau, sans
+     * noyau, cru ». Rien dans un libellé ne dit laquelle est la forme qu'on mange : ce
+     * sont les noms courants qui le disent ([D164][decisions]), et la brièveté se mesure
+     * alors sur le nom courant — « riz », trois lettres.
      *
      * [decisions]: docs/11-decisions.md
      */

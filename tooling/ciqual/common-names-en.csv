@@ -1,0 +1,121 @@
+# Common names, mapped to a CIQUAL code.
+#
+# Les commentaires de ce fichier sont en francais, comme ceux de tout le depot ;
+# les noms, eux, sont ceux qu'on tape en anglais.
+#
+# Meme role et memes regles que common-names-fr.csv, qui les explique : un nom
+# courant est un nom, indexe avec le libelle et pese par le meme score (D164).
+# L'import s'arrete en nommant la ligne si le code n'existe pas, si le nom est
+# vide, si un meme nom designe deux fiches, ou s'il est deja le libelle d'une
+# fiche.
+#
+# Changer ce fichier demande d'incrementer `CiqualDatabase.REVISION`.
+#
+# --- Les arbitrages propres a l'anglais ------------------------------------------
+#
+# « chips » n'a pas de nom courant : chips de pommes de terre en anglais
+# americain, frites en anglais britannique. Un mot ambigu ne doit pas remplir une
+# ligne tout seul, et sans nom courant il reste en relecture, ou il etait.
+# « crisps », lui, ne l'est pas. « couscous » designe la graine cuite : en
+# anglais, le plat se dit autrement.
+
+code_ciqual,nom_courant
+2070,orange juice
+4004,crisps
+4032,fries
+4032,french fries
+4047,mashed potatoes
+4048,potato
+4048,potatoes
+5001,beer
+5210,wine
+6200,steak
+6200,beef
+6259,ground beef
+6259,beef patty
+6999,meat
+7000,bread
+7001,baguette
+7200,sandwich bread
+9103,brown rice
+9103,wholegrain rice
+9104,rice
+9104,white rice
+9125,basmati rice
+9341,quinoa
+9683,couscous
+9811,pasta
+9811,spaghetti
+10007,shrimp
+10007,prawns
+12999,cheese
+13002,pineapple
+13004,avocado
+13005,banana
+13014,strawberries
+13014,strawberry
+13025,mango
+13034,orange
+13037,pear
+13039,apple
+13212,apple sauce
+13395,grapes
+13395,grape
+16400,butter
+17001,oil
+18004,coffee
+18004,black coffee
+18018,cola
+18018,coke
+18018,soda
+18020,tea
+18066,water
+19041,milk
+19410,crème fraîche
+19410,sour cream
+19501,quark
+19593,yogurt
+19593,yoghurt
+19999,bell pepper
+19999,sweet pepper
+20021,zucchini
+20021,courgette
+20027,spinach
+20030,green beans
+20037,peas
+20125,mushrooms
+20125,mushroom
+20351,broccoli
+20353,carrot
+20353,carrots
+20360,lentils
+20385,tomato
+20503,kidney beans
+20507,chickpeas
+20507,chick peas
+20904,tofu
+22010,egg
+22500,omelette
+22500,omelet
+25516,pizza
+25604,salad
+25604,green salad
+25969,soup
+25996,salmon
+26034,sardines
+26039,tuna
+26140,fish
+28205,pork
+28910,ham
+30780,sausage
+31006,jam
+31016,sugar
+31120,chocolate
+32003,cereal
+32003,cereals
+32140,oats
+32140,oatmeal
+36018,chicken
+36018,chicken breast
+36306,turkey
+39515,ice cream

@@ -5700,7 +5700,7 @@ L'enregistrement de fin d'onboarding note désormais la question comme posée, e
 
 ### Ce qui n'est pas fait
 
-- **La forme qu'on mange.** Le classement suppose que la fiche générique porte le nom le plus court de sa famille ; c'est souvent faux. « riz » rend le riz cru (350 kcal pour 100 g, contre 155 cuit), « pâtes » les pâtes sèches, « café » le café moulu — 341 kcal pour 100 g, soit cinq cents pour une tasse —, « thé » le thé en feuilles, « avocat » l'huile d'avocat, « pomme » la pomme séchée ; en anglais, « chicken » la graisse de poulet, « salmon » l'huile de saumon, « rice » le son de riz. L'IA, qui écrit des noms simples, en hérite. La correction retenue est une table de **noms courants** par langue, relue à la main comme les titres courts, indexée avec le libellé et pesée par le même score ([D74](#d74--un-seul-score-pour-trier-et-pour-décider-et-le-tri-nen-bouge-pas---validée)) : un nom courant est un nom. Elle a été commencée puis retirée de ce lot, faute d'avoir sa table ; `REPRISE.md` en donne le plan complet.
+- **La forme qu'on mange.** Le classement suppose que la fiche générique porte le nom le plus court de sa famille ; c'est souvent faux. « riz » rend le riz cru (350 kcal pour 100 g, contre 155 cuit), « pâtes » les pâtes sèches, « café » le café moulu — 341 kcal pour 100 g, soit cinq cents pour une tasse —, « thé » le thé en feuilles, « avocat » l'huile d'avocat, « pomme » la pomme séchée ; en anglais, « chicken » la graisse de poulet, « salmon » l'huile de saumon, « rice » le son de riz. L'IA, qui écrit des noms simples, en hérite. La correction retenue est une table de **noms courants** par langue, relue à la main comme les titres courts, indexée avec le libellé et pesée par le même score ([D74](#d74--un-seul-score-pour-trier-et-pour-décider-et-le-tri-nen-bouge-pas---validée)) : un nom courant est un nom. Elle a été commencée puis retirée de ce lot, faute d'avoir sa table ; `REPRISE.md` en donne le plan complet. **Faite par [D164](#d164--la-forme-quon-mange--une-table-de-noms-courants---validée).**
 - **La saisie ne survit pas à la mort du processus**, que [docs/02](02-parcours-et-ecrans.md) promettait : brouillon de plat — analyse comprise —, aliment personnel, onboarding, profil, pesée. Le report de [D40](#d40--ce-que-la-tranche-2-ne-construit-pas---validée) attendait « le deuxième écran qui a une saisie longue » ; il y en a cinq. Vérifié à l'émulateur sur l'aliment personnel : seul le nom, venu de la route, revient.
 - **Une pesée ne se supprime pas.** Le port n'a que `record` ; une pesée tapée sur la mauvaise date reste dans la courbe, dans la pente de l'adaptation et dans le poids qui sert au calcul.
 - **La liste des favoris montre les noms figés à l'enregistrement**, quand l'éditeur montre ceux de la fiche vivante : après un changement de langue, la liste est en anglais et l'éditeur en français.
@@ -5712,6 +5712,72 @@ L'enregistrement de fin d'onboarding note désormais la question comme posée, e
 **Campagne de défaite : huit sabotages, huit tombés.** Le garde-fou qui retourne la correction ; le balayage qui emporte toute prise, puis qui emporte celle posée pile au délai ; la photo qui n'attend plus l'ouverture du brouillon ; la cellule redevenue carrée partout ; le préfixe de lettres compté comme un préfixe ; les lettres valant plus que le mot entier, puis pas plus que la simple présence. Un cas a été affûté avant la campagne : celui de la saisie en cours comparait deux noms que la brièveté départageait déjà, et il aurait survécu au retrait du palier. Vérification complète depuis zéro, sans cache : 2 536 cas exécutés, aucun échec.
 
 **Ce que le vert ne prouve pas.** Aucun test ne compose d'écran : la file des paliers, la carte absente des jours passés, la page remontée, le bouton des notifications, les encarts, le bouton « Réessayer » ne sont éprouvés que par la lecture. La photo sauvée se juge sur un téléphone qu'Android vide pendant la prise ; l'émulateur l'a montrée perdue avant, pas retrouvée après.
+
+---
+
+## D164 — La forme qu'on mange : une table de noms courants · ✓ validée
+
+**Contexte.** [D163](#d163--un-mois-de-vrai-journal--ce-que-lusage-montrait-et-que-les-tests-ne-voyaient-pas---validée) laissait le défaut le plus grave du tour : le classement multiplie la proximité par la brièveté du libellé, en supposant que la fiche générique porte le nom le plus court de sa famille. Sur la table de l'ANSES, c'est souvent faux, et l'IA, qui écrit des noms simples, en hérite par le même score ([D74](#d74--un-seul-score-pour-trier-et-pour-décider-et-le-tri-nen-bouge-pas---validée)). Rejoué sur la base livrée, avec la normalisation, la requête plein texte et le score de l'application, les mots qu'un repas photographié fait écrire au modèle tombaient presque tous à côté — et aucun ne se remplissait seul :
+
+| Requête | Avant (r7) | Après (r8) |
+|---|---|---|
+| riz | Riz blanc, cru — 350 kcal · relecture 0,70 | Riz blanc, cuit, sans sel ajouté — 155 · **auto 0,86** |
+| pâtes | Pâtes sèches, standard, crues — 364 · 0,64 | Pâtes sèches, standard, cuites — 167 · **0,85** |
+| café | Café, moulu — 341 · 0,71 | Café, non instantané, …, prêt à boire — 5,8 · **0,85** |
+| thé | Thé, feuille — 232 · 0,71 | Thé infusé, sans sucres ajoutés — 0,4 · **0,86** |
+| eau | Eau de coco · 0,71 | Eau du robinet · **0,86** |
+| lait | Lait de coco — 199 · 0,70 | Lait demi-écrémé, UHT — 48 · **0,85** |
+| avocat | Huile d'avocat — 900 · 0,63 | Avocat, chair… cru — 203 · **0,85** |
+| pomme | Pomme, sèche — 247 · 0,71 | Pomme, chair et peau, crue — 54 · **0,85** |
+| fromage | Fromage de tête · 0,69 | Fromage (aliment moyen) · **0,84** |
+| pain | Pain pita · 0,72 | Pain (aliment moyen) · **0,85** |
+| poulet | Poulet, pilon cru · 0,68 | Poulet, filet sans peau grillé/poêlé · **0,85** |
+| saumon | Saumon fumé · 0,71 | Saumon, cuit (aliment moyen) · **0,85** |
+| oeuf | Oeuf cru · 0,72 | Oeuf dur · **0,85** |
+| rice | Rice bran — 398 · 0,72 | Rice, white, cooked — 155 · **0,85** |
+| coffee | Coffee, ground — 341 · 0,70 | Coffee, …, ready-to-drink — 5,8 · **0,85** |
+| milk | Milk, bulk · 0,72 | Milk, semi-skimmed, UHT · **0,85** |
+| avocado | Avocado oil — 900 · 0,71 | Avocado, flesh… raw — 203 · **0,84** |
+| apple | Apple tart · 0,71 | Apple, flesh and skin, raw · **0,85** |
+| bread | Bread, pita · 0,71 | Bread (average) · **0,85** |
+| chicken | Chicken fat — 898 · 0,71 | Chicken, breast, … grilled/pan-fried — 141 · **0,84** |
+| salmon | Salmon oil — 900 · 0,71 | Salmon, cooked (average) — 205 · **0,85** |
+| egg | Egg, raw · 0,73 | Egg, hard-boiled · **0,86** |
+
+Le tableau sort du script de l'annexe B de `REPRISE.md`, mis à jour pour lire la nouvelle colonne, sur la base d'avant puis sur celle-ci. « pasta » et « tea » suivent le même chemin que leurs équivalents français ; « water » et « cheese » rendaient déjà la bonne fiche, et ne gagnent que la confiance qui les remplit seuls.
+
+### Un nom courant est un nom
+
+`tooling/ciqual/common-names-fr.csv` et `common-names-en.csv`, en-tête `code_ciqual,nom_courant`, une ligne par nom, écrits et relus à la main comme les titres courts. Ils donnent à une fiche les noms sous lesquels on la demande : « riz » et « riz blanc » au riz cuit, « café » et « café noir » au café prêt à boire, « chicken » et « chicken breast » au filet grillé. 74 fiches dans chaque langue, 93 noms en français et 99 en anglais.
+
+Ces noms ne sont pas une règle à côté du classement. Ils entrent **dans l'index plein texte**, à la suite du libellé — sans quoi « café noir » ne trouverait pas une fiche dont le libellé ne dit pas « noir » : le classement ne pèse que ce que la recherche a rendu. Et `FoodRanking.score` pèse **le meilleur des noms de la fiche**, libellé ou nom courant, par la même proximité et la même brièveté. « riz » vaut alors au riz cuit une égalité de nom mesurée sur trois lettres : 4 × 30/33 ≈ 3,6, confiance 0,86, automatique ; la saisie « ri » le met en tête au palier des lettres. Le tri et la décision restent un seul score.
+
+### Un nom courant ne compte que s'il nomme la requête
+
+Le plan de `REPRISE.md` pesait tous les noms de la fiche. En écrivant le cas « un nom courant ne donne rien à une requête qui ne le nomme pas », c'est ce plan qui tombait : au palier le plus bas — la requête n'est ni le nom, ni son début, ni l'un de ses mots —, un nom de trois lettres pèse plus que n'importe quel libellé, et gagne sur une requête qui **précise** le nom au lieu de le dire. Sur la base livrée, « café sucré » rendait le café « sans sucres ajoutés » à 0,60, parce que l'index trouve « sucres » dans son libellé et que « café » est court ; « thé sucré » faisait de même. Un nom courant ne compte donc que s'il nomme la requête — égalité, préfixe, mot entier ou lettres en tête —, et le libellé compte toujours. Une requête qui ne nomme aucun nom courant se classe **exactement** comme avant la table.
+
+La contrepartie est mesurée : sur « lait UHT » ou « riz sans sel », le plan d'origine rendait le lait demi-écrémé et le riz blanc cuit, et la règle retenue rend ce que le libellé seul rendait — le lait entier, le riz thaï. Mais jamais plus mal qu'avant la table, et toujours ce que la requête dit.
+
+### Ce que la table arbitre
+
+- **La forme qu'on mange, pas celle qu'on achète** : cuit pour le riz, les pâtes, le quinoa, la semoule, les légumineuses et les légumes servis chauds ; prêt à boire pour le café et le thé. Quand cuit et cru se valent à quelques calories près — carotte, courgette —, la forme qu'on trouve dans une assiette.
+- **« oeuf » est l'œuf dur**, de mêmes teneurs que l'œuf cru à 5 % près ; **« poulet » le filet grillé**, le morceau qu'on pèse et qu'on note le plus ; **« lait » le demi-écrémé**, le lait le plus vendu.
+- **« pain » et « bread » sont le pain moyen** (7000), comme « fromage », « viande » et « poisson » ; « baguette » reste au pain blanc. La table de `REPRISE.md` les donnait au pain blanc, et le contrat de [D161](#d161--la-recherche-classe-avant-de-couper-lapplication-dit-doù-elle-vient-et-un-geste-ne-jette-plus-rien---validée) appelle déjà le pain moyen « la fiche que tout le monde cherche ».
+- **« chips » n'a pas de nom courant en anglais** : chips de pommes de terre en américain, frites en britannique. Un mot ambigu ne doit pas remplir une ligne seul ; « crisps » le fait. **« couscous » n'en a pas en français**, où c'est le plat — la table en a sept — ; en anglais, il désigne la graine cuite.
+- **La crème fraîche** existe sous « Crème 30 % MG, épaisse, rayon frais » ; elle porte « crème fraîche » dans les deux langues, et « sour cream » en anglais.
+- Une seconde passe a couvert les mots d'un repas photographié qui tombaient eux aussi sur une forme crue, sèche ou transformée : courgette, carottes, lentilles, pois chiches, quinoa, semoule, omelette, poire, mangue, ananas, raisin, fraises, champignons, dinde (« turkey » rendait la graisse de dinde), crevettes, sardines, haricots rouges, poivron, saucisse, tofu, lardons.
+
+### Ce que l'import refuse
+
+`CommonNamesCsv`, calqué sur `ShortNamesCsv`, normalise chaque nom avec `SearchText` — la fonction de l'index et de la saisie — et arrête l'import en nommant la ligne si le code n'existe pas ; si le nom est vide une fois normalisé ; si le nom a déjà été donné plus haut, à une autre fiche ou à la même — un nom ne désigne qu'une fiche, et « oeuf » et « œuf » sont un seul nom ; si le nom est le libellé d'une **autre** fiche, avec laquelle il la mettrait à égalité, ou de **la sienne**, où il ne servirait à rien. La première table de `REPRISE.md` en contenait un : « flocons d'avoine », qui est le libellé même de sa fiche.
+
+**Conséquences.** Dans `:tooling:ciqual-import`, `CommonNamesCsv`, `CatalogueFiles.commonNames`, un compte rendu par langue, et dans `CiqualDatabaseWriter` la colonne `common_names` de `ciqual_name` — noms normalisés séparés par `|`, `NULL` sans nom — et le document de l'index, libellé puis noms. `ciqual.db` régénérée : `ciqual_food` et `ciqual_serving` identiques ligne à ligne à la précédente, les colonnes d'avant de `ciqual_name` aussi ; sur les 3 505 mots de l'index, aucune correspondance perdue, et les 54 gagnées vont toutes à des fiches nommées. Dans `:core:database`, `REVISION` passe à 8 — sans quoi un appareil installé garderait une copie sans la colonne —, et la colonne se lit dans les deux requêtes, `CiqualFoodRow` et `CiqualAnnotations`. Dans `:domain`, `Food.commonNames`, propriété de la référence relue par code comme le titre court, vide pour un aliment personnel ou un produit scanné, jamais affichée ; et le score. Dans `:data:food`, les deux lectures du mapper. Rien dans les écrans, rien dans `strings.xml`.
+
+**Campagne de défaite : seize sabotages, seize tombés.** Le score sans les noms courants ; un nom courant compté même quand il ne nomme pas la requête — le plan d'origine —, puis compté seulement à partir du mot entier, ce qui perd « ri » ; l'index sans les noms, la colonne non écrite, les noms d'une langue écrits dans toutes ; chacun des cinq refus de `CommonNamesCsv` levé ; la colonne oubliée à la lecture d'une ligne, puis dans les annotations d'une fiche copiée ; chacune des deux lectures du mapper qui les perd ; la révision restée à 7. Chaque sabotage a fait tomber au moins un cas exécuté de la classe visée, et la source a été remise après chacun.
+
+**Vérification complète depuis zéro, sans cache : 2 570 cas exécutés, aucun échec** — `gradlew clean check --no-build-cache`, sous Linux et non sous Windows, les tests des règles detekt de `build-logic`, restés à jour, non comptés. L'environnement de cette passe n'avait pas d'émulateur ; aucun test instrumenté n'a tourné.
+
+**Ce que le vert ne prouve pas.** Les cas sur la base réelle passent par Robolectric, avec la base de l'APK et la recherche de l'application, mais aucun écran : la recherche et l'analyse n'ont pas été revues à l'émulateur. La recopie de la base sur un appareil déjà installé en r7 se juge par le nom du fichier, que `CiqualCopyTest` affirme, et non par une mise à jour réelle. La table elle-même reste un jugement : soixante-quatorze fiches, sur les mots qu'un repas fait écrire ; un mot qu'elle ne nomme pas se classe comme avant.
 
 ---
 

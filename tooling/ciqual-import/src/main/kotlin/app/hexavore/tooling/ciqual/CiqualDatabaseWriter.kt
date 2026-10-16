@@ -33,6 +33,7 @@ internal class CiqualDatabaseWriter(private val target: File) {
         servings: List<CiqualServing>,
         shortNames: Map<ContentLanguage, List<CiqualShortName>>,
         completions: List<CiqualCompletion> = emptyList(),
+        commonNames: Map<ContentLanguage, List<CiqualCommonName>> = emptyMap(),
     ) {
         target.parentFile.mkdirs()
         target.delete()
@@ -44,6 +45,7 @@ internal class CiqualDatabaseWriter(private val target: File) {
             connection.insertNames(
                 foods,
                 shortNames.mapValues { (_, titles) -> titles.associate { it.code to it.shortName } },
+                commonNames.mapValues { (_, names) -> names.groupBy({ it.code }, { it.name }) },
             )
             connection.insertServings(servings)
             connection.commit()
@@ -96,8 +98,19 @@ internal class CiqualDatabaseWriter(private val target: File) {
      * clause `language` de la requête qui l'écarte, et elle porte sur une colonne
      * indexée. Le coût est quelques kilo-octets d'index ; le gain est qu'aucune table
      * virtuelle ne porte le nom d'une langue.
+     *
+     * **L'index reçoit le libellé suivi des noms courants** ([D164][decisions]). Sans
+     * eux, « café noir », nom courant d'une fiche dont le libellé ne dit pas « noir »,
+     * ne la trouverait pas : la recherche par mots ne rend que ce que l'index contient,
+     * et le classement ne pèse que ce que la recherche a rendu.
+     *
+     * [decisions]: docs/11-decisions.md
      */
-    private fun Connection.insertNames(foods: List<CiqualFood>, shortNames: Map<ContentLanguage, Map<String, String>>) {
+    private fun Connection.insertNames(
+        foods: List<CiqualFood>,
+        shortNames: Map<ContentLanguage, Map<String, String>>,
+        commonNames: Map<ContentLanguage, Map<String, List<String>>>,
+    ) {
         // Aplati d'abord : le rang doit etre le meme pour la table et pour l'index,
         // donc les deux parcourent la meme liste et non deux boucles imbriquees.
         val rows =
@@ -121,11 +134,17 @@ internal class CiqualDatabaseWriter(private val target: File) {
             // colonne.
             text(shortNames[language]?.get(code))
             text(label.groupName)
+            // Normalises, separes par `|` -- un caractere que SearchText ne laisse
+            // jamais passer. `NULL` sans nom courant, ce qui est le cas de presque
+            // toutes les fiches : elles se classent alors sur leur seul libelle.
+            text(commonNames[language]?.get(code)?.joinToString(COMMON_NAME_SEPARATOR))
         }
 
         batch(INSERT_FTS, rows.withIndex()) { (index, row) ->
+            val (code, language, label) = row
             integer(index + 1)
-            text(SearchText.normalise(row.third.name))
+            val names = commonNames[language]?.get(code).orEmpty()
+            text((listOf(SearchText.normalise(label.name)) + names).joinToString(" "))
         }
     }
 
@@ -225,7 +244,11 @@ internal class CiqualDatabaseWriter(private val target: File) {
                     -- signifie « le libelle d'origine suffit », jamais « pas encore
                     -- traite » : la generation ne demande que les libelles longs.
                     short_name TEXT,
-                    group_name TEXT
+                    group_name TEXT,
+                    -- Les noms courants (D164) : les noms sous lesquels on demande la
+                    -- forme qu'on mange, normalises et separes par `|`. NULL sans
+                    -- nom courant. Ils ne s'affichent jamais ; ils se pesent.
+                    common_names TEXT
                 )
                 """.trimIndent(),
                 // Unique : un aliment porte un libelle par langue, jamais deux. C'est
@@ -275,8 +298,17 @@ internal class CiqualDatabaseWriter(private val target: File) {
             }
 
         const val INSERT_NAME =
-            "INSERT INTO ciqual_name (rowid, code, language, name, name_search, short_name, group_name) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO ciqual_name " +
+                "(rowid, code, language, name, name_search, short_name, group_name, common_names) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+
+        /**
+         * Entre deux noms courants, dans `common_names`.
+         *
+         * Un caractère que [SearchText] ne laisse jamais passer : un nom normalisé ne
+         * peut donc pas le contenir, et la lecture n'a rien à échapper.
+         */
+        const val COMMON_NAME_SEPARATOR = "|"
 
         const val INSERT_FTS = "INSERT INTO ciqual_fts (docid, name_search) VALUES (?, ?)"
 

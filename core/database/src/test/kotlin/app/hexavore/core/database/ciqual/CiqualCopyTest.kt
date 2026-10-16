@@ -66,7 +66,7 @@ class CiqualCopyTest {
          * changeait de forme : ce fichier dit **ou** le test va poser son fichier vide,
          * et c'est une affirmation, pas un emprunt.
          */
-        const val FICHIER = "ciqual-2025-11-03-r7.db"
+        const val FICHIER = "ciqual-2025-11-03-r8.db"
 
         /** Un rayon qui existe dans toutes les editions, pour feuilleter sans chercher. */
         const val RAYON = "FRUITS"

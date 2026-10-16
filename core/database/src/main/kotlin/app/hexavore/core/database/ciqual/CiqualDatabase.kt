@@ -18,6 +18,16 @@ data class CiqualFoodRow(
      */
     val shortName: String?,
     val groupName: String?,
+    /**
+     * Les noms courants de la fiche, **normalisés** — vide pour presque toutes.
+     *
+     * Les noms sous lesquels on demande la forme qu'on mange : « riz » pour le riz cuit,
+     * « café » pour le café prêt à boire ([D164][decisions]). Ils ne s'affichent pas ;
+     * le classement les pèse comme le libellé.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val commonNames: Set<String> = emptySet(),
     /** Le rayon du bandeau, sous le nom de l'énumération du domaine. `null` s'il n'en a pas. */
     val category: String?,
     val kcal100: Double?,
@@ -78,7 +88,19 @@ data class CiqualServingRow(val label: String, val grams: Double, val isDefault:
  *
  * [decisions]: docs/11-decisions.md
  */
-data class CiqualAnnotations(val name: String, val category: String?, val shortName: String?)
+data class CiqualAnnotations(
+    val name: String,
+    val category: String?,
+    val shortName: String?,
+    /**
+     * Les noms courants, relus par code comme le titre court : une copie les figerait
+     * au jour où elle a été faite, et une fiche déjà mangée ne profiterait jamais d'une
+     * table corrigée ([D164][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val commonNames: Set<String> = emptySet(),
+)
 
 /**
  * La table de l'ANSES, embarquée en lecture seule.
@@ -212,7 +234,7 @@ class CiqualDatabase(private val context: Context) {
         val distinct = codes.distinct()
         val sql =
             """
-            SELECT n.code, n.name, f.category, n.short_name
+            SELECT n.code, n.name, f.category, n.short_name, n.common_names
             FROM ciqual_name n
             JOIN ciqual_food f ON f.code = n.code
             WHERE n.language = ? AND n.code IN (${distinct.joinToString { "?" }})
@@ -297,14 +319,14 @@ class CiqualDatabase(private val context: Context) {
          *
          * À incrémenter dès que `CiqualDatabaseWriter.SCHEMA` change, dès que
          * `CiqualCategories` réarbitre un rayon, dès qu'une **langue** s'ajoute au
-         * catalogue, **et dès que `short-names-<langue>.csv`, `servings.csv` ou
-         * `completions.csv` change**. Ces fichiers ne touchent pas au schéma mais
-         * au contenu, et la conséquence est la même : un appareil déjà installé
-         * garderait une copie sans les titres courts ni les valeurs complétées, et rien
-         * ne le dirait. L'oubli est d'autant plus facile que la base se régénère ici
+         * catalogue, **et dès que `short-names-<langue>.csv`, `common-names-<langue>.csv`,
+         * `servings.csv` ou `completions.csv` change**. Ces fichiers ne touchent pas au
+         * schéma mais au contenu, et la conséquence est la même : un appareil déjà
+         * installé garderait une copie sans les titres courts, les noms courants ni les
+         * valeurs complétées, et rien ne le dirait. L'oubli est d'autant plus facile que la base se régénère ici
          * sans erreur.
          */
-        const val REVISION = 7
+        const val REVISION = 8
         const val FILE_PREFIX = "ciqual-"
         const val FILE_NAME = "$FILE_PREFIX$EDITION-r$REVISION.db"
 
@@ -317,7 +339,7 @@ class CiqualDatabase(private val context: Context) {
          */
         const val SELECT_COLUMNS =
             """
-            SELECT n.code, n.name, n.short_name, n.group_name, f.category,
+            SELECT n.code, n.name, n.short_name, n.group_name, n.common_names, f.category,
                    f.kcal_100, f.protein_100, f.carb_100, f.sugar_100, f.fat_100,
                    f.fiber_100, f.saturated_fat_100, f.salt_100,
                    f.kcal_100_est, f.protein_100_est, f.carb_100_est, f.sugar_100_est,
@@ -400,7 +422,8 @@ private fun Cursor.toAnnotatedCode(): Pair<String, CiqualAnnotations> {
         CiqualAnnotations(
             name = getString(column++),
             category = optionalString(column++),
-            shortName = optionalString(column),
+            shortName = optionalString(column++),
+            commonNames = commonNames(column),
         )
 }
 
@@ -411,6 +434,7 @@ private fun Cursor.toFoodRow(): CiqualFoodRow {
         name = getString(column++),
         shortName = optionalString(column++),
         groupName = optionalString(column++),
+        commonNames = commonNames(column++),
         category = optionalString(column++),
         kcal100 = optionalDouble(column++),
         protein100 = optionalDouble(column++),
@@ -444,3 +468,12 @@ private fun Cursor.toFoodRow(): CiqualFoodRow {
 private fun Cursor.optionalDouble(column: Int): Double? = if (isNull(column)) null else getDouble(column)
 
 private fun Cursor.optionalString(column: Int): String? = if (isNull(column)) null else getString(column)
+
+/**
+ * Les noms courants, tels que l'import les a joints : normalisés, séparés par `|`.
+ *
+ * `NULL` vaut aucun nom, et c'est le cas courant. Le séparateur ne peut pas apparaître
+ * dans un nom normalisé, donc la découpe n'a rien à échapper.
+ */
+private fun Cursor.commonNames(column: Int): Set<String> =
+    optionalString(column)?.split('|')?.filterTo(mutableSetOf(), String::isNotEmpty).orEmpty()

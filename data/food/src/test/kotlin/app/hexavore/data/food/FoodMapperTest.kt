@@ -1,9 +1,13 @@
 package app.hexavore.data.food
 
+import app.hexavore.core.database.ciqual.CiqualAnnotations
 import app.hexavore.core.database.ciqual.CiqualEstimates
 import app.hexavore.core.database.ciqual.CiqualFoodRow
+import app.hexavore.domain.food.Food
 import app.hexavore.domain.food.FoodId
+import app.hexavore.domain.food.FoodSource
 import app.hexavore.domain.nutrition.Macro
+import app.hexavore.domain.nutrition.NutrientValues
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -71,6 +75,41 @@ class FoodMapperTest {
 
         assertEquals(setOf(Macro.CALORIES), food.estimated)
         assertEquals(2.18, food.per100g.protein)
+    }
+
+    // --- Les noms courants (D164) ----------------------------------------------
+
+    @Test
+    fun `une ligne de l ANSES porte ses noms courants jusqu a la fiche`() {
+        // Sans eux, le classement ne pese que le libelle, et « riz » retombe sur le riz
+        // cru. C'est la lecture d'une fiche pas encore copiee : la recherche.
+        val food = ligne(kcal = 155.0, kcalEstimee = null)
+            .copy(commonNames = setOf("riz", "riz blanc"))
+            .toDomain(FoodId("f"), emptyList())
+
+        assertEquals(setOf("riz", "riz blanc"), food.commonNames)
+    }
+
+    @Test
+    fun `une fiche copiee relit ses noms courants dans la reference`() {
+        // Une fiche deja mangee passe par l'autre lecture. Si les noms s'y perdaient,
+        // le riz cuit qu'on a deja note classerait plus mal que celui qu'on n'a jamais vu.
+        val copie = Food(
+            id = FoodId("f"),
+            source = FoodSource.CIQUAL,
+            sourceRef = "9104",
+            name = "Riz blanc, cuit, sans sel ajoute",
+            per100g = NutrientValues(kcal = 155.0, protein = 2.7, carbs = 33.0, sugars = 0.1, fat = 0.3, fiber = 0.4),
+        ).toEntity(now = 0L)
+        val reference = CiqualAnnotations(
+            name = "Riz blanc, cuit, sans sel ajoute",
+            category = null,
+            shortName = null,
+            commonNames = setOf("riz"),
+        )
+
+        assertEquals(setOf("riz"), copie.toDomain(annotations = reference).commonNames)
+        assertTrue("sans reference, aucun nom ne s invente", copie.toDomain().commonNames.isEmpty())
     }
 
     private fun ligne(kcal: Double?, kcalEstimee: Double?) = CiqualFoodRow(
