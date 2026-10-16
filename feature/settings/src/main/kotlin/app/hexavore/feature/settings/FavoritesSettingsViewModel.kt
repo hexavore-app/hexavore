@@ -3,7 +3,7 @@ package app.hexavore.feature.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.hexavore.domain.diary.FavoriteDish
-import app.hexavore.domain.diary.FavoriteDishes
+import app.hexavore.domain.usecase.ObserveFavoriteDishes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,13 +23,18 @@ import javax.inject.Inject
  * **L'ordre est celui du port** — les plus rejoués d'abord —, et non alphabétique : on
  * vient y chercher ce qu'on utilise, pas ce qui commence par A.
  *
+ * **Les composants portent le nom de leur fiche d'aujourd'hui**, celui que l'éditeur
+ * montre ([D167][decisions]) : après un changement de langue, la liste et l'éditeur ne
+ * nomment plus le même plat de deux façons.
+ *
  * [editeur]: feature/entry/src/main/kotlin/app/hexavore/feature/entry/EntryDestination.kt
  * [decisions]: docs/11-decisions.md
  */
 @HiltViewModel
-internal class FavoritesSettingsViewModel @Inject constructor(favorites: FavoriteDishes) : ViewModel() {
+internal class FavoritesSettingsViewModel @Inject constructor(observeFavoriteDishes: ObserveFavoriteDishes) :
+    ViewModel() {
     val uiState: StateFlow<FavoritesUiState> =
-        favorites.observeAll()
+        observeFavoriteDishes()
             .map<List<FavoriteDish>, FavoritesUiState> { FavoritesUiState.Loaded(it) }
             // Une lecture qui echoue laisse une liste vide et non un ecran casse : il
             // n'y a rien a reessayer sur un ecran qui ne fait que montrer.

@@ -224,6 +224,8 @@ Un favori référence des aliments **vivants** : « mes flocons du matin » doit
 
 **Mais les six valeurs sont enregistrées quand même** ([D62](11-decisions.md)). Une ligne tapée à la main n'a pas de fiche derrière elle, et une fiche citée peut être supprimée : elles servent de contenu dans le premier cas, de repli dans le second. Sans elles, un favori pourrait rejouer une ligne sans le moindre chiffre.
 
+**`display_name` est un repli, pas ce que les listes montrent** ([D167](11-decisions.md)). Il fige le nom le jour de l'enregistrement, et les deux listes de favoris l'affichaient tel quel quand l'éditeur relisait la fiche : après un changement de langue, le même plat se lisait en anglais d'un côté et en français de l'autre. Les listes relisent la fiche, comme le rejeu — son titre court s'il existe, sinon son libellé ; le nom figé ne sert plus qu'à une ligne tapée à la main, à une fiche supprimée depuis, ou à une lecture qui échoue.
+
 `dish.favorite_id` relie un plat du journal au favori dont il a été rejoué, en `SET NULL`. C'est lui qui rallume l'étoile en rouvrant un plat, et il **tombe dès qu'une ligne est modifiée** : le plat n'est plus celui que le favori décrit.
 
 ### `progress` et `unlocked_badge`

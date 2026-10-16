@@ -5829,6 +5829,27 @@ Rien d'autre ne garde de copie à défaire : la courbe, la pente et le poids du 
 
 ---
 
+## D167 — Les favoris se nomment comme leur fiche, la célébration se laisse lire · ✓ validée
+
+**Contexte.** Deux défauts relevés pendant le mois de vrai journal ([D163](#d163--un-mois-de-vrai-journal--ce-que-lusage-montrait-et-que-les-tests-ne-voyaient-pas---validée)) et laissés en l'état. Les deux listes de favoris — celle des réglages et celle de la barre d'ajout — affichaient chaque composant sous le nom figé à l'enregistrement, quand l'éditeur relit la fiche vivante : après un changement de langue, le même plat se lisait « Rice, white, cooked » d'un côté et « Riz blanc, cuit » de l'autre. Et la célébration, sans animations, ne restait qu'une image : la durée de l'animation tombait à zéro avec `Motion.None`, et `Celebration` rendait la main sitôt lancée, alors que son commentaire la disait « remplacée par le seul texte ».
+
+**Choix.**
+
+- **Les listes relisent la fiche, comme le rejeu.** Un cas d'usage, `ObserveFavoriteDishes`, donne à chaque composant le nom que l'éditeur montre : `Food.displayName`, le titre court s'il existe, sinon le libellé, dans la langue en cours. Les deux `ViewModel` le reçoivent **à la place du port** : ils ne voient plus le nom figé, et y revenir demanderait de leur réinjecter le port. Le nom du favori, lui, ne bouge pas : c'est le sien.
+- **Le nom figé reste le repli** : pour une ligne tapée à la main, qui n'a pas de fiche ; pour une fiche supprimée depuis ; pour une lecture qui échoue — un nom d'hier vaut mieux qu'une liste qui ne s'affiche pas.
+- **Rien n'est réécrit en base.** Récrire `display_name` à chaque changement de langue aurait été une écriture de plus, à refaire à chaque bascule, pour une information que la fiche porte déjà. Le prix est une lecture par composant à chaque émission de la liste : quelques dizaines, pour une liste qui tient sur un écran.
+- **Sans animations, la célébration reste deux secondes et demie**, le temps de lire un titre et une ligne. Un délai qui n'est pas une animation appartient à `Timing`, pas à `Motion` : c'est la règle de la fenêtre d'annulation, que `Motion.None` aurait réduite à une suppression sans recours. Au moins deux secondes ; au plus la fenêtre d'annulation, car une célébration ne doit pas rester plus longtemps qu'un message qui demande un geste. La durée se décide dans une fonction pure, `celebrationMillis`, que le composable appelle.
+
+**Le paysage** ([docs/01](01-perimetre.md)) reste hors de cette décision : il demande un choix de mise en page, pas une correction.
+
+**Conséquences.** `ObserveFavoriteDishes` dans `:domain`, fourni par `FavoriteUseCaseModule` ; `DraftUseCaseModule`, séparé de ce dernier quand le seuil de fonctions a mordu — l'ouverture d'un brouillon d'un côté, les favoris de l'autre. `Timing.CELEBRATION_READING_MILLIS` et `celebrationMillis` dans le design system. Les cas : cinq pour les noms, trois pour la durée, chacun dans un fichier de test neuf. [docs/07](07-modele-de-donnees.md) dit à quoi sert encore `display_name`, [docs/08](08-design-system.md) le temps de lecture et les délais de `Timing`.
+
+**Campagne de défaite : neuf sabotages, neuf tombés.** La liste qui montre le nom figé ; le libellé qui l'emporte sur le titre court ; une lecture qui échoue et fait tomber la liste ; le favori qui prend le nom de sa première fiche ; une fiche disparue qui efface le nom ; la célébration qui dure zéro sans animations ; un temps de lecture d'une image ; un temps de lecture plus long que la fenêtre d'annulation ; la gerbe qui n'est plus ralentie.
+
+**Ce que le vert ne prouve pas.** Aucun test ne compose `Celebration` : qu'elle attende la durée calculée se vérifie à l'émulateur, animations coupées, en franchissant un palier. Les deux listes de favoris non plus : la bascule de langue, puis les deux listes, restent à regarder (`REPRISE.md`, § 4).
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

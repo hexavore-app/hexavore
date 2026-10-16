@@ -95,6 +95,17 @@ object Timing {
      * quatre et `Long` dix ; ni l'un ni l'autre n'est ce que demande docs/02.
      */
     const val UNDO_WINDOW_MILLIS: Long = 5_000L
+
+    /**
+     * Le temps qu'une célébration reste à l'écran quand l'appareil coupe les animations.
+     *
+     * Elle n'est plus alors qu'un titre et une ligne, sans gerbe pour la porter, et
+     * c'est le temps de les lire. À zéro, comme `Motion.None` l'aurait voulue, elle ne
+     * durait qu'une image : le palier passait sans que personne l'ait vu ([D167][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    const val CELEBRATION_READING_MILLIS: Long = 2_500L
 }
 
 /**
