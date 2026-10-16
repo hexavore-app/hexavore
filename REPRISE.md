@@ -30,8 +30,8 @@ qui doit durer vit dans `docs/`, et les décisions dans `docs/11-decisions.md`.
   que le vert ne prouve pas », de D162 à D169. Un défaut en est sorti, corrigé par D169 :
   la pesée rendue par « Annuler » restait hors de vue (campagne 4/4, revue à l'émulateur
   après correction).
-- **Pas vérifié** : ce qui demande la clé de l'auteur, et quelques points laissés de côté
-  (§ 4). Les tests instrumentés (`connectedAndroidTest`) n'ont pas tourné.
+- **Pas vérifié** : quelques points laissés de côté, dont la photo d'assiette (§ 4).
+  Les tests instrumentés (`connectedAndroidTest`) n'ont pas tourné.
 - **Site** (`hexavore-site`, dépôt à part) : deux branches à fusionner à deux moments
   différents, voir § 5.
 
@@ -68,8 +68,8 @@ Dans l'ordre. Le test fermé est terminé et les formulaires sont remplis ; ce q
 est ce que la 1.0.0 change ou demande encore. Les textes à coller sont tous dans
 [`tooling/fiche/fiche-play-store.md`](tooling/fiche/fiche-play-store.md).
 
-1. **Les vérifications à l'émulateur du § 4** qui demandent la clé de l'auteur, sur la
-   release, avant tout téléversement. Le reste a été vu le 16 octobre.
+1. ~~**Les vérifications à l'émulateur du § 4**~~ : faites le 16 octobre, clé de
+   l'auteur comprise. Le § 4 ne garde que des points qui ne bloquent pas.
 2. **Fusionner la pull request dans `main`.** Le workflow `politique.yml` republie alors
    la politique de confidentialité sur le site : vérifier que
    `https://hexavore.app/confidentialite/` est datée du **16 octobre 2026** et dit
@@ -103,17 +103,13 @@ Le 16 octobre 2026, la release 1.0.0 a été revue sur `emulator-5554` : par-des
 été vu est consigné dans chaque décision, § « Ce que le vert ne prouve pas », de D162 à
 D169. Restent :
 
-**Avec la clé de l'auteur**, collée par l'auteur dans l'émulateur (Réglages →
-Intelligence artificielle) :
-- **D168** : sur une proposition d'IA (photo ou phrase), le bouton en forme d'insecte
-  s'annonce « Signaler une proposition fausse ou choquante » ; la boîte titre
-  « Proposition fausse ou choquante ? » ; le courriel préparé a pour objet « Proposition
-  d'IA fausse ou choquante ». Ne pas l'envoyer. Même chose en anglais.
-- **D166** : la procédure ci-dessous sur l'analyse, une phrase tapée et pas envoyée ;
-  puis sur un brouillon ouvert depuis une proposition d'IA, pas encore enregistrée (le
-  cas le plus cher : elle ne se rejoue pas).
-- **D164** : une photo d'assiette (riz, poulet, haricots verts) : les lignes se
-  remplissent sans relecture.
+**Avec la clé de l'auteur**, faits le 16 au soir : le signalement en deux langues, la
+mort du processus sur l'analyse et sur une proposition d'IA, la phrase « riz, poulet,
+haricots verts ». Restent, sans rien bloquer :
+- **D164** : la même assiette **en photo** — l'appareil photo de l'émulateur ne montre
+  qu'une pièce de synthèse, et la galerie n'a pas de photo d'assiette.
+- **D168** : le courriel préparé, dans un client de messagerie qui a un compte ; sur
+  l'émulateur, Gmail n'en a pas. Ne pas l'envoyer.
 
 **Sans clé**, laissés de côté :
 - **D163** : « Réessayer » sur Open Food Facts quand la recherche répond — elle renvoyait
