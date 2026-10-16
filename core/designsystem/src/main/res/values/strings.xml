@@ -151,7 +151,8 @@
     <!-- The medical disclaimer, written once. The welcome screen has it read before the
          first question, and "About" keeps it within reach afterwards: two copies of a
          sentence that commits the project would end up saying two different things
-         (D161). -->
-    <string name="ds_medical_disclaimer">Hexavore is a personal tracking tool. It is not a medical device and it does not replace the advice of a health professional.</string>
+         (D161). Its two sentences are the ones Google Play requires of a health app
+         that is not a medical device, and the store listing repeats them (D168). -->
+    <string name="ds_medical_disclaimer">Hexavore is a personal tracking tool. It is not a medical device and does not diagnose, treat, cure, or prevent any medical condition. Consult a healthcare professional for medical advice, diagnosis, or treatment.</string>
 
 </resources>

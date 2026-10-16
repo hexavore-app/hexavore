@@ -17,3 +17,10 @@ dependencies {
     // navigation, pour la meme raison que la serialisation dans le plugin de feature.
     implementation(libs.androidx.activity.compose)
 }
+
+// `ReportReasonTest` lit les chaines dans le depot, et un test JVM ne declare que ses
+// classes : changer un texte laissait Gradle juger le test a jour, et le vert ne disait
+// plus rien. Les ressources sont donc une entree de la tache (D168).
+tasks.withType<Test>().configureEach {
+    inputs.dir("src/main/res").withPropertyName("resources").withPathSensitivity(PathSensitivity.RELATIVE)
+}

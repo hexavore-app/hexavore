@@ -150,7 +150,8 @@
     <!-- L'avertissement médical, écrit une fois. L'accueil le fait lire avant la
          première question, et « À propos » le garde à portée ensuite : deux copies
          d'une phrase qui engage le projet finiraient par dire deux choses différentes
-         (D161). -->
-    <string name="ds_medical_disclaimer">Hexavore est un outil de suivi personnel. Ce n\'est pas un dispositif médical et il ne remplace pas l\'avis d\'un professionnel de santé.</string>
+         (D161). Ses deux phrases sont celles que Google Play exige d'une application
+         de santé qui n'est pas un dispositif médical, et la fiche les reprend (D168). -->
+    <string name="ds_medical_disclaimer">Hexavore est un outil de suivi personnel. Ce n\'est pas un dispositif médical : il ne diagnostique, ne traite, ne guérit ni ne prévient aucune maladie. Pour un avis, un diagnostic ou un traitement, consultez un professionnel de santé.</string>
 
 </resources>

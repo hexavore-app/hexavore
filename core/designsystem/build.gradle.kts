@@ -34,3 +34,14 @@ dependencies {
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly(libs.junit.platform.launcher)
 }
+
+// `LauncherIconTest` et `MedicalDisclaimerTest` lisent le depot -- les ressources, et la
+// fiche du Play Store qui doit reprendre l'avertissement mot pour mot. Un test JVM ne
+// declare que ses classes : changer un texte laissait Gradle juger le test a jour, et le
+// vert ne disait plus rien. Ce qu'ils lisent est donc une entree de la tache (D168).
+tasks.withType<Test>().configureEach {
+    inputs.dir("src/main/res").withPropertyName("resources").withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.file(layout.projectDirectory.file("../../tooling/fiche/fiche-play-store.md"))
+        .withPropertyName("fiche")
+        .withPathSensitivity(PathSensitivity.NONE)
+}

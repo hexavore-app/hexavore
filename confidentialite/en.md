@@ -1,6 +1,6 @@
 # Privacy policy
 
-*Last updated: October 14, 2026*
+*Last updated: October 16, 2026*
 
 Hexavore is a free and open-source food tracking app for Android. This page explains which data the app handles, where it goes, and how to erase it.
 
@@ -10,7 +10,7 @@ Hexavore is a free and open-source food tracking app for Android. This page expl
 - **No account, no ads, no usage statistics, no automatic crash reports.**
 - **Everything you enter stays on your phone.**
 - Two outside services can be contacted, and only when you take the action that calls them: **Open Food Facts** and **the artificial intelligence provider you chose**.
-- The project only receives what you write to it yourself, including the two emails the app can prepare: **a report** of a wrong suggestion and **a crash trace**.
+- The project only receives what you write to it yourself, including the two emails the app can prepare: **a report** of a wrong or offensive suggestion and **a crash trace**.
 
 ## Who is responsible
 
@@ -62,16 +62,16 @@ If you confirm the meal, a copy of the image is kept **on your phone**, with the
 
 The app never sends an email. It prepares one, addressed to [contact@hexavore.app](mailto:contact@hexavore.app), in the email app of your choice: you read it, you can change it, and you are the one who taps "Send". It then leaves through your email app, with your sender address.
 
-- **Reporting a wrong suggestion**, on an AI suggestion not saved yet: the exchange with the provider (what it was asked and what it answered, without your key), the photo if there is one, and the lines as the screen showed them.
+- **Reporting a wrong or offensive suggestion**, on an AI suggestion not saved yet: the exchange with the provider (what it was asked and what it answered, without your key), the photo if there is one, and the lines as the screen showed them.
 - **After a crash**, at the next launch, the app offers to send the trace it kept: the classes and lines of code involved with the error message, the app and Android versions, and the phone's make and model. Whether you accept or not, the trace is then erased from the phone.
 
-These emails are used only to understand and fix the reported defect. They are passed on to no one, kept while that defect is being dealt with, then deleted. You can ask for their deletion at any time, at the same address.
+These emails are used only to understand and fix what they report. They are passed on to no one, kept while it is being dealt with, then deleted. You can ask for their deletion at any time, at the same address.
 
 ### Nothing else
 
 - **The barcode reader works entirely on the phone.** No camera image is ever sent. The frame the code was read on is kept on the phone if you confirm the dish, as above.
 - **No advertising, analytics or tracking library.** No update check, no signal sent at startup.
-- **The latest exchange with the AI provider** is kept in memory only, so that it can be attached if you report a wrong suggestion. Nothing is written, it is gone when the app closes, and it only leaves in the report email you send yourself.
+- **The latest exchange with the AI provider** is kept in memory only, so that it can be attached if you report a wrong or offensive suggestion. Nothing is written, it is gone when the app closes, and it only leaves in the report email you send yourself.
 
 ## Your backups
 

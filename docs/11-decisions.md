@@ -5850,6 +5850,39 @@ Rien d'autre ne garde de copie à défaire : la courbe, la pente et le poids du 
 
 ---
 
+## D168 — La 1.0.0 : ce que la production demandait encore · ✓ validée
+
+**Contexte.** Le test fermé est terminé et les formulaires de la Console sont remplis. Restait ce que le dépôt ne tenait pas, et que l'examen de production regarde :
+
+- **La fiche promettait deux choses fausses.** « Les valeurs nutritionnelles viennent de bases publiques, pas de sa mémoire » : une ligne que le catalogue ne rejoint pas reçoit l'estimation du modèle — l'étape 4 de [docs/04](04-sources-de-donnees.md), marquée comme telle à l'écran. Et « sans clé, les trois autres modes de saisie fonctionnent » : deux seulement, la phrase demandant une clé comme la photo. Le site portait la première phrase aussi.
+- **L'avertissement santé ne disait pas ce que Google Play exige.** La règle *Contenus et services de santé* demande à une application de santé qui n'est pas un dispositif médical de l'écrire **dans sa description** — elle n'est pas un dispositif médical, et ne diagnostique, ne traite, ne guérit ni ne prévient aucune maladie —, et de **rappeler de consulter un professionnel de santé**. Les applications de suivi nutritionnel y sont nommées parmi les applications de santé. La même règle veut que la description dise quel capteur sert : la caméra.
+- **Le signalement ne couvrait que le faux.** La règle sur le contenu généré par une IA demande qu'on puisse signaler un contenu offensant sans quitter l'application.
+- **Rien ne disait quoi répondre à l'« Accès à l'application »** de l'examen, quand deux fonctions demandent une clé que seul l'utilisateur possède.
+- **La version était la 0.9.0, code 7.**
+- **[docs/10](10-qualite-et-livraison.md) décrivait ce qui n'existe pas** : deux variantes `github` et `play`, un lien de don, une vérification de mise à jour, un `CHANGELOG.md`, des métadonnées Fastlane, un `versionCode` calculé depuis un tag, un `CONTRIBUTING.md`.
+
+**Choix.**
+
+- **La fiche dit ce que l'application fait.** La photo : chaque aliment est cherché dans les bases publiques, et quand aucune fiche ne correspond, le modèle estime et la ligne le signale. Sans clé, le scan et la recherche ; la photo et la phrase en demandent une. Les deux sources ouvertes, « hors estimations de l'IA, signalées comme telles ». Une ligne pour la caméra.
+- **L'avertissement prend les mots de la règle, et la fiche le reprend à l'identique.** L'anglais est la phrase de la règle, mot pour mot ; le français la traduit. C'est le même texte à l'accueil, dans « À propos » et en fin de description : deux textes d'une même promesse finiraient par en dire deux, et c'est la fiche, collée à la main dans la Console, qui dériverait la première.
+- **Le signalement dit « fausse ou choquante »**, ~~« incorrecte »~~ — au bouton, dans la boîte, dans l'objet et dans le corps du courriel, dans les deux langues. La politique de confidentialité suit, datée du 16 octobre 2026. **Hexavore se tient hors du champ de la règle sur le contenu généré par une IA** : un modèle y reconnaît des aliments et estime des valeurs, il ne crée rien qui se publie ni ne se partage. Mais le bouton existait, et lui faire porter les deux motifs coûtait quelques mots. Le courriel reste le canal : il n'y a pas de serveur pour recevoir autre chose.
+- **Aucune clé pour l'examen.** L'IA est facultative, et une clé fournie serait celle de l'auteur, facturée à chaque essai et lisible par quiconque relit la Console. Le texte d'« Accès à l'application », dans la fiche, le dit, nomme ce qui marche sans clé, et indique comment en créer une gratuite pour essayer.
+- **1.0.0, code 8.** Le nom passe à 1.0 parce que c'est la première version de production ; le code monte d'un, aucun plus haut n'étant connu pour être parti.
+- **Déclaration des applications de santé : « Nutrition et gestion du poids ».** Rien de médical n'est mesuré ni déduit.
+- **Les notes de version vivent dans la fiche**, dans les deux langues, à côté de ce qu'elles accompagnent. docs/10 dit désormais ce qui est : un seul binaire, les deux numéros écrits à la main, ni changelog ni Fastlane, `CONTRIBUTING.md` à écrire.
+
+### Un piège trouvé en route : un test qui lit le dépôt n'était pas relancé
+
+Le sabotage de l'objet français — revenu à « incorrecte » — a d'abord **survécu**. Le test n'avait pas tourné : Gradle l'a jugé à jour, puisque les entrées d'une tâche de test sont ses classes, et qu'un `strings.xml` modifié n'en change aucune. Les sabotages qui précédaient tombaient parce que chacun suivait un échec, qui n'est jamais à jour. Le piège valait pour tous les tests qui lisent le dépôt plutôt que des classes : `LauncherIconTest` et `MedicalDisclaimerTest` (les ressources, la fiche), `ReportReasonTest` (les ressources), `PromptAssetsTest` (les prompts), `CommonNamesCsvTest` (les tables de noms courants, [D164](#d164--la-forme-quon-mange--une-table-de-noms-courants---validée)). Leurs tâches déclarent désormais ce qu'ils lisent — c'est ce que l'import CIQUAL faisait déjà pour sa propre tâche —, et trois sabotages lancés **après un vert** l'ont vérifié.
+
+**Conséquences.** Dans `:core:designsystem`, `ds_medical_disclaimer` dans les deux langues et `MedicalDisclaimerTest` (trois cas). Dans `:feature:entry`, quatre chaînes par langue et `ReportReasonTest` (deux cas). Les entrées de test de `:core:designsystem`, `:feature:entry`, `:integration:ai` et `:tooling:ciqual-import`. La version, dans `gradle/libs.versions.toml`. La fiche : les phrases corrigées, l'avertissement, la caméra, la déclaration santé, les notes de version 1.0.0, l'accès à l'application. La politique de confidentialité, dans les deux langues. [docs/02](02-parcours-et-ecrans.md), [docs/05](05-ia.md) et docs/10.
+
+**Campagne de défaite : sept sabotages, sept tombés** — le quatrième au second essai, une fois les entrées déclarées. La fiche anglaise qui garde l'ancien avertissement ; la fiche française qui oublie le rappel du professionnel ; l'avertissement anglais privé de « cure, or » ; l'objet français revenu à « incorrecte » ; le corps anglais privé de « or offensive », après un vert ; la fiche seule changée après un vert ; une table de noms courants changée seule après un vert. Les sabotages des `strings.xml` ont été faits et défaits à la main, comme toute modification de ces fichiers.
+
+**Ce que le vert ne prouve pas.** La Console : la fiche, les notes de version, l'accès à l'application et la relecture de la sécurité des données se collent à la main (`REPRISE.md`). L'avertissement allongé se regarde à l'émulateur, à l'accueil et dans « À propos », dans les deux langues et en police agrandie. La politique publiée ne change qu'une fois cette branche sur `main`, par le workflow qui la pousse au site ; la phrase fausse du site se corrige dans son propre dépôt.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

@@ -1,6 +1,6 @@
 # Politique de confidentialité
 
-*Dernière mise à jour : 14 octobre 2026*
+*Dernière mise à jour : 16 octobre 2026*
 
 Hexavore est une application Android de suivi alimentaire, libre et gratuite. Cette page dit quelles données l'application manipule, où elles vont, et comment les effacer.
 
@@ -10,7 +10,7 @@ Hexavore est une application Android de suivi alimentaire, libre et gratuite. Ce
 - **Pas de compte, pas de publicité, pas de statistiques d'usage, pas de rapport de plantage automatique.**
 - **Tout ce que vous saisissez reste sur votre téléphone.**
 - Deux services extérieurs peuvent être contactés, et seulement quand vous faites le geste qui les appelle : **Open Food Facts** et **le fournisseur d'intelligence artificielle que vous avez choisi**.
-- Le projet ne reçoit que ce que vous lui écrivez vous-même, y compris les deux courriels que l'application sait préparer : **un signalement** de proposition fausse et **une trace de plantage**.
+- Le projet ne reçoit que ce que vous lui écrivez vous-même, y compris les deux courriels que l'application sait préparer : **un signalement** de proposition fausse ou choquante et **une trace de plantage**.
 
 ## Qui est responsable
 
@@ -62,16 +62,16 @@ Si vous validez le repas, une copie de l'image est gardée **sur votre télépho
 
 L'application n'envoie jamais de courriel. Elle en prépare un, adressé à [contact@hexavore.app](mailto:contact@hexavore.app), dans la messagerie de votre choix : vous le relisez, vous pouvez le modifier, et c'est vous qui appuyez sur « Envoyer ». Il part alors par votre messagerie, avec votre adresse d'expéditeur.
 
-- **Signaler une proposition fausse**, sur une proposition de l'IA pas encore enregistrée : l'échange avec le fournisseur (ce qui lui a été demandé et ce qu'il a répondu, sans votre clé), la photo s'il y en a une, et les lignes telles que l'écran les montrait.
+- **Signaler une proposition fausse ou choquante**, sur une proposition de l'IA pas encore enregistrée : l'échange avec le fournisseur (ce qui lui a été demandé et ce qu'il a répondu, sans votre clé), la photo s'il y en a une, et les lignes telles que l'écran les montrait.
 - **Après un plantage**, au lancement suivant, l'application vous propose d'envoyer la trace qu'elle a gardée : les classes et les lignes de code en cause avec le message d'erreur, les versions de l'application et d'Android, la marque et le modèle du téléphone. Que vous acceptiez ou non, la trace est ensuite effacée du téléphone.
 
-Ces courriels servent uniquement à comprendre et à corriger le défaut signalé. Ils ne sont transmis à personne, sont conservés le temps de traiter ce défaut, puis supprimés. Vous pouvez en demander la suppression à tout moment, à la même adresse.
+Ces courriels servent uniquement à comprendre et à corriger ce qu'ils signalent. Ils ne sont transmis à personne, sont conservés le temps de le traiter, puis supprimés. Vous pouvez en demander la suppression à tout moment, à la même adresse.
 
 ### Rien d'autre
 
 - **Le lecteur de codes-barres fonctionne entièrement sur le téléphone.** Aucune image de la caméra n'est envoyée. Celle qui a porté la lecture est gardée sur le téléphone si vous validez le plat, comme ci-dessus.
 - **Aucune bibliothèque de publicité, de statistiques ou de suivi.** Aucune vérification de mise à jour, aucun signal envoyé au démarrage.
-- **Le dernier échange avec le fournisseur d'IA** est gardé en mémoire seulement, pour pouvoir être joint si vous signalez une proposition fausse. Rien n'est écrit, il disparaît à la fermeture de l'application, et il ne part que dans le courriel de signalement que vous envoyez vous-même.
+- **Le dernier échange avec le fournisseur d'IA** est gardé en mémoire seulement, pour pouvoir être joint si vous signalez une proposition fausse ou choquante. Rien n'est écrit, il disparaît à la fermeture de l'application, et il ne part que dans le courriel de signalement que vous envoyez vous-même.
 
 ## Vos sauvegardes
 

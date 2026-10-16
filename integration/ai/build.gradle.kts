@@ -36,3 +36,10 @@ dependencies {
     testImplementation(libs.junit4)
     testRuntimeOnly(libs.junit.platform.launcher)
 }
+
+// `PromptAssetsTest` lit les prompts dans le depot, et un test JVM ne declare que ses
+// classes : un fichier retire laissait Gradle juger le test a jour. Les assets sont donc
+// une entree de la tache (D168).
+tasks.withType<Test>().configureEach {
+    inputs.dir("src/main/assets").withPropertyName("assets").withPathSensitivity(PathSensitivity.RELATIVE)
+}

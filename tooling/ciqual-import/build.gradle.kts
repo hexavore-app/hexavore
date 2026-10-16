@@ -58,6 +58,13 @@ tasks.register<JavaExec>("importCiqual") {
     args(catalogueDirectory.absolutePath, generatedDatabase.absolutePath)
 }
 
+// `CommonNamesCsvTest` relit les tables livrees, et un test ne declare que ses classes :
+// une table corrigee laissait Gradle juger le test a jour, et le vert ne disait plus
+// rien d'elle. Le dossier est donc aussi une entree des tests (D168).
+tasks.withType<Test>().configureEach {
+    inputs.dir(catalogueDirectory).withPropertyName("catalogue").withPathSensitivity(PathSensitivity.RELATIVE)
+}
+
 // --- La tache des titres courts ----------------------------------------------
 //
 // Elle appelle un fournisseur, donc elle coute de l'argent et un compte. Elle n'a

@@ -125,9 +125,9 @@
     <string name="entry_error_body">L\'écriture n\'a pas abouti. Votre saisie est conservée telle quelle.</string>
     <string name="entry_error_retry">Réessayer</string>
 
-    <string name="entry_report">Signaler une proposition incorrecte</string>
-    <string name="entry_report_subject">Proposition d\'IA incorrecte</string>
-    <string name="entry_report_body">La proposition ci-dessous était fausse. L\'échange et la photo sont en pièce jointe.\n\nCe que l\'écran montrait :\n%1$s\n\nCe qui était faux :\n</string>
+    <string name="entry_report">Signaler une proposition fausse ou choquante</string>
+    <string name="entry_report_subject">Proposition d\'IA fausse ou choquante</string>
+    <string name="entry_report_body">La proposition ci-dessous était fausse ou choquante. L\'échange et la photo sont en pièce jointe.\n\nCe que l\'écran montrait :\n%1$s\n\nCe qui n\'allait pas :\n</string>
     <string name="entry_copy">Copier sur un autre jour</string>
     <string name="entry_copied_to">Plat copié au %1$s</string>
     <string name="entry_delete">Supprimer ce plat</string>
@@ -135,7 +135,7 @@
     <string name="entry_delete_body">Il quitte la journée et ses compteurs. C\'est sans retour.</string>
     <string name="entry_delete_confirm">Supprimer</string>
     <string name="entry_delete_cancel">Le garder</string>
-    <string name="entry_report_explain_title">Plat proposé faux ?</string>
+    <string name="entry_report_explain_title">Proposition fausse ou choquante ?</string>
     <string name="entry_report_explain_body">Un courriel s\'ouvre, déjà rempli : ce qui a été demandé à l\'IA, sa réponse, et la photo. Rien ne part tant que vous n\'appuyez pas sur envoyer.</string>
     <string name="entry_report_explain_confirm">Rédiger le signalement</string>
     <string name="entry_report_explain_cancel">Annuler</string>

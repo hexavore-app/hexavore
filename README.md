@@ -4,9 +4,9 @@ Suivi alimentaire pour Android. Libre, gratuit, sans compte, sans publicité, sa
 
 On note ce qu'on mange en quelques secondes — scan d'un code-barres, photo de l'assiette, recherche dans une base de 3 484 aliments, ou simple phrase en français ou en anglais — et l'application tient à jour six compteurs : **calories, protéines, glucides, sucres, lipides, fibres**.
 
-> **Statut** : 0.9.0, candidate à la publication. Les quatre modes de saisie fonctionnent, le journal, le calendrier, les objectifs, les favoris, la progression, les rappels, la sauvegarde et les deux langues sont livrés. Ce qui reste avant la 1.0 est dans [12](docs/12-plan-de-developpement.md) ; la conception complète est dans `docs/`, et les choix structurants dans [11](docs/11-decisions.md).
+> **Statut** : **1.0.0, la première version destinée à la production** du Play Store ([D168](docs/11-decisions.md)). Les quatre modes de saisie fonctionnent, le journal, le calendrier, les objectifs, les favoris, la progression, les rappels, la sauvegarde et les deux langues sont livrés. Ce qui reste — tests d'image, `CONTRIBUTING.md`, la sauvegarde Drive, le paysage — est dans [10](docs/10-qualite-et-livraison.md) et [12](docs/12-plan-de-developpement.md) ; la conception complète est dans `docs/`, et les choix structurants dans [11](docs/11-decisions.md).
 >
-> La dernière livraison retire les trois murs que les testeurs ont rencontrés ([D156](docs/11-decisions.md)) : la clé d'API se récupère par un écran qui annonce ce qu'il faut aller faire, un fournisseur saturé le dit au lieu de se faire passer pour une panne, et l'image d'un plat se remplace au lieu de ne pouvoir que disparaître.
+> La dernière livraison ([D164](docs/11-decisions.md) à [D168](docs/11-decisions.md)) : la recherche trouve la forme qu'on mange — « riz » propose le riz cuit —, une pesée se supprime, une saisie en cours survit quand Android ferme l'application, les favoris se nomment dans la langue en cours, et la fiche, l'avertissement santé et le signalement disent ce que Google Play demande.
 
 ---
 
@@ -84,6 +84,7 @@ Vingt-huit, nés au fur et à mesure qu'ils avaient un fichier à contenir.
 | `:domain` | Kotlin pur — modèles, ports, calculs. Aucune dépendance Android, et le build le vérifie. |
 | `:core:common` | Implémentations de `Clock`, `DispatcherProvider`, `IdGenerator` |
 | `:core:designsystem` | Palette néon, thème, animations, composants Compose |
+| `:core:ui` | Ce qu'un écran de saisie garde pour survivre à la mort du processus (`FormMemory`, [D166](docs/11-decisions.md)) |
 | `:core:database` | Room, migrations, schémas exportés, et la table de l'ANSES en lecture seule |
 | `:core:testing` | Premières implémentations des ports, et les décors partagés |
 | `:core:media` | L'appareil photo du système, la galerie, la réduction JPEG. Partagé par les deux écrans qui prennent des images. |
@@ -97,7 +98,7 @@ Vingt-huit, nés au fur et à mesure qu'ils avaient un fichier à contenir.
 | `:integration:scanner` | La caméra et le décodage de code-barres |
 | `:integration:ai` | Six fournisseurs derrière un port, un parseur commun |
 | `:integration:reminders` | Le travail planifié et la notification |
-| `:integration:reports` | Les deux rapports par courriel : un plantage, une proposition fausse |
+| `:integration:reports` | Les deux rapports par courriel : un plantage, une proposition fausse ou choquante |
 | `:feature:home` | L'accueil, son hexagone et sa barre d'ajout |
 | `:feature:progress` | Les deux séries, les paliers, le niveau |
 | `:feature:entry` | L'écran de validation, point de convergence des modes de saisie |
