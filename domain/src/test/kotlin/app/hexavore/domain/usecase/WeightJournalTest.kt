@@ -92,6 +92,57 @@ class WeightJournalTest {
         assertTrue(recordWeight()(WeightEntry(AUJOURD_HUI.minusDays(3), 82.0)))
     }
 
+    // --- Retirer une pesee (D165) -----------------------------------------------
+
+    @Test
+    fun `retirer une pesee la sort du journal, et seulement elle`() = runTest {
+        // Une pesee tapee sur le mauvais jour restait dans la courbe, dans la pente de
+        // l'adaptation et dans le poids du calcul : il fallait tout effacer.
+        peser(AUJOURD_HUI.minusDays(2), 82.0)
+        peser(AUJOURD_HUI, 91.0)
+
+        DeleteWeight(weights)(AUJOURD_HUI)
+
+        assertEquals(listOf(WeightEntry(AUJOURD_HUI.minusDays(2), 82.0)), weights.entries)
+        assertEquals(82.0, weights.latest?.weightKg, "le poids du calcul redevient celui d'avant")
+    }
+
+    @Test
+    fun `annuler rend la pesee retiree`() = runTest {
+        val retiree = WeightEntry(AUJOURD_HUI, 91.0)
+        peser(retiree.date, retiree.weightKg)
+        DeleteWeight(weights)(retiree.date)
+
+        assertTrue(RestoreWeight(weights)(retiree))
+
+        assertEquals(listOf(retiree), weights.entries)
+    }
+
+    @Test
+    fun `annuler ne recouvre pas une pesee notee entre-temps`() = runTest {
+        // La derniere pesee du jour gagne : celle qu'on vient de noter est plus recente
+        // que celle qu'on annule.
+        val retiree = WeightEntry(AUJOURD_HUI, 91.0)
+        peser(retiree.date, retiree.weightKg)
+        DeleteWeight(weights)(retiree.date)
+        peser(AUJOURD_HUI, 80.5)
+
+        assertFalse(RestoreWeight(weights)(retiree))
+
+        assertEquals(listOf(WeightEntry(AUJOURD_HUI, 80.5)), weights.entries)
+    }
+
+    @Test
+    fun `annuler ne juge pas la pesee une seconde fois`() = runTest {
+        // Elle a ete acceptee quand on l'a notee. Une taille de profil changee depuis ne
+        // doit pas faire echouer en silence le « Annuler » qu'on vient de toucher.
+        val ancienne = WeightEntry(AUJOURD_HUI.minusDays(30), 140.0)
+
+        assertTrue(RestoreWeight(weights)(ancienne))
+
+        assertEquals(listOf(ancienne), weights.entries)
+    }
+
     // --- La courbe --------------------------------------------------------------
 
     @Test

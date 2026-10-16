@@ -8,13 +8,15 @@ import app.hexavore.domain.profile.WeightEntry
 import app.hexavore.domain.time.Clock
 import app.hexavore.domain.usecase.AdjustmentResponse
 import app.hexavore.domain.usecase.GetWeightTrend
-import app.hexavore.domain.usecase.RecordWeight
 import app.hexavore.domain.usecase.RespondToAdjustment
 import app.hexavore.domain.usecase.SuggestGoalAdjustment
+import app.hexavore.domain.usecase.TrendPoint
 import app.hexavore.domain.usecase.WeightTrend
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
@@ -32,7 +34,7 @@ internal class WeightViewModel @Inject constructor(
     getWeightTrend: GetWeightTrend,
     readings: ProfileReadings,
     suggestGoalAdjustment: SuggestGoalAdjustment,
-    private val recordWeight: RecordWeight,
+    private val gestures: WeighingGestures,
     private val respondToAdjustment: RespondToAdjustment,
     private val clock: Clock,
     private val trendDisplay: TrendDisplay,
@@ -90,7 +92,39 @@ internal class WeightViewModel @Inject constructor(
     fun today(): LocalDate = clock.today()
 
     fun onRecord(date: LocalDate, weightKg: Double) {
-        viewModelScope.launch { recordWeight(WeightEntry(date, weightKg)) }
+        viewModelScope.launch { gestures.record(WeightEntry(date, weightKg)) }
+    }
+
+    /** La pesée qu'on vient de retirer, tant que la barre d'annulation peut la rendre. */
+    private val retired = MutableStateFlow<WeightEntry?>(null)
+
+    val undoable: StateFlow<WeightEntry?> = retired.asStateFlow()
+
+    /**
+     * Retire la pesée de ce jour ([D165][decisions]).
+     *
+     * **Tout de suite**, et la barre qui suit la rend : une suppression différée
+     * disparaîtrait avec un processus tué. Un échec n'offre rien à annuler, puisque rien
+     * n'est parti.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    fun onDelete(point: TrendPoint) {
+        val entry = WeightEntry(point.date, point.weightKg)
+        viewModelScope.launch {
+            runCatching { gestures.delete(entry.date) }.onSuccess { retired.value = entry }
+        }
+    }
+
+    fun onUndo() {
+        val entry = retired.value ?: return
+        retired.value = null
+        viewModelScope.launch { runCatching { gestures.restore(entry) } }
+    }
+
+    /** La fenêtre d'annulation est passée : la pesée cesse d'être rattrapable. */
+    fun onUndoExpired() {
+        retired.value = null
     }
 
     /**

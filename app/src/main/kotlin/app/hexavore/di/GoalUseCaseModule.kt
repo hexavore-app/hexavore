@@ -8,9 +8,11 @@ import app.hexavore.domain.profile.Profiles
 import app.hexavore.domain.profile.WeightLog
 import app.hexavore.domain.time.Clock
 import app.hexavore.domain.usecase.CalculateDailyGoal
+import app.hexavore.domain.usecase.DeleteWeight
 import app.hexavore.domain.usecase.GetWeightTrend
 import app.hexavore.domain.usecase.RecordWeight
 import app.hexavore.domain.usecase.RespondToAdjustment
+import app.hexavore.domain.usecase.RestoreWeight
 import app.hexavore.domain.usecase.ReviseGoal
 import app.hexavore.domain.usecase.SuggestGoalAdjustment
 import dagger.Module
@@ -39,6 +41,13 @@ object GoalUseCaseModule {
     @Provides
     fun recordWeight(weights: WeightLog, profiles: Profiles, clock: Clock): RecordWeight =
         RecordWeight(weights, profiles, clock)
+
+    /** Retirer une pesee, puis la rendre pendant la barre d'annulation (D165). */
+    @Provides
+    fun deleteWeight(weights: WeightLog): DeleteWeight = DeleteWeight(weights)
+
+    @Provides
+    fun restoreWeight(weights: WeightLog): RestoreWeight = RestoreWeight(weights)
 
     /**
      * L'adaptation hebdomadaire.

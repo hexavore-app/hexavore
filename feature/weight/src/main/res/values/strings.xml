@@ -53,4 +53,12 @@
     <string name="weight_add_confirm">Save</string>
     <string name="weight_add_cancel">Cancel</string>
 
+    <!-- A reading is removed like a dish: its menu, then the bar that brings it back
+         (D165). Correcting a value does not go through here: a new reading on the same
+         day replaces the old one. -->
+    <string name="weight_row_menu">open the reading menu</string>
+    <string name="weight_row_delete">Delete</string>
+    <string name="weight_deleted">Reading deleted</string>
+    <string name="weight_undo">Undo</string>
+
 </resources>

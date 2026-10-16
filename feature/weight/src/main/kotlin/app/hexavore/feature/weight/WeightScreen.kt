@@ -1,5 +1,7 @@
 package app.hexavore.feature.weight
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,10 +12,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -43,6 +48,7 @@ internal fun WeightRoute(onClose: () -> Unit) {
     val viewModel: WeightViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val suggestion by viewModel.suggestion.collectAsStateWithLifecycle()
+    val undoable by viewModel.undoable.collectAsStateWithLifecycle()
 
     WeightScreen(
         state = state,
@@ -52,6 +58,12 @@ internal fun WeightRoute(onClose: () -> Unit) {
         suggestion = suggestion,
         onAdjustment = viewModel::onAdjustment,
         onTrendShown = viewModel::onTrendShown,
+        removal = WeighingRemoval(
+            pending = undoable,
+            onDelete = viewModel::onDelete,
+            onUndo = viewModel::onUndo,
+            onExpired = viewModel::onUndoExpired,
+        ),
     )
 }
 
@@ -87,12 +99,15 @@ internal fun WeightScreen(
      * [decisions]: docs/11-decisions.md
      */
     onTrendShown: (Boolean) -> Unit = {},
+    removal: WeighingRemoval = WeighingRemoval(),
 ) {
     var recording by remember { mutableStateOf(false) }
+    val undoBar = rememberUndoBar(removal)
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(undoBar) },
         floatingActionButton = {
             ExtendedFloatingActionButton(onClick = { recording = true }) {
                 Icon(Icons.Default.Add, contentDescription = null)
@@ -126,7 +141,7 @@ internal fun WeightScreen(
             when (state) {
                 WeightUiState.Loading -> Unit
                 WeightUiState.Error -> Unreadable()
-                is WeightUiState.Loaded -> Journal(state, onTrendShown)
+                is WeightUiState.Loaded -> Journal(state, onTrendShown, removal.onDelete)
             }
         }
     }
@@ -158,7 +173,7 @@ private fun WeightTitle(onClose: () -> Unit) {
 
 /** La courbe, l'avertissement s'il y a lieu, puis les pesées. */
 @Composable
-private fun Journal(state: WeightUiState.Loaded, onTrendShown: (Boolean) -> Unit) {
+private fun Journal(state: WeightUiState.Loaded, onTrendShown: (Boolean) -> Unit, onDelete: (TrendPoint) -> Unit) {
     if (state.empty) {
         NothingWeighedYet()
         return
@@ -168,13 +183,24 @@ private fun Journal(state: WeightUiState.Loaded, onTrendShown: (Boolean) -> Unit
     if (state.curveMissing) Note(stringResource(R.string.weight_curve_missing))
 
     LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-        items(state.trend.points.asReversed(), key = { it.date.toString() }) { Weighing(it, state.units) }
+        items(state.trend.points.asReversed(), key = { it.date.toString() }) { Weighing(it, state.units, onDelete) }
     }
 }
 
-/** Une pesée : la date, le poids, et la tendance du jour pour qui ne voit pas la courbe. */
+/**
+ * Une pesée : la date, le poids, et la tendance du jour pour qui ne voit pas la courbe.
+ *
+ * **Un appui ouvre son menu**, qui n'a qu'une entrée : « Supprimer » ([D165][decisions]).
+ * L'appui long fait la même chose, parce que c'est le geste qui ouvre le menu d'un plat
+ * et qu'on l'essaiera ici aussi. Corriger une valeur ne passe pas par ce menu : une
+ * nouvelle pesée du même jour remplace l'ancienne.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun Weighing(point: TrendPoint, units: UnitSystem) {
+private fun Weighing(point: TrendPoint, units: UnitSystem, onDelete: (TrendPoint) -> Unit) {
+    var menuOpen by remember { mutableStateOf(false) }
     // Dans le systeme de la ligne qu'elle lit (D162) : des livres a l'ecran ne
     // s'annoncent pas en kilogrammes.
     val description = when (units) {
@@ -192,14 +218,32 @@ private fun Weighing(point: TrendPoint, units: UnitSystem) {
         )
     }
 
+    val menuLabel = stringResource(R.string.weight_row_menu)
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            // Avant le noeud d'accessibilite : place apres, le clic serait efface avec le
+            // reste, et le lecteur d'ecran ne saurait plus ouvrir le menu.
+            .combinedClickable(
+                onClickLabel = menuLabel,
+                onLongClickLabel = menuLabel,
+                onLongClick = { menuOpen = true },
+                onClick = { menuOpen = true },
+            )
             // Une ligne est un seul noeud d'accessibilite : date, poids, tendance, en
             // une phrase plutot qu'en trois arrets.
             .clearAndSetSemantics { contentDescription = description },
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
+        DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.weight_row_delete)) },
+                onClick = {
+                    menuOpen = false
+                    onDelete(point)
+                },
+            )
+        }
         Text(
             text = point.date.longLabel(),
             style = MaterialTheme.typography.bodyMedium,

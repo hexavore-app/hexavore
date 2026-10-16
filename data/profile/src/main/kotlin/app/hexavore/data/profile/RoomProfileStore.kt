@@ -64,6 +64,11 @@ class RoomProfileStore @Inject constructor(
         profiles.upsertWeight(entry.toEntity(ids.next(), clock.now().toEpochMilli()))
     }
 
+    /** La même requête que celle qui fait place à la pesée neuve du jour, seule. */
+    override suspend fun delete(date: LocalDate) = withContext(dispatchers.io) {
+        profiles.deleteWeightOn(date.toString())
+    }
+
     override fun observeGoalOn(date: LocalDate): Flow<Goal?> =
         goalDao.observeGoalOn(date.toString()).map { it?.toDomain() }.flowOn(dispatchers.io)
 

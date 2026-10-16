@@ -56,4 +56,16 @@ interface WeightLog {
     fun observeLatest(): Flow<WeightEntry?>
 
     suspend fun record(entry: WeightEntry)
+
+    /**
+     * Retire la pesée de [date], s'il y en a une ; sinon, ne fait rien.
+     *
+     * **Par la date, et non par un identifiant** : il n'y a qu'une pesée par jour, et
+     * c'est la date que l'écran tient. Une pesée tapée sur le mauvais jour restait dans
+     * la courbe, dans la pente de l'adaptation et — la plus récente — dans le poids qui
+     * sert au calcul ([D165][decisions]) : la corriger demandait de tout effacer.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    suspend fun delete(date: LocalDate)
 }

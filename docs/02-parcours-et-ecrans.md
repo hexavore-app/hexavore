@@ -345,6 +345,8 @@ La trajectoire visée est superposée en pointillés, du départ de l'objectif j
 
 Ajout d'une pesée par un bouton flottant : poids et date, c'est tout. Le poids se juge sur la taille du profil, avec les bornes et les phrases de l'onboarding ([D160](11-decisions.md)) : le bouton s'éteint, et la phrase sous le champ dit pourquoi.
 
+**Une pesée se retire** ([D165](11-decisions.md#d165--une-pesée-se-retire-comme-un-plat---validée)) : un appui sur sa ligne — ou un appui long, comme sur un plat — ouvre « Supprimer ». Elle part tout de suite, et la barre d'annulation la rend pendant cinq secondes ; une pesée notée entre-temps pour le même jour n'est pas recouverte. Corriger une valeur ne passe pas par là : une nouvelle pesée du même jour remplace l'ancienne.
+
 Si l'algorithme a une suggestion d'ajustement en attente, une carte apparaît en tête : *« Sur les 3 dernières semaines vous perdez 0,3 kg par semaine, pour 0,5 visé. Réduire l'objectif de 120 kcal ? »* — **Accepter** / **Ignorer** / **Ne plus proposer**. Rien n'est jamais appliqué sans accord.
 
 ---

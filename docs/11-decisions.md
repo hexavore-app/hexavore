@@ -5781,6 +5781,27 @@ La contrepartie est mesurée : sur « lait UHT » ou « riz sans sel », le plan
 
 ---
 
+## D165 — Une pesée se retire, comme un plat · ✓ validée
+
+**Contexte.** Le port `WeightLog` n'avait que `record`. Une pesée tapée sur le mauvais jour restait dans la courbe, dans la pente de l'adaptation hebdomadaire et — quand c'était la plus récente — dans le poids qui sert au calcul de l'objectif. Les seules issues étaient « Effacer toutes mes données » ou la restauration d'une sauvegarde : tout perdre pour une faute de frappe. Corriger une **valeur** était déjà possible — une nouvelle pesée du même jour remplace l'ancienne —, corriger une **date** ne l'était pas.
+
+**Choix.** Le geste d'un plat, appliqué à une pesée :
+
+- **Un appui sur la ligne ouvre son menu**, qui n'a qu'une entrée, « Supprimer ». L'appui long fait la même chose, parce que c'est lui qui ouvre le menu d'un plat sur l'accueil et qu'on l'essaiera ici aussi. Le clic est posé **avant** le nœud d'accessibilité de la ligne : après, il aurait été effacé avec le reste, et le lecteur d'écran n'aurait plus su ouvrir le menu.
+- **La pesée part tout de suite**, et la barre d'annulation la rend pendant cinq secondes (`Timing.UNDO_WINDOW_MILLIS`). Différer la suppression jusqu'à la fin de la barre l'aurait fait disparaître avec un processus tué — la raison de `RestoreDish`, inchangée.
+- **Rendre ne rejuge pas** : la pesée a été acceptée quand on l'a notée, et une taille de profil changée depuis ne doit pas faire échouer en silence un « Annuler ». **Rendre ne recouvre pas non plus** une pesée notée entre-temps pour le même jour : la dernière du jour gagne, et ce n'est pas celle qu'on annule.
+- **Par la date, et non par un identifiant** : il n'y a qu'une pesée par jour, et c'est la date que l'écran tient. La requête existait déjà dans le DAO, où `record` s'en sert pour faire place à la pesée neuve.
+
+Rien d'autre ne garde de copie à défaire : la courbe, la pente et le poids du calcul lisent tous le journal. Un objectif déjà enregistré ne bouge pas — il a été calculé un jour donné, sur ce qu'on savait ce jour-là. Retirer la dernière pesée laisse le profil sans poids, ce que l'écran du profil et les pastilles savent déjà dire.
+
+**Conséquences.** `WeightLog.delete(date)` et ses deux implémentations ; `DeleteWeight` et `RestoreWeight` dans `:domain` ; `WeighingGestures` dans `:feature:weight`, qui regroupe les trois gestes d'écriture plutôt que de relever le seuil de huit paramètres. Quatre chaînes par langue. Les cas : deux dans le contrat du journal, joué sur Room et sur le faux ; quatre dans `WeightJournalTest` ; trois dans `WeightViewModelTest`, nouveau.
+
+**Campagne de défaite : neuf sabotages, neuf tombés.** Room qui ne retire rien ; le faux qui ne retire rien, puis qui retire tout ; l'annulation qui recouvre une pesée notée entre-temps, puis qui rejuge le poids ; la suppression qui ne garde rien à annuler, puis qui attend la fin de la barre ; l'annulation qui se rejoue ; la fenêtre passée qui laisse encore annuler.
+
+**Ce que le vert ne prouve pas.** L'écran n'est pas composé : le menu sous le doigt, la barre en bas de l'écran et l'annonce du lecteur d'écran restent à voir sur un appareil.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

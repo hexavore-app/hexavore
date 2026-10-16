@@ -53,4 +53,12 @@
     <string name="weight_add_confirm">Enregistrer</string>
     <string name="weight_add_cancel">Annuler</string>
 
+    <!-- Une pesée se retire comme un plat : son menu, puis la barre qui la rend
+         (D165). Corriger une valeur ne passe pas par ici : une nouvelle pesée du même
+         jour remplace l'ancienne. -->
+    <string name="weight_row_menu">ouvrir le menu de la pesée</string>
+    <string name="weight_row_delete">Supprimer</string>
+    <string name="weight_deleted">Pesée supprimée</string>
+    <string name="weight_undo">Annuler</string>
+
 </resources>
