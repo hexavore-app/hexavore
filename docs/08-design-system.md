@@ -379,7 +379,7 @@ Le néon invite à trop animer. Cadre strict :
 
 Le reste du temps, une lueur qui pulse en permanence consomme de la batterie et fatigue.
 
-**Accessibilité** : quand `Settings.Global.ANIMATOR_DURATION_SCALE` vaut 0, ou quand la bascule « animations réduites » des réglages est active, toutes les durées tombent à 0 et l'animation d'attente devient un indicateur statique. Ce n'est pas optionnel : ce réglage existe souvent pour des raisons vestibulaires.
+**Accessibilité** : quand `Settings.Global.ANIMATOR_DURATION_SCALE` vaut 0~~, ou quand la bascule « animations réduites » des réglages est active~~ — il n'y a pas de bascule dans l'application, seul le réglage du système compte ([D168](11-decisions.md)) —, toutes les durées tombent à 0 et l'animation d'attente devient un indicateur statique. Ce n'est pas optionnel : ce réglage existe souvent pour des raisons vestibulaires.
 
 **Les délais qui ne sont pas des animations ne tombent pas à zéro.** Ils vivent dans `Timing` et non dans `Motion` : la fenêtre d'annulation d'une suppression (cinq secondes) et le temps de lecture de la célébration sans animations (deux secondes et demie, [D167](11-decisions.md)). Un délai à zéro ne serait pas une animation plus sobre : ce serait une suppression sans recours, ou un message que personne n'a vu.
 

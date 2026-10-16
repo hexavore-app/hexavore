@@ -1,4 +1,4 @@
-# Reprise — le tour d'avant publication, après D164
+# Reprise — la 1.0.0, après D168
 
 Ce fichier dit **où en est le travail et comment le reprendre**, sans rien supposer de
 la conversation qui l'a produit. Il se supprime quand ses chantiers sont faits : ce
@@ -8,23 +8,27 @@ qui doit durer vit dans `docs/`, et les décisions dans `docs/11-decisions.md`.
 
 ## 1. État de la branche
 
-- **Branche** : `fix/la-courbe-le-tour-et-le-premier-ecran`, partie de `main` après
-  la PR #100 (D157, version 0.9.0). Elle porte **D158 à D163** en un seul commit :
-  les décisions et leurs raisons sont dans `docs/11-decisions.md`, du titre
-  « D158 » à la fin du fichier. **D164**, la table des noms courants (l'ancien chantier
-  3.1), est faite par-dessus, sur la branche `claude/sweet-shannon-2trz20` partie de
-  ce commit, sans commit à ce jour.
-- **Version** : toujours `0.9.0` / `versionCode 7` dans `gradle/libs.versions.toml`.
-  La monter est une décision de publication, pas prise ici.
-- **Vérifié** : `gradlew clean check` vert, sans cache de build, cas exécutés comptés ;
-  campagne de défaite de D162 (12 sabotages, 12 tombés), de D163 et de D164 (résultat
-  dans leurs entrées).
-- **Pas vérifié** : aucune correction de D163 ni de D164 n'a été revue à l'émulateur **après**
-  correction (les défauts, eux, l'ont été avant) ; plusieurs points de D162 non plus —
-  la liste est dans les entrées D162 et D163, § « Ce que le vert ne prouve pas ». Les
-  tests instrumentés (`connectedAndroidTest`) n'ont pas tourné.
-- **Site** (`hexavore-site`, dépôt à part) : la phrase « estimations » de D162 sur la
-  page d'accueil, dans les deux langues. Voir § 5.
+- **Branche** : `claude/sweet-shannon-2trz20`, partie du commit de D158 à D163
+  (`b586485`, branche `fix/la-courbe-le-tour-et-le-premier-ecran`). Elle porte **D164 à
+  D168**, un commit par décision, poussés, et une pull request vers `main`.
+  Les décisions et leurs raisons sont dans `docs/11-decisions.md`, du titre « D164 » à
+  la fin du fichier.
+- **Version** : `1.0.0` / `versionCode 8` dans `gradle/libs.versions.toml` ([D168](docs/11-decisions.md)).
+  Aucun code au-dessus de 7 n'était connu pour être parti ; si la Console refuse le 8,
+  monter au premier libre et le commenter à côté des autres.
+- **Vérifié** : `gradlew clean check --no-build-cache --no-configuration-cache` vert
+  le 16 octobre 2026, **2 653 cas exécutés** (variantes debug et release), aucun échec,
+  aucun ignoré — les tests de `build-logic`, build inclus que `clean` ne nettoie pas,
+  sont hors compte. Campagnes de défaite de D164 (16 sabotages, 16 tombés), D165 (9/9),
+  D166 (19/19), D167 (9/9) et D168 (7/7), détaillées dans leurs entrées. Le bundle de
+  release se construit (R8) : code 8, nom 1.0.0, cible 36, et ses bibliothèques natives
+  64 bits sont alignées sur 16 Ko.
+- **Pas vérifié** : rien de D163 à D168 n'a été revu à l'émulateur **après** correction —
+  l'environnement qui les a faites n'avait pas d'émulateur. La liste est au § 4, et elle
+  passe avant le téléversement. Les tests instrumentés (`connectedAndroidTest`) n'ont pas
+  tourné.
+- **Site** (`hexavore-site`, dépôt à part) : deux branches à fusionner à deux moments
+  différents, voir § 5.
 
 ## 2. Règles de travail sur ce dépôt (à relire avant de toucher à quoi que ce soit)
 
@@ -47,70 +51,97 @@ qui doit durer vit dans `docs/`, et les décisions dans `docs/11-decisions.md`.
   11 par fichier, `ReturnCount` 2) ; règles maison `HardcodedColor` (pas de couleur hors
   du design system) et `TimeOutsideClock` (l'heure se lit sur le port `Clock`).
 - **`strings.xml` se modifie à la main**, jamais par script ; fins de ligne LF.
-- **Chaque correction** : une décision `D164`, `D165`… dans `docs/11-decisions.md`
+- **Chaque correction** : une décision `D169`, `D170`… dans `docs/11-decisions.md`
   (`## DNNN — titre · ✓ validée`), la doc concernée mise à jour (l'ancien texte barré
   `~~…~~` quand il était faux), un test par règle, et une **campagne de défaite** —
-  saboter la correction, vérifier qu'un cas tombe, défaire (voir § 6).
+  saboter la correction, vérifier qu'un cas tombe, défaire (voir § 7).
 - Aucun pronom pour l'auteur, Charly Flu, dans les textes.
 
-## 3. Les chantiers, par ordre d'importance
+## 3. Publier la 1.0.0 en production
 
-### 3.1 La saisie ne survit pas à la mort du processus
+Dans l'ordre. Le test fermé est terminé et les formulaires sont remplis ; ce qui suit
+est ce que la 1.0.0 change ou demande encore. Les textes à coller sont tous dans
+[`tooling/fiche/fiche-play-store.md`](tooling/fiche/fiche-play-store.md).
 
-**Le défaut.** `docs/02` le promettait ; [D40](docs/11-decisions.md#d40--ce-que-la-tranche-2-ne-construit-pas---validée) l'a reporté « avec le deuxième écran qui
-a une saisie longue », et il y en a cinq. Vérifié à l'émulateur sur l'aliment personnel :
-Hexavore en arrière-plan, `adb -s emulator-5554 shell am kill app.hexavore`, retour par
-les applications récentes — seul le nom, venu de la route, revient. D163 n'a sauvé que
-la **photo** en cours de prise.
-
-**Le plan.** Un mécanisme transverse plutôt qu'un écran à la fois :
-
-1. Dans chaque `ViewModel` de saisie, l'état du formulaire en `@Serializable` (des DTO
-   à côté du `ViewModel` quand le domaine n'est pas sérialisable — `Food`,
-   `Suggestion`… ne le sont pas), écrit en JSON dans **son** `SavedStateHandle` à chaque
-   changement, relu à la construction **avant** l'ouverture depuis la route. Attention au
-   piège de [D52](docs/11-decisions.md#d52--deux-savedstatehandle-une-seule-saisie-manuelle-des-grammes-entiers---validée) : le `SavedStateHandle` du `ViewModel` n'est pas celui de l'entrée de
-   pile.
-2. Par ordre de coût perdu : le **brouillon de plat** (`feature/entry`, `EntryForm` et ses
-   lignes — y compris un plat proposé par l'IA, qui a coûté un appel), le **texte de
-   l'analyse** (`feature/capture`, la photo étant déjà en mémoire dans l'état), l'**aliment
-   personnel** (`feature/search/CustomFoodViewModel`), l'**onboarding**, le **profil**, la
-   **pesée**.
-3. Garder un œil sur la taille : quelques kilo-octets par écran, jamais d'image.
-4. Tests : pour chaque `ViewModel`, un aller-retour — remplir, recréer avec le même
-   `SavedStateHandle`, retrouver la saisie. À l'émulateur : la procédure ci-dessus, écran
-   par écran.
-5. Docs : `docs/02` § Restauration d'état (retirer la phrase de D163 qui dit que ce
-   n'est pas tenu), une décision.
-
-### 3.2 Une pesée ne se supprime pas
-
-Le port `WeightLog` (`domain/.../profile/Profiles.kt`) n'a que `record`. Une pesée tapée
-sur la mauvaise date reste dans la courbe, la pente de l'adaptation et le poids du calcul.
-Plan : `suspend fun delete(date: LocalDate)` dans le port, le DAO, l'adaptateur Room et
-`InMemoryWeightLog` ; un cas d'usage ; sur l'écran de poids, un appui long sur une ligne
-de la liste ouvre « Supprimer », suivi de la barre d'annulation comme pour un plat
-(`Timing.UNDO_WINDOW_MILLIS`, la suppression immédiate et la restauration par un
-second geste, comme `onDeleteDish`). Tests du port, du cas d'usage et du `ViewModel`.
-
-### 3.3 Petits défauts relevés, non corrigés
-
-- **La liste des favoris** (`feature/settings/FavoritesSettingsScreen.kt` et
-  `feature/search/FavoritesScreen.kt`) affiche `components.joinToString { it.name }`, les
-  noms figés à l'enregistrement, quand l'éditeur montre ceux de la fiche vivante : après
-  un changement de langue, l'une est en anglais et l'autre en français. Relire les noms
-  par la fiche (`foodId`) au moment de lister.
-- **La célébration sans animations** ne dure qu'une image (`Celebration.kt` appelle
-  `onDone` tout de suite quand la durée vaut zéro), alors que son commentaire la dit
-  « remplacée par le seul texte ». Un délai qui n'est pas une animation appartient à
-  `Timing`, pas à `Motion`.
-- **Le paysage** reste « non optimisé » (`docs/01`) : titre et calendrier fixes, barre du
-  bas fixe, il reste peu de hauteur au journal. Ne rien faire sans décision.
+1. **Les vérifications à l'émulateur du § 4**, sur la release, avant tout téléversement.
+2. **Fusionner la pull request dans `main`.** Le workflow `politique.yml` republie alors
+   la politique de confidentialité sur le site : vérifier que
+   `https://hexavore.app/confidentialite/` est datée du **16 octobre 2026** et dit
+   « fausse ou choquante ». Si le workflow échoue, la clé `SITE_DEPLOY_KEY` est en cause
+   (README du site, § Publier).
+3. **Construire le bundle signé** depuis `main` : `gradlew.bat :app:bundleRelease`, avec
+   la clé de téléversement de la machine de l'auteur. Le bundle sort non signé sans elle.
+4. **Fiche principale**, dans les deux langues : recoller les **deux descriptions
+   complètes**. Elles ont changé ([D168](docs/11-decisions.md)) : la phrase de la photo
+   (les estimations de l'IA se disent), la ligne de l'appareil photo, la phrase « sans
+   clé », celle des sources, et l'avertissement santé — dont Google Play exige les mots
+   dans la description.
+5. **Contenu de l'application → Accès à l'application** : « Tout ou partie des
+   fonctionnalités sont soumises à restrictions », et le texte de la fiche (§ Accès à
+   l'application, pour l'examen). Aucune clé n'est fournie.
+6. **Contenu de l'application → Applications de santé** : la catégorie « Nutrition et
+   gestion du poids » ; rien de médical.
+7. **Sécurité des données** : relire, sans rien changer. D164 à D168 n'ajoutent aucun
+   flux réseau ; le signalement change de motif, pas de contenu.
+8. **Production → Créer une release** : téléverser le bundle, coller les **notes de
+   version 1.0.0** (fiche, deux langues), puis envoyer pour examen. Un déploiement
+   progressif (20 % d'abord) laisse le temps de voir un plantage avant tout le monde ;
+   les traces de plantage n'arrivent que par les courriels que les utilisateurs
+   choisissent d'envoyer, et la Console ne montre que ce qu'Android remonte.
+9. **Une fois la 1.0.0 en ligne**, le site : § 5, seconde branche.
 
 ## 4. Vérifications à l'émulateur qui restent dues
 
 Construire la release (`gradlew.bat :app:assembleRelease`), l'installer sur
-`emulator-5554` par-dessus la précédente (`adb -s emulator-5554 install -r …`), puis :
+`emulator-5554` par-dessus la précédente (`adb -s emulator-5554 install -r …`), puis
+regarder ce qui suit. Les fonctions d'IA demandent la clé de l'auteur, collée par
+l'auteur dans l'émulateur.
+
+**La mort du processus, la procédure** (D166) : remplir l'écran, passer Hexavore en
+arrière-plan (bouton d'accueil), `adb -s emulator-5554 shell am kill app.hexavore`, puis
+revenir par les applications récentes. La saisie doit revenir telle qu'elle était.
+
+**D168.**
+- L'accueil d'un premier lancement (`adb -s emulator-5554 shell pm clear app.hexavore`,
+  ce qui efface tout) : l'avertissement allongé se lit en entier, en français puis en
+  anglais, et à `adb -s emulator-5554 shell settings put system font_scale 1.3` (remettre
+  `1.0` après) ; « Continuer » reste atteignable par le défilement. Le même texte dans
+  Réglages → À propos.
+- Une proposition d'IA (photo ou phrase) : le bouton en forme d'insecte s'annonce
+  « Signaler une proposition fausse ou choquante » ; la boîte titre « Proposition fausse
+  ou choquante ? » ; le courriel préparé a pour objet « Proposition d'IA fausse ou
+  choquante ». Ne pas l'envoyer. Même chose en anglais.
+
+**D167.**
+- Enregistrer un favori en français, passer l'application en anglais (Réglages →
+  Apparence), puis Réglages → Favoris **et** « + » → Favoris : les composants portent les
+  noms anglais, les mêmes que l'éditeur ouvert sur ce favori. Une ligne tapée à la main
+  garde son nom.
+- Animations coupées (`adb -s emulator-5554 shell settings put global
+  animator_duration_scale 0`) : franchir un palier — enregistrer un plat avec l'étoile
+  allumée donne « Premier favori » sur un journal qui n'en a pas ; le titre et sa ligne
+  restent environ deux secondes et demie, puis disparaissent. Animations remises (`1`),
+  la gerbe passe comme avant.
+
+**D166**, écran par écran, avec la procédure ci-dessus :
+- **le brouillon de plat**, lignes remplies et champs à moitié tapés (« 150, ») ; puis
+  avec une photo ajoutée ; puis une proposition d'IA ouverte et pas encore enregistrée
+  (le cas le plus cher : elle ne se rejoue pas) ;
+- **l'analyse**, une phrase tapée et pas envoyée ;
+- **l'aliment personnel**, nom, marque, portion et valeurs ;
+- **l'onboarding**, arrêté à la troisième étape : il reprend à cette étape, avec ses
+  réponses ;
+- **le profil en cours de modification** ;
+- **la boîte de pesée**, ouverte, avec un jour et un poids changés ;
+- et le contraire : un repas **enregistré** ne revient pas après la mort du processus.
+
+**D165.**
+- Journal de poids : un appui, ou un appui long, sur une pesée ouvre son menu,
+  « Supprimer » ; la pesée quitte la liste et la courbe, et « Annuler » la remet pendant
+  cinq secondes ; passé ce délai, elle reste partie. Avec TalkBack, la ligne ouvre le
+  même menu.
+- Retirer la seule pesée : le profil se retrouve sans poids, et l'écran du profil comme
+  les pastilles le disent.
 
 **D163.**
 - Restaurer le mois d'essai (annexe A) : la file des paliers passe sans rester figée
@@ -150,12 +181,50 @@ Ce qui est vu se consigne dans la décision, § « Ce que le vert ne prouve pas 
 
 ## 5. Le site
 
-Le dépôt `hexavore-site` porte la phrase de D162 (« des estimations… ») dans
-`fr.tsx` et `en.tsx`, sur une branche du même nom que celle-ci. Le statut « pas encore
-publiée » reste jusqu'à ce que la fiche Play soit publique, et la politique de
-confidentialité n'est en ligne qu'après fusion dans `main`.
+Le dépôt `hexavore-site` a **deux changements à fusionner à deux moments** :
 
-## 6. Le harnais de défaite
+1. **Maintenant** : la branche `fix/la-courbe-le-tour-et-le-premier-ecran` (D161, D162),
+   déjà poussée. Elle retire du site la phrase fausse que la fiche portait aussi — les
+   valeurs « pas de sa mémoire » — et dit que l'application ne transmet que les courriels
+   qu'on envoie. Aucune pull request n'est ouverte pour elle.
+2. **Une fois la 1.0.0 en ligne en production** : la branche `fix/production-1-0-0`, faite
+   par-dessus la première ([D168](docs/11-decisions.md)) — « Disponible sur Google Play,
+   pour Android 8 et plus », le bouton principal vers la fiche, l'avertissement santé de
+   l'application, les estimations de l'IA dans la phrase des sources. Avant la mise en
+   ligne, le lien de la fiche ne s'ouvre pas pour le public. **Elle n'a pas pu être
+   poussée** : l'application GitHub de Claude n'a pas accès à `hexavore-site`. Le commit
+   est en **annexe C** ; le copier tel quel dans un fichier `hexavore-site-1.0.0.patch`,
+   puis, depuis une copie du site :
+
+   ```
+   git fetch origin
+   git checkout -b fix/production-1-0-0 origin/fix/la-courbe-le-tour-et-le-premier-ecran
+   git am chemin/vers/hexavore-site-1.0.0.patch
+   npm run check && npm run build
+   git push -u origin fix/production-1-0-0
+   ```
+
+   Vérifié avant livraison : `npm run check` (57 tests) et `npm run build` (six pages,
+   aucun JavaScript), la politique lue depuis cette branche-ci de l'application.
+
+La politique de confidentialité, elle, ne passe par aucune de ces branches : elle se
+republie seule quand `confidentialite/` change sur `main` (§ 3, étape 2).
+
+## 6. Ce qui reste après la 1.0.0
+
+Rien de ceci ne bloque la production.
+
+- **Le paysage** reste « non optimisé » (`docs/01`) : titre et calendrier fixes, barre du
+  bas fixe, il reste peu de hauteur au journal. Ne rien faire sans décision.
+- **Tests d'image** et **`CONTRIBUTING.md`**, prévus pour la 1.0 dans `docs/10` et
+  partis sans elle.
+- **La sauvegarde Google Drive**, repoussée (`docs/09`).
+- **Le contenu généré par une IA** : Hexavore se tient hors du champ de la règle
+  ([D168](docs/11-decisions.md)). Si l'examen en juge autrement, le bouton de signalement
+  existe déjà et porte le motif ; ce qui manquerait serait un signalement qui ne passe
+  pas par une messagerie.
+
+## 7. Le harnais de défaite
 
 Pour chaque correction : un script applique un remplacement de texte dans la source,
 lance les tests du module **et seulement ceux de la classe visée**, compte les cas
@@ -167,6 +236,13 @@ gradlew.bat -p <dépôt> :domain:test --tests app.hexavore.domain.food.FoodRanki
 ```
 
 Un sabotage qui survit veut dire un test à affûter, pas une campagne réussie.
+
+**Un test qui lit le dépôt** — des ressources, la fiche, des assets, une table — n'est
+relancé par Gradle que si ce qu'il lit est déclaré en entrée de sa tâche ; sinon, un
+sabotage qui ne touche que ce fichier « survit » sans que le test ait tourné
+([D168](docs/11-decisions.md)). Les cinq tests de ce genre déclarent leurs entrées ; un
+sixième doit faire de même. Un sabotage de `strings.xml` se fait et se défait **à la
+main**, comme toute modification de ces fichiers.
 
 ---
 
@@ -321,3 +397,154 @@ for label in labels:
     best = ranked[0]; s = score(best[1], best[3], q)
     print(f"{label:>16} -> {verdict(s / (s + 0.6)):6} {s / (s + 0.6):.2f}  {best[1][:60]}  ({best[2]} kcal)")
 ```
+
+## Annexe C — Le correctif du site
+
+Le commit `fix/production-1-0-0` du dépôt `hexavore-site`, au format de `git am` (§ 5).
+Il s'applique par-dessus `fix/la-courbe-le-tour-et-le-premier-ecran`.
+
+````
+From dca8393c4baec702ee5481b50eb969084d9c8bda Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Fri, 16 Oct 2026 19:15:42 +0000
+Subject: [PATCH] feat(accueil): la 1.0.0 sur Google Play, et l'avertissement
+ que Play exige -- D168
+
+- Hero: "Disponible sur Google Play, pour Android 8 et plus", primary
+  button to the store listing (site.store); the code stays linked in the
+  header and footer.
+- Health disclaimer in the words of the Play Health Content and Services
+  policy, the same text as the app and the store listing.
+- Open sources: "apart from AI estimates, which are marked as such".
+
+To merge once the 1.0.0 is live in production: before that, the store
+link does not open for the public.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PyJF7hzbuvHyJranqQ86k4
+---
+ src/i18n/en.tsx         | 10 +++++-----
+ src/i18n/fr.tsx         | 11 ++++++-----
+ src/pages/home/Hero.tsx |  6 ++++--
+ src/site.ts             |  3 +++
+ 4 files changed, 18 insertions(+), 12 deletions(-)
+
+diff --git a/src/i18n/en.tsx b/src/i18n/en.tsx
+index c68e851..14d5869 100644
+--- a/src/i18n/en.tsx
++++ b/src/i18n/en.tsx
+@@ -33,8 +33,8 @@ export const en: Dictionary = {
+       eyebrow: 'Food tracking for Android',
+       title: 'Hexavore',
+       lead: 'Log what you eat in seconds. Six counters, and nothing else: no account, no ads, no telemetry.',
+-      status: 'In development, not released yet.',
+-      primaryAction: 'Follow the project on GitHub',
++      status: 'Available on Google Play, for Android 8 and later.',
++      primaryAction: 'Get it on Google Play',
+       secondaryAction: 'What leaves your phone',
+     },
+     entry: {
+@@ -112,8 +112,8 @@ export const en: Dictionary = {
+       title: 'Open, and sourced',
+       body: (
+         <>
+-          The <a href={site.repository}>app’s source code</a> is public, under the GPL-3.0 license. Nutrition values
+-          come from two open sources, credited in the app:
++          The <a href={site.repository}>app’s source code</a> is public, under the GPL-3.0 license. Apart from AI
++          estimates, which are marked as such, nutrition values come from two open sources, credited in the app:
+         </>
+       ),
+       sources: [
+@@ -126,7 +126,7 @@ export const en: Dictionary = {
+       ],
+     },
+     disclaimer:
+-      'Hexavore is a personal tracking tool. It is not a medical device and does not replace the advice of a health professional.',
++      'Hexavore is a personal tracking tool. It is not a medical device and does not diagnose, treat, cure, or prevent any medical condition. Consult a healthcare professional for medical advice, diagnosis, or treatment.',
+   },
+ 
+   privacy: {
+diff --git a/src/i18n/fr.tsx b/src/i18n/fr.tsx
+index d776996..c1e4704 100644
+--- a/src/i18n/fr.tsx
++++ b/src/i18n/fr.tsx
+@@ -33,8 +33,8 @@ export const fr: Dictionary = {
+       eyebrow: 'Suivi alimentaire pour Android',
+       title: 'Hexavore',
+       lead: 'Notez ce que vous mangez en quelques secondes. Six compteurs, et rien d’autre : pas de compte, pas de publicité, pas de télémétrie.',
+-      status: 'En développement, pas encore publiée.',
+-      primaryAction: 'Suivre le projet sur GitHub',
++      status: 'Disponible sur Google Play, pour Android 8 et plus.',
++      primaryAction: 'Télécharger sur Google Play',
+       secondaryAction: 'Ce qui quitte votre téléphone',
+     },
+     entry: {
+@@ -113,8 +113,9 @@ export const fr: Dictionary = {
+       title: 'Libre, et sourcée',
+       body: (
+         <>
+-          Le <a href={site.repository}>code de l’application</a> est public, sous licence GPL-3.0. Les valeurs
+-          nutritionnelles viennent de deux sources ouvertes, créditées dans l’application :
++          Le <a href={site.repository}>code de l’application</a> est public, sous licence GPL-3.0. Hors
++          estimations de l’IA, signalées comme telles, les valeurs nutritionnelles viennent de deux sources
++          ouvertes, créditées dans l’application :
+         </>
+       ),
+       sources: [
+@@ -128,7 +129,7 @@ export const fr: Dictionary = {
+       ],
+     },
+     disclaimer:
+-      'Hexavore est un outil de suivi personnel. Ce n’est pas un dispositif médical et il ne remplace pas l’avis d’un professionnel de santé.',
++      'Hexavore est un outil de suivi personnel. Ce n’est pas un dispositif médical : il ne diagnostique, ne traite, ne guérit ni ne prévient aucune maladie. Pour un avis, un diagnostic ou un traitement, consultez un professionnel de santé.',
+   },
+ 
+   privacy: {
+diff --git a/src/pages/home/Hero.tsx b/src/pages/home/Hero.tsx
+index 6b9bc58..09487ed 100644
+--- a/src/pages/home/Hero.tsx
++++ b/src/pages/home/Hero.tsx
+@@ -10,7 +10,9 @@ import './Hero.css'
+  * Le titre de la page, ce que fait l'application, et où en est le projet.
+  *
+  * **Le statut est dit en premier regard**, pas en bas de page : une vitrine qui laisse
+- * chercher un bouton de téléchargement qui n'existe pas encore trompe par omission.
++ * chercher un bouton de téléchargement qui n'existe pas encore trompe par omission. Depuis
++ * la 1.0.0, ce bouton existe, et c'est le premier ; le code reste lié dans l'en-tête et le
++ * pied de page.
+  */
+ export function Hero() {
+   const { locale, t } = useLocale()
+@@ -26,7 +28,7 @@ export function Hero() {
+           {hero.status}
+         </p>
+         <div className="hero__actions">
+-          <ButtonLink href={site.repository} variant="primary">
++          <ButtonLink href={site.store} variant="primary">
+             {hero.primaryAction}
+           </ButtonLink>
+           <ButtonLink href={href('privacy', locale)} variant="secondary">
+diff --git a/src/site.ts b/src/site.ts
+index 92afd37..a67a278 100644
+--- a/src/site.ts
++++ b/src/site.ts
+@@ -10,6 +10,8 @@ export interface SiteFacts {
+   readonly origin: string
+   readonly repository: string
+   readonly siteRepository: string
++  /** La fiche de l'application sur Google Play, par son identifiant applicatif. */
++  readonly store: string
+   readonly contact: string
+   /**
+    * L'éditeur.
+@@ -34,6 +36,7 @@ export const site: SiteFacts = {
+   origin: 'https://hexavore.app',
+   repository: 'https://github.com/hexavore-app/hexavore',
+   siteRepository: 'https://github.com/hexavore-app/hexavore-site',
++  store: 'https://play.google.com/store/apps/details?id=app.hexavore',
+   contact: 'contact@hexavore.app',
+   publisher: 'Charly Flu',
+   host: {
+-- 
+2.43.0
+````
