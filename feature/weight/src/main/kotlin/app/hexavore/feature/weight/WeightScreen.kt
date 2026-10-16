@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -101,7 +102,9 @@ internal fun WeightScreen(
     onTrendShown: (Boolean) -> Unit = {},
     removal: WeighingRemoval = WeighingRemoval(),
 ) {
-    var recording by remember { mutableStateOf(false) }
+    // Garde avec l'ecran (D166) : la boite de pesee rouverte apres une recreation, avec
+    // ce qu'on y avait tape.
+    var recording by rememberSaveable { mutableStateOf(false) }
     val undoBar = rememberUndoBar(removal)
 
     Scaffold(

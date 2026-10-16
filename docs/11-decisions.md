@@ -5802,6 +5802,33 @@ Rien d'autre ne garde de copie à défaire : la courbe, la pente et le poids du 
 
 ---
 
+## D166 — Une saisie survit à la mort du processus · ✓ validée
+
+**Contexte.** [docs/02](02-parcours-et-ecrans.md) promettait qu'une saisie survit à la destruction du processus ; [D40](#d40--ce-que-la-tranche-2-ne-construit-pas---validée) l'avait reporté, [D163](#d163--un-mois-de-vrai-journal--ce-que-lusage-montrait-et-que-les-tests-ne-voyaient-pas---validée) l'avait constaté à l'émulateur sur l'aliment personnel : seul le nom, venu de la route, revenait. Le cas le plus cher était ailleurs. Une **proposition d'IA** ne s'ouvre qu'une fois — le dépôt des propositions se vide à la première lecture —, et Android tue volontiers Hexavore pendant qu'on va prendre une photo ou chercher son poids dans une autre application : l'écran recréé disait « plus disponible », et le repas payé était perdu.
+
+**Choix.** Chaque écran de saisie garde son formulaire dans le `SavedStateHandle` de **son** `ViewModel` — pas dans celui de l'entrée de pile, qui est un autre objet ([D52](#d52--deux-savedstatehandle-une-seule-saisie-manuelle-des-grammes-entiers---validée)) —, à chaque changement, et le relit à sa recréation **avant** d'ouvrir ce que sa route désigne :
+
+- **le brouillon de plat**, champs de texte compris — « 150, » revient « 150, » —, le formulaire tel qu'il s'était ouvert (sans lui, « quitter perd-il quelque chose ? » n'aurait plus de point de comparaison), et le chemin de sa photo ;
+- **la phrase de l'analyse** ; la photo, non ;
+- **l'aliment personnel**, dont le code-barres vient toujours de la route ;
+- **l'onboarding**, réponses et étape, le plan se recalculant depuis les réponses ;
+- **le profil en cours de modification** ; en consultation, la base dit déjà tout ;
+- **la boîte de pesée**, ouverte ou non, avec son jour et son poids, par `rememberSaveable` : son état vit dans le composable.
+
+**Quelques kilo-octets, jamais une image.** Android plafonne ce qu'une application garde pour ses écrans, et le dépasser fait tout perdre. La photo d'un brouillon attend dans le dépôt, que le balayage du lancement épargne : seul son chemin est gardé, et elle ne revient que si le dépôt ou le plat la portent encore (`KeptDraftPhoto`). Un brouillon rendu ne repasse pas par l'ouverture, qui viderait ce dépôt. Une photo **en cours de prise** survivait déjà par son adresse (D163).
+
+**Une mémoire illisible ne vaut rien.** Un état abîmé, ou écrit par une autre version, fait repartir l'écran de sa route plutôt que de le faire tomber à la réouverture ; un champ inconnu, lui, ne la rend pas illisible. **Une saisie enregistrée est oubliée** : la garder ferait reparaître un repas déjà noté si Android recréait l'écran avant qu'il se ferme.
+
+**Un module de plus, `:core:ui`.** La règle est la même pour quatre écrans, et quatre copies d'une même règle divergent. Elle n'est pas du dessin, donc pas dans le design system ; `:core:common` porte des adaptateurs, qu'un `:feature` ne voit pas ; le domaine ne connaît pas Android. `FormMemory` y tient en trois verbes — relire, garder, oublier —, et le format (JSON) n'est connu que de lui. Les états gardés sont des types à part, `@Serializable`, à côté de chaque `ViewModel` : `Food` et `Suggestion` ne sont pas sérialisables, et les rendre tels ferait dépendre le domaine d'un format qui ne regarde que les écrans.
+
+**Conséquences.** `:core:ui` et son `FormMemory`, ajouté à tout `:feature` par le plugin de convention ; `KeptDraftPhoto` dans `:domain` ; `DraftPhotoUseCaseModule`, séparé de `PhotoUseCaseModule` quand le seuil de fonctions a mordu — l'image d'un brouillon d'un côté, le dossier et son réglage de l'autre. `EntryMemory` et `FoodMemory`, `CustomFoodMemory`, `OnboardingMemory`, `ProfileMemory`. Dans `EntryViewModel`, la relecture et la garde sont des blocs et non des fonctions : la classe était au seuil. Les cas : six pour `FormMemory`, sept pour le brouillon, un pour l'analyse, trois pour l'aliment personnel (dans un fichier de test neuf), deux pour l'onboarding, trois pour le profil.
+
+**Campagne de défaite : dix-neuf sabotages, dix-neuf tombés.** Le brouillon jamais relu, puis jamais gardé, puis gardé après l'enregistrement ; sa photo rendue sans vérifier qu'elle est là, deux fois — à l'écran puis dans le cas d'usage ; son formulaire d'ouverture perdu ; une mémoire illisible qui fait tomber l'écran, un champ inconnu qui la rend illisible, un oubli qui emporte la route ; la phrase de l'analyse non gardée ; l'aliment personnel non relu, puis gardé après l'enregistrement ; l'onboarding non relu, reparti de sa première étape, gardé une fois terminé ; le profil non relu, rendu en consultation, gardé en consultation, gardé après l'enregistrement.
+
+**Ce que le vert ne prouve pas.** Le `SavedStateHandle` partagé entre deux `ViewModel` tient le rôle de ce qu'Android range et rend ; la vraie recréation — `adb -s emulator-5554 shell am kill app.hexavore`, l'application en arrière-plan, puis le retour par les applications récentes — reste à faire écran par écran (`REPRISE.md`, § 4). La boîte de pesée n'est éprouvée par aucun test : son état vit dans le composable, et aucun test ne compose d'écran.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

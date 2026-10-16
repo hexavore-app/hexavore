@@ -7,8 +7,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import app.hexavore.core.designsystem.component.BodyWeightField
@@ -52,10 +53,13 @@ internal fun RecordWeightDialog(
     onConfirm: (LocalDate, Double) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var date by remember { mutableStateOf(today) }
+    // Gardes avec l'ecran (D166) : Android peut tuer l'application pendant qu'on va
+    // chercher son poids ailleurs. Le jour en nombre de jours, le poids en kilogrammes.
+    var epochDay by rememberSaveable { mutableLongStateOf(today.toEpochDay()) }
+    val date = LocalDate.ofEpochDay(epochDay)
     // Ce qui est tape est dans le systeme choisi ; ce qui est enregistre reste en
     // kilogrammes, comme la colonne qui l accueille. Le champ fait la conversion.
-    var weightKg by remember { mutableStateOf(initialKg) }
+    var weightKg by rememberSaveable { mutableStateOf(initialKg) }
     val accepted = weightKg?.takeIf { it in BodyBounds.weightsFor(heightCm) }
 
     AlertDialog(
@@ -64,7 +68,10 @@ internal fun RecordWeightDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
                 BodyWeightField(
-                    kilograms = initialKg,
+                    // Le poids garde et non celui d'ouverture : apres une recreation, le
+                    // champ repart de ce qui etait tape. Il ne le lit qu'a la premiere
+                    // composition, et la frappe ne le reinitialise donc pas.
+                    kilograms = weightKg,
                     units = units,
                     label = stringResource(R.string.weight_field),
                     onKilograms = { weightKg = it },
@@ -72,7 +79,7 @@ internal fun RecordWeightDialog(
                 )
                 NeonDateField(
                     value = date,
-                    onValueChange = { date = it },
+                    onValueChange = { epochDay = it.toEpochDay() },
                     label = stringResource(R.string.weight_date_field),
                     yearRange = (today.year - JOURNAL_YEARS)..today.year,
                     latest = today,

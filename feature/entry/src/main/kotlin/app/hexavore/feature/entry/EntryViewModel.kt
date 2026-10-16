@@ -3,6 +3,7 @@ package app.hexavore.feature.entry
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.hexavore.core.ui.FormMemory
 import app.hexavore.domain.diary.DaySummary
 import app.hexavore.domain.diary.DishId
 import app.hexavore.domain.diary.DraftLineId
@@ -66,6 +67,17 @@ internal class EntryViewModel @Inject constructor(
 
     private val form = MutableStateFlow<EntryForm?>(null)
     private val status = MutableStateFlow(Status.LOADING)
+
+    /**
+     * Le brouillon tel qu'Android l'avait quand il a tué l'application ([D166][decisions]).
+     *
+     * Relu **avant** toute ouverture depuis la route : une proposition d'IA ne s'ouvre
+     * qu'une fois — le dépôt se vide à la première lecture —, et la rouvrir après la mort
+     * du processus rendait un écran « plus disponible » à la place du repas payé.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    private val memory = FormMemory(savedStateHandle, MEMORY_KEY, EntryMemory.serializer())
 
     /**
      * Le formulaire tel qu'il s'est ouvert.
@@ -215,7 +227,36 @@ internal class EntryViewModel @Inject constructor(
      *
      * [decisions]: docs/11-decisions.md
      */
-    private val opening: Job = viewModelScope.launch { open() }
+    private val opening: Job = viewModelScope.launch {
+        // Le brouillon garde d'abord ; la route seulement s'il n'y en a pas, ou qu'il ne
+        // se relit plus. La photo ne repasse pas par l'ouverture, qui viderait le depot ou
+        // elle attend : elle ne revient que si le depot ou le plat la portent encore.
+        val kept = memory.recall()?.let { runCatching { it.recalled() }.getOrNull() }
+        if (kept == null) {
+            open()
+        } else {
+            opened = kept.opened
+            form.value = kept.form
+            photoRemoved = kept.photoRemoved
+            photo.value = kept.photo?.let { runCatching { composition.keptPhoto(it, kept.form.dishId) }.getOrNull() }
+            photoChoices.value = kept.photoChoices
+            status.value = Status.EDITING
+        }
+    }
+
+    init {
+        // Apres l'ouverture et a part d'elle : la garde ne finit jamais, et une photo
+        // choisie attend la fin de l'ouverture, pas celle de l'ecran. Le souvenir d'avoir
+        // retire l'image se lit au passage : il ne change jamais sans que l'image change.
+        viewModelScope.launch {
+            opening.join()
+            combine(form, photo, photoChoices) { current, image, choices ->
+                current?.takeIf { status.value != Status.SAVED }?.let {
+                    EntryMemory(it.toMemory(), opened?.toMemory(), image?.path, photoRemoved, choices)
+                }
+            }.collect { kept -> kept?.let(memory::keep) }
+        }
+    }
 
     /**
      * La fiche que la recherche vient de rendre : elle s'ajoute au plat en cours.
@@ -345,6 +386,9 @@ internal class EntryViewModel @Inject constructor(
             // faire echouer un repas deja note. Un favori reecrit ne rend aucun plat,
             // donc ne range aucune image : ce n'est pas un repas.
             written.getOrNull()?.let { dish -> runCatching { composition.attachPhoto(dish, !photoRemoved) } }
+            // Ecrit, le brouillon n'a plus rien a rendre : le garder ferait reparaitre un
+            // repas deja note si Android recreait l'ecran avant qu'il se ferme.
+            if (written.isSuccess) memory.forget()
             status.value = if (written.isSuccess) Status.SAVED else Status.FAILED
         }
     }
@@ -386,6 +430,9 @@ internal class EntryViewModel @Inject constructor(
 
     private companion object {
         const val SUBSCRIPTION_TIMEOUT_MILLIS = 5_000L
+
+        /** Distincte des arguments de route, qui vivent dans le même `SavedStateHandle`. */
+        const val MEMORY_KEY = "hexavore.entry.memory"
     }
 }
 

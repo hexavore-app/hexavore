@@ -42,6 +42,7 @@ import app.hexavore.domain.usecase.DeleteDish
 import app.hexavore.domain.usecase.GetDaySummary
 import app.hexavore.domain.usecase.GetDishDraft
 import app.hexavore.domain.usecase.GetFavoriteDraft
+import app.hexavore.domain.usecase.KeptDraftPhoto
 import app.hexavore.domain.usecase.LogDish
 import app.hexavore.domain.usecase.ObserveUnitSystem
 import app.hexavore.domain.usecase.OpenDraft
@@ -647,6 +648,109 @@ class EntryViewModelTest {
         assertTrue(editeur.content().unsaved, "corrige, il perdrait la correction")
     }
 
+    // --- La mort du processus (D166) ---------------------------------------------
+
+    @Test
+    fun `une saisie en cours survit a la mort du processus`() = runTest(dispatcher) {
+        // Android tue l'application en arriere-plan, puis recree l'ecran avec ce qu'il
+        // avait range. Le texte revient tel qu'il etait tape, virgule pendante comprise.
+        val handle = route()
+        val avant = viewModel(handle = handle)
+        val id = avant.content().form.lines.single().id
+        remplir(avant, id, nom = "Riz", kcal = "19")
+        avant.onLineEdit(id, LineEdit.Quantity("150,"))
+
+        val apres = viewModel(handle = handle).content()
+
+        assertEquals(avant.content().form, apres.form)
+        assertEquals("150,", apres.form.lines.single().quantity)
+    }
+
+    @Test
+    fun `une proposition d IA survit a la mort du processus, alors qu elle ne se rejoue pas`() = runTest(dispatcher) {
+        // Le depot des propositions se vide a la premiere lecture : sans memoire, l'ecran
+        // recree disait « plus disponible », et le repas paye etait perdu.
+        runBlocking { catalogue.save(RIZ) }
+        pending.offer(Recognition(listOf(item("riz", 1.0), item("tofu fume", 80.0))), EntrySource.TEXT_AI)
+        val handle = route(proposal = true)
+        val avant = viewModel(handle = handle).content()
+
+        val apres = viewModel(handle = handle).settled()
+
+        assertTrue(apres is EntryUiState.Content, "la proposition revient, au lieu d'un ecran vide")
+        assertEquals(avant.form, (apres as EntryUiState.Content).form)
+        assertNotNull(apres.form.lines.first().suggestion, "et elle se dit toujours proposee")
+    }
+
+    @Test
+    fun `la photo choisie revient avec le brouillon`() = runTest(dispatcher) {
+        // Rouvrir depuis la route viderait le depot, ou elle attend justement.
+        val handle = route()
+        val avant = viewModel(handle = handle)
+        avant.onPhotoChosen(image)
+        advanceUntilIdle()
+
+        val apres = viewModel(handle = handle).content()
+
+        assertNotNull(apres.photo)
+        assertEquals(avant.content().photo, apres.photo)
+    }
+
+    @Test
+    fun `une photo qui n est plus la ne revient pas`() = runTest(dispatcher) {
+        val handle = route()
+        val avant = viewModel(handle = handle)
+        avant.onPhotoChosen(image)
+        advanceUntilIdle()
+        runBlocking { photos.discardStaged() }
+
+        assertNull(viewModel(handle = handle).content().photo, "un chemin n'est qu'une promesse")
+    }
+
+    @Test
+    fun `un plat relu garde ce qu il etait a l ouverture`() = runTest(dispatcher) {
+        // Sans le formulaire d'ouverture, la question « quitter perd-il quelque chose ? »
+        // n'aurait plus de point de comparaison apres la recreation.
+        val neuf = viewModel()
+        remplir(neuf, neuf.content().form.lines.single().id)
+        neuf.onSave()
+        val handle = route(dishId = diary.dishes.single().id.value)
+        val intact = viewModel(handle = handle)
+        intact.content()
+
+        assertFalse(viewModel(handle = handle).content().unsaved, "intact, il le reste")
+
+        remplir(intact, intact.content().form.lines.single().id, kcal = "220")
+
+        assertTrue(viewModel(handle = handle).content().unsaved, "corrige, il perdrait la correction")
+    }
+
+    @Test
+    fun `une memoire illisible fait repartir de la route`() = runTest(dispatcher) {
+        val handle = route().apply { set("hexavore.entry.memory", "{ pas du json") }
+
+        val state = viewModel(handle = handle).content()
+
+        assertEquals(1, state.form.lines.size)
+        assertTrue(state.form.lines.single().name.isEmpty(), "une saisie neuve, comme sans memoire")
+    }
+
+    @Test
+    fun `un repas enregistre ne revient pas`() = runTest(dispatcher) {
+        // Ecrit, il n'a plus rien a rendre : le garder ferait reparaitre un repas deja
+        // note si l'ecran etait recree avant de se fermer.
+        val handle = route()
+        val avant = viewModel(handle = handle)
+        remplir(avant, avant.content().form.lines.single().id)
+        avant.onSave()
+
+        assertFalse(handle.contains("hexavore.entry.memory"))
+    }
+
+    /** Le premier état qui n'est plus un chargement : le contenu, ou l'aveu qu'il n'y en a pas. */
+    private suspend fun EntryViewModel.settled(): EntryUiState =
+        uiState.first { it is EntryUiState.Content || it is EntryUiState.Unavailable }
+
     // --- Decor ---------------------------------------------------------------
 
     private fun platDeja(kcal: Double): Dish {
@@ -714,16 +818,13 @@ class EntryViewModelTest {
         proposal: Boolean = false,
         editingFavorite: Boolean = false,
         depot: DishPhotos = photos,
+        /**
+         * Le `SavedStateHandle` de l'écran. Le passer à un second `ViewModel`, c'est ce
+         * qu'Android fait en recréant l'écran après avoir tué le processus (D166).
+         */
+        handle: SavedStateHandle = route(dishId, favoriteId, scannedFoodId, proposal, editingFavorite),
     ) = EntryViewModel(
-        savedStateHandle = SavedStateHandle(
-            listOfNotNull(
-                dishId?.let { "dishId" to it },
-                favoriteId?.let { "favoriteId" to it },
-                scannedFoodId?.let { "scannedFoodId" to it },
-                "proposal" to proposal,
-                "editingFavorite" to editingFavorite,
-            ).toMap(),
-        ),
+        savedStateHandle = handle,
         composition = DraftComposition(
             openDraft = OpenDraft(
                 dishes = GetDishDraft(diary, ids, clock),
@@ -746,6 +847,7 @@ class EntryViewModelTest {
             openDraftPhoto = OpenDraftPhoto(depot),
             attachDishPhoto = AttachDishPhoto(depot),
             chooseDishPhoto = ChooseDishPhoto(depot),
+            keptDraftPhoto = KeptDraftPhoto(depot),
         ),
         getDaySummary = GetDaySummary(diary, goals, clock),
         saveDraft = SaveDraft(LogDish(diary, catalogue, favoris, clock, ids), UpdateDish(diary, ids)),
@@ -761,6 +863,22 @@ class EntryViewModelTest {
             reporting = DraftReporting(ReportAnalysis(rapports), echanges, photos),
         ),
         clock = clock,
+    )
+
+    private fun route(
+        dishId: String? = null,
+        favoriteId: String? = null,
+        scannedFoodId: String? = null,
+        proposal: Boolean = false,
+        editingFavorite: Boolean = false,
+    ) = SavedStateHandle(
+        listOfNotNull(
+            dishId?.let { "dishId" to it },
+            favoriteId?.let { "favoriteId" to it },
+            scannedFoodId?.let { "scannedFoodId" to it },
+            "proposal" to proposal,
+            "editingFavorite" to editingFavorite,
+        ).toMap(),
     )
 
     /** Ce qu'un signalement aurait envoye : le vrai ouvrirait un courriel (D138). */

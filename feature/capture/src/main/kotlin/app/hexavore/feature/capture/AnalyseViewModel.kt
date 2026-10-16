@@ -2,8 +2,10 @@ package app.hexavore.feature.capture
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.hexavore.core.ui.FormMemory
 import app.hexavore.domain.ai.AiError
 import app.hexavore.domain.ai.AiSettings
 import app.hexavore.domain.ai.PhotoConsent
@@ -17,6 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.builtins.serializer
 import javax.inject.Inject
 
 /**
@@ -134,8 +137,20 @@ internal class AnalyseViewModel @Inject constructor(
     private val analyseMeal: AnalyseMeal,
     private val consent: PhotoConsent,
     private val settings: AiSettings,
+    savedStateHandle: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
-    private val state = MutableStateFlow(AnalyseUiState())
+    /**
+     * La phrase en cours, gardée à travers la mort du processus ([D166][decisions]).
+     *
+     * **Pas la photo** : quelques centaines de kilo-octets dépasseraient ce qu'Android garde
+     * pour un écran, et le perdre ferait tout perdre. Une photo **en cours de prise**
+     * survit déjà, par son adresse ([D163][decisions]) ; une photo déjà reçue se reprend.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    private val memory = FormMemory(savedStateHandle, MEMORY_KEY, String.serializer())
+
+    private val state = MutableStateFlow(AnalyseUiState(text = memory.recall().orEmpty()))
     val uiState: StateFlow<AnalyseUiState> = state.asStateFlow()
 
     /** L'analyse en vol, gardée pour pouvoir la couper. */
@@ -160,6 +175,7 @@ internal class AnalyseViewModel @Inject constructor(
 
     fun onText(text: String) {
         state.update { it.copy(text = text) }
+        memory.keep(text)
     }
 
     /**
@@ -267,4 +283,8 @@ internal class AnalyseViewModel @Inject constructor(
     /** Le fournisseur actif, pour que l'avertissement le nomme. */
     private suspend fun providerName(): String =
         runCatching { settings.current() }.getOrNull()?.provider?.displayName.orEmpty()
+
+    private companion object {
+        const val MEMORY_KEY = "hexavore.analyse.text"
+    }
 }

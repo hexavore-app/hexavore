@@ -36,6 +36,8 @@ La flèche du bas remonte : `:data` dépend de `:domain`, jamais l'inverse. Un `
 :core:common                Result, implémentations de Clock, DispatcherProvider,
                             IdGenerator et SystemLanguages, extensions de formatage
 :core:designsystem          Thème néon, tokens, composants Compose réutilisables
+:core:ui                    Ce qu un écran partage sans être du dessin : la mémoire
+                            d une saisie à travers la mort du processus (D166)
 :core:database              Room : entités, DAO, migrations, base CIQUAL embarquée
 :core:datastore             Préférences (DataStore) et stockage chiffré des clés
 :core:testing               Fakes, règles JUnit, jeux de données de test

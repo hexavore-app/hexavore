@@ -10,6 +10,7 @@ import app.hexavore.domain.usecase.AddFoodLine
 import app.hexavore.domain.usecase.AttachDishPhoto
 import app.hexavore.domain.usecase.ChooseDishPhoto
 import app.hexavore.domain.usecase.DraftOrigin
+import app.hexavore.domain.usecase.KeptDraftPhoto
 import app.hexavore.domain.usecase.ObserveUnitSystem
 import app.hexavore.domain.usecase.OpenDraft
 import app.hexavore.domain.usecase.OpenDraftPhoto
@@ -36,6 +37,7 @@ class DraftComposition @Inject constructor(
     private val openDraftPhoto: OpenDraftPhoto,
     private val attachDishPhoto: AttachDishPhoto,
     private val chooseDishPhoto: ChooseDishPhoto,
+    private val keptDraftPhoto: KeptDraftPhoto,
 ) {
     suspend fun open(origin: DraftOrigin): EntryDraft? = openDraft(origin)
 
@@ -51,4 +53,7 @@ class DraftComposition @Inject constructor(
 
     /** L'image que l'utilisateur vient de prendre ou de choisir, déposée pour ce plat. */
     suspend fun choosePhoto(jpeg: ByteArray): PhotoFile? = chooseDishPhoto(jpeg)
+
+    /** L'image d'un brouillon rendu après la mort du processus, si elle est encore là. */
+    suspend fun keptPhoto(kept: PhotoFile, dish: DishId?): PhotoFile? = keptDraftPhoto(kept, dish)
 }

@@ -136,6 +136,13 @@ include(":feature:capture")
 // chez l'un aurait fait dependre un :feature d'un autre, ce que D149 refuse.
 include(":core:media")
 
+// :core:ui naît quand quatre ecrans doivent garder leur saisie a travers la mort du
+// processus (D166). La regle -- une memoire illisible ne vaut rien, on repart de la
+// route -- n'appartient a aucun d'eux, et quatre copies d'une meme regle divergent.
+// Elle n'est pas du dessin, donc pas dans :core:designsystem ; et :core:common porte
+// des adaptateurs, qu'un :feature ne voit pas.
+include(":core:ui")
+
 // Tranche 7. Le journal de poids, sa courbe, et l'adaptation hebdomadaire.
 //
 // Un module a lui plutot qu'une section de :feature:settings : le journal se consulte

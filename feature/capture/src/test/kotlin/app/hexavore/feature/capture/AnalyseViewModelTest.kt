@@ -1,5 +1,6 @@
 package app.hexavore.feature.capture
 
+import androidx.lifecycle.SavedStateHandle
 import app.hexavore.core.testing.InMemoryDishPhotos
 import app.hexavore.core.testing.InMemoryPhotoSettings
 import app.hexavore.domain.ai.AiConfiguration
@@ -356,11 +357,22 @@ internal class AnalyseViewModelTest {
 
     // --- Décor ------------------------------------------------------------------
 
-    private fun viewModel() = AnalyseViewModel(
+    private fun viewModel(handle: SavedStateHandle = SavedStateHandle()) = AnalyseViewModel(
         analyseMeal = AnalyseMeal(recognizer, pending, stagePhoto),
         consent = consent,
         settings = SETTINGS,
+        savedStateHandle = handle,
     )
+
+    @Test
+    fun `la phrase en cours survit a la mort du processus`() {
+        // Android recree l'ecran avec ce qu'il avait range : la phrase revient, et la photo
+        // n'y est pas -- elle ne tiendrait pas dans ce qu'un ecran garde (D166).
+        val handle = SavedStateHandle()
+        viewModel(handle).onText("deux oeufs et une tartine")
+
+        assertEquals("deux oeufs et une tartine", viewModel(handle).uiState.value.text)
+    }
 
     /**
      * Un consentement qui se souvient, comme le vrai — sans fichier.

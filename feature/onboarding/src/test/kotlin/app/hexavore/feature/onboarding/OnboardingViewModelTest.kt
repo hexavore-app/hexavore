@@ -1,5 +1,6 @@
 package app.hexavore.feature.onboarding
 
+import androidx.lifecycle.SavedStateHandle
 import app.hexavore.core.testing.FixedClock
 import app.hexavore.core.testing.InMemoryGoals
 import app.hexavore.core.testing.InMemoryProfiles
@@ -350,7 +351,38 @@ class OnboardingViewModelTest {
         assertEquals(REPONSES.currentWeightKg, viewModel.uiState.value.answers.currentWeightKg)
     }
 
-    private fun viewModel() = OnboardingViewModel(
+    // --- La mort du processus (D166) ---------------------------------------------
+
+    @Test
+    fun `les reponses et l etape survivent a la mort du processus`() = runTest(dispatcher) {
+        // Aller chercher sa taille dans une autre application est le moment ou Android
+        // tue la notre ; l'onboarding repartait de son accueil.
+        val handle = SavedStateHandle()
+        val avant = viewModel(handle)
+        avant.onAnswers(REPONSES)
+        avant.onNext()
+        avant.onNext()
+
+        val apres = viewModel(handle).uiState.value
+
+        assertEquals(avant.uiState.value.step, apres.step)
+        assertEquals(REPONSES, apres.answers)
+        assertEquals(avant.uiState.value.plan, apres.plan, "le plan se recalcule depuis les reponses")
+    }
+
+    @Test
+    fun `un onboarding termine ne revient pas`() = runTest(dispatcher) {
+        val handle = SavedStateHandle()
+        val viewModel = viewModel(handle)
+        viewModel.onAnswers(REPONSES)
+
+        viewModel.onFinish { }
+        advanceUntilIdle()
+
+        assertFalse(handle.contains("hexavore.onboarding.memory"))
+    }
+
+    private fun viewModel(handle: SavedStateHandle = SavedStateHandle()) = OnboardingViewModel(
         profiles = profiles,
         weights = weights,
         goals = goals,
@@ -358,6 +390,7 @@ class OnboardingViewModelTest {
         clock = clock,
         ids = SequentialIdGenerator("goal"),
         reminders = rappels,
+        savedStateHandle = handle,
     )
 
     private companion object {
