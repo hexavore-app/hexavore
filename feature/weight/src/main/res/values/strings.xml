@@ -15,16 +15,25 @@
         <item quantity="one">Weight curve, %1$d reading</item>
         <item quantity="other">Weight curve, %1$d readings</item>
     </plurals>
-    <string name="weight_axis_label">%1$s · %2$.1f kg</string>
+    <!-- The date, then the weight as the list writes it, in kilograms or pounds (D162). -->
+    <string name="weight_axis_label">%1$s · %2$s</string>
 
     <!-- A row is a single accessibility node: date, weight, trend, in one sentence
-         rather than three stops. -->
-    <string name="weight_row_a11y">%1$s, %2$.1f kilograms</string>
+         rather than three stops. Pounds have their own sentence (D162): the screen
+         reader announced kilograms to someone reading pounds. -->
     <string name="weight_row_smoothed_a11y">%1$s, %2$.1f kilograms, trend %3$.1f</string>
+    <string name="weight_row_smoothed_a11y_pounds">%1$s, %2$.1f pounds, trend %3$.1f</string>
 
-    <!-- Below three readings in seven days there is nothing to smooth. Saying so saves
-         you looking for the highlighted line. -->
-    <string name="weight_trend_missing">The trend appears once there are three readings in the same week.</string>
+    <!-- A single weigh-in does not make a curve. Saying so saves looking for the chart
+         (D159). -->
+    <string name="weight_curve_missing">The curve appears with the second weigh-in.</string>
+
+    <!-- The chart legend: two unnamed lines read poorly, and the trend checkbox sits
+         next to its name (D159). -->
+    <string name="weight_legend_measures">Weigh-ins</string>
+    <string name="weight_legend_trend">Trend</string>
+    <string name="weight_legend_aim">Target path</string>
+    <string name="weight_legend_trend_hint">The trend smooths out day-to-day swings (water, salt) and catches up quickly after a break.</string>
 
     <!-- An empty list says what to do, not just that it is empty. -->
     <string name="weight_empty_title">No readings yet</string>
@@ -38,10 +47,18 @@
     <!-- Adding a reading: weight and date, that is all (docs/02). -->
     <string name="weight_add">Add a reading</string>
     <string name="weight_add_title">New reading</string>
-    <string name="weight_field">Weight in kilograms</string>
-    <string name="weight_field_pound">Weight in pounds</string>
+    <!-- No unit: the design system field adds it, in the chosen system (D160). -->
+    <string name="weight_field">Weight</string>
     <string name="weight_date_field">Date of the reading</string>
     <string name="weight_add_confirm">Save</string>
     <string name="weight_add_cancel">Cancel</string>
+
+    <!-- A reading is removed like a dish: its menu, then the bar that brings it back
+         (D165). Correcting a value does not go through here: a new reading on the same
+         day replaces the old one. -->
+    <string name="weight_row_menu">open the reading menu</string>
+    <string name="weight_row_delete">Delete</string>
+    <string name="weight_deleted">Reading deleted</string>
+    <string name="weight_undo">Undo</string>
 
 </resources>

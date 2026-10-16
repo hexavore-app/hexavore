@@ -30,6 +30,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.hexavore.core.designsystem.component.CameraRefusedDialog
 import app.hexavore.core.designsystem.component.DraftTextField
 import app.hexavore.core.designsystem.component.NeonButton
 import app.hexavore.core.designsystem.component.NeonButtonAvailability
@@ -51,7 +52,9 @@ internal fun AnalyseRoute(
     viewModel: AnalyseViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val capture = rememberMealCapture(onJpeg = viewModel::onPhoto)
+    var cameraRefused by rememberSaveable { mutableStateOf(false) }
+    val capture = rememberMealCapture(onJpeg = viewModel::onPhoto, onCameraRefused = { cameraRefused = true })
+    if (cameraRefused) CameraRefusedDialog(onDismiss = { cameraRefused = false })
 
     ShootOnArrival(shoot, capture)
 

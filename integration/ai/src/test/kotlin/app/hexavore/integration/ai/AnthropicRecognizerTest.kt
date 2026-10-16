@@ -84,6 +84,36 @@ class AnthropicRecognizerTest {
     }
 
     @Test
+    fun `un modele sans effort ne le recoit pas`() = runTest {
+        // Claude Haiku 4.5 n'a pas ce parametre et refuse le corps d'un 400 : la liste
+        // le proposait, et chaque analyse echouait (D162). Le schema, lui, part toujours.
+        server.enqueue(ok(ONE_ITEM))
+
+        recognize(RecognitionInput.Text("une pomme"), model = "claude-haiku-4-5")
+
+        val body = server.takeRequest().body.readUtf8()
+        assertFalse(body.contains("effort"), body)
+        assertTrue(body.contains(""""type":"json_schema""""), body)
+    }
+
+    @Test
+    fun `un modele actuel recoit l effort`() = runTest {
+        server.enqueue(ok(ONE_ITEM))
+
+        recognize(RecognitionInput.Text("une pomme"), model = "claude-haiku-5-5")
+
+        assertTrue(server.takeRequest().body.readUtf8().contains(""""effort":"low""""))
+    }
+
+    @Test
+    fun `les modeles d avant l effort se reconnaissent a leur prefixe, dates compris`() {
+        listOf("claude-haiku-4-5-20251001", "claude-sonnet-4-5", "claude-opus-4-20250514", "claude-3-7-sonnet-latest")
+            .forEach { assertEquals(null, effortFor(it), it) }
+        listOf("claude-opus-4-6", "claude-sonnet-4-6", "claude-opus-5", "claude-sonnet-5-5", "claude-haiku-5-5")
+            .forEach { assertEquals("low", effortFor(it), it) }
+    }
+
+    @Test
     fun `la cle et la version d API voyagent en en-tete`() = runTest {
         server.enqueue(ok(ONE_ITEM))
 
@@ -247,6 +277,7 @@ class AnthropicRecognizerTest {
     private suspend fun recognize(
         input: RecognitionInput,
         baseUrl: String = server.url("/").toString(),
+        model: String = "claude-opus-5",
     ): RecognitionOutcome {
         val recognizer = AnthropicRecognizer(
             api = anthropicApi(aiClient(NetworkLog.Silent, SilentExchanges)),
@@ -255,7 +286,7 @@ class AnthropicRecognizerTest {
         )
         return recognizer.recognize(
             input,
-            AiConfiguration(AiProvider.ANTHROPIC, ApiKey(KEY), model = "claude-opus-5", baseUrl = baseUrl),
+            AiConfiguration(AiProvider.ANTHROPIC, ApiKey(KEY), model = model, baseUrl = baseUrl),
         )
     }
 

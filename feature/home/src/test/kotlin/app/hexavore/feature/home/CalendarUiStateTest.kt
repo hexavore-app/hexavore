@@ -129,6 +129,31 @@ class CalendarUiStateTest {
     }
 
     @Test
+    fun `une cellule de tablette ne prend pas la hauteur de l ecran`() {
+        // L'anneau etait borne, la cellule et son disque non : couche, un telephone
+        // montrait une semaine de 130 dp de haut, et il ne restait au journal qu'une
+        // bande de quelques pixels (D163).
+        val place = cellFootprint(914.dp)
+
+        assertEquals(MaxCellHeight, cellHeight(place))
+        assertTrue(
+            cellHeight(place) >= ringDiameter(place) + CellPadding * 2,
+            "le disque doit encore entourer l'anneau",
+        )
+    }
+
+    @Test
+    fun `une cellule de telephone reste carree`() {
+        // La borne ne touche pas le telephone tenu debout : sa cellule, plus etroite
+        // que la borne, garde la hauteur de sa largeur.
+        listOf(320.dp, 360.dp, 411.dp).forEach { largeur ->
+            val place = cellFootprint(largeur)
+
+            assertEquals(place, cellHeight(place), "sur $largeur")
+        }
+    }
+
+    @Test
     fun `la pastille ne descend jamais sous sa taille minimale`() {
         // En deca, le chiffre du jour cesse d'etre lisible : mieux vaut une pastille qui
         // touche ses voisines que sept points illisibles.

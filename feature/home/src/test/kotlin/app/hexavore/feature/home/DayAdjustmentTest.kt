@@ -9,6 +9,7 @@ import app.hexavore.core.testing.InMemoryWeightLog
 import app.hexavore.core.testing.SequentialIdGenerator
 import app.hexavore.domain.goal.AdjustmentSuggestion
 import app.hexavore.domain.usecase.AdjustmentResponse
+import app.hexavore.domain.usecase.ObserveUnitSystem
 import app.hexavore.domain.usecase.RespondToAdjustment
 import app.hexavore.domain.usecase.SuggestGoalAdjustment
 import kotlinx.coroutines.test.runTest
@@ -64,6 +65,7 @@ class DayAdjustmentTest {
             ids = SequentialIdGenerator("objectif"),
             clock = clock,
         ),
+        observeUnits = ObserveUnitSystem(InMemoryProfiles()),
     )
 
     private companion object {

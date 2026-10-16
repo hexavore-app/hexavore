@@ -1,6 +1,7 @@
 package app.hexavore.feature.home
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import app.hexavore.domain.progress.Badge
 
@@ -26,13 +27,19 @@ internal fun badgeLabel(badge: Badge): String = when (badge) {
     Badge.FIRST_PHOTO -> stringResource(R.string.home_badge_first_photo)
     Badge.FIRST_TEXT -> stringResource(R.string.home_badge_first_text)
     Badge.FIRST_FAVORITE -> stringResource(R.string.home_badge_first_favorite)
-    else -> stringResource(badge.family.label(), badge.threshold)
+    else -> pluralStringResource(badge.family.label(), badge.threshold, badge.threshold)
 }
 
-/** Le libellé chiffré d'une famille. La découverte n'y passe jamais : elle n'a pas de seuil. */
+/**
+ * Le libellé chiffré d'une famille. La découverte n'y passe jamais : elle n'a pas de seuil.
+ *
+ * Un pluriel ([D162][decisions]) : le premier palier doré tombe à **un** jour.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
 private fun Badge.Family.label(): Int = when (this) {
-    Badge.Family.STREAK -> R.string.home_badge_streak
-    Badge.Family.VOLUME -> R.string.home_badge_volume
-    Badge.Family.PERFECT -> R.string.home_badge_perfect
-    Badge.Family.DISCOVERY -> R.string.home_badge_streak
+    Badge.Family.STREAK -> R.plurals.home_badge_streak
+    Badge.Family.VOLUME -> R.plurals.home_badge_volume
+    Badge.Family.PERFECT -> R.plurals.home_badge_perfect
+    Badge.Family.DISCOVERY -> R.plurals.home_badge_streak
 }

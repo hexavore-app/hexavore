@@ -18,6 +18,16 @@ data class CiqualFoodRow(
      */
     val shortName: String?,
     val groupName: String?,
+    /**
+     * Les noms courants de la fiche, **normalisés** — vide pour presque toutes.
+     *
+     * Les noms sous lesquels on demande la forme qu'on mange : « riz » pour le riz cuit,
+     * « café » pour le café prêt à boire ([D164][decisions]). Ils ne s'affichent pas ;
+     * le classement les pèse comme le libellé.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val commonNames: Set<String> = emptySet(),
     /** Le rayon du bandeau, sous le nom de l'énumération du domaine. `null` s'il n'en a pas. */
     val category: String?,
     val kcal100: Double?,
@@ -78,7 +88,19 @@ data class CiqualServingRow(val label: String, val grams: Double, val isDefault:
  *
  * [decisions]: docs/11-decisions.md
  */
-data class CiqualAnnotations(val name: String, val category: String?, val shortName: String?)
+data class CiqualAnnotations(
+    val name: String,
+    val category: String?,
+    val shortName: String?,
+    /**
+     * Les noms courants, relus par code comme le titre court : une copie les figerait
+     * au jour où elle a été faite, et une fiche déjà mangée ne profiterait jamais d'une
+     * table corrigée ([D164][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val commonNames: Set<String> = emptySet(),
+)
 
 /**
  * La table de l'ANSES, embarquée en lecture seule.
@@ -102,26 +124,36 @@ class CiqualDatabase(private val context: Context) {
     private val database: SQLiteDatabase by lazy { open() }
 
     /**
-     * Les aliments dont le nom contient tous les mots de [normalisedQuery], filtrés
-     * aux rayons de [categories].
+     * **Tous** les aliments dont le nom contient tous les mots de [normalisedQuery],
+     * filtrés aux rayons de [categories].
      *
      * La saisie est déjà normalisée par l'appelant, avec la même fonction qui a
      * rempli l'index. C'est la seule règle qui fasse fonctionner cette recherche, et
-     * elle ne peut pas être vérifiée d'ici.
+     * elle ne peut pas être vérifiée d'ici. Une requête vide ne rend rien : feuilleter
+     * un rayon, c'est [browse].
      *
-     * **Une requête vide et un rayon, c'est le mode parcours** : on liste alors les
-     * aliments du rayon sans passer par l'index plein texte. Vide des deux côtés, en
-     * revanche, ne rend rien — 3 484 lignes sans critère ne sont pas une réponse.
+     * **Sans borne, et c'est la correction de [D161][decisions].** La recherche gardait
+     * les N premières correspondances **dans l'ordre de l'index**, c'est-à-dire des
+     * codes de l'ANSES lus comme du texte, et le classement du domaine ne triait que
+     * ce reste. Sur un mot courant, la fiche que tout le monde cherche n'y arrivait
+     * jamais : « pain » en compte 81, et « Pain (aliment moyen) » venait 25ᵉ quand
+     * l'IA n'en lisait que 20 ; « bread » 48ᵉ, quand l'écran en montrait 30. Couper
+     * avant de classer, c'est laisser l'ordre de l'index choisir à la place du
+     * classement.
      *
-     * Le filtre est appliqué en SQL et non après coup : sur 3 484 lignes, filtrer en
-     * Kotlin obligerait à toutes les lire pour en rendre trente. La règle, elle,
-     * reste celle du domaine — c'est `FoodFilter` qui la porte, et le contrat de
-     * `FoodSearch` vérifie que les deux disent la même chose.
+     * Le pire cas est un préfixe de deux lettres : « de » en rend un peu plus de
+     * mille, lus en quelques millisecondes. C'est l'appelant qui classe puis coupe,
+     * parce que c'est lui qui connaît le classement.
+     *
+     * Le filtre de rayon, lui, reste en SQL : la règle est celle du domaine —
+     * `FoodFilter` la porte, et le contrat de `FoodSearch` vérifie que les deux disent
+     * la même chose.
+     *
+     * [decisions]: docs/11-decisions.md
      */
     fun search(
         normalisedQuery: String,
         categories: Set<String>,
-        limit: Int,
         /**
          * L'étiquette de la langue — `fr`, `en` —, et non l'énumération du domaine.
          *
@@ -132,26 +164,46 @@ class CiqualDatabase(private val context: Context) {
          */
         language: String,
     ): List<CiqualFoodRow> {
-        val browsing = normalisedQuery.isBlank()
-        if (browsing && categories.isEmpty()) return emptyList()
+        if (normalisedQuery.isBlank()) return emptyList()
 
-        val filter = categories.placeholders()
-        val sql = if (browsing) browseSql(filter) else searchSql(filter)
         val arguments = buildList {
             // Chaque mot est un prefixe : « creme bru » doit trouver la creme brulee
             // avant que le second mot soit fini, sinon la recherche ne rend rien
             // pendant qu'on ecrit.
-            if (!browsing) add(normalisedQuery.split(' ').filter { it.isNotBlank() }.joinToString(" ") { "$it*" })
+            add(normalisedQuery.split(' ').filter { it.isNotBlank() }.joinToString(" ") { "$it*" })
             // La langue **apres** le MATCH et avant les rayons : l'ordre des `?` est
             // celui du SQL, et l'index plein texte est commun aux langues -- un mot
             // anglais peut apparier une ligne anglaise alors qu'on cherche en francais,
             // et c'est cette clause qui l'ecarte.
             add(language)
             addAll(categories)
+        }
+
+        return database.rawQuery(searchSql(categories.placeholders()), arguments.toTypedArray())
+            .use { cursor -> cursor.map { it.toFoodRow() } }
+    }
+
+    /**
+     * Le mode parcours : les aliments des rayons de [categories], sans aucun mot.
+     *
+     * **Borné à [limit], et trié avant de l'être** : les noms les plus courts d'abord,
+     * qui sont aussi ceux que le classement du domaine met en tête quand aucun mot ne
+     * départage — la coupe ne lui retire donc rien. Sans rayon, rien : 3 484 lignes
+     * sans critère ne sont pas une réponse.
+     *
+     * @param language l'étiquette de la langue, comme pour [search].
+     */
+    fun browse(categories: Set<String>, limit: Int, language: String): List<CiqualFoodRow> {
+        if (categories.isEmpty()) return emptyList()
+
+        val arguments = buildList {
+            add(language)
+            addAll(categories)
             add(limit.toString())
         }
 
-        return database.rawQuery(sql, arguments.toTypedArray()).use { cursor -> cursor.map { it.toFoodRow() } }
+        return database.rawQuery(browseSql(categories.placeholders()), arguments.toTypedArray())
+            .use { cursor -> cursor.map { it.toFoodRow() } }
     }
 
     /** Une fiche par son code CIQUAL, dans une langue. */
@@ -182,7 +234,7 @@ class CiqualDatabase(private val context: Context) {
         val distinct = codes.distinct()
         val sql =
             """
-            SELECT n.code, n.name, f.category, n.short_name
+            SELECT n.code, n.name, f.category, n.short_name, n.common_names
             FROM ciqual_name n
             JOIN ciqual_food f ON f.code = n.code
             WHERE n.language = ? AND n.code IN (${distinct.joinToString { "?" }})
@@ -267,14 +319,14 @@ class CiqualDatabase(private val context: Context) {
          *
          * À incrémenter dès que `CiqualDatabaseWriter.SCHEMA` change, dès que
          * `CiqualCategories` réarbitre un rayon, dès qu'une **langue** s'ajoute au
-         * catalogue, **et dès que `short-names-<langue>.csv`, `servings.csv` ou
-         * `completions.csv` change**. Ces fichiers ne touchent pas au schéma mais
-         * au contenu, et la conséquence est la même : un appareil déjà installé
-         * garderait une copie sans les titres courts ni les valeurs complétées, et rien
-         * ne le dirait. L'oubli est d'autant plus facile que la base se régénère ici
+         * catalogue, **et dès que `short-names-<langue>.csv`, `common-names-<langue>.csv`,
+         * `servings.csv` ou `completions.csv` change**. Ces fichiers ne touchent pas au
+         * schéma mais au contenu, et la conséquence est la même : un appareil déjà
+         * installé garderait une copie sans les titres courts, les noms courants ni les
+         * valeurs complétées, et rien ne le dirait. L'oubli est d'autant plus facile que la base se régénère ici
          * sans erreur.
          */
-        const val REVISION = 7
+        const val REVISION = 8
         const val FILE_PREFIX = "ciqual-"
         const val FILE_NAME = "$FILE_PREFIX$EDITION-r$REVISION.db"
 
@@ -287,7 +339,7 @@ class CiqualDatabase(private val context: Context) {
          */
         const val SELECT_COLUMNS =
             """
-            SELECT n.code, n.name, n.short_name, n.group_name, f.category,
+            SELECT n.code, n.name, n.short_name, n.group_name, n.common_names, f.category,
                    f.kcal_100, f.protein_100, f.carb_100, f.sugar_100, f.fat_100,
                    f.fiber_100, f.saturated_fat_100, f.salt_100,
                    f.kcal_100_est, f.protein_100_est, f.carb_100_est, f.sugar_100_est,
@@ -304,6 +356,16 @@ class CiqualDatabase(private val context: Context) {
          */
         fun Set<String>.placeholders(): String = if (isEmpty()) "" else " AND f.category IN (${joinToString { "?" }})"
 
+        /**
+         * La recherche par mots, **sans `LIMIT`** ([D161][decisions]).
+         *
+         * Il y en avait un, et sans `ORDER BY` : SQLite rendait les lignes dans l'ordre
+         * de l'index, et la borne gardait celles-là. Le remettre ici serait refaire le
+         * défaut ; trier ici d'abord demanderait d'écrire en SQL un second classement,
+         * qui finirait par ne plus dire la même chose que `FoodRanking` ([D74][decisions]).
+         *
+         * [decisions]: docs/11-decisions.md
+         */
         fun searchSql(filter: String) =
             """
             $SELECT_COLUMNS
@@ -311,7 +373,6 @@ class CiqualDatabase(private val context: Context) {
             JOIN ciqual_name n ON n.rowid = ciqual_fts.docid
             JOIN ciqual_food f ON f.code = n.code
             WHERE ciqual_fts MATCH ? AND n.language = ?$filter
-            LIMIT ?
             """
 
         /**
@@ -361,7 +422,8 @@ private fun Cursor.toAnnotatedCode(): Pair<String, CiqualAnnotations> {
         CiqualAnnotations(
             name = getString(column++),
             category = optionalString(column++),
-            shortName = optionalString(column),
+            shortName = optionalString(column++),
+            commonNames = commonNames(column),
         )
 }
 
@@ -372,6 +434,7 @@ private fun Cursor.toFoodRow(): CiqualFoodRow {
         name = getString(column++),
         shortName = optionalString(column++),
         groupName = optionalString(column++),
+        commonNames = commonNames(column++),
         category = optionalString(column++),
         kcal100 = optionalDouble(column++),
         protein100 = optionalDouble(column++),
@@ -405,3 +468,12 @@ private fun Cursor.toFoodRow(): CiqualFoodRow {
 private fun Cursor.optionalDouble(column: Int): Double? = if (isNull(column)) null else getDouble(column)
 
 private fun Cursor.optionalString(column: Int): String? = if (isNull(column)) null else getString(column)
+
+/**
+ * Les noms courants, tels que l'import les a joints : normalisés, séparés par `|`.
+ *
+ * `NULL` vaut aucun nom, et c'est le cas courant. Le séparateur ne peut pas apparaître
+ * dans un nom normalisé, donc la découpe n'a rien à échapper.
+ */
+private fun Cursor.commonNames(column: Int): Set<String> =
+    optionalString(column)?.split('|')?.filterTo(mutableSetOf(), String::isNotEmpty).orEmpty()

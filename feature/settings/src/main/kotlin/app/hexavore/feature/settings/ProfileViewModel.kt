@@ -1,7 +1,9 @@
 package app.hexavore.feature.settings
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.hexavore.core.ui.FormMemory
 import app.hexavore.domain.goal.DailyGoal
 import app.hexavore.domain.goal.GoalOrigin
 import app.hexavore.domain.goal.GoalStrategy
@@ -47,18 +49,38 @@ internal class ProfileViewModel @Inject constructor(
     private val calculate: CalculateDailyGoal,
     private val reviseGoal: ReviseGoal,
     clock: Clock,
+    savedStateHandle: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
     private val state = MutableStateFlow(ProfileUiState(today = clock.today()))
     val uiState: StateFlow<ProfileUiState> = state
 
+    /**
+     * Les corrections pas encore enregistrées, gardées à travers la mort du processus
+     * ([D166][decisions]). L'objectif enregistré, lui, se relit toujours dans la base :
+     * c'est contre lui que la boîte de confirmation compare.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    private val memory = FormMemory(savedStateHandle, MEMORY_KEY, ProfileMemory.serializer())
+
+    /** Vrai une fois les corrections enregistrées : il n'y a plus rien à rendre. */
+    private var written = false
+
     init {
         viewModelScope.launch {
             val outcome = runCatching { read() }
+            val kept = memory.recall()?.let { runCatching { it.toForm() }.getOrNull() }
             state.update { current ->
                 outcome.fold(
                     onSuccess = { lu ->
                         current
-                            .copy(loaded = true, form = lu.form, saved = lu.goal, units = lu.units)
+                            .copy(
+                                loaded = true,
+                                form = kept ?: lu.form,
+                                editing = kept != null,
+                                saved = lu.goal,
+                                units = lu.units,
+                            )
                             .planned(calculate)
                     },
                     // Un echec de lecture se dit (D39). Presenter un formulaire vide
@@ -66,6 +88,11 @@ internal class ProfileViewModel @Inject constructor(
                     // ecraserait celui qui est en base.
                     onFailure = { current.copy(loaded = true, unreadable = true) },
                 )
+            }
+        }
+        viewModelScope.launch {
+            state.collect { current ->
+                if (current.loaded && current.editing && !written) memory.keep(ProfileMemory.of(current.form))
             }
         }
     }
@@ -145,6 +172,10 @@ internal class ProfileViewModel @Inject constructor(
 
         viewModelScope.launch {
             val outcome = runCatching { reviseGoal(revision) }
+            if (outcome.isSuccess) {
+                written = true
+                memory.forget()
+            }
             state.update { it.copy(saving = false, failed = outcome.isFailure) }
             if (outcome.isSuccess) onDone()
         }
@@ -174,6 +205,10 @@ internal class ProfileViewModel @Inject constructor(
             macros = if (goal?.origin == GoalOrigin.MANUAL) goal.daily.toMacros() else emptyMap(),
         )
         return Loaded(form, goal?.daily, profile?.unitSystem ?: UnitSystem.METRIC)
+    }
+
+    private companion object {
+        const val MEMORY_KEY = "hexavore.profile.memory"
     }
 }
 

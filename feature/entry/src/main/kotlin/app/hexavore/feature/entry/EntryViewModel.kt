@@ -3,6 +3,7 @@ package app.hexavore.feature.entry
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.hexavore.core.ui.FormMemory
 import app.hexavore.domain.diary.DaySummary
 import app.hexavore.domain.diary.DishId
 import app.hexavore.domain.diary.DraftLineId
@@ -18,6 +19,7 @@ import app.hexavore.domain.usecase.GetDaySummary
 import app.hexavore.domain.usecase.SaveDraft
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -65,6 +67,27 @@ internal class EntryViewModel @Inject constructor(
 
     private val form = MutableStateFlow<EntryForm?>(null)
     private val status = MutableStateFlow(Status.LOADING)
+
+    /**
+     * Le brouillon tel qu'Android l'avait quand il a tué l'application ([D166][decisions]).
+     *
+     * Relu **avant** toute ouverture depuis la route : une proposition d'IA ne s'ouvre
+     * qu'une fois — le dépôt se vide à la première lecture —, et la rouvrir après la mort
+     * du processus rendait un écran « plus disponible » à la place du repas payé.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    private val memory = FormMemory(savedStateHandle, MEMORY_KEY, EntryMemory.serializer())
+
+    /**
+     * Le formulaire tel qu'il s'est ouvert.
+     *
+     * Il ne sert qu'à une question : quitter perdrait-il quelque chose sur un plat déjà
+     * écrit ([losesOnExit], [D161][decisions]) ?
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    private var opened: EntryForm? = null
 
     /**
      * L'image de ce brouillon, et le souvenir de l'avoir retirée.
@@ -174,6 +197,15 @@ internal class EntryViewModel @Inject constructor(
             .combine(filing.reportFailed) { state, rate ->
                 if (state is EntryUiState.Content) state.copy(reportFailed = rate) else state
             }
+            // Ce que quitter perdrait, en dernier : la regle lit le formulaire, l'image,
+            // et le souvenir de l'avoir retiree, que rien d'autre ne lit (D161).
+            .map { state ->
+                if (state is EntryUiState.Content) {
+                    state.copy(unsaved = state.losesOnExit(opened, photoRemoved))
+                } else {
+                    state
+                }
+            }
             // Aucun `flowOn` ici, contrairement a l'accueil, et c'est deliberé.
             // Ce que produit ce flux a chaque frappe tient en une conversion de
             // quelques lignes et deux additions ; le passer sur un autre
@@ -185,8 +217,45 @@ internal class EntryViewModel @Inject constructor(
                 initialValue = EntryUiState.Loading,
             )
 
+    /**
+     * L'ouverture du brouillon, gardée pour qu'une photo puisse l'attendre ([D163][decisions]).
+     *
+     * Ouvrir un brouillon qui ne vient ni d'une analyse ni d'un scan **vide le dépôt des
+     * photos**. Quand Android a tué Hexavore pendant la prise de vue, l'image revient à
+     * un écran recréé, donc pendant cette ouverture : déposée d'abord, elle était jetée
+     * juste après.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    private val opening: Job = viewModelScope.launch {
+        // Le brouillon garde d'abord ; la route seulement s'il n'y en a pas, ou qu'il ne
+        // se relit plus. La photo ne repasse pas par l'ouverture, qui viderait le depot ou
+        // elle attend : elle ne revient que si le depot ou le plat la portent encore.
+        val kept = memory.recall()?.let { runCatching { it.recalled() }.getOrNull() }
+        if (kept == null) {
+            open()
+        } else {
+            opened = kept.opened
+            form.value = kept.form
+            photoRemoved = kept.photoRemoved
+            photo.value = kept.photo?.let { runCatching { composition.keptPhoto(it, kept.form.dishId) }.getOrNull() }
+            photoChoices.value = kept.photoChoices
+            status.value = Status.EDITING
+        }
+    }
+
     init {
-        viewModelScope.launch { open() }
+        // Apres l'ouverture et a part d'elle : la garde ne finit jamais, et une photo
+        // choisie attend la fin de l'ouverture, pas celle de l'ecran. Le souvenir d'avoir
+        // retire l'image se lit au passage : il ne change jamais sans que l'image change.
+        viewModelScope.launch {
+            opening.join()
+            combine(form, photo, photoChoices) { current, image, choices ->
+                current?.takeIf { status.value != Status.SAVED }?.let {
+                    EntryMemory(it.toMemory(), opened?.toMemory(), image?.path, photoRemoved, choices)
+                }
+            }.collect { kept -> kept?.let(memory::keep) }
+        }
     }
 
     /**
@@ -283,6 +352,7 @@ internal class EntryViewModel @Inject constructor(
      */
     fun onPhotoChosen(jpeg: ByteArray) {
         viewModelScope.launch {
+            opening.join()
             val staged = runCatching { composition.choosePhoto(jpeg) }.getOrNull() ?: return@launch
             photoRemoved = false
             photo.value = staged
@@ -316,6 +386,9 @@ internal class EntryViewModel @Inject constructor(
             // faire echouer un repas deja note. Un favori reecrit ne rend aucun plat,
             // donc ne range aucune image : ce n'est pas un repas.
             written.getOrNull()?.let { dish -> runCatching { composition.attachPhoto(dish, !photoRemoved) } }
+            // Ecrit, le brouillon n'a plus rien a rendre : le garder ferait reparaitre un
+            // repas deja note si Android recreait l'ecran avant qu'il se ferme.
+            if (written.isSuccess) memory.forget()
             status.value = if (written.isSuccess) Status.SAVED else Status.FAILED
         }
     }
@@ -330,7 +403,9 @@ internal class EntryViewModel @Inject constructor(
         if (relu == null) {
             status.value = Status.UNAVAILABLE
         } else {
-            form.value = EntryForm.of(relu)
+            val ouvert = EntryForm.of(relu)
+            opened = ouvert
+            form.value = ouvert
             status.value = Status.EDITING
         }
     }
@@ -355,6 +430,9 @@ internal class EntryViewModel @Inject constructor(
 
     private companion object {
         const val SUBSCRIPTION_TIMEOUT_MILLIS = 5_000L
+
+        /** Distincte des arguments de route, qui vivent dans le même `SavedStateHandle`. */
+        const val MEMORY_KEY = "hexavore.entry.memory"
     }
 }
 
@@ -377,3 +455,27 @@ private fun origin(
     scannedFoodId != null -> DraftOrigin.Scanned(scannedFoodId)
     else -> DraftOrigin.New(foodId)
 }
+
+/**
+ * Quitter l'écran perdrait-il quelque chose ? ([D161][decisions])
+ *
+ * **Deux questions, selon ce que le brouillon prolonge.** Un repas pas encore noté
+ * n'existe nulle part ailleurs : tout ce qu'il porte se perd, même intact — c'est le cas
+ * d'une proposition d'IA, payée, et qui ne se rejoue pas. Un plat déjà écrit, ou le
+ * favori qu'on corrige, est en sécurité dans la base : seul se perd ce qui a changé
+ * depuis l'ouverture.
+ *
+ * Une ligne vierge ne compte pas : c'est celle qu'ouvre une saisie neuve, et demander
+ * confirmation pour quitter un formulaire vide serait une question sans objet.
+ *
+ * Hors de la classe, comme [origin] : c'est une règle sur l'état, pas un geste de
+ * l'écran, et le seuil de fonctions n'a pas à la compter.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+private fun EntryUiState.Content.losesOnExit(opened: EntryForm?, photoRemoved: Boolean): Boolean =
+    if (form.dishId == null && !editingFavorite) {
+        photo != null || form.toDraft().lines.any { !it.blank }
+    } else {
+        form != opened || photoRemoved || photoRevision > 0
+    }

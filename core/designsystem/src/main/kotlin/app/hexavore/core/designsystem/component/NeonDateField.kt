@@ -28,6 +28,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import app.hexavore.core.designsystem.R
+import app.hexavore.domain.profile.BodyBounds
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -54,6 +55,13 @@ import java.time.format.FormatStyle
  * @param yearRange les années proposées. Une date de naissance ne se cherche pas en
  *   feuilletant les mois : la grille des années est le seul chemin praticable, et la
  *   borner évite d'en dérouler deux mille.
+ * @param earliest la date la plus ancienne qu'on peut choisir, quand la première année de
+ *   la grille ne suffit pas à la dire : un âge se borne au jour, pas à l'année.
+ * @param opening le mois sur lequel le calendrier s'ouvre **tant que rien n'est choisi**.
+ *   Sans lui, il s'ouvre sur le mois en cours, ramené dans la grille — c'est-à-dire, pour
+ *   une naissance, sur la dernière année permise ([D160][decisions]).
+ *
+ * [decisions]: docs/11-decisions.md
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,6 +72,8 @@ fun NeonDateField(
     yearRange: IntRange,
     modifier: Modifier = Modifier,
     latest: LocalDate? = null,
+    earliest: LocalDate? = null,
+    opening: LocalDate? = null,
 ) {
     var picking by remember { mutableStateOf(false) }
     val formatter = remember { DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG) }
@@ -100,8 +110,9 @@ fun NeonDateField(
     if (picking) {
         DatePicker(
             initial = value,
+            opening = opening,
             yearRange = yearRange,
-            latest = latest,
+            allowed = Allowed(earliest = earliest, latest = latest),
             onDismiss = { picking = false },
             onPicked = {
                 picking = false
@@ -111,24 +122,38 @@ fun NeonDateField(
     }
 }
 
+/** Les deux bornes au jour près, l'une ou l'autre facultative. */
+private data class Allowed(val earliest: LocalDate?, val latest: LocalDate?) {
+    operator fun contains(date: LocalDate): Boolean =
+        (earliest == null || date >= earliest) && (latest == null || date <= latest)
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DatePicker(
     initial: LocalDate?,
+    opening: LocalDate?,
     yearRange: IntRange,
-    latest: LocalDate?,
+    allowed: Allowed,
     onDismiss: () -> Unit,
     onPicked: (LocalDate) -> Unit,
 ) {
+    // **Seule une date choisissable se presente comme choisie**, et seul un mois de la
+    // grille s'ouvre : Material refuse un etat initial hors de ses annees, et le refuse
+    // en levant une exception. Une naissance enregistree avant que les bornes ne
+    // bougent (D160) ouvre donc le calendrier sur le mois d'ouverture, sans selection.
+    val selected = initial?.takeIf { it.year in yearRange && it in allowed }
+    val shown = (selected ?: opening)?.takeIf { it.year in yearRange }
+
     val state = rememberDatePickerState(
-        initialSelectedDateMillis = initial?.toUtcMillis(),
+        initialSelectedDateMillis = selected?.toUtcMillis(),
+        initialDisplayedMonthMillis = shown?.toUtcMillis(),
         yearRange = yearRange,
         selectableDates = object : SelectableDates {
             // Une date de naissance dans le futur n'existe pas, et une echeance
             // passee non plus : la borne est portee par le selecteur plutot que par
             // un message d'erreur apres coup.
-            override fun isSelectableDate(utcTimeMillis: Long): Boolean =
-                latest == null || utcTimeMillis <= latest.toUtcMillis()
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean = utcTimeMillis.toLocalDate() in allowed
 
             override fun isSelectableYear(year: Int): Boolean = year in yearRange
         },
@@ -151,6 +176,52 @@ private fun DatePicker(
         DatePicker(state = state)
     }
 }
+
+/**
+ * La date de naissance : bornée aux âges que le calcul accepte, et **ouverte trente ans
+ * en arrière**.
+ *
+ * ### Pourquoi le calendrier proposait 2013
+ *
+ * Rien n'étant choisi, il s'ouvrait sur le mois en cours, ramené dans sa grille d'années
+ * — c'est-à-dire sur décembre de la dernière année permise : 2013, quand le plus jeune
+ * âge accepté était treize ans. Il proposait ainsi, en premier, l'âge le moins probable
+ * de tous ceux qu'il acceptait ([D160][decisions]).
+ *
+ * Trente ans en arrière est un point de départ au milieu des âges adultes, d'où la grille
+ * atteint vite tous les autres. **Ce n'est pas une valeur proposée** : le champ reste vide,
+ * et « Valider » ne s'allume qu'une fois un jour touché.
+ *
+ * **Une seule règle pour l'onboarding et le profil.** Les deux bornaient la grille
+ * chacun de leur côté, avec deux copies des mêmes constantes ; ce sont désormais celles
+ * de [BodyBounds], au jour près.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+@Composable
+fun BirthDateField(
+    value: LocalDate?,
+    onValueChange: (LocalDate) -> Unit,
+    label: String,
+    today: LocalDate,
+    modifier: Modifier = Modifier,
+) {
+    val allowed = BodyBounds.birthDatesOn(today)
+
+    NeonDateField(
+        value = value,
+        onValueChange = onValueChange,
+        label = label,
+        yearRange = allowed.start.year..allowed.endInclusive.year,
+        modifier = modifier,
+        latest = allowed.endInclusive,
+        earliest = allowed.start,
+        opening = today.minusYears(OPENING_AGE),
+    )
+}
+
+/** L'âge sur lequel s'ouvre le calendrier d'une naissance, en années. */
+private const val OPENING_AGE = 30L
 
 /**
  * Le sélecteur raisonne en millisecondes **UTC**, et il faut le prendre au mot.

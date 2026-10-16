@@ -22,19 +22,39 @@ import org.junit.jupiter.api.Test
 /**
  * Quand la contribution se propose, et sous quelle identité elle part.
  *
- * **Trois raisons de ne rien proposer, et aucune n'est une erreur.** L'écran se
+ * **Quatre raisons de ne rien proposer, et aucune n'est une erreur.** L'écran se
  * referme alors comme avant, sans rien dire : un message qui expliquerait pourquoi on
  * ne propose pas encombrerait le moment où l'on vient de finir une saisie.
+ *
+ * **La première est la réserve** ([D158][decisions]) : tant qu'aucun envoi réel n'a
+ * atteint la vraie base, rien n'est proposé, compte ou pas. Les autres cas éprouvent la
+ * proposition **ouverte**, parce que le code est en réserve et non mort — il reviendra
+ * en changeant un mot, et doit revenir juste.
+ *
+ * [decisions]: docs/11-decisions.md
  */
 class OfferContributionTest {
     private val settings = FakeContributionSettings()
+
+    /** La proposition telle qu'elle sera le jour où la réserve sera levée. */
+    private fun proposer(catalogue: InMemoryFoodCatalog) = OfferContribution(catalogue, settings, offered = true)
+
+    @Test
+    fun `tenue en reserve, la contribution ne se propose pas, meme avec un compte`() = runTest {
+        // Le cas d'un testeur qui avait saisi son compte avant la mise en reserve : la
+        // proposition ne doit pas reparaitre pour lui.
+        settings.set(ContributionSetup(account = COMPTE))
+        val catalogue = InMemoryFoodCatalog(initial = listOf(TAPENADE))
+
+        assertNull(OfferContribution(catalogue, settings)(TAPENADE.id))
+    }
 
     @Test
     fun `une fiche personnelle scannee se propose`() = runTest {
         settings.set(ContributionSetup(account = COMPTE))
         val catalogue = InMemoryFoodCatalog(initial = listOf(TAPENADE))
 
-        val proposition = OfferContribution(catalogue, settings)(TAPENADE.id)
+        val proposition = proposer(catalogue)(TAPENADE.id)
 
         assertNotNull(proposition)
         assertEquals("3017620422003", proposition!!.barcode.value)
@@ -47,7 +67,7 @@ class OfferContributionTest {
         settings.set(ContributionSetup(account = null))
         val catalogue = InMemoryFoodCatalog(initial = listOf(TAPENADE))
 
-        assertNull(OfferContribution(catalogue, settings)(TAPENADE.id))
+        assertNull(proposer(catalogue)(TAPENADE.id))
     }
 
     @Test
@@ -56,7 +76,7 @@ class OfferContributionTest {
         val sansCode = TAPENADE.copy(sourceRef = null)
         val catalogue = InMemoryFoodCatalog(initial = listOf(sansCode))
 
-        assertNull(OfferContribution(catalogue, settings)(sansCode.id))
+        assertNull(proposer(catalogue)(sansCode.id))
     }
 
     @Test
@@ -65,7 +85,7 @@ class OfferContributionTest {
         // enverrait ce qu'on croyait avoir saisi.
         settings.set(ContributionSetup(account = COMPTE))
 
-        assertNull(OfferContribution(InMemoryFoodCatalog(), settings)(FoodId("inconnu")))
+        assertNull(proposer(InMemoryFoodCatalog())(FoodId("inconnu")))
     }
 
     @Test
@@ -75,7 +95,7 @@ class OfferContributionTest {
         settings.set(ContributionSetup(account = COMPTE))
         val catalogue = InMemoryFoodCatalog(initial = listOf(TAPENADE.copy(name = "Nom enregistre")))
 
-        assertEquals("Nom enregistre", OfferContribution(catalogue, settings)(TAPENADE.id)!!.name)
+        assertEquals("Nom enregistre", proposer(catalogue)(TAPENADE.id)!!.name)
     }
 
     // --- L'envoi ---------------------------------------------------------------

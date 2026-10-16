@@ -96,14 +96,14 @@ internal class ChartScale private constructor(
         }
 
         /**
-         * Tout ce que le graphique doit contenir : les mesures, leurs lissages, et les
+         * Tout ce que le graphique doit contenir : les mesures, leur tendance, et les
          * deux bouts de la trajectoire **tels qu'ils tombent dans la fenêtre**.
          *
          * La trajectoire compte : hors des bornes, le pointillé sortirait du cadre, et
          * le retard qu'il montre disparaîtrait le jour où il devient intéressant.
          */
         private fun WeightTrend.valuesOver(span: ClosedRange<LocalDate>): List<Double> =
-            points.flatMap { listOfNotNull(it.weightKg, it.averageKg) } +
+            points.flatMap { listOf(it.weightKg, it.trendKg) } +
                 aim?.let { listOf(it.weightAt(span.start), it.weightAt(span.endInclusive)) }.orEmpty()
     }
 }

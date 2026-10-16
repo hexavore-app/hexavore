@@ -13,6 +13,7 @@ import app.hexavore.domain.usecase.EraseEverything
 import app.hexavore.domain.usecase.ExportArchive
 import app.hexavore.domain.usecase.ExportBackup
 import app.hexavore.domain.usecase.RestoreArchive
+import app.hexavore.domain.usecase.UndoRestore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -51,7 +52,21 @@ object BackupUseCaseModule {
         @SafetyCopy safety: BackupTarget,
     ): RestoreArchive = RestoreArchive(store, archive, createBackup, safety)
 
+    /** Le retour sur la copie de sécurité que [restoreArchive] laisse derrière elle (D162). */
     @Provides
-    fun eraseEverything(store: SnapshotStore, preferences: StoredPreferences, photos: DishPhotos): EraseEverything =
-        EraseEverything(store, preferences, photos)
+    fun undoRestore(
+        store: SnapshotStore,
+        codec: SnapshotCodec,
+        createBackup: CreateBackup,
+        @SafetyCopy safety: BackupTarget,
+    ): UndoRestore = UndoRestore(store, codec, createBackup, safety)
+
+    /** La copie de sécurité part avec le reste : c'est le journal entier (D162). */
+    @Provides
+    fun eraseEverything(
+        store: SnapshotStore,
+        preferences: StoredPreferences,
+        photos: DishPhotos,
+        @SafetyCopy safety: BackupTarget,
+    ): EraseEverything = EraseEverything(store, preferences, photos, safety)
 }

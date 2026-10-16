@@ -30,6 +30,9 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
             dependencies {
                 "implementation"(project(":domain"))
                 "implementation"(project(":core:designsystem"))
+                // La memoire d'une saisie a travers la mort du processus (D166) : tout
+                // ecran qui a un formulaire en a besoin, et la regle n'est ecrite qu'une fois.
+                "implementation"(project(":core:ui"))
 
                 "implementation"(platform(catalogPlatform("androidx-compose-bom")))
                 "implementation"(catalogLibrary("androidx-compose-material3"))

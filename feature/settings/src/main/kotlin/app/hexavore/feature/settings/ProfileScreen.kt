@@ -23,13 +23,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.hexavore.core.designsystem.component.NeonButton
 import app.hexavore.core.designsystem.component.NeonButtonAvailability
 import app.hexavore.core.designsystem.component.NeonButtonStyle
+import app.hexavore.core.designsystem.component.heightProblem
+import app.hexavore.core.designsystem.component.targetProblem
+import app.hexavore.core.designsystem.component.weightProblem
 import app.hexavore.core.designsystem.theme.Spacing
+import app.hexavore.domain.profile.BodyBounds
 import kotlinx.coroutines.launch
 
 /** Les réglages profil, branchés sur le graphe d'injection. */
@@ -67,7 +72,8 @@ internal fun ProfileRoute(onClose: () -> Unit, viewModel: ProfileViewModel = hil
  *
  * Le refus se voit : appuyer sur « Enregistrer » alors qu'il manque quelque chose
  * affiche une barre qui dit **quoi** ([D28][decisions]), par le canal que
- * [D56][decisions] a retenu — ce qui interrompt le regard est ce qui se lit.
+ * [D56][decisions] a retenu — ce qui interrompt le regard est ce qui se lit. Il referme
+ * aussi le clavier : le champ qu'on quitte se colore et dit sa plage ([D160][decisions]).
  *
  * [decisions]: docs/11-decisions.md
  */
@@ -75,7 +81,8 @@ internal fun ProfileRoute(onClose: () -> Unit, viewModel: ProfileViewModel = hil
 internal fun ProfileScreen(state: ProfileUiState, actions: ProfileActions) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val blocked = state.blocker?.let { stringResource(it.messageRes) }
+    val focus = LocalFocusManager.current
+    val blocked = state.blocker?.let { blockerMessage(it, state) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -100,6 +107,7 @@ internal fun ProfileScreen(state: ProfileUiState, actions: ProfileActions) {
 
             if (state.loaded && !state.unreadable) {
                 ActionArea(state, actions) {
+                    focus.clearFocus()
                     scope.launch {
                         // Une seule barre a la fois : trois appuis empilaient trois
                         // fois le meme message, le troisieme arrivant dix secondes
@@ -214,11 +222,27 @@ private fun ActionArea(state: ProfileUiState, actions: ProfileActions, onBlocked
     }
 }
 
-private val ProfileBlocker.messageRes: Int
-    get() = when (this) {
-        ProfileBlocker.IDENTITY -> R.string.profile_blocked_identity
-        ProfileBlocker.ACTIVITY -> R.string.profile_blocked_activity
-        ProfileBlocker.STRATEGY -> R.string.profile_blocked_strategy
-        ProfileBlocker.HORIZON -> R.string.profile_blocked_horizon
-        ProfileBlocker.EMPTY_MACRO -> R.string.profile_blocked_macro
+/**
+ * La phrase de la barre, pour ce qui bloque.
+ *
+ * **Une valeur invraisemblable reprend la phrase de son champ** ([D160][decisions]) : la
+ * barre et le rouge sous le champ disent la même plage, dans les mêmes unités, parce
+ * qu'ils la tiennent de la même fonction.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+@Composable
+private fun blockerMessage(blocker: ProfileBlocker, state: ProfileUiState): String {
+    val form = state.form
+    return when (blocker) {
+        ProfileBlocker.IDENTITY -> stringResource(R.string.profile_blocked_identity)
+        ProfileBlocker.AGE -> stringResource(R.string.profile_blocked_age, BodyBounds.AGES.first, BodyBounds.AGES.last)
+        ProfileBlocker.HEIGHT -> heightProblem(form.heightCm, state.units)?.text.orEmpty()
+        ProfileBlocker.WEIGHT -> weightProblem(form.currentWeightKg, form.heightCm, state.units)?.text.orEmpty()
+        ProfileBlocker.ACTIVITY -> stringResource(R.string.profile_blocked_activity)
+        ProfileBlocker.STRATEGY -> stringResource(R.string.profile_blocked_strategy)
+        ProfileBlocker.TARGET -> targetProblem(form.targetProblem, state.units)?.text.orEmpty()
+        ProfileBlocker.HORIZON -> stringResource(R.string.profile_blocked_horizon)
+        ProfileBlocker.EMPTY_MACRO -> stringResource(R.string.profile_blocked_macro)
     }
+}

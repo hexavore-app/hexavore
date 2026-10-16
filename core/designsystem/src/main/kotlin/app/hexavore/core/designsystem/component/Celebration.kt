@@ -25,7 +25,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.hexavore.core.designsystem.theme.NeonTheme
 import app.hexavore.core.designsystem.theme.Spacing
+import app.hexavore.core.designsystem.theme.Timing
 import app.hexavore.domain.nutrition.Macro
+import kotlinx.coroutines.delay
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
@@ -52,7 +54,9 @@ import kotlin.random.Random
  *
  * **Elle disparaît entièrement quand l'appareil demande moins de mouvement.** Pas
  * raccourcie : supprimée, et remplacée par le seul texte. Des particules instantanées
- * seraient un clignotement, ce que [08][design] refuse depuis toujours.
+ * seraient un clignotement, ce que [08][design] refuse depuis toujours. Ce texte reste le
+ * temps d'être lu, [Timing.CELEBRATION_READING_MILLIS] : la durée de l'animation, tombée à
+ * zéro avec elle, le faisait disparaître à l'image suivante ([D167][decisions]).
  *
  * ### Les six teintes, et pas une septième
  *
@@ -73,9 +77,17 @@ fun Celebration(title: String, subtitle: String, onDone: () -> Unit, modifier: M
     // monte et s'efface. Deux animations independantes auraient fini a deux moments.
     val run = remember { Animatable(0f) }
 
-    LaunchedEffect(title) {
+    // Relancee par ce qui distingue une celebration d'une autre, et pas par le seul
+    // titre, que plusieurs partagent : le second d'une file ne repartait jamais (D163).
+    LaunchedEffect(title, subtitle) {
         run.snapTo(0f)
-        if (millis > 0) run.animateTo(1f, tween(durationMillis = millis * SLOW_FACTOR, easing = LinearEasing))
+        val length = celebrationMillis(millis)
+        if (millis > 0) {
+            run.animateTo(1f, tween(durationMillis = length.toInt(), easing = LinearEasing))
+        } else {
+            // Ni gerbe ni fondu : le texte seul, le temps de le lire (D167).
+            delay(length)
+        }
         finished.value()
     }
 
@@ -110,6 +122,18 @@ fun Celebration(title: String, subtitle: String, onDone: () -> Unit, modifier: M
         }
     }
 }
+
+/**
+ * Combien de temps une célébration reste à l'écran, selon la durée d'entrée d'un contenu.
+ *
+ * Animée, sept fois cette durée. Sans animations, cette durée vaut zéro, et la
+ * célébration n'en est pas plus courte pour autant : elle dure le temps de lire son
+ * texte ([D167][decisions]).
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+internal fun celebrationMillis(contentEnterMillis: Int): Long =
+    if (contentEnterMillis > 0) contentEnterMillis.toLong() * SLOW_FACTOR else Timing.CELEBRATION_READING_MILLIS
 
 /**
  * Les particules, tracées.

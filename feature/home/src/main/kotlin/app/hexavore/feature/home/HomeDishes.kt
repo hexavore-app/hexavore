@@ -423,12 +423,14 @@ private val DishSummary.entries: List<FoodEntry> get() = dish.entries
  */
 @Composable
 private fun EntryRow(entry: FoodEntry) {
-    val description = stringResource(
-        R.string.home_entry_a11y,
+    val kcal = entry.macros.kcal.roundToInt()
+    val description = pluralStringResource(
+        R.plurals.home_entry_a11y,
+        kcal,
         entry.displayName,
         formatGrams(entry.quantity),
         entry.unit,
-        entry.macros.kcal.roundToInt(),
+        kcal,
     )
 
     Row(

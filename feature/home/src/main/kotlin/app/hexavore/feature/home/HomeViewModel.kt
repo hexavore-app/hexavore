@@ -10,6 +10,7 @@ import app.hexavore.domain.diary.Dish
 import app.hexavore.domain.diary.DishId
 import app.hexavore.domain.diary.SelectedDay
 import app.hexavore.domain.goal.AdjustmentSuggestion
+import app.hexavore.domain.profile.UnitSystem
 import app.hexavore.domain.usecase.AdjustmentResponse
 import app.hexavore.domain.usecase.FavoriteOutcome
 import app.hexavore.domain.usecase.GetDaySummary
@@ -130,11 +131,13 @@ class HomeViewModel @Inject constructor(
      * autant. `null` est le cas normal — toutes les conditions doivent être réunies
      * pour qu'une carte paraisse ([docs/03][calculs]).
      *
-     * Elle n'est montrée que par l'accueil. L'écran Journée partage ce modèle, mais
-     * une carte qui parle de trois semaines n'a rien à faire au-dessus d'un jour
-     * passé qu'on est venu relire.
+     * Elle n'est montrée que sur la journée d'aujourd'hui : une carte qui parle de
+     * trois semaines n'a rien à faire au-dessus d'un jour passé qu'on est venu relire.
+     * L'écran Journée la taisait en n'étant pas l'accueil ; depuis qu'il a disparu,
+     * c'est l'écran qui la retient quand un autre jour est affiché ([D163][decisions]).
      *
      * [calculs]: docs/03-nutrition-calculs.md
+     * [decisions]: docs/11-decisions.md
      */
     val suggestion: StateFlow<AdjustmentSuggestion?> = adjustment.suggestion()
         // Une lecture qui echoue ne fabrique pas de conseil : le silence est deja
@@ -144,6 +147,19 @@ class HomeViewModel @Inject constructor(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MILLIS),
             initialValue = null,
+        )
+
+    /**
+     * Le système dans lequel la carte dit ses rythmes : celui des pesées
+     * ([D162][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val units: StateFlow<UnitSystem> = adjustment.units()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MILLIS),
+            initialValue = UnitSystem.METRIC,
         )
 
     val uiState: StateFlow<HomeUiState> =
@@ -238,8 +254,9 @@ class HomeViewModel @Inject constructor(
      * Le plat part **immédiatement**, et c'est lui qui permet d'y revenir : une
      * suppression différée pendant les cinq secondes de la barre disparaîtrait avec un
      * processus tué, et l'utilisateur retrouverait un plat qu'il croyait supprimé. La
-     * confirmation a déjà été demandée par l'écran ; la barre qui suit ne protège plus de l'accident mais du regret, et
-     * elle ne coûte rien puisque `RestoreDish` remet le plat et ses lignes en place.
+     * confirmation a déjà été demandée par l'écran ; la barre qui suit ne protège plus
+     * de l'accident mais du regret, et elle ne coûte rien puisque `RestoreDish` remet le
+     * plat et ses lignes en place.
      */
     fun onDeleteDish(dish: Dish) {
         viewModelScope.launch {

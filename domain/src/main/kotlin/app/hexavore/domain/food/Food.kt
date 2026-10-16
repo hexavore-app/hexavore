@@ -73,6 +73,24 @@ data class Food(
      * que l'utilisateur a nommé lui-même.
      */
     val shortName: String? = null,
+    /**
+     * Les noms sous lesquels on demande cette fiche, **normalisés** — vide pour presque
+     * toutes.
+     *
+     * Le classement suppose que la fiche générique porte le nom le plus court de sa
+     * famille, et sur la table de l'ANSES c'est souvent faux : « Riz blanc, cru » est
+     * plus court que le riz cuit, « Café, moulu » que le café qu'on boit. Une table relue
+     * à la main donne « riz » au riz cuit et « café » au café prêt à boire, et
+     * `FoodRanking` pèse ces noms **comme le libellé** : un nom courant est un nom, pas
+     * une règle à côté ([D164][decisions]).
+     *
+     * Une propriété de la **référence**, relue par code comme [shortName] : vide pour un
+     * aliment personnel ou un produit scanné, que personne d'autre n'a nommé. Jamais
+     * affiché, et jamais figé dans une copie.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val commonNames: Set<String> = emptySet(),
     val brand: String? = null,
     /**
      * Le rayon, quand la fiche en a un.

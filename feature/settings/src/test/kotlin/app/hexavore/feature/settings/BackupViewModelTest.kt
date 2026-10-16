@@ -1,10 +1,8 @@
 package app.hexavore.feature.settings
 
 import app.hexavore.core.testing.FixedClock
+import app.hexavore.core.testing.InMemoryBackupTarget
 import app.hexavore.core.testing.InMemoryDishPhotos
-import app.hexavore.domain.backup.BackupFile
-import app.hexavore.domain.backup.BackupFileId
-import app.hexavore.domain.backup.BackupTarget
 import app.hexavore.domain.backup.Snapshot
 import app.hexavore.domain.backup.SnapshotArchive
 import app.hexavore.domain.backup.SnapshotCodec
@@ -16,6 +14,7 @@ import app.hexavore.domain.usecase.EraseEverything
 import app.hexavore.domain.usecase.ExportArchive
 import app.hexavore.domain.usecase.ExportBackup
 import app.hexavore.domain.usecase.RestoreArchive
+import app.hexavore.domain.usecase.UndoRestore
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -66,16 +65,17 @@ internal class BackupViewModelTest {
 
         override suspend fun read(source: InputStream): SnapshotRead = codec.decode(source.readBytes())
     }
+
+    /** La copie de sécurité d'avant restauration : celle qu'écrit la restauration et que relit le retour. */
+    private val securite = InMemoryBackupTarget()
+
     private val viewModel by lazy {
+        val createBackup = CreateBackup(ExportBackup(store, codec), horloge)
         BackupViewModel(
             exportArchive = ExportArchive(store, archive),
-            restoreArchive = RestoreArchive(
-                store = store,
-                archive = archive,
-                createBackup = CreateBackup(ExportBackup(store, codec), horloge),
-                safety = FakeTarget(),
-            ),
-            eraseEverything = EraseEverything(store, preferences, InMemoryDishPhotos()),
+            restoreArchive = RestoreArchive(store, archive, createBackup, securite),
+            undoRestore = UndoRestore(store, codec, createBackup, securite),
+            eraseEverything = EraseEverything(store, preferences, InMemoryDishPhotos(), securite),
             clock = horloge,
         )
     }
@@ -147,6 +147,48 @@ internal class BackupViewModelTest {
 
         assertEquals(PLEIN, store.content)
         assertEquals(BackupMessage.Restored(PLEIN.entryCount), viewModel.uiState.value.message)
+    }
+
+    // --- Revenir en arriere (D162) ----------------------------------------------------
+
+    @Test
+    fun `sans restauration, rien ne se propose a defaire`() = runTest {
+        assertNull(viewModel.uiState.value.undoSince)
+    }
+
+    @Test
+    fun `une restauration propose ensuite de revenir en arriere, datee`() = runTest {
+        // La boite de restauration le promettait, et aucun ecran ne l'offrait.
+        codec.read = SnapshotRead.Readable(PLEIN)
+
+        viewModel.onImport { FICHIER.inputStream() }
+
+        assertEquals(JOUR.atTime(12, 0), viewModel.uiState.value.undoSince, "a l'heure de l'horloge du domaine")
+    }
+
+    @Test
+    fun `revenir en arriere remet l etat d avant et le rapporte`() = runTest {
+        store.content = AUTRE
+        codec.read = SnapshotRead.Readable(PLEIN)
+        viewModel.onImport { FICHIER.inputStream() }
+        codec.read = SnapshotRead.Readable(AUTRE)
+
+        viewModel.onUndoRestore()
+
+        assertEquals(AUTRE, store.content)
+        assertEquals(BackupMessage.Undone(AUTRE.entryCount), viewModel.uiState.value.message)
+    }
+
+    @Test
+    fun `effacer retire aussi le retour en arriere`() = runTest {
+        // La copie est le journal entier : elle part avec le reste, et la carte avec elle.
+        codec.read = SnapshotRead.Readable(PLEIN)
+        viewModel.onImport { FICHIER.inputStream() }
+
+        viewModel.onErase()
+
+        assertNull(viewModel.uiState.value.undoSince)
+        assertTrue(securite.names.isEmpty())
     }
 
     @Test
@@ -243,18 +285,6 @@ internal class BackupViewModelTest {
         override suspend fun erase() {
             erasures++
         }
-    }
-
-    /** La copie de sécurité d'avant restauration, réduite à ne pas échouer. */
-    private class FakeTarget : BackupTarget {
-        override suspend fun list() = emptyList<BackupFile>()
-
-        override suspend fun write(bytes: ByteArray, at: Instant) =
-            BackupFile(BackupFileId("copie"), "copie", at, bytes.size.toLong())
-
-        override suspend fun read(id: BackupFileId): ByteArray? = null
-
-        override suspend fun delete(id: BackupFileId) = Unit
     }
 
     private companion object {

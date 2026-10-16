@@ -12,10 +12,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import app.hexavore.core.designsystem.component.BirthDateField
 import app.hexavore.core.designsystem.component.BodyWeightField
 import app.hexavore.core.designsystem.component.HeightFields
 import app.hexavore.core.designsystem.component.NeonChip
-import app.hexavore.core.designsystem.component.NeonDateField
+import app.hexavore.core.designsystem.component.heightProblem
+import app.hexavore.core.designsystem.component.targetProblem
+import app.hexavore.core.designsystem.component.weightProblem
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.domain.goal.GoalHorizon
 import app.hexavore.domain.goal.GoalStrategy
@@ -23,9 +26,11 @@ import app.hexavore.domain.profile.Sex
 import app.hexavore.domain.profile.UnitSystem
 import app.hexavore.domain.profile.WeeklySessions
 import app.hexavore.domain.profile.WorkActivity
+import app.hexavore.domain.profile.kilogramsToPounds
 import app.hexavore.domain.usecase.GoalPlan
 import java.time.LocalDate
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 /** Le formulaire, une fois le crayon ouvert. */
 @Composable
@@ -47,18 +52,23 @@ internal fun ProfileEditor(state: ProfileUiState, actions: ProfileActions) {
  * c'est elle qui entre dans le calcul, et la corriger est le geste le plus fréquent de
  * cet écran. Le corriger enregistre une pesée du jour — le laisser tel quel n'en invente
  * aucune, et l'écran le dit.
+ *
+ * **Les bornes sont celles de l'onboarding** ([D160][decisions]), écrites une fois dans
+ * le domaine et dites avec les mêmes phrases : un profil qu'on corrige ne doit pas
+ * accepter ce que les cinq questions ont refusé.
+ *
+ * [decisions]: docs/11-decisions.md
  */
 @Composable
 private fun YouSection(form: ProfileForm, today: LocalDate, units: UnitSystem, onForm: (ProfileForm) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
         SectionTitle(stringResource(R.string.profile_you_title))
 
-        NeonDateField(
+        BirthDateField(
             value = form.birthDate,
             onValueChange = { onForm(form.copy(birthDate = it)) },
             label = stringResource(R.string.profile_birth_date),
-            yearRange = (today.year - OLDEST_YEARS)..(today.year - YOUNGEST_YEARS),
-            latest = today,
+            today = today,
             modifier = Modifier.fillMaxWidth(),
         )
 
@@ -76,12 +86,14 @@ private fun YouSection(form: ProfileForm, today: LocalDate, units: UnitSystem, o
             units = units,
             label = stringResource(R.string.profile_height),
             onCentimetres = { onForm(form.copy(heightCm = it)) },
+            problem = heightProblem(form.heightCm, units),
         )
         BodyWeightField(
             kilograms = form.currentWeightKg,
             units = units,
             label = stringResource(R.string.profile_weight),
             onKilograms = { onForm(form.copy(currentWeightKg = it)) },
+            problem = weightProblem(form.currentWeightKg, form.heightCm, units),
         )
         Body(stringResource(R.string.profile_weight_note))
     }
@@ -159,6 +171,7 @@ private fun ObjectiveSection(
                 units = units,
                 label = stringResource(R.string.profile_target_weight),
                 onKilograms = { onForm(form.copy(targetWeightKg = it)) },
+                problem = targetProblem(form.targetProblem, units),
             )
 
             form.targetDate?.let { Body(stringResource(R.string.profile_horizon_current, it.formatLong())) }
@@ -167,14 +180,37 @@ private fun ObjectiveSection(
 
             // Le rythme et les garde-fous decrivent ce que le calcul ferait : en
             // saisie manuelle, ils annonceraient un objectif qui n'est pas celui
-            // qu'on enregistre.
-            if (plan != null && !form.manual) {
-                if (form.targetDate != null) Body(stringResource(R.string.profile_pace, abs(plan.weeklyWeightChangeKg)))
-                plan.reachableOn?.let { Body(stringResource(R.string.profile_capped, it.formatLong())) }
-                if (plan.carbsBelowMinimum) Body(stringResource(R.string.profile_carbs_low))
-            }
+            // qu'on enregistre. Sur un poids vise refuse non plus : ce serait le
+            // rythme d'un objectif qu'on ne pourra pas enregistrer (D160).
+            if (plan != null && !form.manual && form.targetProblem == null) PlanNotes(form, plan, units)
         }
     }
+}
+
+/**
+ * Ce que le calcul dit de l'objectif : son rythme, la date sûre, les glucides rognés.
+ *
+ * **Ou pourquoi il n'y a pas de rythme** : quand la dépense estimée est déjà sous le
+ * plancher calorique, aucun déficit ne tient ([D160][decisions]), et « 0,00 kg par
+ * semaine » sous « Perdre du poids » se lisait comme une panne.
+ *
+ * **Le rythme se dit dans le système choisi** ([D162][decisions]) : il s'annonçait en
+ * kilos sous un poids visé saisi en livres.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+@Composable
+private fun PlanNotes(form: ProfileForm, plan: GoalPlan, units: UnitSystem) {
+    val floor = plan.withholdingFloorKcal
+    val pace = abs(plan.weeklyWeightChangeKg)
+    when {
+        floor != null -> Body(stringResource(R.string.profile_no_deficit, plan.tdee.roundToInt(), floor.roundToInt()))
+        form.targetDate == null -> Unit
+        units == UnitSystem.IMPERIAL -> Body(stringResource(R.string.profile_pace_pounds, kilogramsToPounds(pace)))
+        else -> Body(stringResource(R.string.profile_pace, pace))
+    }
+    plan.reachableOn?.let { Body(stringResource(R.string.profile_capped, it.formatLong())) }
+    if (plan.carbsBelowMinimum) Body(stringResource(R.string.profile_carbs_low))
 }
 
 @Composable
@@ -189,8 +225,9 @@ private fun Horizons(form: ProfileForm, today: LocalDate, plan: GoalPlan?, onFor
         )
     }
     // La date que les garde-fous ont calculee, quand ils ont mordu. Elle ne
-    // correspond a aucune des trois, donc elle merite sa propre pastille.
-    if (!form.manual) {
+    // correspond a aucune des trois, donc elle merite sa propre pastille -- sauf pour
+    // un poids vise refuse, dont elle serait la date impossible (D160).
+    if (!form.manual && form.targetProblem == null) {
         plan?.reachableOn?.let { date ->
             NeonChip(
                 label = stringResource(R.string.profile_horizon_reachable, date.formatLong()),
@@ -239,7 +276,3 @@ private fun <T> ChoiceColumn(options: List<T>, selected: T?, label: @Composable 
         }
     }
 }
-
-/** Bornes de la grille des années, en années révolues avant aujourd'hui. */
-private const val OLDEST_YEARS = 110
-private const val YOUNGEST_YEARS = 13

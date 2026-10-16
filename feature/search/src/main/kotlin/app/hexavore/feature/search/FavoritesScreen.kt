@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.DropdownMenu
@@ -82,6 +83,9 @@ internal fun FavoritesScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                // Comme la recherche, sa voisine : sans cela, le titre passait sous
+                // l'heure et « Retour » sous la barre de geste (D163).
+                .safeDrawingPadding()
                 .padding(horizontal = Spacing.screenMargin),
             verticalArrangement = Arrangement.spacedBy(Spacing.md),
         ) {

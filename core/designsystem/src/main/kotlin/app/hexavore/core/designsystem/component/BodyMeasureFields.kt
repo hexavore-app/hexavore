@@ -1,10 +1,20 @@
 package app.hexavore.core.designsystem.component
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import app.hexavore.core.designsystem.R
@@ -30,6 +40,9 @@ import kotlin.math.roundToInt
  * une valeur que si quelqu'un a frappé une touche, et un profil qu'on ouvre puis referme
  * ressort avec le chiffre exact qui y était.
  *
+ * **Ce qui ne va pas se dit sous le champ** ([D160][decisions]) : [problem] le colore et
+ * écrit la plage attendue, en chiffres et dans le système choisi.
+ *
  * [decisions]: docs/11-decisions.md
  */
 @Composable
@@ -39,15 +52,19 @@ fun BodyWeightField(
     label: String,
     onKilograms: (Double?) -> Unit,
     modifier: Modifier = Modifier,
+    problem: FieldProblem? = null,
 ) {
     val imperial = units == UnitSystem.IMPERIAL
 
-    NumberField(
-        value = kilograms?.let { if (imperial) kilogramsToPounds(it).rounded() else it },
-        label = measureLabel(label, if (imperial) R.string.ds_unit_pound else R.string.ds_unit_kg),
-        onValueChange = { saisi -> onKilograms(saisi?.let { if (imperial) poundsToKilograms(it) else it }) },
-        modifier = modifier,
-    )
+    Checked(problem = problem, modifier = modifier) { flagged ->
+        NumberField(
+            value = kilograms?.let { if (imperial) kilogramsToPounds(it).rounded() else it },
+            label = measureLabel(label, if (imperial) R.string.ds_unit_pound else R.string.ds_unit_kg),
+            onValueChange = { saisi -> onKilograms(saisi?.let { if (imperial) poundsToKilograms(it) else it }) },
+            modifier = Modifier,
+            isError = flagged,
+        )
+    }
 }
 
 /**
@@ -64,32 +81,86 @@ fun HeightFields(
     label: String,
     onCentimetres: (Double?) -> Unit,
     modifier: Modifier = Modifier,
+    problem: FieldProblem? = null,
 ) {
-    if (units == UnitSystem.METRIC) {
-        NumberField(
-            value = centimetres,
-            label = measureLabel(label, R.string.ds_unit_cm),
-            onValueChange = onCentimetres,
-            modifier = modifier,
-        )
-        return
+    Checked(problem = problem, modifier = modifier) { flagged ->
+        if (units == UnitSystem.METRIC) {
+            NumberField(
+                value = centimetres,
+                label = measureLabel(label, R.string.ds_unit_cm),
+                onValueChange = onCentimetres,
+                modifier = Modifier,
+                isError = flagged,
+            )
+        } else {
+            FeetAndInchesFields(centimetres, label, onCentimetres, flagged)
+        }
     }
+}
 
+/** Les deux champs de l'impérial, qui se relisent ensemble. */
+@Composable
+private fun FeetAndInchesFields(
+    centimetres: Double?,
+    label: String,
+    onCentimetres: (Double?) -> Unit,
+    flagged: Boolean,
+) {
     val taille = centimetres?.let { centimetresToFeetAndInches(it) }
 
-    Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
         NumberField(
             value = taille?.feet?.toDouble(),
             label = measureLabel(label, R.string.ds_unit_feet),
             onValueChange = { pieds -> onCentimetres(joined(pieds, taille?.inches?.toDouble())) },
             modifier = Modifier.weight(1f),
+            isError = flagged,
         )
         NumberField(
             value = taille?.inches?.toDouble(),
             label = measureLabel(label, R.string.ds_unit_inches),
             onValueChange = { pouces -> onCentimetres(joined(taille?.feet?.toDouble(), pouces)) },
             modifier = Modifier.weight(1f),
+            isError = flagged,
         )
+    }
+}
+
+/**
+ * Ce qu'un champ de mesure a à dire de sa valeur.
+ *
+ * @property settled `true` quand **aucune frappe de plus** ne fera rentrer la valeur dans
+ *   sa plage : « 999 » ne redescendra pas en ajoutant un chiffre, et le message se dit
+ *   aussitôt. `false` quand elle n'est peut-être que le début d'une valeur juste —
+ *   « 17 » avant « 175 » — : il attend alors qu'on quitte le champ, faute de quoi chaque
+ *   première frappe allumerait un rouge qui n'a rien à dire.
+ */
+@Immutable
+data class FieldProblem(val text: String, val settled: Boolean)
+
+/**
+ * Un champ, et ce qui ne va pas dedans, **dit au bon moment**.
+ *
+ * Le moment est celui de [FieldProblem.settled] : tout de suite pour ce qu'aucune frappe
+ * ne corrigera, à la sortie du champ pour le reste. Le focus se lit sur la colonne et non
+ * sur un champ, parce que la taille en impérial en compte deux : passer des pieds aux
+ * pouces n'est pas quitter la taille.
+ */
+@Composable
+private fun Checked(problem: FieldProblem?, modifier: Modifier, field: @Composable (flagged: Boolean) -> Unit) {
+    var typing by remember { mutableStateOf(false) }
+    val shown = problem?.takeIf { it.settled || !typing }
+
+    Column(modifier = modifier.fillMaxWidth().onFocusChanged { typing = it.hasFocus }) {
+        field(shown != null)
+        shown?.let {
+            Text(
+                text = it.text,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(start = Spacing.md, top = Spacing.xs),
+            )
+        }
     }
 }
 
@@ -118,7 +189,13 @@ private fun joined(feet: Double?, inches: Double?): Double? = when {
  * [decisions]: docs/11-decisions.md
  */
 @Composable
-private fun NumberField(value: Double?, label: String, onValueChange: (Double?) -> Unit, modifier: Modifier) {
+private fun NumberField(
+    value: Double?,
+    label: String,
+    onValueChange: (Double?) -> Unit,
+    modifier: Modifier,
+    isError: Boolean,
+) {
     DraftTextField(
         initial = value?.let { formatted(it) }.orEmpty(),
         onValueChange = { text -> onValueChange(text.replace(',', '.').toDoubleOrNull()) },
@@ -126,6 +203,7 @@ private fun NumberField(value: Double?, label: String, onValueChange: (Double?) 
         keyboardType = KeyboardType.Decimal,
         accept = { it.isNumberField() },
         modifier = modifier.fillMaxWidth(),
+        isError = isError,
     )
 }
 

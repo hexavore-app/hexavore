@@ -224,6 +224,8 @@ Un favori référence des aliments **vivants** : « mes flocons du matin » doit
 
 **Mais les six valeurs sont enregistrées quand même** ([D62](11-decisions.md)). Une ligne tapée à la main n'a pas de fiche derrière elle, et une fiche citée peut être supprimée : elles servent de contenu dans le premier cas, de repli dans le second. Sans elles, un favori pourrait rejouer une ligne sans le moindre chiffre.
 
+**`display_name` est un repli, pas ce que les listes montrent** ([D167](11-decisions.md)). Il fige le nom le jour de l'enregistrement, et les deux listes de favoris l'affichaient tel quel quand l'éditeur relisait la fiche : après un changement de langue, le même plat se lisait en anglais d'un côté et en français de l'autre. Les listes relisent la fiche, comme le rejeu — son titre court s'il existe, sinon son libellé ; le nom figé ne sert plus qu'à une ligne tapée à la main, à une fiche supprimée depuis, ou à une lecture qui échoue.
+
 `dish.favorite_id` relie un plat du journal au favori dont il a été rejoué, en `SET NULL`. C'est lui qui rallume l'étoile en rouvrant un plat, et il **tombe dès qu'une ligne est modifiée** : le plat n'est plus celui que le favori décrit.
 
 ### `progress` et `unlocked_badge`
@@ -269,9 +271,7 @@ Les préférences utilisateur vont dans DataStore, pas ici. Cette table ne conti
 
 ```sql
 CREATE TABLE ciqual_food (
-    rowid INTEGER PRIMARY KEY, code TEXT NOT NULL UNIQUE,
-    name TEXT NOT NULL, name_search TEXT NOT NULL,
-    short_name TEXT, group_name TEXT, category TEXT,
+    rowid INTEGER PRIMARY KEY, code TEXT NOT NULL UNIQUE, category TEXT,
     kcal_100 REAL, protein_100 REAL, carb_100 REAL,
     sugar_100 REAL, fat_100 REAL, fiber_100 REAL,
     saturated_fat_100 REAL, salt_100 REAL,
@@ -280,12 +280,25 @@ CREATE TABLE ciqual_food (
     sugar_100_est REAL, fat_100_est REAL, fiber_100_est REAL
 );
 CREATE INDEX index_ciqual_food_category ON ciqual_food(category);
+-- Une ligne par aliment et par langue.
+CREATE TABLE ciqual_name (
+    rowid INTEGER PRIMARY KEY, code TEXT NOT NULL, language TEXT NOT NULL,
+    name TEXT NOT NULL, name_search TEXT NOT NULL,
+    short_name TEXT, group_name TEXT,
+    -- Les noms courants, normalisés et séparés par `|` ; NULL sans nom (D164).
+    common_names TEXT
+);
+CREATE UNIQUE INDEX index_ciqual_name_code_language ON ciqual_name(code, language);
+-- Le document indexé est name_search suivi des noms courants ; docid = rowid de ciqual_name.
 CREATE VIRTUAL TABLE ciqual_fts USING fts4(name_search, content="", tokenize=simple);
 CREATE TABLE ciqual_serving (
-    code TEXT NOT NULL, label TEXT NOT NULL, grams REAL NOT NULL, is_default INTEGER NOT NULL
+    code TEXT NOT NULL, language TEXT NOT NULL,
+    label TEXT NOT NULL, grams REAL NOT NULL, is_default INTEGER NOT NULL
 );
-CREATE INDEX index_ciqual_serving_code ON ciqual_serving(code);
+CREATE INDEX index_ciqual_serving_code ON ciqual_serving(code, language);
 ```
+
+Ce bloc montrait encore les libellés dans `ciqual_food`, comme avant que la table ne devienne bilingue ([D129](11-decisions.md#d129--langlais-est-le-repli-le-français-une-traduction-et-la-langue-est-une-donnée---validée)) ; il est remis d'accord avec `CiqualDatabaseWriter` par [D164](11-decisions.md#d164--la-forme-quon-mange--une-table-de-noms-courants---validée).
 
 Trois écarts avec ce qui était prévu, tous documentés en [D49](11-decisions.md) :
 
@@ -293,7 +306,7 @@ Trois écarts avec ce qui était prévu, tous documentés en [D49](11-decisions.
 - **L'index est sans contenu.** On n'en attend qu'un `docid`, que `rowid` relie au catalogue. Le `rowid` est donc attribué explicitement des deux côtés : le laisser à SQTLite marcherait par coïncidence.
 - **Pas de colonne `density`.** CIQUAL ne la publie pas, et rien ne la calcule avant le résolveur de la tranche 6. Une colonne que rien ne remplit n'est pas une préparation. Cette base n'étant jamais migrée mais remplacée en bloc, l'ajouter le jour venu ne coûte rien.
 
-Des colonnes se sont ajoutées depuis, et **aucune n'est copiée dans `food`** : `category`, le rayon du bandeau de recherche ([D54](11-decisions.md)), `short_name`, le titre court ([D88](11-decisions.md#d88--le-titre-court-se-fabrique-hors-de-lapplication-et-il-ne-touche-jamais-au-libellé---validée)), et les six `*_est`, les teneurs complétées ([D89](11-decisions.md#d89--une-valeur-complétée-ne-se-range-pas-où-une-valeur-mesurée-se-range---validée)). Ce sont des propriétés de la **référence** et non de la copie : les stocker dans `food` figerait la valeur du jour où la fiche a été copiée, et les corriger n'atteindrait jamais celles qu'on utilise déjà. Elles se relisent ici, par code, en un seul lot.
+Des colonnes se sont ajoutées depuis, et **aucune n'est copiée dans `food`** : `category`, le rayon du bandeau de recherche ([D54](11-decisions.md)), `short_name`, le titre court ([D88](11-decisions.md#d88--le-titre-court-se-fabrique-hors-de-lapplication-et-il-ne-touche-jamais-au-libellé---validée)), les six `*_est`, les teneurs complétées ([D89](11-decisions.md#d89--une-valeur-complétée-ne-se-range-pas-où-une-valeur-mesurée-se-range---validée)), et `common_names`, les noms courants ([D164](11-decisions.md#d164--la-forme-quon-mange--une-table-de-noms-courants---validée)) — ceux sous lesquels on demande la forme qu'on mange, que le classement pèse comme le libellé et que l'index plein texte reçoit à sa suite. Ce sont des propriétés de la **référence** et non de la copie : les stocker dans `food` figerait la valeur du jour où la fiche a été copiée, et les corriger n'atteindrait jamais celles qu'on utilise déjà. Elles se relisent ici, par code, en un seul lot.
 
 **Les six colonnes de complétion sont distinctes des six mesures, et c'est la règle qui commande toute la seconde passe.** Mêlées, un nouvel import de la table de l'ANSES écraserait les complétions — ou pire, les prendrait pour des mesures. La lecture préfère toujours l'originale, et `Food.estimated` retient laquelle a servi.
 

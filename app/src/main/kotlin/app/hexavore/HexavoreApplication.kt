@@ -9,6 +9,7 @@ import app.hexavore.domain.language.LanguageSettings
 import app.hexavore.domain.reminder.PostedReminders
 import app.hexavore.domain.reminder.ReminderScheduler
 import app.hexavore.domain.reminder.ReminderSettings
+import app.hexavore.domain.time.Clock
 import app.hexavore.domain.usecase.SweepDishPhotos
 import app.hexavore.integration.reports.FileCrashReports
 import dagger.hilt.android.HiltAndroidApp
@@ -54,6 +55,11 @@ class HexavoreApplication :
     @Inject
     lateinit var crashes: FileCrashReports
 
+    // L'instant du lancement, pour le balayage des prises : une photo qu'Android a
+    // laissee en cours en tuant le processus ne se balaie pas (D163).
+    @Inject
+    lateinit var clock: Clock
+
     /**
      * La fabrique de travailleurs, pour que `WorkManager` passe par Hilt.
      *
@@ -70,7 +76,8 @@ class HexavoreApplication :
      * Le premier vide le **cache de capture** : une photo en route vers un modèle est
      * supprimée dès qu'elle est lue, dans un `finally`, et ce balayage couvre le cas
      * anormal où le processus est tué entre le déclencheur et la lecture
-     * ([docs/05][ia]).
+     * ([docs/05][ia]) — **sauf la prise récente**, que ce lancement est peut-être
+     * justement venu rendre à l'écran qui l'attend (D163).
      *
      * Le second retire les **photos de plats qui n'existent plus**. Une photo survit à
      * la suppression de son plat le temps que la barre d'annulation soit passée, et à
@@ -114,7 +121,7 @@ class HexavoreApplication :
         catchCrashes()
         languages.restore()
         CoroutineScope(SupervisorJob() + dispatchers.io).launch {
-            sweepCapturePhotos(this@HexavoreApplication)
+            sweepCapturePhotos(this@HexavoreApplication, clock.now())
             sweepPhotos()
             // Les rappels se reposent a chaque lancement. C'est ce qui les fait
             // survivre a un redemarrage du telephone : `WorkManager` garde ses

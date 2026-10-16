@@ -109,6 +109,18 @@ class SuggestGoalAdjustmentTest {
         assertNull(suggest().first())
     }
 
+    @Test
+    fun `un garde-fou ne retourne jamais la correction`() = runTest {
+        // L'objectif a ete pose sur la borne des 25 % quand la depense etait un peu
+        // plus basse, et la borne a monte depuis avec le poids du jour. On perd moins
+        // que prevu -- il faudrait manger moins --, et le garde-fou ramenait l'objectif
+        // sur sa borne : « augmenter l'objectif de 14 kcal ». Il peut annuler une
+        // correction, jamais l'inverser (D163).
+        decor(kcal = SOUS_LA_BORNE_DU_JOUR)
+
+        assertNull(suggest().first(), "proposer de manger plus a qui ne perd pas assez")
+    }
+
     // --- Adherence ---------------------------------------------------------------
 
     @Test
@@ -340,6 +352,9 @@ class SuggestGoalAdjustmentTest {
         const val LOIN_DU_GARDE_FOU = 2400.0
         const val SOUS_LE_GARDE_FOU = 2200.0
         const val SUR_LE_GARDE_FOU = 2164.0
+
+        /** Sous la borne d'aujourd'hui : là où elle était quand la dépense valait ≈ 2 867 kcal. */
+        const val SOUS_LA_BORNE_DU_JOUR = 2150.0
 
         val PROFIL = UserProfile(
             birthDate = LocalDate.of(1991, 3, 4),

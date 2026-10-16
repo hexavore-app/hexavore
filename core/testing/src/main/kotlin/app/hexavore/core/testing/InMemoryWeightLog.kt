@@ -5,6 +5,7 @@ import app.hexavore.domain.profile.WeightLog
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
+import java.time.LocalDate
 
 /**
  * Le journal de poids, en mémoire.
@@ -39,6 +40,10 @@ class InMemoryWeightLog(initial: List<WeightEntry> = emptyList()) : WeightLog {
     /** Une pesée par jour : celle du jour est retirée avant que la neuve entre. */
     override suspend fun record(entry: WeightEntry) {
         state.value = (state.value.filterNot { it.date == entry.date } + entry).recentesDAbord()
+    }
+
+    override suspend fun delete(date: LocalDate) {
+        state.value = state.value.filterNot { it.date == date }
     }
 }
 

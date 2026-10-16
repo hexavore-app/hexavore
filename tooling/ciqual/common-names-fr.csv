@@ -1,0 +1,127 @@
+# Noms courants, associes a un code CIQUAL.
+#
+# Le classement de la recherche suppose que la fiche generique porte le nom le
+# plus court de sa famille. Sur CIQUAL, c'est souvent faux : « Riz blanc, cru »
+# est plus court que « Riz blanc, cuit, sans sel ajoute », « Cafe, moulu » que
+# le cafe qu'on boit, « Huile d'avocat » que l'avocat. Rien dans un libelle ne
+# dit laquelle est la forme qu'on mange ; cette table le dit.
+#
+# Un nom courant **est un nom** : il entre dans l'index plein texte avec le
+# libelle, et il est pese par le meme score (D74, D164). Taper « riz » trouve
+# alors une fiche dont c'est le nom exact, et l'IA, qui ecrit « riz », la prend.
+#
+# Une ligne par nom, plusieurs noms possibles pour un code. Ecrit a la main,
+# relu a la main : les accents sont permis, la comparaison se fait sur la forme
+# normalisee (SearchText). L'import s'arrete en nommant la ligne si le code
+# n'existe pas, si le nom est vide, si un meme nom designe deux fiches, ou si le
+# nom est deja le libelle d'une fiche -- d'une autre (elles seraient a egalite)
+# ou de la sienne (il ne servirait a rien).
+#
+# Changer ce fichier demande d'incrementer `CiqualDatabase.REVISION`.
+#
+# --- Les arbitrages ------------------------------------------------------------
+#
+# La forme qu'on mange, pas celle qu'on achete : cuit pour le riz, les pates,
+# les legumineuses, le quinoa, la semoule, les legumes servis chauds ; pret a
+# boire pour le cafe et le the. Quand cuit et cru se valent a quelques calories
+# pres (carotte, courgette, oeuf), la forme qu'on trouve dans une assiette.
+#
+# « poulet » est le filet grille : c'est le morceau qu'on pese et qu'on note le
+# plus. « oeuf » est l'oeuf dur, de memes teneurs que l'oeuf cru a 5 % pres.
+# « lait » est le demi-ecreme, le lait le plus vendu. « couscous » n'a pas de nom
+# courant : en francais, c'est le plat, et la table en a sept.
+
+code_ciqual,nom_courant
+2070,jus d'orange
+4004,chips
+4032,frites
+4047,purée
+4048,pomme de terre
+4048,pommes de terre
+5001,bière
+5210,vin
+6200,steak
+6200,boeuf
+6259,steak haché
+6999,viande
+7000,pain
+7001,baguette
+7200,pain de mie
+9103,riz complet
+9104,riz
+9104,riz blanc
+9125,riz basmati
+9341,quinoa
+9683,semoule
+9811,pâtes
+9811,spaghetti
+10007,crevettes
+10007,crevette
+12999,fromage
+13002,ananas
+13004,avocat
+13005,banane
+13014,fraises
+13025,mangue
+13034,orange
+13037,poire
+13039,pomme
+13212,compote
+13395,raisin
+16400,beurre
+17001,huile
+18004,café
+18004,café noir
+18018,coca
+18018,cola
+18018,soda
+18020,thé
+18066,eau
+19041,lait
+19410,crème fraîche
+19501,fromage blanc
+19593,yaourt
+19999,poivron
+19999,poivrons
+20021,courgette
+20021,courgettes
+20027,épinards
+20030,haricots verts
+20030,haricot vert
+20037,petits pois
+20125,champignons
+20125,champignon
+20351,brocoli
+20353,carotte
+20353,carottes
+20360,lentilles
+20360,lentille
+20385,tomate
+20503,haricots rouges
+20507,pois chiches
+20507,pois chiche
+20904,tofu
+22010,oeuf
+22500,omelette
+25516,pizza
+25604,salade
+25604,salade verte
+25969,soupe
+25996,saumon
+26034,sardines
+26034,sardine
+26039,thon
+26140,poisson
+28205,porc
+28725,lardons
+28910,jambon
+28910,jambon blanc
+30780,saucisse
+31006,confiture
+31016,sucre
+31120,chocolat
+32003,céréales
+36018,poulet
+36018,blanc de poulet
+36306,dinde
+39515,glace

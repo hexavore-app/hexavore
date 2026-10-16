@@ -190,8 +190,13 @@ private fun CiqualDatabase.results(
     // Une qualite demandee ecarte la table de l'ANSES : une ligne qui n'a pas ete
     // versee au catalogue n'est ni personnelle ni epinglee.
     val proposed =
-        if (filter.traits.isEmpty()) notYetCopied(local, normalised, filter, limit, ids, language) else emptyList()
-    return FoodRanking.sort(local + proposed, query).take(limit)
+        if (filter.traits.isEmpty()) notYetCopied(local, normalised, filter, limit, language) else emptyList()
+    // **Classer, puis couper, puis habiller** -- dans cet ordre et dans aucun autre
+    // (D161). Couper avant de classer laissait l'ordre de l'index choisir ce que le
+    // classement verrait.
+    return FoodRanking.sort(local + proposed, query)
+        .take(limit)
+        .map { food -> dressed(food, ids, language) }
 }
 
 /**
@@ -200,10 +205,15 @@ private fun CiqualDatabase.results(
  * Hors de la classe pour la même raison que [servingsOf] plus bas : c'est une lecture
  * de la base embarquée, pas une des six capacités que le catalogue expose.
  *
- * Chaque ligne non copiée reçoit un identifiant **provisoire**, régénéré à chaque
- * appel. Il ne désigne rien tant que [FoodStore.place] n'a pas été appelé, et c'est
- * volontaire : copier les 3 484 lignes à l'installation gonflerait la base, les
- * sauvegardes et la recherche avec 99 % de contenu jamais utilisé ([D51][decisions]).
+ * **Toutes les correspondances**, et non les [limit] premières : c'est le classement qui
+ * choisit, donc il doit les voir toutes ([D161][decisions]). Seul le mode parcours —
+ * un rayon, aucun mot — reste borné en SQL, parce qu'il y est déjà trié comme le
+ * classement le trierait.
+ *
+ * Chaque ligne n'y porte qu'un identifiant **d'attente** et aucune portion : les
+ * habiller toutes coûterait une requête de portions par correspondance, un millier
+ * sur un préfixe de deux lettres, pour en garder trente. [dressed] s'en charge après
+ * la coupe.
  *
  * [decisions]: docs/11-decisions.md
  */
@@ -212,15 +222,49 @@ private fun CiqualDatabase.notYetCopied(
     normalised: String,
     filter: FoodFilter,
     limit: Int,
-    ids: IdGenerator,
     language: ContentLanguage,
 ): List<Food> {
     val alreadyCopied = local.mapNotNullTo(mutableSetOf()) { it.sourceRef.takeIf { _ -> it.isFromCiqual } }
+    val categories = filter.categories.mapTo(mutableSetOf()) { it.name }
+    val rows = if (normalised.isBlank()) {
+        browse(categories, limit, language.tag)
+    } else {
+        search(normalised, categories, language.tag)
+    }
 
-    return search(normalised, filter.categories.mapTo(mutableSetOf()) { it.name }, limit, language.tag)
+    return rows
         .filterNot { it.code in alreadyCopied }
-        .map { row -> row.toDomain(FoodId(ids.next()), servings(row.code, language.tag)) }
+        .map { row -> row.toDomain(FoodId(PENDING + row.code), servings = emptyList()) }
 }
+
+/**
+ * Ce qu'il manquait à une ligne de l'ANSES retenue par le classement pour être choisie.
+ *
+ * Un identifiant **provisoire**, régénéré à chaque appel. Il ne désigne rien tant que
+ * [FoodStore.place] n'a pas été appelé, et c'est volontaire : copier les 3 484 lignes
+ * à l'installation gonflerait la base, les sauvegardes et la recherche avec 99 % de
+ * contenu jamais utilisé ([D51][decisions]). Et ses portions, qui ne se lisent qu'ici,
+ * pour les seules lignes qui s'afficheront.
+ *
+ * Une fiche du catalogue local passe telle quelle : elle a déjà les deux.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+private fun CiqualDatabase.dressed(food: Food, ids: IdGenerator, language: ContentLanguage): Food =
+    if (food.id.value.startsWith(PENDING)) {
+        food.copy(id = FoodId(ids.next()), servings = servingsOf(food.source.name, food.sourceRef, language))
+    } else {
+        food
+    }
+
+/**
+ * Le préfixe d'un identifiant d'attente, le temps du classement.
+ *
+ * Il ne quitte jamais ce fichier : [dressed] le remplace avant que la liste ne soit
+ * rendue. Le code de l'ANSES qui le suit suffit à rendre chaque ligne distincte pendant
+ * le tri, sans consommer d'identifiants pour mille lignes dont trente seront gardées.
+ */
+private const val PENDING = "ciqual-en-attente:"
 
 /**
  * Le rayon et le titre court des fiches copiées, relus dans la table de l'ANSES.

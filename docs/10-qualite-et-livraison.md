@@ -308,16 +308,11 @@ Les clés de signature sont des secrets de dépôt. Le trousseau n'est **jamais*
 
 ## Variantes de build
 
-Deux `productFlavors` sur la dimension `distribution`, parce que le règlement du Play Store interdit les liens de don externes pour un développeur qui n'est pas une association reconnue.
+~~Deux `productFlavors` sur la dimension `distribution`, parce que le règlement du Play Store interdit les liens de don externes pour un développeur qui n'est pas une association reconnue.~~
 
-| | `github` | `play` |
-|---|---|---|
-| Lien de don | affiché | absent du binaire |
-| Vérification de mise à jour | comparaison à la dernière release GitHub | déléguée au Play Store |
-| Sauvegarde Drive | oui | oui |
-| Identifiant applicatif | identique | identique |
+~~Un tableau `github` / `play` : lien de don, vérification de mise à jour, sauvegarde Drive, identifiant applicatif. Le lien de don absent du binaire `play` par une implémentation différente de `DonationLinkProvider`.~~
 
-Le lien de don n'est pas masqué à l'exécution : il est absent de la variante `play`, via une implémentation différente de `DonationLinkProvider`. Un contenu simplement caché reste dans l'APK et reste détectable lors de l'examen.
+**Aucune variante de distribution n'existe** ([D168](11-decisions.md)) : un seul binaire, celui que le Play Store distribue. Rien de ce qui les justifiait n'a été écrit — ni lien de don, ni vérification de mise à jour, et l'application ne contacte rien au démarrage, ce que sa politique de confidentialité promet —, et la sauvegarde Drive est repoussée ([09](09-donnees-et-sauvegarde.md)). Si un lien de don arrive un jour, la règle tient toujours : absent du binaire publié, et non masqué à l'exécution, parce qu'un contenu caché reste dans l'APK et reste détectable à l'examen.
 
 Types de build : `debug` (journalisation détaillée, suffixe `.debug` pour cohabiter), `release` (R8 avec réduction de ressources, journalisation neutralisée).
 
@@ -360,11 +355,9 @@ L'identifiant ne mentionne ni pseudonyme, ni hébergeur : il survit à un change
 
 ## Versionnement
 
-**SemVer** pour le nom (`1.4.2`), `versionCode` entier strictement croissant, calculé depuis le tag Git.
+**SemVer** pour le nom (`1.4.2`), `versionCode` entier strictement croissant, ~~calculé depuis le tag Git~~ **écrits tous deux à la main dans `gradle/libs.versions.toml`**, chaque montée de code commentée ([D168](11-decisions.md)). Un code téléversé ne se reprend jamais, même sur une release supprimée : la Console refuse tout bundle qui ne monte pas, et le commentaire dit pourquoi chaque numéro est parti. La première version de production est la **1.0.0, code 8**.
 
-`CHANGELOG.md` au format Keep a Changelog, rédigé pour des utilisateurs et non pour des développeurs : *« Le scan reconnaît maintenant les codes-barres à 8 chiffres »*, pas *« refactor du BarcodeAnalyzer »*.
-
-Les notes du Play Store sont générées depuis le changelog via les métadonnées Fastlane, versionnées dans `fastlane/metadata/android/{fr-FR,en-US}/`.
+~~`CHANGELOG.md` au format Keep a Changelog~~ ~~Les notes du Play Store sont générées depuis le changelog via les métadonnées Fastlane, versionnées dans `fastlane/metadata/android/{fr-FR,en-US}/`.~~ **Ni `CHANGELOG.md` ni Fastlane n'existent** ([D168](11-decisions.md)). Les notes de version vivent dans [`tooling/fiche/fiche-play-store.md`](../tooling/fiche/fiche-play-store.md), dans les deux langues, à côté de la fiche qu'elles accompagnent, et se collent dans la Console. La règle d'écriture reste : pour des utilisateurs et non pour des développeurs — *« Le scan reconnaît maintenant les codes-barres à 8 chiffres »*, pas *« refactor du BarcodeAnalyzer »*. Le détail de chaque version est dans les décisions.
 
 ---
 
@@ -380,11 +373,11 @@ Ordre choisi pour qu'une version utilisable existe le plus tôt possible, et que
 | **0.4** | Calendrier étendu, journée passée, journal de poids, adaptation hebdomadaire | Le suivi dans la durée |
 | **0.5** | Sauvegarde Drive, export/import, chiffrement optionnel | Les données deviennent sûres |
 | **0.7** | Barre d'ajout, progression, rappels — l'*Addictive update* ([D131](11-decisions.md) à [D135](11-decisions.md)) | Noter un repas tient en deux gestes, et quelque chose ramène le lendemain |
-| **1.0** | Accessibilité, ~~traduction anglaise~~ *(livrée, [D129](11-decisions.md#d129--langlais-est-le-repli-le-français-une-traduction-et-la-langue-est-une-donnée---validée))*, tests d'image, `LICENSE`, `CONTRIBUTING` | Application finie, distribuée en APK via GitHub Releases |
+| **1.0** | Accessibilité, ~~traduction anglaise~~ *(livrée, [D129](11-decisions.md#d129--langlais-est-le-repli-le-français-une-traduction-et-la-langue-est-une-donnée---validée))*, tests d'image, `LICENSE`, `CONTRIBUTING` | Application finie, ~~distribuée en APK via GitHub Releases~~ **destinée à la production du Play Store** ([D168](11-decisions.md)). Partie sans tests d'image ni `CONTRIBUTING.md`, qui restent à faire ; `LICENSE` est là |
 | **1.1** | Widget, favoris avancés, contribution à Open Food Facts | |
-| **Play** | Domaine, politique de confidentialité, formulaire Data Safety, compte développeur, 12 testeurs pendant 14 jours | Étape distincte et facultative, déclenchée quand l'application le mérite — voir D14 dans [11](11-decisions.md) |
+| **Play** | Domaine, politique de confidentialité, formulaire Data Safety, compte développeur, 12 testeurs pendant 14 jours | Étape distincte et facultative, déclenchée quand l'application le mérite — voir D14 dans [11](11-decisions.md). **Faite** : test fermé terminé, formulaires remplis ; la 1.0.0 est la première version destinée à la production ([D168](11-decisions.md)) |
 
-La publication sur le Play Store est délibérément sortie de la 1.0 : elle dépend d'un domaine, d'un compte payant et d'un recrutement de testeurs, c'est-à-dire de trois choses qui n'ont rien à voir avec la qualité du logiciel. Une 1.0 distribuée en APK est une vraie 1.0.
+~~La publication sur le Play Store est délibérément sortie de la 1.0 : elle dépend d'un domaine, d'un compte payant et d'un recrutement de testeurs, c'est-à-dire de trois choses qui n'ont rien à voir avec la qualité du logiciel. Une 1.0 distribuée en APK est une vraie 1.0.~~ **La publication a rattrapé la 1.0** ([D168](11-decisions.md)) : le domaine, le compte et le test fermé sont venus avant elle, et la 1.0.0 est la première version de production. Aucun APK n'est publié ailleurs.
 
 La 0.1 contient déjà le design system complet. Repousser le style à la fin d'un projet « néon » revient à ne jamais le faire, et à découvrir trop tard que la structure des écrans ne s'y prête pas.
 
@@ -392,12 +385,12 @@ La 0.1 contient déjà le design system complet. Repousser le style à la fin d'
 
 ## Contribution
 
-`CONTRIBUTING.md` couvre :
+`CONTRIBUTING.md` ~~couvre~~ **n'existe pas encore** ([D168](11-decisions.md)) ; il devra couvrir :
 
-- Comment construire le projet (JDK 17, Android Studio, `./gradlew assembleGithubDebug`).
+- Comment construire le projet (JDK 17, Android Studio, `./gradlew assembleDebug`).
 - La règle des dépendances : `:domain` reste pur, tout PR qui y ajoute une dépendance Android est refusé sans discussion.
 - La table des portions (`servings.csv`) comme point d'entrée pour contribuer sans écrire de Kotlin — c'est le fichier le plus utile et le plus accessible du dépôt.
-- Format des messages de commit : Conventional Commits, qui alimente le changelog.
+- Format des messages de commit : Conventional Commits~~, qui alimente le changelog~~ — il n'y a pas de changelog.
 - Ce qui ne sera pas accepté : SDK d'analytics, dépendance à un service payant, collecte de données, fonctionnalité exigeant un serveur.
 
 Modèles d'issue : bogue (avec version, appareil, étapes), demande de fonctionnalité (avec le besoin avant la solution), donnée nutritionnelle incorrecte (redirigée vers Open Food Facts ou vers `servings.csv` selon la source).

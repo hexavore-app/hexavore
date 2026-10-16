@@ -55,6 +55,23 @@ interface AppearanceSettings {
     fun observeDishStyle(): Flow<DishDisplayStyle>
 
     suspend fun setDishStyle(style: DishDisplayStyle)
+
+    /**
+     * La tendance est-elle tracée sur la courbe de poids ?
+     *
+     * **Allumée par défaut** : c'est elle qui porte l'information de la courbe. La case
+     * qui l'éteint vit sous le graphique, à côté de la légende qui dit ce qu'elle est —
+     * et le choix est retenu, parce qu'une courbe qu'on rallume à chaque visite n'est pas
+     * un réglage mais une corvée ([D159][decisions]).
+     *
+     * Une préférence d'affichage comme le style des plats : elle ne dit rien de ce qui a
+     * été pesé, et ne voyage pas dans la sauvegarde.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    fun observeWeightTrend(): Flow<Boolean>
+
+    suspend fun setWeightTrend(shown: Boolean)
 }
 
 /**

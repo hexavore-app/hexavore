@@ -9,14 +9,19 @@ import app.hexavore.core.testing.FixedLanguage
 import app.hexavore.core.testing.SequentialIdGenerator
 import app.hexavore.core.testing.TestDispatchers
 import app.hexavore.domain.food.Food
+import app.hexavore.domain.food.FoodFilter
 import app.hexavore.domain.food.FoodId
 import app.hexavore.domain.language.ContentLanguage
 import app.hexavore.domain.nutrition.Macro
+import app.hexavore.domain.resolution.MatchVerdict
+import app.hexavore.domain.usecase.ResolveFoodLabel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -151,6 +156,23 @@ class RoomFoodCatalogTest : FoodCatalogContract() {
     }
 
     /**
+     * Une eau-de-vie complétée porte l'énergie de son alcool (D162).
+     *
+     * Le calcul sur quatre teneurs ne voit pas l'alcool, 7 kcal par gramme : le calvados
+     * valait 0 kcal, et le pastis allongé 2. L'ANSES ne chiffrant pas leur alcool, leur
+     * énergie vient de leur parent mesuré.
+     */
+    @Test
+    fun `une eau-de-vie completee porte l energie de son alcool`() {
+        val calvados = checkNotNull(livree(CODE_CALVADOS)) { "le code $CODE_CALVADOS n'est plus dans la table livree" }
+        val pastis = checkNotNull(livree(CODE_PASTIS_ALLONGE)) { "le code $CODE_PASTIS_ALLONGE n'est plus livre" }
+
+        assertNull("l ANSES ne determine pas cette energie", calvados.kcal100)
+        assertEquals("celle de l eau-de-vie de vin, au meme degre", 222.0, calvados.estimated.kcal100)
+        assertEquals("celle du pastis, divisee par six", 46.0, pastis.estimated.kcal100)
+    }
+
+    /**
      * Ce que l'ANSES publie n'est jamais marqué, et jamais remplacé.
      *
      * Sans ce cas, un mapper qui marquerait tout, ou qui préférerait la complétion,
@@ -229,8 +251,195 @@ class RoomFoodCatalogTest : FoodCatalogContract() {
         assertEquals(francaises.single().grams, anglaises.single().grams, 0.0)
     }
 
+    /**
+     * Un mot courant garde la fiche que tout le monde cherche ([D161][decisions]).
+     *
+     * La table livrée, interrogée avec les bornes de ceux qui l'interrogent : vingt pour
+     * le résolveur de l'IA, trente pour l'écran. « pain » compte 81 correspondances,
+     * « bread » 84, « lait » 188 ; la recherche gardait les premières **dans l'ordre de
+     * l'index** avant de les classer, et la fiche générique n'y était jamais — c'est
+     * ainsi qu'« une tranche de pain » est devenue un sandwich panini aux trois fromages.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    @Test
+    fun `un mot courant garde sa fiche generique dans la borne`() {
+        assertTrue("pain", cherche("pain", borne = RESOLVEUR).any { it.sourceRef == CODE_PAIN })
+        assertTrue("fromage", cherche("fromage", borne = RESOLVEUR).any { it.sourceRef == CODE_FROMAGE })
+        assertTrue("lait", cherche("lait", borne = RESOLVEUR).any { it.sourceRef == CODE_LAIT_DEMI_ECREME })
+        assertTrue("sucre", cherche("sucre", borne = RESOLVEUR).any { it.sourceRef == CODE_SUCRE_BLANC })
+        assertTrue(
+            "bread",
+            cherche("bread", borne = ECRAN, langue = ContentLanguage.ENGLISH).any { it.sourceRef == CODE_PAIN },
+        )
+        assertTrue(
+            "cheese",
+            cherche("cheese", borne = ECRAN, langue = ContentLanguage.ENGLISH).any { it.sourceRef == CODE_FROMAGE },
+        )
+    }
+
+    /**
+     * La borne coupe **après** le classement, jamais avant.
+     *
+     * Le cas précédent nomme quatre mots ; celui-ci énonce la règle elle-même, sur les
+     * pires cas — un préfixe de deux lettres en rend plus de mille. Les premières lignes
+     * d'une recherche bornée doivent être exactement celles de la recherche complète :
+     * une borne remise dans la requête SQL, sans tri, ferait diverger les deux listes.
+     */
+    @Test
+    fun `la borne coupe apres le classement`() {
+        listOf("pain", "lait", "de", "po").forEach { requete ->
+            val complete = cherche(requete, borne = Int.MAX_VALUE)
+            assertEquals(
+                "les six premiers de « $requete »",
+                complete.take(OUTIL).map { it.sourceRef },
+                cherche(requete, borne = OUTIL).map { it.sourceRef },
+            )
+        }
+    }
+
+    // --- Les noms courants (D164) ----------------------------------------------
+
+    /**
+     * La forme qu'on mange, en premier, sur la table livrée ([D164][decisions]).
+     *
+     * Le défaut de D163, mot pour mot : « riz » rendait le riz cru, « café » le café
+     * moulu, « avocat » l'huile d'avocat, « lait » le lait de coco ; « chicken » la
+     * graisse de poulet, « salmon » l'huile de saumon. La couture entière est en jeu :
+     * le CSV, la colonne, l'index, la lecture, le mapper et le classement.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    @Test
+    fun `un nom courant rend la forme qu on mange en premier`() {
+        FORMES_QU_ON_MANGE.forEach { (requete, langue, code) ->
+            assertEquals("« $requete »", code, cherche(requete, borne = ECRAN, langue = langue).first().sourceRef)
+        }
+    }
+
+    /**
+     * Le résolveur de l'IA, sur les mêmes mots : il remplit la ligne sans rien demander.
+     *
+     * C'est la raison d'être de la table. Le modèle écrit « riz », et le score qui
+     * classe est celui qui décide ([D74][decisions]) : sans nom courant, ces six mots
+     * n'arrivaient qu'en relecture, et sur la mauvaise fiche.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    @Test
+    fun `le resolveur remplit la forme qu on mange`() {
+        FORMES_QU_ON_MANGE.forEach { (requete, langue, code) ->
+            val rendu = runBlocking { resolveur(langue)(requete) }
+
+            assertEquals("« $requete »", MatchVerdict.AUTOMATIC, rendu.verdict)
+            assertEquals("« $requete »", code, rendu.food?.sourceRef)
+        }
+    }
+
+    /**
+     * Un nom courant trouve sa fiche même quand le libellé ne contient pas ses mots.
+     *
+     * « Café, non instantané, sans sucres ajoutés, prêt à boire » ne dit pas « noir ».
+     * Le classement ne pèse que ce que la recherche a rendu ; c'est donc l'**index** qui
+     * doit connaître les noms courants, et non le seul score.
+     */
+    @Test
+    fun `un nom courant trouve une fiche dont le libelle ne le dit pas`() {
+        val francais = cherche("café noir", borne = ECRAN)
+        val anglais = cherche("black coffee", borne = ECRAN, langue = ContentLanguage.ENGLISH)
+
+        assertEquals(CODE_CAFE, francais.first().sourceRef)
+        assertEquals(CODE_CAFE, anglais.first().sourceRef)
+    }
+
+    /**
+     * Une fiche déjà copiée garde ses noms courants.
+     *
+     * Elle ne passe pas par la même lecture : le catalogue la trouve par son nom, puis
+     * relit dans la table de l'ANSES ce qui n'appartient pas à la copie. Si les noms
+     * courants s'y perdaient, le riz cuit qu'on a déjà mangé une fois — sans compter
+     * d'usage — passerait derrière le riz cru qu'on n'a jamais vu.
+     */
+    @Test
+    fun `une fiche deja copiee garde ses noms courants`() {
+        val copie = checkNotNull(livree(CODE_RIZ_CUIT)).toDomain(FoodId("copie"), emptyList())
+
+        val premier = cherche("riz", borne = ECRAN, stored = listOf(copie)).first()
+
+        assertEquals("la copie, et non une ligne provisoire", FoodId("copie"), premier.id)
+        assertTrue(premier.commonNames.contains("riz"))
+    }
+
+    /** Les noms courants lus dans la base, normalisés, et seulement pour leur langue. */
+    @Test
+    fun `les noms courants du fichier livre remontent jusqu au modele`() {
+        assertEquals(setOf("riz", "riz blanc"), livree(CODE_RIZ_CUIT)?.commonNames)
+        assertEquals(setOf("rice", "white rice"), livree(CODE_RIZ_CUIT, ContentLanguage.ENGLISH)?.commonNames)
+        assertEquals("sans nom courant, aucun", emptySet<String>(), livree(CODE_SANS_TITRE)?.commonNames)
+    }
+
+    private fun resolveur(langue: ContentLanguage) = ResolveFoodLabel(catalogueLivre(langue), FixedLanguage(langue))
+
+    /**
+     * La recherche telle que l'écran et l'IA la font, sur la table livrée.
+     *
+     * Un catalogue local vide : c'est la première recherche d'une installation neuve, celle
+     * où la table de l'ANSES est seule à répondre.
+     */
+    private fun cherche(
+        requete: String,
+        borne: Int,
+        langue: ContentLanguage = ContentLanguage.FRENCH,
+        stored: List<Food> = emptyList(),
+    ): List<Food> {
+        val catalogue = catalogueLivre(langue)
+        return runBlocking {
+            stored.forEach { catalogue.save(it) }
+            catalogue.search(requete, FoodFilter.NONE, borne).first()
+        }
+    }
+
+    /** Le catalogue d'une installation neuve : Room vide, et la table livrée. */
+    private fun catalogueLivre(langue: ContentLanguage): RoomFoodCatalog {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val base = Room
+            .inMemoryDatabaseBuilder(context, HexavoreDatabase::class.java)
+            .build()
+            .also(bases::add)
+        return RoomFoodCatalog(
+            dao = base.foodDao(),
+            marks = base.foodMarksDao(),
+            ciqual = CiqualDatabase(context),
+            languages = FixedLanguage(langue),
+            ids = SequentialIdGenerator("provisoire"),
+            clock = FixedClock(MAINTENANT),
+            dispatchers = TestDispatchers(Dispatchers.IO),
+        )
+    }
+
     private companion object {
         val MAINTENANT: Instant = Instant.parse("2026-08-10T10:00:00Z")
+
+        /** La borne du résolveur de l'IA (`ResolveFoodLabel`). */
+        const val RESOLVEUR = 20
+
+        /** La borne de l'écran de recherche. */
+        const val ECRAN = 30
+
+        /** La borne de l'outil de l'analyse approfondie (`TOOL_CANDIDATES`). */
+        const val OUTIL = 6
+
+        /** « Pain (aliment moyen) », « Bread (average) ». */
+        const val CODE_PAIN = "7000"
+
+        /** « Fromage (aliment moyen) », « Cheese (average) ». */
+        const val CODE_FROMAGE = "12999"
+
+        /** « Lait demi-écrémé, UHT ». */
+        const val CODE_LAIT_DEMI_ECREME = "19041"
+
+        /** « Sucre blanc ». */
+        const val CODE_SUCRE_BLANC = "31016"
 
         /** « Pomme, chair et peau, crue » : une portion nommée, écrite à la main. */
         const val CODE_AVEC_PORTION = "13039"
@@ -238,11 +447,38 @@ class RoomFoodCatalogTest : FoodCatalogContract() {
         /** « Câpres, au vinaigre » : sans énergie déterminée, complétée à la main. */
         const val CODE_COMPLETE = "11040"
 
+        /** « Eau de vie type calvados » : ni énergie ni alcool publiés par l'ANSES. */
+        const val CODE_CALVADOS = "1024"
+
+        /** « Pastis, prêt à boire (1 + 5) » : même trou, sur une boisson allongée. */
+        const val CODE_PASTIS_ALLONGE = "1010"
+
         /** « Poulet, cuisse, viande rôtie/cuite au four », l'une des six lignes écrites à la main. */
         const val CODE_AVEC_TITRE = "36006"
 
         /** « Carotte, crue » : treize caractères, il n'y a rien à raccourcir. */
         const val CODE_SANS_TITRE = "20009"
+
+        /** « Riz blanc, cuit, sans sel ajouté » : « riz » et « riz blanc », « rice » et « white rice ». */
+        const val CODE_RIZ_CUIT = "9104"
+
+        /** « Café, non instantané, sans sucres ajoutés, prêt à boire » : « café », « café noir ». */
+        const val CODE_CAFE = "18004"
+
+        /**
+         * Les mots de D163, et la fiche que chacun doit rendre en premier.
+         *
+         * Ce qu'ils rendaient avant la table : le riz cru, le café moulu, le lait de coco,
+         * l'huile d'avocat, la graisse de poulet, l'huile de saumon.
+         */
+        val FORMES_QU_ON_MANGE = listOf(
+            Triple("riz", ContentLanguage.FRENCH, CODE_RIZ_CUIT),
+            Triple("café", ContentLanguage.FRENCH, CODE_CAFE),
+            Triple("lait", ContentLanguage.FRENCH, CODE_LAIT_DEMI_ECREME),
+            Triple("avocat", ContentLanguage.FRENCH, "13004"),
+            Triple("chicken", ContentLanguage.ENGLISH, "36018"),
+            Triple("salmon", ContentLanguage.ENGLISH, "25996"),
+        )
     }
 }
 

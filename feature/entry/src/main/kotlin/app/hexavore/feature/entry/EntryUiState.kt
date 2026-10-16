@@ -104,6 +104,16 @@ internal sealed interface EntryUiState {
          * à l'écran.
          */
         val photoRevision: Int = 0,
+        /**
+         * `true` quand quitter l'écran perdrait quelque chose ([D161][decisions]).
+         *
+         * C'est ce qui arme le retour du système : sur un brouillon qui ne perdrait rien,
+         * il ferme sans rien demander, et une question sans objet apprendrait seulement
+         * à ne plus lire la boîte.
+         *
+         * [decisions]: docs/11-decisions.md
+         */
+        val unsaved: Boolean = false,
     ) : EntryUiState {
         /**
          * Le jour que cette saisie va écrire, **quand ce n'est pas aujourd'hui**.

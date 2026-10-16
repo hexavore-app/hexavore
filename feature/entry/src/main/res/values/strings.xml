@@ -22,6 +22,9 @@
          what the model understood, and the fact that the quantity comes from a fallback
          rather than from a measured portion (docs/04). -->
     <string name="entry_suggestion">Suggested by AI · %1$d %% confidence</string>
+    <!-- Under 75 %, the threshold where the catalogue also stops filling a line on its
+         own (D162): the sentence says it, on top of the colour. -->
+    <string name="entry_suggestion_unsure">Suggested by AI · low confidence, %1$d %%: check it</string>
     <string name="entry_suggestion_quantity">estimated quantity</string>
     <!-- The badge docs/04 requires on the step 4 fallback: these figures come from no
          database, and saying so is what makes them usable. -->
@@ -91,7 +94,8 @@
     <string name="entry_favorite_name_taken">A favourite dish already has this name.</string>
     <string name="entry_favorite_confirm">Save</string>
     <string name="entry_favorite_cancel">Cancel</string>
-    <!-- The counterpart of Save, and the twin of the back gesture. Not "Close": this
+    <!-- The counterpart of Save. It closes without asking: the system back gesture,
+         which often fires unintended, is the one that asks (D161). Not "Close": this
          pair of buttons reads together, and "Cancel" says what becomes of the entry
          where "Close" only says what becomes of the screen. -->
     <string name="entry_cancel">Cancel</string>
@@ -121,9 +125,9 @@
     <string name="entry_error_body">The write did not go through. Your entry is kept exactly as it is.</string>
     <string name="entry_error_retry">Try again</string>
 
-    <string name="entry_report">Report an incorrect suggestion</string>
-    <string name="entry_report_subject">Incorrect AI suggestion</string>
-    <string name="entry_report_body">The suggestion below was wrong. The exchange and the photo are attached.\n\nWhat the screen showed:\n%1$s\n\nWhat was wrong:\n</string>
+    <string name="entry_report">Report a wrong or offensive suggestion</string>
+    <string name="entry_report_subject">Wrong or offensive AI suggestion</string>
+    <string name="entry_report_body">The suggestion below was wrong or offensive. The exchange and the photo are attached.\n\nWhat the screen showed:\n%1$s\n\nWhat was wrong:\n</string>
     <string name="entry_copy">Copy to another day</string>
     <string name="entry_copied_to">Copied to %1$s</string>
     <string name="entry_delete">Delete this meal</string>
@@ -131,9 +135,17 @@
     <string name="entry_delete_body">It leaves the day and its counters. This cannot be undone.</string>
     <string name="entry_delete_confirm">Delete</string>
     <string name="entry_delete_cancel">Keep it</string>
-    <string name="entry_report_explain_title">Wrong suggestion?</string>
+    <string name="entry_report_explain_title">Wrong or offensive suggestion?</string>
     <string name="entry_report_explain_body">An email opens, already filled in: what the AI was asked, what it answered, and the photo. Nothing leaves this phone until you send it.</string>
     <string name="entry_report_explain_confirm">Write the report</string>
     <string name="entry_report_explain_cancel">Cancel</string>
     <string name="entry_report_no_mail_app">No email app on this phone, so nothing could be sent.</string>
+
+    <!-- The system back gesture, on a draft that would lose something (D161). One
+         question, two answers, nothing after: "once, without insisting". The title names
+         what goes, the editing, not the meal: a meal reopened and changed stays logged. -->
+    <string name="entry_discard_title">Leave without saving?</string>
+    <string name="entry_discard_body">Anything not saved will be lost.</string>
+    <string name="entry_discard_confirm">Leave</string>
+    <string name="entry_discard_cancel">Keep editing</string>
 </resources>

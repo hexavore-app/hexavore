@@ -27,7 +27,13 @@ enum class GoalGuard {
     /** |Δkcal| ≤ 25 % du TDEE. */
     DEVIATION,
 
-    /** 1 200 kcal (femme) · 1 500 (homme) · 1 350 (non précisé). */
+    /**
+     * 1 200 kcal (femme) · 1 500 (homme) · 1 350 (non précisé).
+     *
+     * Il retient un déficit, et ne crée jamais de surplus ([D160][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
     FLOOR,
 
     /** Prise ≤ +20 % du TDEE. */
@@ -41,11 +47,19 @@ enum class GoalGuard {
  * visée : c'est la date à laquelle le poids cible est atteint au rythme retenu. Elle
  * est ce que l'écran propose — « à un rythme sûr, ce serait atteint vers le 14 mars »,
  * avec un bouton *Utiliser cette date*.
+ *
+ * [withholdingFloorKcal] est le plancher qui a retenu **tout** le déficit, quand la
+ * dépense estimée était déjà dessous ; `null` le reste du temps. Il n'y a alors pas de
+ * date à proposer — aucun rythme n'atteint le poids visé sans passer sous le plancher —,
+ * et l'écran doit dire pourquoi la perte demandée ne produit rien ([D160][decisions]).
+ *
+ * [decisions]: docs/11-decisions.md
  */
 data class SafeEnergyBudget(
     val dailyDeltaKcal: Double,
     val guardsApplied: Set<GoalGuard>,
     val reachableOn: LocalDate?,
+    val withholdingFloorKcal: Double? = null,
 ) {
     val capped: Boolean get() = guardsApplied.isNotEmpty()
 }
@@ -95,6 +109,9 @@ object GoalSafetyPolicy {
             dailyDeltaKcal = delta,
             guardsApplied = guards,
             reachableOn = reachableDate(guards, delta, currentWeightKg, targetWeightKg, from),
+            // Le plancher a mordu et il ne reste rien : c'est lui, et lui seul, qui a
+            // ramene le deficit a zero.
+            withholdingFloorKcal = sex.kcalFloor.takeIf { GoalGuard.FLOOR in guards && delta == 0.0 },
         )
     }
 
@@ -121,14 +138,26 @@ object GoalSafetyPolicy {
         coerceInto(Double.NEGATIVE_INFINITY, tdee * MAX_GAIN_CEILING_RATIO, GoalGuard.GAIN_CEILING, guards)
 
     /**
-     * Plancher absolu, en calories et non en écart.
+     * Plancher absolu, en calories et non en écart — **pour un déficit, et pour lui seul**.
      *
      * En dessous, couvrir les besoins en micronutriments devient irréaliste sans
      * supplémentation. Il s'exprime sur l'objectif final, donc la borne sur l'écart
      * dépend du TDEE.
+     *
+     * **Il retient un déficit, il ne crée jamais de surplus** ([D160][decisions]). Quand
+     * la dépense estimée est déjà sous le plancher — un petit gabarit, un grand âge, ou
+     * une taille de 1 cm —, la borne tombe à zéro. Elle remontait jusqu'au plancher, et
+     * faisait d'une perte une **prise**, sous l'étiquette « perdre », dépassant au passage
+     * les bornes que les garde-fous précédents venaient de poser :
+     * « Utiliser cette date » ne levait alors jamais l'alerte, puisque aucune date ne
+     * corrigeait un écart qui ne venait pas d'elle. Un maintien devenait une prise de la
+     * même façon. C'est la propriété commune aux quatre — réduire l'ambition, jamais
+     * l'augmenter — qui ne valait jusqu'ici que pour une dépense au-dessus du plancher.
+     *
+     * [decisions]: docs/11-decisions.md
      */
     private fun Double.cappedByFloor(tdee: Double, sex: Sex, guards: MutableSet<GoalGuard>): Double =
-        coerceInto(sex.kcalFloor - tdee, Double.POSITIVE_INFINITY, GoalGuard.FLOOR, guards)
+        coerceInto(minOf(sex.kcalFloor - tdee, 0.0), Double.POSITIVE_INFINITY, GoalGuard.FLOOR, guards)
 
     /**
      * Borne, et note **qui** a borné.

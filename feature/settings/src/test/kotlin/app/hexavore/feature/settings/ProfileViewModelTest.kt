@@ -1,5 +1,6 @@
 package app.hexavore.feature.settings
 
+import androidx.lifecycle.SavedStateHandle
 import app.hexavore.core.testing.FixedClock
 import app.hexavore.core.testing.InMemoryGoals
 import app.hexavore.core.testing.InMemoryProfiles
@@ -179,6 +180,54 @@ internal class ProfileViewModelTest {
         assertEquals(ProfileBlocker.HORIZON, viewModel.uiState.value.blocker)
     }
 
+    // --- Les bornes du corps (D160) ---------------------------------------------
+
+    @Test
+    fun `un poids qu aucun adulte ne pese refuse l enregistrement`() = runTest(dispatcher) {
+        // Les bornes de l'onboarding : un profil qu'on corrige n'accepte pas ce que les
+        // cinq questions ont refuse.
+        val viewModel = viewModel(objectifCourant())
+        viewModel.onEdit()
+
+        viewModel.onForm(viewModel.uiState.value.form.copy(currentWeightKg = 999.0))
+
+        assertEquals(ProfileBlocker.WEIGHT, viewModel.uiState.value.blocker)
+        assertFalse(viewModel.uiState.value.canSave)
+    }
+
+    @Test
+    fun `une naissance hors des ages acceptes se dit, et ne s enregistre pas`() = runTest(dispatcher) {
+        // Le cas d'une naissance ecrite avant que l'age plancher ne passe a seize ans.
+        val viewModel = viewModel(objectifCourant())
+        viewModel.onEdit()
+
+        viewModel.onForm(viewModel.uiState.value.form.copy(birthDate = AUJOURD_HUI.minusYears(14)))
+
+        assertEquals(ProfileBlocker.AGE, viewModel.uiState.value.blocker)
+    }
+
+    @Test
+    fun `perdre vers un poids plus haut refuse l enregistrement`() = runTest(dispatcher) {
+        val viewModel = viewModel(objectifCourant())
+        viewModel.onEdit()
+
+        viewModel.onForm(viewModel.uiState.value.form.copy(targetWeightKg = 95.0))
+
+        assertEquals(ProfileBlocker.TARGET, viewModel.uiState.value.blocker)
+    }
+
+    @Test
+    fun `en saisie manuelle aussi, le poids vise suit la strategie`() = runTest(dispatcher) {
+        // Il n'y pilote aucun compteur, mais il trace la trajectoire du journal : une
+        // perte vers la maigreur y serait dessinee comme un cap.
+        val viewModel = viewModel(objectifManuel())
+        viewModel.onEdit()
+
+        viewModel.onForm(viewModel.uiState.value.form.copy(targetWeightKg = 50.0))
+
+        assertEquals(ProfileBlocker.TARGET, viewModel.uiState.value.blocker)
+    }
+
     @Test
     fun `enregistrer demande confirmation quand les six chiffres changent`() = runTest(dispatcher) {
         // Corriger sa taille de quatre centimetres deplace un objectif quotidien. Ca
@@ -276,7 +325,50 @@ internal class ProfileViewModelTest {
 
     // --- Montage -----------------------------------------------------------------
 
-    private fun viewModel(initial: Goal, unreadable: Boolean = false): ProfileViewModel {
+    // --- La mort du processus (D166) ---------------------------------------------
+
+    @Test
+    fun `une correction en cours survit a la mort du processus`() = runTest(dispatcher) {
+        val handle = SavedStateHandle()
+        val avant = viewModel(objectifCourant(), handle = handle)
+        avant.onEdit()
+        avant.onForm(avant.uiState.value.form.copy(heightCm = 181.0))
+
+        val apres = viewModel(objectifCourant(), handle = handle).uiState.value
+
+        assertTrue(apres.editing, "l'ecran revient en modification, pas en consultation")
+        assertEquals(181.0, apres.form.heightCm)
+        assertEquals(avant.uiState.value.saved, apres.saved, "l'objectif enregistre se relit dans la base")
+    }
+
+    @Test
+    fun `en consultation, rien n est garde`() = runTest(dispatcher) {
+        val handle = SavedStateHandle()
+        viewModel(objectifCourant(), handle = handle)
+
+        assertFalse(handle.contains("hexavore.profile.memory"))
+        assertFalse(viewModel(objectifCourant(), handle = handle).uiState.value.editing)
+    }
+
+    @Test
+    fun `une correction enregistree ne revient pas`() = runTest(dispatcher) {
+        val handle = SavedStateHandle()
+        val viewModel = viewModel(objectifCourant(), handle = handle)
+        viewModel.onEdit()
+        viewModel.onForm(viewModel.uiState.value.form.copy(heightCm = 181.0))
+
+        viewModel.onSave { }
+        viewModel.onConfirm { }
+        advanceUntilIdle()
+
+        assertFalse(handle.contains("hexavore.profile.memory"))
+    }
+
+    private fun viewModel(
+        initial: Goal,
+        unreadable: Boolean = false,
+        handle: SavedStateHandle = SavedStateHandle(),
+    ): ProfileViewModel {
         goals = InMemoryGoals(listOf(initial), failure = unreadable)
         return ProfileViewModel(
             profiles = profiles,
@@ -285,6 +377,7 @@ internal class ProfileViewModelTest {
             calculate = calculate,
             reviseGoal = ReviseGoal(profiles, weights, goals, clock, SequentialIdGenerator("goal")),
             clock = clock,
+            savedStateHandle = handle,
         )
     }
 

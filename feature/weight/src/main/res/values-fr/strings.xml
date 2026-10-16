@@ -15,16 +15,25 @@
         <item quantity="one">Courbe de poids, %1$d pesée</item>
         <item quantity="other">Courbe de poids, %1$d pesées</item>
     </plurals>
-    <string name="weight_axis_label">%1$s · %2$.1f kg</string>
+    <!-- La date, puis le poids tel que la liste l'écrit, en kilos ou en livres (D162). -->
+    <string name="weight_axis_label">%1$s · %2$s</string>
 
     <!-- Une ligne est un seul nœud d'accessibilité : date, poids, tendance, en une
-         phrase plutôt qu'en trois arrêts. -->
-    <string name="weight_row_a11y">%1$s, %2$.1f kilogrammes</string>
+         phrase plutôt qu'en trois arrêts. Les livres ont leur phrase (D162) : le lecteur
+         d'écran annonçait des kilogrammes à qui lisait des livres. -->
     <string name="weight_row_smoothed_a11y">%1$s, %2$.1f kilogrammes, tendance %3$.1f</string>
+    <string name="weight_row_smoothed_a11y_pounds">%1$s, %2$.1f livres, tendance %3$.1f</string>
 
-    <!-- Sous trois pesées dans les sept jours, il n'y a rien à lisser. Le dire évite
-         de chercher pourquoi le tracé en évidence manque. -->
-    <string name="weight_trend_missing">La tendance apparaît à partir de trois pesées dans la même semaine.</string>
+    <!-- Une seule pesée ne fait pas une courbe. Le dire évite de chercher où est passé
+         le graphique (D159). -->
+    <string name="weight_curve_missing">La courbe apparaît à la deuxième pesée.</string>
+
+    <!-- La légende de la courbe : deux traits sans nom se lisaient mal, et la case de la
+         tendance se pose à côté de son nom (D159). -->
+    <string name="weight_legend_measures">Pesées</string>
+    <string name="weight_legend_trend">Tendance</string>
+    <string name="weight_legend_aim">Trajectoire visée</string>
+    <string name="weight_legend_trend_hint">La tendance lisse les écarts d\'un jour à l\'autre (eau, sel) et rattrape vite après une pause.</string>
 
     <!-- Une liste vide dit quoi faire, pas seulement qu'elle est vide. -->
     <string name="weight_empty_title">Aucune pesée</string>
@@ -38,10 +47,18 @@
     <!-- Ajout d'une pesée : poids et date, c'est tout (docs/02). -->
     <string name="weight_add">Ajouter une pesée</string>
     <string name="weight_add_title">Nouvelle pesée</string>
-    <string name="weight_field">Poids en kilogrammes</string>
-    <string name="weight_field_pound">Poids en livres</string>
+    <!-- Sans unite : le champ du design system l'ajoute, dans le systeme choisi (D160). -->
+    <string name="weight_field">Poids</string>
     <string name="weight_date_field">Date de la pesée</string>
     <string name="weight_add_confirm">Enregistrer</string>
     <string name="weight_add_cancel">Annuler</string>
+
+    <!-- Une pesée se retire comme un plat : son menu, puis la barre qui la rend
+         (D165). Corriger une valeur ne passe pas par ici : une nouvelle pesée du même
+         jour remplace l'ancienne. -->
+    <string name="weight_row_menu">ouvrir le menu de la pesée</string>
+    <string name="weight_row_delete">Supprimer</string>
+    <string name="weight_deleted">Pesée supprimée</string>
+    <string name="weight_undo">Annuler</string>
 
 </resources>

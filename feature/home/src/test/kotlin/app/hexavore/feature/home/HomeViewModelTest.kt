@@ -25,6 +25,7 @@ import app.hexavore.domain.usecase.GetDaySummary
 import app.hexavore.domain.usecase.GetDishDraft
 import app.hexavore.domain.usecase.ObserveDishPhotos
 import app.hexavore.domain.usecase.ObserveDishStyle
+import app.hexavore.domain.usecase.ObserveUnitSystem
 import app.hexavore.domain.usecase.RemoveFavoriteDish
 import app.hexavore.domain.usecase.RespondToAdjustment
 import app.hexavore.domain.usecase.RestoreDish
@@ -318,6 +319,7 @@ class HomeViewModelTest {
                 ids = SequentialIdGenerator("objectif"),
                 clock = clock,
             ),
+            observeUnits = ObserveUnitSystem(InMemoryProfiles()),
         ),
         presentation = DishPresentation(
             observeDishStyle = ObserveDishStyle(InMemoryAppearanceSettings()),

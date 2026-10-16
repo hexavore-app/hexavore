@@ -9,6 +9,7 @@ import androidx.test.uiautomator.Until
 import org.junit.Assert.fail
 import org.junit.Test
 import org.junit.runner.RunWith
+import app.hexavore.core.designsystem.R as DesignStrings
 import app.hexavore.feature.onboarding.R as OnboardingStrings
 
 /**
@@ -45,11 +46,11 @@ class OnboardingJourneyTest {
     fun l_onboarding_accueille_puis_demande_qui_vous_etes() {
         ActivityScenario.launch(MainActivity::class.java)
         attend(OnboardingStrings.string.onboarding_welcome_title)
-        attend(OnboardingStrings.string.onboarding_disclaimer)
+        attend(DesignStrings.string.ds_medical_disclaimer)
 
         // La case d'avertissement, puis  Continuer  : le bouton reste inerte tant que
         // la case n'est pas cochee, et c'est exactement ce qu'on veut verifier.
-        clique(texte(OnboardingStrings.string.onboarding_disclaimer))
+        clique(texte(DesignStrings.string.ds_medical_disclaimer))
         clique(texte(OnboardingStrings.string.onboarding_next))
 
         attend(OnboardingStrings.string.onboarding_you_title)

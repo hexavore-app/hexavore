@@ -13,6 +13,17 @@ android {
     testOptions {
         unitTests.isIncludeAndroidResources = true
     }
+
+    // La version ecrite dans chaque sauvegarde (D162). Lue dans le catalogue de
+    // versions, comme celle d'« A propos » et des traces de plantage : tenue a la main,
+    // elle avait ete oubliee deux fois.
+    buildFeatures {
+        buildConfig = true
+    }
+
+    defaultConfig {
+        buildConfigField("String", "VERSION_LABEL", "\"${libs.versions.versionName.get()}\"")
+    }
 }
 
 dependencies {

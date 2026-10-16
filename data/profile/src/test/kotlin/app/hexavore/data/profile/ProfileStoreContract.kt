@@ -164,6 +164,30 @@ abstract class ProfileStoreContract {
         assertEquals(WeightEntry(MARDI, POIDS_CORRIGE), apres)
     }
 
+    @Test
+    fun `retirer une pesee la sort du journal, et la derniere redevient la precedente`() = runBlocking {
+        // Une pesee tapee sur le mauvais jour restait dans la courbe et dans le poids du
+        // calcul (D165). La retirer rend la derniere d'avant, sans trou ni fantome.
+        val magasin = store()
+        magasin.record(WeightEntry(LUNDI, POIDS_INITIAL))
+        magasin.record(WeightEntry(MERCREDI, POIDS_CORRIGE))
+
+        magasin.delete(MERCREDI)
+
+        assertEquals(listOf(WeightEntry(LUNDI, POIDS_INITIAL)), magasin.observeHistory().first())
+        assertEquals(WeightEntry(LUNDI, POIDS_INITIAL), magasin.observeLatest().first())
+    }
+
+    @Test
+    fun `retirer un jour sans pesee ne touche a rien`() = runBlocking {
+        val magasin = store()
+        magasin.record(WeightEntry(LUNDI, POIDS_INITIAL))
+
+        magasin.delete(MARDI)
+
+        assertEquals(listOf(WeightEntry(LUNDI, POIDS_INITIAL)), magasin.observeHistory().first())
+    }
+
     // --- Les objectifs ----------------------------------------------------------
 
     @Test

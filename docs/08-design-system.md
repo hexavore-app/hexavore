@@ -181,7 +181,7 @@ Le rayon est **ce que trois contraintes laissent**, la plus serrée gagnant : la
 
 Le contour de l'objectif est tracé **par-dessus** les quartiers, en `outline`, 2 dp. Il ne doit jamais être masqué : c'est la référence à laquelle tout le reste se compare.
 
-L'initiale de chaque macro est posée **à l'extérieur** de la zone, sur l'axe de son quartier, dans la teinte de la macro. Six lettres suffisent, tiennent à 200 % de police, et donnent le second canal exigé par la règle de daltonisme — la position en donne déjà un.
+L'initiale de chaque macro est posée **à l'extérieur** de la zone, sur l'axe de son quartier, dans la teinte de la macro. Six initiales suffisent, tiennent à 200 % de police, et donnent le second canal exigé par la règle de daltonisme — la position en donne déjà un. **Ce sont celles des pastilles des plats, dans la langue de l'application** ([D162](11-decisions.md)) : en anglais, « kcal » pour les calories, « C » pour les glucides, « F » pour les lipides, « Fb » pour les fibres. L'hexagone écrivait les siennes en dur, en français, et son « F » désignait les fibres juste au-dessus de plats où « F » désignait les lipides. La zone se règle sur la plus large des six.
 
 **Elles sont écrites en `title`, en gras.** Ce n'est pas un choix esthétique : un second canal qu'il faut chercher des yeux n'en est pas un. En taille de légende, ces lettres se lisaient à peine sur le fond, et la règle de daltonisme reposait alors sur la seule position.
 
@@ -340,7 +340,7 @@ Ce qui passe à l'écran quand un palier tombe ([D133](11-decisions.md)).
 - **Vingt-quatre particules**, tirées **une fois** avec une graine fixe : le même palier produit la même gerbe, ce qui la rend reproductible sur une capture. Les retirer à chaque image ferait vibrer les particules sur place au lieu de les envoyer.
 - **Les six teintes de macro**, dans l'ordre angulaire. Inventer une couleur de fête aurait été une septième teinte dans une palette qui en réserve six — le raisonnement de [D25](11-decisions.md#d25--lestimation-ia-se-signale-par-une-forme-pas-par-une-couleur---validée), appliqué à une animation.
 - Elles s'écartent du centre en ralentissant, et s'effacent sur la fin : une gerbe qui disparaîtrait d'un coup se lirait comme un défaut d'affichage. Le texte monte d'un cheveu et part avec elles.
-- **Supprimée, et non raccourcie**, quand l'appareil demande moins de mouvement — la règle de la pulsation du titre ([D121](11-decisions.md#d121--le-changement-de-jour-se-voit---validée)) : des particules instantanées seraient un clignotement. Le texte reste, seul.
+- **Supprimée, et non raccourcie**, quand l'appareil demande moins de mouvement — la règle de la pulsation du titre ([D121](11-decisions.md#d121--le-changement-de-jour-se-voit---validée)) : des particules instantanées seraient un clignotement. Le texte reste, seul, **le temps d'être lu** : deux secondes et demie, `Timing.CELEBRATION_READING_MILLIS` ([D167](11-decisions.md)). La durée de l'animation, tombée à zéro avec elle, le faisait disparaître à l'image suivante.
 
 ### `LevelRing`
 
@@ -379,7 +379,9 @@ Le néon invite à trop animer. Cadre strict :
 
 Le reste du temps, une lueur qui pulse en permanence consomme de la batterie et fatigue.
 
-**Accessibilité** : quand `Settings.Global.ANIMATOR_DURATION_SCALE` vaut 0, ou quand la bascule « animations réduites » des réglages est active, toutes les durées tombent à 0 et l'animation d'attente devient un indicateur statique. Ce n'est pas optionnel : ce réglage existe souvent pour des raisons vestibulaires.
+**Accessibilité** : quand `Settings.Global.ANIMATOR_DURATION_SCALE` vaut 0~~, ou quand la bascule « animations réduites » des réglages est active~~ — il n'y a pas de bascule dans l'application, seul le réglage du système compte ([D168](11-decisions.md)) —, toutes les durées tombent à 0 et l'animation d'attente devient un indicateur statique. Ce n'est pas optionnel : ce réglage existe souvent pour des raisons vestibulaires.
+
+**Les délais qui ne sont pas des animations ne tombent pas à zéro.** Ils vivent dans `Timing` et non dans `Motion` : la fenêtre d'annulation d'une suppression (cinq secondes) et le temps de lecture de la célébration sans animations (deux secondes et demie, [D167](11-decisions.md)). Un délai à zéro ne serait pas une animation plus sobre : ce serait une suppression sans recours, ou un message que personne n'a vu.
 
 ---
 

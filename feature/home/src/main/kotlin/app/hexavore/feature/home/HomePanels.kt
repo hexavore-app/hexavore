@@ -8,9 +8,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.hexavore.core.designsystem.component.AdjustmentCard
 import app.hexavore.domain.goal.AdjustmentSuggestion
+import app.hexavore.domain.notice.Notice
+import app.hexavore.domain.profile.UnitSystem
 import app.hexavore.domain.progress.Badge
 import app.hexavore.domain.progress.Progress
 import app.hexavore.domain.usecase.AdjustmentResponse
+import java.time.LocalDate
+import java.time.YearMonth
 
 /**
  * La barre du bas, en un seul objet : ce qu'elle montre et ce qu'elle déclenche.
@@ -123,11 +127,47 @@ private fun ProposalHandoff(proposed: Boolean, onNavigated: () -> Unit, onPropos
  * [decisions]: docs/11-decisions.md
  */
 @Composable
-internal fun SuggestionCard(suggestion: AdjustmentSuggestion, onAdjustment: (AdjustmentResponse) -> Unit) {
+internal fun SuggestionCard(
+    suggestion: AdjustmentSuggestion,
+    units: UnitSystem,
+    onAdjustment: (AdjustmentResponse) -> Unit,
+) {
     AdjustmentCard(
         suggestion = suggestion,
+        units = units,
         onAccept = { onAdjustment(AdjustmentResponse.ACCEPT) },
         onIgnore = { onAdjustment(AdjustmentResponse.IGNORE) },
         onStop = { onAdjustment(AdjustmentResponse.STOP) },
+    )
+}
+
+/**
+ * Le calendrier que l'accueil pose sous son titre.
+ *
+ * Sorti de [HomeRoute] quand le seuil de longueur a mordu une nouvelle fois, à l'arrivée
+ * des unités de la carte d'ajustement ([D162][decisions]). Le découpage est celui du tour
+ * guidé : l'accueil assemble des états, celle-ci compose un seul élément de la page.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+internal fun calendarSlot(
+    state: CalendarUiState,
+    day: LocalDate?,
+    notices: Set<Notice>,
+    onSelectDay: (LocalDate) -> Unit,
+    onVisibleMonth: (YearMonth) -> Unit,
+): @Composable (Boolean, (Boolean) -> Unit) -> Unit = { expanded, onExpandedChange ->
+    CalendarPane(
+        state = state,
+        // Toucher une pastille ne navigue plus : elle change la date de l'ecran, et le
+        // calendrier reste ou il est.
+        onOpenDay = onSelectDay,
+        onVisibleMonth = onVisibleMonth,
+        selected = day,
+        // La pastille de la veille se pose sur la journee concernee, et non sur une
+        // icone : c'est la qu'on la touche pour agir.
+        flagYesterday = Notice.YESTERDAY_EMPTY in notices,
+        expanded = expanded,
+        onExpandedChange = onExpandedChange,
     )
 }

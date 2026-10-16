@@ -29,10 +29,11 @@ fun FoodEntity.toDomain(
     /**
      * Ce que la table de l'ANSES sait de cette fiche, ou `null` si elle n'en vient pas.
      *
-     * **Trois choses qui ne vivent pas dans la copie** : le libellé, le rayon et le titre
-     * court. Une copie les figerait au jour où elle a été faite — et, depuis que la table
-     * est bilingue, à la **langue** de ce jour-là : une fiche copiée en français puis
-     * relue en anglais aurait porté un titre court anglais sur un nom français.
+     * **Quatre choses qui ne vivent pas dans la copie** : le libellé, le rayon, le titre
+     * court et les noms courants. Une copie les figerait au jour où elle a été faite —
+     * et, depuis que la table est bilingue, à la **langue** de ce jour-là : une fiche
+     * copiée en français puis relue en anglais aurait porté un titre court anglais sur
+     * un nom français.
      */
     annotations: CiqualAnnotations? = null,
 ) = Food(
@@ -44,6 +45,7 @@ fun FoodEntity.toDomain(
     // fois, par quelqu'un, et aucune table ne le renomme.
     name = annotations?.name ?: name,
     shortName = annotations?.shortName,
+    commonNames = annotations?.commonNames.orEmpty(),
     brand = brand,
     category = annotations?.category.toFoodCategory(),
     per100g = NutrientValues(
@@ -126,6 +128,7 @@ internal fun CiqualFoodRow.toDomain(id: FoodId, servings: List<CiqualServingRow>
     sourceRef = code,
     name = name,
     shortName = shortName,
+    commonNames = commonNames,
     brand = null,
     category = category.toFoodCategory(),
     // **L'originale l'emporte toujours.** La complétion n'intervient que là où

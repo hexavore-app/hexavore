@@ -50,6 +50,22 @@ class OpenDraftPhoto(private val photos: DishPhotos) {
 }
 
 /**
+ * L'image d'un brouillon rendu après la mort du processus, **si elle est encore là**
+ * ([D166][decisions]).
+ *
+ * Un brouillon rendu ne repasse pas par [OpenDraftPhoto] : celle-ci viderait le dépôt,
+ * où attend justement l'image qu'on avait prise ou choisie pour lui. Le balayage du
+ * lancement l'épargne, et le chemin gardé y mène encore — mais un chemin n'est qu'une
+ * promesse, et l'image ne se montre que si le dépôt ou le plat la portent toujours.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+class KeptDraftPhoto(private val photos: DishPhotos) {
+    suspend operator fun invoke(kept: PhotoFile, dish: DishId?): PhotoFile? =
+        listOfNotNull(photos.staged(), dish?.let { photos.photoOf(it) }).firstOrNull { it == kept }
+}
+
+/**
  * Dépose l'image que l'utilisateur vient de **choisir pour ce plat-là**.
  *
  * ### Pourquoi il ne consulte pas le réglage

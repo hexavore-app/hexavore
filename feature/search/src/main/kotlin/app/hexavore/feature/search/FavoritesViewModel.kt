@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.hexavore.domain.diary.FavoriteDish
 import app.hexavore.domain.diary.FavoriteDishId
-import app.hexavore.domain.diary.FavoriteDishes
 import app.hexavore.domain.food.SearchText
+import app.hexavore.domain.usecase.ObserveFavoriteDishes
 import app.hexavore.domain.usecase.RemoveFavoriteDish
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,17 +44,20 @@ internal sealed interface FavoritesUiState {
  * normalisation de plus, pour un gain qui n'existe pas. La comparaison utilise la même
  * normalisation que la recherche d'aliments — « creme » trouve « Crème » ([D49][decisions]).
  *
+ * **Les composants portent le nom de leur fiche d'aujourd'hui**, celui que l'éditeur
+ * montre ([D167][decisions]).
+ *
  * [decisions]: docs/11-decisions.md
  */
 @HiltViewModel
 internal class FavoritesViewModel @Inject constructor(
-    private val favorites: FavoriteDishes,
+    observeFavoriteDishes: ObserveFavoriteDishes,
     private val removeFavoriteDish: RemoveFavoriteDish,
 ) : ViewModel() {
     private val query = MutableStateFlow("")
 
     val uiState: StateFlow<FavoritesUiState> =
-        combine(favorites.observeAll(), query) { all, typed ->
+        combine(observeFavoriteDishes(), query) { all, typed ->
             FavoritesUiState.Content(query = typed, favorites = all.matching(typed))
         }
             .map<FavoritesUiState.Content, FavoritesUiState> { it }

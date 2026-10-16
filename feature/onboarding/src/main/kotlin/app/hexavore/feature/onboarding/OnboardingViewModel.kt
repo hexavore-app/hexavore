@@ -1,7 +1,9 @@
 package app.hexavore.feature.onboarding
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.hexavore.core.ui.FormMemory
 import app.hexavore.domain.goal.Goal
 import app.hexavore.domain.goal.GoalId
 import app.hexavore.domain.goal.GoalOrigin
@@ -15,6 +17,7 @@ import app.hexavore.domain.profile.UserProfile
 import app.hexavore.domain.profile.WeightEntry
 import app.hexavore.domain.profile.WeightLog
 import app.hexavore.domain.profile.WorkActivity
+import app.hexavore.domain.reminder.ReminderSettings
 import app.hexavore.domain.time.Clock
 import app.hexavore.domain.usecase.CalculateDailyGoal
 import app.hexavore.domain.usecase.GoalRequest
@@ -48,9 +51,29 @@ internal class OnboardingViewModel @Inject constructor(
     private val calculate: CalculateDailyGoal,
     private val clock: Clock,
     private val ids: IdGenerator,
+    private val reminders: ReminderSettings,
+    savedStateHandle: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
-    private val state = MutableStateFlow(OnboardingUiState(today = clock.today()))
+    /**
+     * Les réponses et l'étape, gardées à travers la mort du processus ([D166][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    private val memory = FormMemory(savedStateHandle, MEMORY_KEY, OnboardingMemory.serializer())
+
+    private val state = MutableStateFlow(recalled() ?: OnboardingUiState(today = clock.today()))
     val uiState: StateFlow<OnboardingUiState> = state
+
+    /** Vrai une fois l'onboarding enregistré. */
+    private var finished = false
+
+    init {
+        // Chaque reponse et chaque pas, tant que l'onboarding n'est pas enregistre : une
+        // fois termine, il n'y a plus rien a rendre.
+        viewModelScope.launch {
+            state.collect { current -> if (!finished) memory.keep(OnboardingMemory.of(current)) }
+        }
+    }
 
     /**
      * Les réponses, remplacées en bloc.
@@ -92,6 +115,15 @@ internal class OnboardingViewModel @Inject constructor(
      * Dans cet ordre, et c'est le même raisonnement que pour `LogDish` : l'objectif
      * découle d'un profil et d'une pesée, et les écrire après lui laisserait un
      * instant pendant lequel l'accueil aurait un objectif sans savoir d'où il vient.
+     *
+     * **La question des notifications est notée comme posée**, et d'abord
+     * ([D162][decisions]). C'est elle qui mène ici : l'écran ne demande à enregistrer
+     * qu'une fois la boîte du système refermée. Personne ne l'écrivait, et l'accueil,
+     * qui la pose aux installations d'avant les rappels, la reposait aussitôt — juste
+     * après un « Ne pas autoriser ». Elle se note même si l'écriture échoue : la question
+     * a été posée, qu'on réessaie d'enregistrer ou non.
+     *
+     * [decisions]: docs/11-decisions.md
      */
     fun onFinish(onDone: () -> Unit) {
         val answers = state.value.answers
@@ -99,6 +131,7 @@ internal class OnboardingViewModel @Inject constructor(
         state.update { it.copy(saving = true, failed = false) }
 
         viewModelScope.launch {
+            runCatching { reminders.markPermissionAsked() }
             val outcome = runCatching {
                 profiles.save(answers.toProfile(clock.today()))
                 weights.record(WeightEntry(clock.today(), answers.weightOrDefault()))
@@ -114,6 +147,10 @@ internal class OnboardingViewModel @Inject constructor(
                     ),
                 )
             }
+            if (outcome.isSuccess) {
+                finished = true
+                memory.forget()
+            }
             state.update { it.copy(saving = false, failed = outcome.isFailure) }
             if (outcome.isSuccess) onDone()
         }
@@ -121,6 +158,15 @@ internal class OnboardingViewModel @Inject constructor(
 
     private fun OnboardingUiState.recalculated(): OnboardingUiState =
         copy(plan = calculate(answers.toProfile(clock.today()), answers.toRequest()))
+
+    /** L'onboarding tel qu'Android l'avait quand il a tué l'application, plan recalculé. */
+    private fun recalled(): OnboardingUiState? = memory.recall()?.let { kept ->
+        runCatching { kept.applyTo(OnboardingUiState(today = clock.today())).recalculated() }.getOrNull()
+    }
+
+    private companion object {
+        const val MEMORY_KEY = "hexavore.onboarding.memory"
+    }
 }
 
 /**

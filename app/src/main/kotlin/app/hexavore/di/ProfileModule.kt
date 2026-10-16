@@ -5,6 +5,7 @@ import app.hexavore.domain.goal.Goals
 import app.hexavore.domain.profile.Profiles
 import app.hexavore.domain.profile.WeightLog
 import app.hexavore.domain.usecase.ChooseUnitSystem
+import app.hexavore.domain.usecase.ObserveHeight
 import app.hexavore.domain.usecase.ObserveUnitSystem
 import dagger.Module
 import dagger.Provides
@@ -43,4 +44,8 @@ object ProfileModule {
 
     @Provides
     fun chooseUnitSystem(profiles: Profiles): ChooseUnitSystem = ChooseUnitSystem(profiles)
+
+    /** La taille, sur laquelle le journal juge une pesee avant de l ecrire (D160). */
+    @Provides
+    fun observeHeight(profiles: Profiles): ObserveHeight = ObserveHeight(profiles)
 }

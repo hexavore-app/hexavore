@@ -10,6 +10,8 @@ import app.hexavore.domain.language.ContentLanguages
 import app.hexavore.domain.language.LanguageSettings
 import app.hexavore.domain.language.SystemLanguages
 import app.hexavore.domain.usecase.ObserveDishStyle
+import app.hexavore.domain.usecase.ObserveWeightTrendShown
+import app.hexavore.domain.usecase.ShowWeightTrend
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -92,6 +94,14 @@ internal object AppearanceSettingsModule {
      */
     @Provides
     fun observeDishStyle(settings: AppearanceSettings): ObserveDishStyle = ObserveDishStyle(settings)
+
+    /** La case sous la courbe de poids, et ce qu'elle a retenu (D159). */
+    @Provides
+    fun observeWeightTrendShown(settings: AppearanceSettings): ObserveWeightTrendShown =
+        ObserveWeightTrendShown(settings)
+
+    @Provides
+    fun showWeightTrend(settings: AppearanceSettings): ShowWeightTrend = ShowWeightTrend(settings)
 }
 
 private const val APPEARANCE_PREFERENCES_FILE = "appearance_settings"

@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -86,12 +87,16 @@ fun MacroHexagon(
     }
     val emphasis = rememberEmphasis(selected, spec)
 
-    // Ce qu'une lettre occupe autour de son centre. La plus grande des deux
+    // Les initiales de la langue de l'application, les memes que sous les plats (D162).
+    val initials = Macro.entries.associateWith { stringResource(it.initialRes) }
+
+    // Ce qu'une initiale occupe autour de son centre. La plus grande des deux
     // dimensions : elle est posee par son centre, et on ignore de quel cote elle
     // debordera. Mesuree en composition et non dans le trace, parce que le doigt en a
-    // besoin lui aussi -- c'est elle qui dit jusqu'ou s'etend la cible.
-    val labelExtent = measurer.measure(Macro.CALORIES.initial, initialStyle).size.let {
-        maxOf(it.width, it.height) / 2f
+    // besoin lui aussi -- c'est elle qui dit jusqu'ou s'etend la cible. **La plus
+    // large des six** : en anglais, les calories portent « kcal » et non une lettre.
+    val labelExtent = initials.values.maxOf { initial ->
+        measurer.measure(initial, initialStyle).size.let { maxOf(it.width, it.height) / 2f }
     }
 
     Box(
@@ -112,7 +117,7 @@ fun MacroHexagon(
             // tout se compare, elle ne doit jamais etre masquee.
             drawPath(hexagonPath(centre, target), outline, style = Stroke(width = OutlineWidth.toPx()))
 
-            drawInitials(centre, place.labelRadius, measurer, initialStyle, palettes, emphasis)
+            drawInitials(centre, place.labelRadius, measurer, initialStyle, initials, palettes, emphasis)
         }
     }
 }
@@ -295,11 +300,12 @@ private fun DrawScope.drawInitials(
     radius: Float,
     measurer: TextMeasurer,
     style: TextStyle,
+    initials: Map<Macro, String>,
     palettes: Map<Macro, MacroPalette>,
     emphasis: Emphasis,
 ) {
     Macro.entries.forEach { macro ->
-        val layout = measurer.measure(macro.initial, style)
+        val layout = measurer.measure(initials.getValue(macro), style)
         val anchor = pointAt(centre, radius, macro.axisDegrees)
         val teinte = palettes.getValue(macro).base
         drawText(
@@ -312,22 +318,6 @@ private fun DrawScope.drawInitials(
         )
     }
 }
-
-/**
- * L'initiale d'une macro.
- *
- * Écrite ici et non en ressource : ce sont des symboles de figure, pas des libellés
- * à traduire — les six sont les mêmes en français comme en anglais.
- */
-private val Macro.initial: String
-    get() = when (this) {
-        Macro.CALORIES -> "C"
-        Macro.PROTEIN -> "P"
-        Macro.CARBS -> "G"
-        Macro.SUGARS -> "S"
-        Macro.FAT -> "L"
-        Macro.FIBER -> "F"
-    }
 
 // --- Aperçus -----------------------------------------------------------------
 

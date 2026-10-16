@@ -16,12 +16,20 @@
          dont on a besoin au moment de décider quoi manger. -->
     <string name="home_remaining_label">kcal restantes</string>
     <string name="home_over_label">kcal de trop</string>
-    <string name="home_consumed_of_goal">%1$d consommées sur %2$d</string>
+    <!-- Un pluriel : au premier gramme de la journée, « 1 consommées sur 2 127 » (D162). -->
+    <plurals name="home_consumed_of_goal">
+        <item quantity="one">%1$d consommée sur %2$d</item>
+        <item quantity="other">%1$d consommées sur %2$d</item>
+    </plurals>
     <string name="home_ring_a11y">Calories, %1$d sur %2$d, %3$d %%</string>
 
     <!-- Une liste vide dit quoi faire, pas seulement qu'elle est vide. -->
     <string name="home_empty_title">Rien de noté aujourd\'hui</string>
     <string name="home_empty_body">Les six compteurs se rempliront à la première saisie.</string>
+    <!-- Le même vide, sur un jour passé (D162) : il se dit au passé, et ce qu'on peut y
+         faire est rattraper un oubli, pas remplir des compteurs. -->
+    <string name="home_empty_past_title">Rien de noté ce jour-là</string>
+    <string name="home_empty_past_body">Un repas oublié peut encore y être noté : il sera rangé à cette date.</string>
 
     <!-- Un échec de lecture se dit, il ne s'affiche pas comme une journée vide :
          une journée vide est une affirmation, pas une absence de réponse. -->
@@ -34,6 +42,13 @@
     <string name="home_no_goal_title">Pas encore d\'objectif</string>
     <string name="home_no_goal_body">Cinq questions suffisent à calculer vos six objectifs. En attendant, vos totaux sont notés sans être comparés à rien.</string>
     <string name="home_no_goal_action">Définir mon objectif</string>
+
+    <!-- Une journée antérieure au premier objectif, quand un objectif court aujourd'hui
+         (D161). Une explication, sans bouton : l'invitation ci-dessus relançait
+         l'onboarding chez quelqu'un qui venait d'y répondre et revenait noter un repas
+         d'avant son installation. -->
+    <string name="home_before_goal_title">Avant votre objectif</string>
+    <string name="home_before_goal_body">Cette journée précède votre premier objectif : ses totaux sont notés, sans être comparés à rien.</string>
 
     <!-- Une icône seule : c'est la porte la moins fréquentée de l'écran, et rien ne
          doit disputer au titre du jour la première ligne du regard. -->
@@ -53,7 +68,10 @@
 
     <!-- Une ligne est un seul nœud d'accessibilité : nom, quantité, calories, en
          une phrase plutôt qu'en trois arrêts. -->
-    <string name="home_entry_a11y">%1$s, %2$s %3$s, %4$d kilocalories</string>
+    <plurals name="home_entry_a11y">
+        <item quantity="one">%1$s, %2$s %3$s, %4$d kilocalorie</item>
+        <item quantity="other">%1$s, %2$s %3$s, %4$d kilocalories</item>
+    </plurals>
 
     <!-- Un plat : plusieurs aliments entrés en une fois, situés par leur heure. -->
     <string name="home_dish_kcal">%1$d kcal</string>
@@ -158,12 +176,8 @@
         <item quantity="other">%1$d autres</item>
     </plurals>
 
-    <string name="macro_initial_calories">C</string>
-    <string name="macro_initial_protein">P</string>
-    <string name="macro_initial_carbs">G</string>
-    <string name="macro_initial_sugars">S</string>
-    <string name="macro_initial_fat">L</string>
-    <string name="macro_initial_fiber">F</string>
+    <!-- Les initiales des pastilles vivent dans le design system depuis D162 :
+         l'hexagone lit les mêmes, et avait les siennes, en français. -->
 
     <!-- Le bandeau calendrier et la vue mensuelle. Une journée sans saisie est
          annoncée comme telle : pour un lecteur d'écran, un anneau absent ne se
@@ -202,9 +216,20 @@
     <!-- Ce qui passe a l’ecran quand un palier tombe. Rien a fermer : l’animation
          passe, et on continue a noter dessous. -->
     <string name="home_celebration_title">Palier atteint</string>
-    <string name="home_badge_streak">%1$d jours d\'affilée</string>
-    <string name="home_badge_volume">%1$d plats notés</string>
-    <string name="home_badge_perfect">%1$d journées dorées d\'affilée</string>
+    <!-- Des pluriels et non des chaînes : le premier palier doré tombe à un jour, et
+         s'annonçait « 1 journées dorées d'affilée » (D162). -->
+    <plurals name="home_badge_streak">
+        <item quantity="one">%1$d jour</item>
+        <item quantity="other">%1$d jours d\'affilée</item>
+    </plurals>
+    <plurals name="home_badge_volume">
+        <item quantity="one">%1$d plat noté</item>
+        <item quantity="other">%1$d plats notés</item>
+    </plurals>
+    <plurals name="home_badge_perfect">
+        <item quantity="one">%1$d journée dorée</item>
+        <item quantity="other">%1$d journées dorées d\'affilée</item>
+    </plurals>
     <string name="home_badge_first_scan">Premier scan</string>
     <string name="home_badge_first_photo">Première photo</string>
     <string name="home_badge_first_text">Première description</string>

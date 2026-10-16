@@ -2,79 +2,31 @@ package app.hexavore.feature.onboarding
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.selection.toggleable
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.input.KeyboardType
-import app.hexavore.core.designsystem.component.DraftTextField
-import app.hexavore.core.designsystem.component.MacroHexagon
-import app.hexavore.core.designsystem.component.MacroQuarter
+import app.hexavore.core.designsystem.component.BirthDateField
+import app.hexavore.core.designsystem.component.BodyWeightField
+import app.hexavore.core.designsystem.component.HeightFields
 import app.hexavore.core.designsystem.component.NeonChip
-import app.hexavore.core.designsystem.component.NeonDateField
+import app.hexavore.core.designsystem.component.heightProblem
+import app.hexavore.core.designsystem.component.targetProblem
+import app.hexavore.core.designsystem.component.weightProblem
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.domain.goal.GoalHorizon
 import app.hexavore.domain.goal.GoalStrategy
-import app.hexavore.domain.nutrition.Macro
 import app.hexavore.domain.profile.Sex
+import app.hexavore.domain.profile.UnitSystem
 import app.hexavore.domain.profile.WorkActivity
 import app.hexavore.domain.usecase.GoalPlan
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import kotlin.math.abs
-
-/**
- * **1. Accueil.** La figure des six compteurs, une phrase, et l'avertissement.
- *
- * L'hexagone plutôt qu'un paragraphe de plus : c'est la figure qui donne son nom à
- * l'application, elle existe déjà, et elle montre en une image ce qu'un texte
- * raconterait — six compteurs, pas seulement des calories. Les valeurs sont un
- * échantillon, et l'écran ne prétend pas le contraire.
- *
- * **La phrase de l'avertissement est cliquable, pas seulement la case.** Une cible de
- * 24 dp au milieu d'un paragraphe de quatre lignes est une cible qu'on rate ; c'est la
- * ligne entière qui bascule, et TalkBack l'annonce comme une seule case à cocher.
- */
-@Composable
-internal fun WelcomeStep(answers: OnboardingAnswers, onAnswers: (OnboardingAnswers) -> Unit) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(Spacing.lg),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        StepTitle(stringResource(R.string.onboarding_welcome_title))
-        Body(stringResource(R.string.onboarding_welcome_body))
-
-        MacroHexagon(quarters = SAMPLE_DAY, modifier = Modifier.padding(vertical = Spacing.md))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .toggleable(
-                    value = answers.disclaimerAccepted,
-                    role = Role.Checkbox,
-                    onValueChange = { onAnswers(answers.copy(disclaimerAccepted = it)) },
-                ).padding(vertical = Spacing.xs),
-            horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
-            verticalAlignment = Alignment.Top,
-        ) {
-            // `onCheckedChange = null` : la case ne recoit plus le clic, c'est la
-            // ligne qui le porte. Sans cela, TalkBack annoncerait deux cibles pour
-            // une seule decision.
-            Checkbox(checked = answers.disclaimerAccepted, onCheckedChange = null)
-            Body(stringResource(R.string.onboarding_disclaimer))
-        }
-    }
-}
+import kotlin.math.roundToInt
 
 /**
  * **2. Vous.** Date de naissance, sexe, taille, poids actuel.
@@ -82,6 +34,10 @@ internal fun WelcomeStep(answers: OnboardingAnswers, onAnswers: (OnboardingAnswe
  * Rien n'est pré-rempli, et **tout est exigé** ([D56][decisions]). Une valeur plausible
  * affichée dans un champ serait acceptée par distraction, et une valeur par défaut
  * appliquée en silence donnerait l'objectif de quelqu'un d'autre.
+ *
+ * **Et tout est borné** ([D160][decisions]) : la naissance par le sélecteur lui-même, la
+ * taille et le poids par une phrase sous le champ, qui donne la plage en chiffres. Le
+ * poids se juge sur la taille — c'est leur couple qui fait un IMC impossible.
  *
  * [decisions]: docs/11-decisions.md
  */
@@ -93,15 +49,11 @@ internal fun AboutYouStep(answers: OnboardingAnswers, today: LocalDate, onAnswer
         // demande ici ne part nulle part, et personne n'a a le deviner (D137).
         Body(stringResource(R.string.onboarding_privacy))
 
-        NeonDateField(
+        BirthDateField(
             value = answers.birthDate,
             onValueChange = { onAnswers(answers.copy(birthDate = it)) },
             label = stringResource(R.string.onboarding_birth_date),
-            // Une naissance ne se cherche pas en feuilletant les mois : la grille des
-            // annees est le seul chemin praticable, et la borner evite d'en derouler
-            // deux mille.
-            yearRange = (today.year - OLDEST_YEARS)..(today.year - YOUNGEST_YEARS),
-            latest = today,
+            today = today,
             modifier = Modifier.fillMaxWidth(),
         )
 
@@ -116,15 +68,21 @@ internal fun AboutYouStep(answers: OnboardingAnswers, today: LocalDate, onAnswer
         // dit : cacher ce detail produirait un chiffre inexplicable.
         if (answers.sex == Sex.UNSPECIFIED) Body(stringResource(R.string.onboarding_sex_unspecified_note))
 
-        NumberField(
-            value = answers.heightCm,
+        // Les champs du design system, en metrique : ce sont ceux du profil et du
+        // journal, et leurs bornes se disent avec les memes phrases (D160).
+        HeightFields(
+            centimetres = answers.heightCm,
+            units = UnitSystem.METRIC,
             label = stringResource(R.string.onboarding_height),
-            onValueChange = { onAnswers(answers.copy(heightCm = it)) },
+            onCentimetres = { onAnswers(answers.copy(heightCm = it)) },
+            problem = heightProblem(answers.heightCm, UnitSystem.METRIC),
         )
-        NumberField(
-            value = answers.currentWeightKg,
+        BodyWeightField(
+            kilograms = answers.currentWeightKg,
+            units = UnitSystem.METRIC,
             label = stringResource(R.string.onboarding_weight),
-            onValueChange = { onAnswers(answers.copy(currentWeightKg = it)) },
+            onKilograms = { onAnswers(answers.copy(currentWeightKg = it)) },
+            problem = weightProblem(answers.currentWeightKg, answers.heightCm, UnitSystem.METRIC),
         )
     }
 }
@@ -195,10 +153,12 @@ internal fun ObjectiveStep(
         )
 
         if (answers.strategy != null && answers.strategy != GoalStrategy.MAINTAIN) {
-            NumberField(
-                value = answers.targetWeightKg,
+            BodyWeightField(
+                kilograms = answers.targetWeightKg,
+                units = UnitSystem.METRIC,
                 label = stringResource(R.string.onboarding_target_weight),
-                onValueChange = { onAnswers(answers.copy(targetWeightKg = it)) },
+                onKilograms = { onAnswers(answers.copy(targetWeightKg = it)) },
+                problem = targetProblem(answers.targetProblem, UnitSystem.METRIC),
             )
 
             Body(stringResource(R.string.onboarding_horizon_label))
@@ -213,8 +173,9 @@ internal fun ObjectiveStep(
             }
             // La date que les garde-fous ont calculee, quand ils ont mordu. Elle ne
             // correspond a aucune des trois, donc elle merite sa propre pastille --
-            // sans quoi s'y caler donnerait un bandeau ou rien n'est selectionne.
-            plan?.reachableOn?.let { date ->
+            // sans quoi s'y caler donnerait un bandeau ou rien n'est selectionne. Pas
+            // pour un poids vise refuse : ce serait la date d'un objectif impossible.
+            plan?.reachableOn?.takeIf { answers.targetProblem == null }?.let { date ->
                 NeonChip(
                     label = stringResource(R.string.onboarding_horizon_reachable, date.formatLong()),
                     selected = answers.targetDate == date,
@@ -225,27 +186,31 @@ internal fun ObjectiveStep(
 
             // L'apercu de rythme que docs/02 demande. Il vient du plan et non d'un
             // calcul local : deux calculs du meme nombre finissent par diverger, et
-            // celui-ci doit dire la meme chose que l'ecran suivant.
-            if (answers.targetDate != null && plan != null) {
-                Body(stringResource(R.string.onboarding_pace, abs(plan.weeklyWeightChangeKg)))
-            }
+            // celui-ci doit dire la meme chose que l'ecran suivant. Il se tait sur un
+            // poids vise refuse : son rythme serait celui d'un objectif qu'on ne
+            // pourra pas enregistrer.
+            if (answers.targetDate != null && plan != null && answers.targetProblem == null) Pace(plan)
         }
     }
 }
 
+/**
+ * Le rythme que l'objectif produit — ou pourquoi il n'en produit aucun.
+ *
+ * Quand la dépense estimée est déjà sous le plancher calorique, aucun déficit ne tient
+ * ([D160][decisions]) : l'aperçu annonçait alors « 0,00 kg par semaine » sous « Perdre du
+ * poids », ce qui se lisait comme une panne.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
 @Composable
-private fun NumberField(value: Double?, label: String, onValueChange: (Double?) -> Unit) {
-    DraftTextField(
-        initial = value?.let { formatDecimal(it) }.orEmpty(),
-        onValueChange = { text -> onValueChange(text.replace(',', '.').toDoubleOrNull()) },
-        label = label,
-        keyboardType = KeyboardType.Decimal,
-        // Le champ refuse une frappe non numerique au lieu de l'accepter puis de la
-        // nettoyer : nettoyer obligerait a reecrire le texte affiche, donc a
-        // repositionner le curseur (D45).
-        accept = { text -> text.isEmpty() || text.matches(DECIMAL) },
-        modifier = Modifier.fillMaxWidth(),
-    )
+internal fun Pace(plan: GoalPlan) {
+    val floor = plan.withholdingFloorKcal
+    if (floor != null) {
+        Body(stringResource(R.string.onboarding_no_deficit, plan.tdee.roundToInt(), floor.roundToInt()))
+    } else {
+        Body(stringResource(R.string.onboarding_pace, abs(plan.weeklyWeightChangeKg)))
+    }
 }
 
 @Composable
@@ -275,30 +240,6 @@ internal fun Body(text: String) {
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }
-
-private val DECIMAL = Regex("""\d{0,3}([.,]\d{0,2})?""")
-
-/** Bornes de la grille des années, en années révolues avant aujourd'hui. */
-private const val OLDEST_YEARS = 110
-private const val YOUNGEST_YEARS = 13
-
-/**
- * Une journée d'exemple, pour que la figure d'accueil montre quelque chose.
- *
- * Des valeurs plausibles et volontairement inégales : six quartiers identiques
- * ressembleraient à un motif décoratif plutôt qu'à des compteurs.
- */
-private val SAMPLE_DAY = mapOf(
-    Macro.CALORIES to MacroQuarter(0.61f),
-    Macro.PROTEIN to MacroQuarter(0.78f),
-    Macro.FIBER to MacroQuarter(0.34f),
-    Macro.CARBS to MacroQuarter(0.72f),
-    Macro.SUGARS to MacroQuarter(0.45f),
-    Macro.FAT to MacroQuarter(0.55f),
-)
-
-internal fun formatDecimal(value: Double): String =
-    if (value % 1.0 == 0.0) value.toInt().toString() else value.toString()
 
 /** « 14 mars 2027 » et non « 2027-03-14 » : l'ISO n'existe que pour le stockage. */
 internal fun LocalDate.formatLong(): String = format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))

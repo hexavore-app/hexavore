@@ -17,7 +17,11 @@
     </plurals>
 
     <string name="progress_level">Niveau %1$d</string>
-    <string name="progress_level_points">%1$d points sur %2$d avant le niveau suivant</string>
+    <!-- Un pluriel sur le premier nombre : au premier point, « 1 points sur 100 » (D162). -->
+    <plurals name="progress_level_points">
+        <item quantity="one">%1$d point sur %2$d avant le niveau suivant</item>
+        <item quantity="other">%1$d points sur %2$d avant le niveau suivant</item>
+    </plurals>
 
     <!-- Tous les paliers sont affichés, pris ou non : un palier caché ne donne envie de
          rien. Ceux qui ne sont pas pris sont estompés et sans date. -->
@@ -27,17 +31,37 @@
     <string name="progress_family_perfect">Justesse</string>
     <string name="progress_family_discovery">Premières fois</string>
 
-    <string name="progress_name_streak">%1$d jours d\'affilée</string>
-    <string name="progress_name_volume">%1$d plats notés</string>
-    <string name="progress_name_perfect">%1$d journées dorées d\'affilée</string>
+    <!-- Des pluriels, noms comme indices : le premier palier doré tombe à un jour, et
+         s'annonçait « 1 journées dorées d'affilée » (D162). -->
+    <plurals name="progress_name_streak">
+        <item quantity="one">%1$d jour</item>
+        <item quantity="other">%1$d jours d\'affilée</item>
+    </plurals>
+    <plurals name="progress_name_volume">
+        <item quantity="one">%1$d plat noté</item>
+        <item quantity="other">%1$d plats notés</item>
+    </plurals>
+    <plurals name="progress_name_perfect">
+        <item quantity="one">%1$d journée dorée</item>
+        <item quantity="other">%1$d journées dorées d\'affilée</item>
+    </plurals>
     <string name="progress_name_first_scan">Premier scan</string>
     <string name="progress_name_first_photo">Première photo</string>
     <string name="progress_name_first_text">Première description</string>
     <string name="progress_name_first_favorite">Premier favori</string>
 
-    <string name="progress_hint_streak">Notez quelque chose %1$d jours de suite</string>
-    <string name="progress_hint_volume">Notez %1$d plats</string>
-    <string name="progress_hint_perfect">Restez dans votre fourchette %1$d jours de suite</string>
+    <plurals name="progress_hint_streak">
+        <item quantity="one">Notez quelque chose pendant %1$d jour</item>
+        <item quantity="other">Notez quelque chose %1$d jours de suite</item>
+    </plurals>
+    <plurals name="progress_hint_volume">
+        <item quantity="one">Notez %1$d plat</item>
+        <item quantity="other">Notez %1$d plats</item>
+    </plurals>
+    <plurals name="progress_hint_perfect">
+        <item quantity="one">Restez dans votre fourchette sur %1$d journée</item>
+        <item quantity="other">Restez dans votre fourchette %1$d jours de suite</item>
+    </plurals>
     <string name="progress_hint_first_scan">Scannez un code-barres</string>
     <string name="progress_hint_first_photo">Photographiez un repas</string>
     <string name="progress_hint_first_text">Décrivez un repas en une phrase</string>

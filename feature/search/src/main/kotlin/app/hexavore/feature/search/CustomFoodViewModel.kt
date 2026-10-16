@@ -3,6 +3,7 @@ package app.hexavore.feature.search
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.hexavore.core.ui.FormMemory
 import app.hexavore.domain.food.Barcode
 import app.hexavore.domain.food.ContributionOutcome
 import app.hexavore.domain.food.CustomFoodDraft
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import javax.inject.Inject
 
 /**
@@ -49,11 +51,23 @@ internal class CustomFoodViewModel @Inject constructor(
     private val barcode: Barcode? =
         savedStateHandle.get<String>(CustomFoodDestination.BARCODE)?.let(Barcode::of)
 
+    /**
+     * Le formulaire tel qu'Android l'avait quand il a tué l'application ([D166][decisions]).
+     *
+     * Relu avant le nom que la route propose : ce qu'on a tapé depuis vaut mieux que ce
+     * qu'on avait cherché. Le code-barres, lui, vient toujours de la route — il se lit et
+     * ne se tape pas.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    private val memory = FormMemory(savedStateHandle, MEMORY_KEY, CustomFoodMemory.serializer())
+
     private val form = MutableStateFlow(
-        CustomFoodForm(
-            name = savedStateHandle.get<String>(CustomFoodDestination.NAME).orEmpty(),
-            barcode = barcode,
-        ),
+        memory.recall()?.let { kept -> runCatching { kept.toForm(barcode) }.getOrNull() }
+            ?: CustomFoodForm(
+                name = savedStateHandle.get<String>(CustomFoodDestination.NAME).orEmpty(),
+                barcode = barcode,
+            ),
     )
     private val status = MutableStateFlow(Status.EDITING)
 
@@ -84,6 +98,12 @@ internal class CustomFoodViewModel @Inject constructor(
 
     private var saved: FoodId? = null
 
+    init {
+        viewModelScope.launch {
+            form.collect { current -> if (saved == null) memory.keep(CustomFoodMemory.of(current)) }
+        }
+    }
+
     fun onNameChange(value: String) = form.update { it.copy(name = value) }
 
     fun onBrandChange(value: String) = form.update { it.copy(brand = value) }
@@ -105,6 +125,8 @@ internal class CustomFoodViewModel @Inject constructor(
         viewModelScope.launch {
             val written = runCatching { saveCustomFood(draft) }
             saved = written.getOrNull()
+            // Enregistree, la fiche n'a plus rien a rendre.
+            if (saved != null) memory.forget()
             status.value = if (written.isSuccess) Status.SAVED else Status.FAILED
             // La proposition est cherchee **apres** l'ecriture, jamais avant : une
             // fiche qui n'a pas ete enregistree n'a rien a offrir, et l'echec de la
@@ -144,6 +166,41 @@ internal class CustomFoodViewModel @Inject constructor(
 
     private companion object {
         const val SUBSCRIPTION_TIMEOUT_MILLIS = 5_000L
+
+        /** Distincte des arguments de route, qui vivent dans le même `SavedStateHandle`. */
+        const val MEMORY_KEY = "hexavore.customfood.memory"
+    }
+}
+
+/**
+ * Le formulaire, sous une forme qu'Android range avec l'écran ([D166][decisions]).
+ *
+ * Du texte, comme le formulaire : « 12, » revient « 12, ». Les compteurs par leur nom.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+@Serializable
+internal data class CustomFoodMemory(
+    val name: String = "",
+    val brand: String = "",
+    val serving: String = "",
+    val macros: Map<String, String> = emptyMap(),
+) {
+    fun toForm(barcode: Barcode?) = CustomFoodForm(
+        name = name,
+        brand = brand,
+        serving = serving,
+        macros = macros.mapKeys { (macro, _) -> Macro.valueOf(macro) },
+        barcode = barcode,
+    )
+
+    companion object {
+        fun of(form: CustomFoodForm) = CustomFoodMemory(
+            name = form.name,
+            brand = form.brand,
+            serving = form.serving,
+            macros = form.macros.mapKeys { (macro, _) -> macro.name },
+        )
     }
 }
 

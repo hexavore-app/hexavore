@@ -20,6 +20,8 @@ import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.domain.goal.AdjustmentSuggestion
 import app.hexavore.domain.goal.DailyGoal
 import app.hexavore.domain.nutrition.Macro
+import app.hexavore.domain.profile.UnitSystem
+import app.hexavore.domain.profile.kilogramsToPounds
 import kotlin.math.abs
 
 /**
@@ -38,11 +40,16 @@ import kotlin.math.abs
  * les deux rythmes n'ont pas le même sens : quelqu'un qui vise une prise et qui perd du
  * poids lirait « vous perdez 0,2, pour 0,5 visé » et comprendrait l'inverse.
  *
+ * **Dans le système choisi** ([D162][decisions]) : la carte parlait en kilos juste au-dessus
+ * d'une liste de pesées écrite en livres.
+ *
  * [parcours]: docs/02-parcours-et-ecrans.md
+ * [decisions]: docs/11-decisions.md
  */
 @Composable
 fun AdjustmentCard(
     suggestion: AdjustmentSuggestion,
+    units: UnitSystem,
     onAccept: () -> Unit,
     onIgnore: () -> Unit,
     onStop: () -> Unit,
@@ -63,8 +70,8 @@ fun AdjustmentCard(
             Text(
                 text = stringResource(
                     R.string.ds_adjustment_body,
-                    pace(suggestion.actualWeeklyKg),
-                    pace(suggestion.aimedWeeklyKg),
+                    pace(suggestion.actualWeeklyKg, units),
+                    pace(suggestion.aimedWeeklyKg, units),
                 ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -113,10 +120,19 @@ private fun Answers(onAccept: () -> Unit, onIgnore: () -> Unit, onStop: () -> Un
     }
 }
 
-/** « −0,2 kg/semaine », « +0,3 kg/semaine », ou « stable ». */
+/**
+ * « −0,2 kg/semaine », « +0,3 kg/semaine », ou « stable » — en livres pour l'impérial.
+ *
+ * Le seuil de stabilité reste en kilos : c'est l'unité du calcul, et une même pesée ne
+ * doit pas paraître stable dans un système et en mouvement dans l'autre.
+ */
 @Composable
-private fun pace(weeklyKg: Double): String = when {
+private fun pace(weeklyKg: Double, units: UnitSystem): String = when {
     abs(weeklyKg) < STEADY_KG_PER_WEEK -> stringResource(R.string.ds_adjustment_pace_steady)
+    units == UnitSystem.IMPERIAL -> stringResource(
+        if (weeklyKg < 0) R.string.ds_adjustment_pace_loss_pounds else R.string.ds_adjustment_pace_gain_pounds,
+        kilogramsToPounds(abs(weeklyKg)),
+    )
     weeklyKg < 0 -> stringResource(R.string.ds_adjustment_pace_loss, abs(weeklyKg))
     else -> stringResource(R.string.ds_adjustment_pace_gain, weeklyKg)
 }
@@ -150,6 +166,7 @@ private fun AdjustmentCardPreview() {
                 current = DailyGoal(2400.0, 150.0, 255.0, 60.0, 67.0, 30.0),
                 proposed = DailyGoal(2250.0, 150.0, 218.0, 56.0, 62.0, 30.0),
             ),
+            units = UnitSystem.METRIC,
             onAccept = {},
             onIgnore = {},
             onStop = {},

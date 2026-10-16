@@ -13,6 +13,7 @@ import app.hexavore.domain.diary.DishPhotos
 import app.hexavore.domain.time.Clock
 import java.io.InputStream
 import java.io.OutputStream
+import java.time.Instant
 
 /**
  * Tout ce que l'utilisateur a écrit, en octets.
@@ -117,6 +118,49 @@ class RestoreArchive(
     }.getOrElse { RestoreOutcome.Failed }
 }
 
+/**
+ * Revenir à l'état d'avant la dernière restauration ([D162][decisions]).
+ *
+ * La copie de sécurité de [RestoreArchive] existait pour cela, et la boîte de
+ * restauration le promettait — « pour que vous puissiez revenir en arrière si vous vous
+ * êtes trompé de fichier ». Aucun écran ne la relisait : elle dormait dans le stockage
+ * interne, hors de portée de qui en avait besoin.
+ *
+ * **Le retour se défait comme il s'est fait** : l'état qu'on quitte devient à son tour
+ * la copie de sécurité, par le même [CreateBackup]. Revenir en arrière par erreur ne
+ * perd donc rien non plus. La copie est lue **avant** d'être remplacée, et la rotation
+ * qui l'emporte vient après l'écriture de la suivante.
+ *
+ * Elle rend le journal, pas les photos : la copie n'en porte pas ([RestoreArchive]).
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+class UndoRestore(
+    private val store: SnapshotStore,
+    private val codec: SnapshotCodec,
+    private val createBackup: CreateBackup,
+    private val safety: BackupTarget,
+) {
+    /** Quand la copie a été prise, ou `null` s'il n'y en a pas — et rien à proposer. */
+    suspend fun available(): Instant? = runCatching { safety.list().firstOrNull()?.createdAt }.getOrNull()
+
+    suspend operator fun invoke(): RestoreOutcome =
+        when (val read = runCatching { latest() }.getOrDefault(SnapshotRead.Unreadable)) {
+            is SnapshotRead.Readable -> replace(read)
+            is SnapshotRead.TooRecent -> RestoreOutcome.TooRecent(read.formatVersion)
+            SnapshotRead.Unreadable -> RestoreOutcome.Unreadable
+        }
+
+    private suspend fun latest(): SnapshotRead =
+        safety.list().firstOrNull()?.let { safety.read(it.id) }?.let { codec.decode(it) } ?: SnapshotRead.Unreadable
+
+    private suspend fun replace(read: SnapshotRead.Readable): RestoreOutcome = runCatching {
+        createBackup(safety, keep = 1).getOrThrow()
+        store.replace(read.snapshot)
+        RestoreOutcome.Restored(read.snapshot.entryCount)
+    }.getOrElse { RestoreOutcome.Failed }
+}
+
 /** Ce qu'une restauration a donné. */
 sealed interface RestoreOutcome {
     data class Restored(val entryCount: Int) : RestoreOutcome
@@ -158,16 +202,24 @@ sealed interface RestoreOutcome {
  * rangés ailleurs — dans son Drive, sur une clé — et les supprimer sans le lui demander
  * détruirait la seule chose qui restait.
  *
+ * **La copie de sécurité, elle, part** ([D162][decisions]). Ce n'est pas une sauvegarde
+ * que l'utilisateur a rangée : c'est le journal entier, dans le stockage interne, écrit
+ * par la dernière restauration. Elle survivait à l'effacement, et le journal qu'on
+ * croyait effacé restait sur le téléphone.
+ *
  * [donnees]: docs/09-donnees-et-sauvegarde.md
+ * [decisions]: docs/11-decisions.md
  */
 class EraseEverything(
     private val store: SnapshotStore,
     private val preferences: StoredPreferences,
     private val photos: DishPhotos,
+    private val safety: BackupTarget,
 ) {
     suspend operator fun invoke() {
         store.erase()
         photos.forgetAll()
         preferences.erase()
+        safety.list().forEach { safety.delete(it.id) }
     }
 }

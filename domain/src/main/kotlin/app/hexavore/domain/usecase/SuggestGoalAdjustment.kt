@@ -40,7 +40,7 @@ import kotlin.math.roundToInt
  *    quoi comparer ;
  * 4. l'écart entre le rythme annoncé et le rythme réel dépasse 0,15 kg par semaine
  *    **deux semaines de suite et dans le même sens** ;
- * 5. la correction retenue, garde-fous compris, ne s'annule pas.
+ * 5. la correction retenue, garde-fous compris, ne s'annule pas et ne change pas de sens.
  *
  * **La signature s'écarte de [docs/06][archi]**, qui prévoyait une lecture unique de
  * trois dépôts. Un flux, parce que la carte paraît et disparaît sur deux écrans à la
@@ -127,13 +127,25 @@ class SuggestGoalAdjustment(
      *
      * `null` si la correction retenue s'annule — proposer de changer de zéro kcal
      * demanderait un geste pour ne rien faire.
+     *
+     * **`null` aussi si elle part à rebours** ([D163][decisions]). Les bornes se
+     * recalculent sur la dépense du jour, pas sur celle du jour où l'objectif a été
+     * posé : un objectif réglé sur la borne des 25 % quand on pesait un peu moins se
+     * retrouve **sous** la borne d'aujourd'hui, et le garde-fou y ramenait la
+     * correction — « augmenter l'objectif de 7 kcal » à quelqu'un dont le poids ne
+     * bouge pas sous un objectif de perte. Un garde-fou réduit l'ambition jusqu'à
+     * l'annuler, jamais au-delà : la même propriété que [GoalSafetyPolicy], tenue sur
+     * l'ajustement.
+     *
+     * [decisions]: docs/11-decisions.md
      */
     private fun propose(facts: Facts, ingredients: Ingredients, gapKgPerWeek: Double): AdjustmentSuggestion? {
         val (goal, profile, aim) = ingredients
         val currentWeightKg = facts.log.last().weightKg
         val tdee = EnergyExpenditureCalculator.totalExpenditure(profile, currentWeightKg, facts.today)
+        val correction = correctionKcal(gapKgPerWeek)
         val budget = GoalSafetyPolicy.apply(
-            rawDeltaKcal = goal.daily.kcal + correctionKcal(gapKgPerWeek) - tdee,
+            rawDeltaKcal = goal.daily.kcal + correction - tdee,
             tdee = tdee,
             currentWeightKg = currentWeightKg,
             targetWeightKg = goal.targetWeightKg,
@@ -155,6 +167,6 @@ class SuggestGoalAdjustment(
                 currentWeightKg = currentWeightKg,
                 targetWeightKg = goal.targetWeightKg ?: currentWeightKg,
             ).goal,
-        ).takeIf { it.deltaKcal != 0 }
+        ).takeIf { it.deltaKcal != 0 && (it.deltaKcal > 0) == (correction > 0) }
     }
 }

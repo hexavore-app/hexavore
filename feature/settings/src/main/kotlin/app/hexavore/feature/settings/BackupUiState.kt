@@ -1,5 +1,7 @@
 package app.hexavore.feature.settings
 
+import java.time.LocalDateTime
+
 /**
  * Ce que l'écran de sauvegarde montre.
  *
@@ -13,7 +15,20 @@ package app.hexavore.feature.settings
  * déjà résolu ferait ranger des chaînes dans un `ViewModel`, ce que le projet ne fait
  * nulle part ; il porte donc **ce qui s'est passé**, et l'écran choisit les mots.
  */
-internal data class BackupUiState(val busy: Boolean = false, val message: BackupMessage? = null)
+internal data class BackupUiState(
+    val busy: Boolean = false,
+    val message: BackupMessage? = null,
+    /**
+     * Quand la copie de sécurité a été prise, ou `null` s'il n'y en a pas
+     * ([D162][decisions]).
+     *
+     * Elle n'existe qu'après une restauration, et c'est elle qui fait paraître la carte
+     * du retour en arrière : un bouton qui n'aurait rien à remettre ne se montre pas.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val undoSince: LocalDateTime? = null,
+)
 
 /** Ce qu'un geste de sauvegarde a produit, avant d'être mis en mots. */
 internal sealed interface BackupMessage {
@@ -24,6 +39,9 @@ internal sealed interface BackupMessage {
     data object ExportFailed : BackupMessage
 
     data class Restored(val entryCount: Int) : BackupMessage
+
+    /** Le journal d'avant la dernière restauration est revenu. */
+    data class Undone(val entryCount: Int) : BackupMessage
 
     /**
      * Le fichier vient d'une version plus récente. **Rien n'a été touché**, et le

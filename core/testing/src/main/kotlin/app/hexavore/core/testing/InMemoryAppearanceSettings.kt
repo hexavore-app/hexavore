@@ -22,6 +22,7 @@ class InMemoryAppearanceSettings(
 ) : AppearanceSettings {
     private val state = MutableStateFlow(initial)
     private val style = MutableStateFlow(initialStyle)
+    private val weightTrend = MutableStateFlow(true)
 
     /** Ce que le magasin porte, pour qu'un cas l'affirme sans passer par un flux. */
     val current: ThemeMode get() = state.value
@@ -42,5 +43,13 @@ class InMemoryAppearanceSettings(
 
     override suspend fun setDishStyle(style: DishDisplayStyle) {
         this.style.value = style
+    }
+
+    override fun observeWeightTrend(): Flow<Boolean> = weightTrend.map {
+        if (failure) error("Apparence illisible") else it
+    }
+
+    override suspend fun setWeightTrend(shown: Boolean) {
+        weightTrend.value = shown
     }
 }

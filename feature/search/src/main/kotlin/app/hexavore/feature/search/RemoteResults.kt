@@ -49,15 +49,25 @@ internal fun LazyListScope.remoteSection(remote: RemoteSearch, actions: SearchAc
             items(remote.foods, key = { "off-" + it.id.value }) { FoodRow(it, actions) }
         }
 
-        RemoteSearch.Unreachable -> item {
+        RemoteSearch.Unreachable -> {
             // Une phrase plutot qu'une ligne qui disparait : la ligne est offerte meme
             // hors ligne, parce qu'un test de connectivite ment -- un portail captif se
             // declare connecte.
-            Text(
-                text = stringResource(R.string.search_open_food_facts_offline),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            item {
+                Text(
+                    text = stringResource(R.string.search_open_food_facts_offline),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            // Et de quoi reessayer sans retaper la requete (D163) : la recherche d'Open
+            // Food Facts repond « indisponible » par intermittence, et la phrase seule
+            // laissait l'echec sans issue.
+            item {
+                TextButton(onClick = actions.onSearchRemotely, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.search_open_food_facts_retry))
+                }
+            }
         }
     }
 }

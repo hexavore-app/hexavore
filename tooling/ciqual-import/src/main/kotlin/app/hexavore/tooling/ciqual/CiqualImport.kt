@@ -34,12 +34,22 @@ fun main(args: Array<String>) {
             table.foods.associate { it.code to it.label(language).name },
         )
     }
+    // Les noms courants, comme les titres : un fichier par langue, valide contre les
+    // libelles de sa langue -- un nom egal a un libelle mettrait deux fiches a egalite,
+    // et seul un libelle de la meme langue peut l'etre.
+    val commonNames = ContentLanguage.entries.associateWith { language ->
+        CommonNamesCsv.read(
+            paths.commonNames(language),
+            table.foods.associate { it.code to it.label(language).name },
+        )
+    }
     // La table entiere, cette fois : une completion doit viser un trou qui existe
     // encore, et c'est la seule facon de le savoir.
     val completions = CompletionsCsv.read(paths.completions, table.foods.associateBy { it.code })
-    CiqualDatabaseWriter(paths.output).write(table.foods, portions, titles, completions)
+    CiqualDatabaseWriter(paths.output).write(table.foods, portions, titles, completions, commonNames)
 
     report(table.foods, portions, titles, completions, paths.output)
+    reportCommonNames(commonNames)
 }
 
 /**
@@ -70,6 +80,18 @@ internal data class CatalogueFiles(val directory: File, val output: File) {
      * langue dont la passe n'a pas tourne.
      */
     fun shortNames(language: ContentLanguage): File = directory.resolve("short-names-${language.tag}.csv")
+
+    /**
+     * Les noms courants d'une langue ([D164][decisions]).
+     *
+     * Un fichier par langue pour la raison des titres courts : « riz » et « rice » ne
+     * se traduisent pas l'un l'autre ligne a ligne, et une langue peut avoir un nom
+     * courant la ou l'autre n'en a pas -- « chips » n'en a pas en anglais, parce
+     * qu'il y designe deux choses.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    fun commonNames(language: ContentLanguage): File = directory.resolve("common-names-${language.tag}.csv")
 
     companion object {
         /**
@@ -220,6 +242,20 @@ private fun reportAmbiguousTitles(language: ContentLanguage, titles: List<Ciqual
     }
     if (collisions.size > SHOWN_SAMPLES) println("      ... et ${collisions.size - SHOWN_SAMPLES} autre(s).")
     println("      A departager dans short-names-${language.tag}.csv : une liste ne les distinguera pas.")
+}
+
+/**
+ * Les noms courants, langue par langue : combien de noms, sur combien de fiches.
+ *
+ * Le second chiffre est celui qui informe -- plusieurs noms pour une fiche (« riz »,
+ * « riz blanc ») ne disent rien de la couverture, le nombre de fiches si.
+ */
+private fun reportCommonNames(commonNames: Map<ContentLanguage, List<CiqualCommonName>>) {
+    ContentLanguage.entries.forEach { language ->
+        val names = commonNames[language].orEmpty()
+        val foods = names.map { it.code }.toSet().size
+        println("  ${language.tag} : ${names.size} noms courants, sur $foods fiches")
+    }
 }
 
 /**

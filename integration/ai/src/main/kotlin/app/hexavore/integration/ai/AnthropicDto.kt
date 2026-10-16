@@ -66,9 +66,14 @@ internal data class ToolChoice(
     @SerialName("disable_parallel_tool_use") val disableParallelToolUse: Boolean = true,
 )
 
-/** L'effort consenti, et la forme exigée de la réponse. */
+/**
+ * L'effort consenti, et la forme exigée de la réponse.
+ *
+ * L'effort est absent pour un modèle qui n'en connaît pas ([effortFor]) : le champ `null`
+ * ne s'écrit pas, et le corps reste celui que ce modèle accepte.
+ */
 @Serializable
-internal data class OutputConfig(val effort: String, val format: OutputFormat)
+internal data class OutputConfig(val effort: String?, val format: OutputFormat)
 
 /**
  * La sortie structurée : le modèle **ne peut pas** rendre autre chose que ce schéma.

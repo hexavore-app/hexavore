@@ -66,21 +66,24 @@ class PremierLancementTest {
      *
      * ### Ce que sa boîte fait au parcours
      *
-     * L'onboarding la demande à son dernier geste, puis l'accueil **la redemande** : il
-     * relit `permissionAsked()`, que l'onboarding n'écrit jamais. La seconde boîte se pose
-     * alors par-dessus le tour, possède l'entrée, et plus rien ne répond — c'est ce que le
-     * premier passage sur émulateur a montré, sept échecs sur sept.
+     * L'onboarding la demande à son dernier geste, et l'accueil **la redemandait** : il
+     * relisait `permissionAsked()`, que l'onboarding n'écrivait jamais. La seconde boîte
+     * se posait alors par-dessus le tour, possédait l'entrée, et plus rien ne répondait —
+     * c'est ce que le premier passage sur émulateur a montré, sept échecs sur sept.
+     *
+     * **La collision est corrigée** ([D162][decisions]) : l'onboarding note la question
+     * comme posée, et l'accueil ne la repose plus. La permission reste accordée d'avance
+     * pour la boîte de l'onboarding lui-même.
      *
      * ### Pourquoi l'écarter plutôt que la traverser
      *
      * Une boîte du système n'appartient pas à l'application : ses libellés sont ceux
      * d'Android, ils changent de langue et de version, et un parcours accroché à « Allow »
-     * casserait sur un téléphone en français sans rien dire du chemin qu'il teste.
+     * casserait sur un téléphone en français sans rien dire du chemin qu'il teste. Ce
+     * fichier répond à une autre question : *les cinq questions mènent-elles à un accueil
+     * utilisable*. Une boîte système devant lui empêche d'y répondre.
      *
-     * **La collision est un vrai défaut et elle reste entière** — elle a besoin de son
-     * correctif, pas d'un contournement de test. Ce fichier répond à une autre question :
-     * *les cinq questions mènent-elles à un accueil utilisable*. Une boîte système devant
-     * lui empêche d'y répondre.
+     * [decisions]: docs/11-decisions.md
      */
     @Before
     fun laPermissionDeNotifierEstAccordee() {
@@ -118,10 +121,10 @@ class PremierLancementTest {
     /** **1.** Le nom, la figure, et la case qui débloque « Continuer ». */
     private fun accepteLAvertissement() {
         ecran.attend(OnboardingStrings.string.onboarding_welcome_title)
-        ecran.attend(OnboardingStrings.string.onboarding_disclaimer)
+        ecran.attend(DesignStrings.string.ds_medical_disclaimer)
 
         // La case d'abord : le bouton reste inerte tant qu'elle n'est pas cochee.
-        ecran.clique(ecran.texte(OnboardingStrings.string.onboarding_disclaimer))
+        ecran.clique(ecran.texte(DesignStrings.string.ds_medical_disclaimer))
         ecran.clique(ecran.texte(OnboardingStrings.string.onboarding_next))
     }
 
@@ -229,14 +232,15 @@ class PremierLancementTest {
      *
      * ### Par la grille des années
      *
-     * Le champ s'ouvre sur un mois, et une naissance ne se cherche pas en feuilletant les
+     * Le champ s'ouvre sur un mois — **trente ans en arrière** depuis D160, et non plus sur
+     * la dernière année permise —, et une naissance ne se cherche pas en feuilletant les
      * mois. L'en-tête du sélecteur porte l'année affichée et bascule sur la grille : on la
      * reconnaît à ses quatre chiffres, ce qui est vrai dans toutes les langues et sur
-     * toutes les versions, là où son libellé complet (« octobre 2026 ») ne l'est dans
+     * toutes les versions, là où son libellé complet (« octobre 1996 ») ne l'est dans
      * aucune.
      *
      * Le jour vient ensuite, et c'est le 15 : il existe dans les douze mois, et il n'est
-     * jamais dans le futur pour une année choisie trente ans en arrière.
+     * jamais dans le futur pour une année choisie près de trente ans en arrière.
      */
     private fun choisitUneDateDeNaissance() {
         ecran.clique(ecran.texte(OnboardingStrings.string.onboarding_birth_date))
@@ -272,13 +276,21 @@ class PremierLancementTest {
         ecran.clique(entete.group())
     }
 
-    /** Trente ans en arrière : un adulte, et bien à l'intérieur des bornes du sélecteur. */
+    /**
+     * **L'année qui suit celle de l'en-tête.**
+     *
+     * L'en-tête montre l'année d'ouverture, trente ans en arrière : un adulte, bien à
+     * l'intérieur des bornes. La grille s'ouvre autour d'elle, donc sa voisine y est
+     * visible sans défiler — et elle ne se confond pas avec l'en-tête, dont le libellé
+     * contient l'année d'ouverture et attraperait le clic. Remonter de trente ans de plus,
+     * comme le faisait ce test, visait une année que la grille ne montre pas.
+     */
     private fun anneeDeNaissance(): String {
-        val cetteAnnee = ANNEE.matcher(ecran.ceQuOnVoit())
-        if (!cetteAnnee.find()) {
+        val ouverture = ANNEE.matcher(ecran.ceQuOnVoit())
+        if (!ouverture.find()) {
             fail("La grille des annees ne montre aucune annee." + System.lineSeparator() + ecran.ceQuOnVoit())
         }
-        return (cetteAnnee.group().toInt() - AGE).toString()
+        return (ouverture.group().toInt() + 1).toString()
     }
 
     /**
@@ -305,7 +317,6 @@ class PremierLancementTest {
         /** Date, taille, poids : la date ne s'ecrit pas, mais elle compte dans l'arbre. */
         const val CHAMPS_ATTENDUS = 3
 
-        const val AGE = 30
         const val TAILLE_CM = "175"
         const val POIDS_KG = "70"
         const val JOUR = "15"

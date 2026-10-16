@@ -61,9 +61,9 @@ class AxisEndsTest {
 
     private fun descente() = WeightTrend(
         points = listOf(
-            TrendPoint(LUNDI, weightKg = 82.5, averageKg = null),
-            TrendPoint(LUNDI.plusDays(30), weightKg = 80.4, averageKg = 80.6),
-            TrendPoint(LUNDI.plusDays(60), weightKg = 79.2, averageKg = 79.5),
+            TrendPoint(LUNDI, weightKg = 82.5, trendKg = 82.5),
+            TrendPoint(LUNDI.plusDays(30), weightKg = 80.4, trendKg = 80.6),
+            TrendPoint(LUNDI.plusDays(60), weightKg = 79.2, trendKg = 79.5),
         ),
     )
 

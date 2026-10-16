@@ -36,6 +36,10 @@ internal class StoredAppearanceSettings(
     private val theme = MutableStateFlow(preferences.readThemeMode())
     private val dishStyle = MutableStateFlow(preferences.readDishStyle())
 
+    // Allumee tant que rien n'a ete choisi : c'est elle qui porte l'information de la
+    // courbe (D159).
+    private val weightTrend = MutableStateFlow(preferences.getBoolean(WEIGHT_TREND, true))
+
     override fun observeTheme(): Flow<ThemeMode> = theme
 
     override suspend fun setThemeMode(mode: ThemeMode) = withContext(dispatchers.io) {
@@ -48,6 +52,13 @@ internal class StoredAppearanceSettings(
     override suspend fun setDishStyle(style: DishDisplayStyle) = withContext(dispatchers.io) {
         preferences.edit { putString(DISH_STYLE, style.name) }
         dishStyle.value = style
+    }
+
+    override fun observeWeightTrend(): Flow<Boolean> = weightTrend
+
+    override suspend fun setWeightTrend(shown: Boolean) = withContext(dispatchers.io) {
+        preferences.edit { putBoolean(WEIGHT_TREND, shown) }
+        weightTrend.value = shown
     }
 }
 
@@ -64,3 +75,5 @@ private fun SharedPreferences.readDishStyle(): DishDisplayStyle {
 private const val THEME_MODE = "appearance.theme_mode"
 
 private const val DISH_STYLE = "appearance.dish_style"
+
+private const val WEIGHT_TREND = "appearance.weight_trend"

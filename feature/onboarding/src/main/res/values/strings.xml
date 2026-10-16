@@ -8,7 +8,11 @@
          worked out from default values is someone else's target, shown with the
          authority of a personal figure. -->
     <string name="onboarding_welcome_body">Six counters, worked out from your answers. Five questions, one minute.</string>
-    <string name="onboarding_disclaimer">Hexavore is a personal tracking tool. It is not a medical device and it does not replace the advice of a health professional.</string>
+    <!-- The warning itself lives in the design system (ds_medical_disclaimer): "About"
+         shows it too, and the two must not drift apart (D161). -->
+    <!-- The checkbox label, one line long: the paragraph above is the information, this
+         is the agreement (D158). -->
+    <string name="onboarding_disclaimer_accept">I have read and understood</string>
 
     <!-- 2. You. Nothing is prefilled: a plausible value on display would be accepted by
          inattention, and the target would be someone else's. -->
@@ -21,8 +25,10 @@
     <string name="onboarding_sex_female">Female</string>
     <string name="onboarding_sex_unspecified">I would rather not say</string>
     <string name="onboarding_sex_unspecified_note">We will use a middle estimate, which you can adjust afterwards.</string>
-    <string name="onboarding_height">Height (cm)</string>
-    <string name="onboarding_weight">Current weight (kg)</string>
+    <!-- No unit: the design system field adds it, and it is the one that will change it
+         the day onboarding speaks imperial (D160). -->
+    <string name="onboarding_height">Height</string>
+    <string name="onboarding_weight">Current weight</string>
 
     <!-- 4. Target. -->
     <!-- Deux questions la ou il n'y en avait qu'une : un macon sans sport depense plus
@@ -46,7 +52,7 @@
     <string name="onboarding_strategy_lose">Lose weight</string>
     <string name="onboarding_strategy_maintain">Maintain</string>
     <string name="onboarding_strategy_gain">Gain weight</string>
-    <string name="onboarding_target_weight">Target weight (kg)</string>
+    <string name="onboarding_target_weight">Target weight</string>
 
     <!-- Three chips rather than a calendar: an exact date has no value in itself, what
          matters is the pace. The fourth appears only if the safety limits worked out a
@@ -58,6 +64,9 @@
     <string name="onboarding_horizon_reachable">At a safe pace: %1$s</string>
     <!-- The real pace, after the safety limits, not the one you hoped for. -->
     <string name="onboarding_pace">That is about %1$.2f kg a week.</string>
+    <!-- The estimated expenditure is already below the floor: no deficit fits, and the
+         preview used to say "0.00 kg a week" without saying why (D160). -->
+    <string name="onboarding_no_deficit">Your estimated expenditure (%1$d kcal) is already below the recommended minimum of %2$d kcal: no deficit is offered, and your target stays at your expenditure. A health professional can advise you.</string>
 
     <!-- 5. Your targets. The application never refuses: it explains and suggests. -->
     <string name="onboarding_result_title">Your targets</string>
@@ -76,6 +85,10 @@
     <!-- One sentence per counter: a figure without a reason is a figure you ignore. -->
     <string name="onboarding_why_calories">Your estimated expenditure, adjusted to your deadline.</string>
     <string name="onboarding_why_protein">Worked out on your target weight, to preserve lean mass.</string>
+    <!-- The same, for maintenance (D162): it has neither deadline nor target weight, and
+         its protein is worked out on the current weight. -->
+    <string name="onboarding_why_calories_maintain">Your estimated expenditure: enough to hold your weight.</string>
+    <string name="onboarding_why_protein_maintain">Worked out on your current weight, to preserve lean mass.</string>
     <string name="onboarding_why_fiber">14 g per 1,000 kcal, never cut back in favour of carbs.</string>
     <string name="onboarding_why_carbs">What is left of the budget, once fibre is deducted.</string>
     <string name="onboarding_why_sugars">The WHO ceiling, applied to total sugars, so stricter.</string>
@@ -85,6 +98,7 @@
          something is missing: "complete the form" helps nobody. -->
     <string name="onboarding_blocked_disclaimer">Accept the warning to continue.</string>
     <string name="onboarding_blocked_identity">Fill in your date of birth, your sex, your height and your weight.</string>
+    <string name="onboarding_blocked_age">Hexavore works out its targets for people aged %1$d to %2$d.</string>
     <string name="onboarding_blocked_activity">Choose the level that best describes your weeks.</string>
     <string name="onboarding_blocked_objective">Choose a goal, then a target weight and a deadline.</string>
 

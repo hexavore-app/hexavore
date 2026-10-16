@@ -1,7 +1,9 @@
 package app.hexavore.feature.home
 
 import app.hexavore.domain.goal.AdjustmentSuggestion
+import app.hexavore.domain.profile.UnitSystem
 import app.hexavore.domain.usecase.AdjustmentResponse
+import app.hexavore.domain.usecase.ObserveUnitSystem
 import app.hexavore.domain.usecase.RespondToAdjustment
 import app.hexavore.domain.usecase.SuggestGoalAdjustment
 import kotlinx.coroutines.flow.Flow
@@ -27,8 +29,13 @@ class DayAdjustment @Inject constructor(
     // `respondTo` et non `respond` : une propriete qui porte le nom de la methode qui
     // l'appelle fait que la methode s'appelle elle-meme, et le compilateur l'accepte.
     private val respondTo: RespondToAdjustment,
+    // La langue de la conversation, en quelque sorte : le systeme dans lequel la carte
+    // dit ses rythmes. Elle parlait en kilos a qui pese en livres (D162).
+    private val observeUnits: ObserveUnitSystem,
 ) {
     fun suggestion(): Flow<AdjustmentSuggestion?> = suggest()
+
+    fun units(): Flow<UnitSystem> = observeUnits()
 
     suspend fun respond(response: AdjustmentResponse, shown: AdjustmentSuggestion) = respondTo(response, shown)
 }

@@ -40,6 +40,17 @@ data class GoalPlan(
     val guardsApplied: Set<GoalGuard>,
     val reachableOn: LocalDate?,
     val carbsBelowMinimum: Boolean,
+    /**
+     * Le plancher calorique qui a retenu **tout** le déficit, ou `null`.
+     *
+     * Quand la dépense estimée est déjà sous le plancher, aucun déficit ne tient sans
+     * passer dessous : l'objectif reste la dépense elle-même ([D160][decisions]). Sans
+     * ce chiffre, l'écran afficherait « 0 kg par semaine » sous « Perdre du poids », sans
+     * dire pourquoi.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val withholdingFloorKcal: Double? = null,
 ) {
     val capped: Boolean get() = guardsApplied.isNotEmpty()
 
@@ -119,6 +130,7 @@ class CalculateDailyGoal(private val clock: Clock) {
             guardsApplied = budget.guardsApplied,
             reachableOn = budget.reachableOn,
             carbsBelowMinimum = macros.carbsBelowMinimum,
+            withholdingFloorKcal = budget.withholdingFloorKcal,
         )
     }
 
@@ -128,6 +140,13 @@ class CalculateDailyGoal(private val clock: Clock) {
      * Zéro en maintien, et zéro aussi si l'échéance est aujourd'hui ou passée : diviser
      * par zéro jour rendrait un infini, que les garde-fous ramèneraient certes à une
      * borne, mais en passant par une valeur qui n'a aucun sens.
+     *
+     * **Zéro encore quand le poids visé est du mauvais côté** ([D160][decisions]) : le
+     * sens est celui de la stratégie, jamais celui de la soustraction. Perdre vers un
+     * poids plus haut calculait une prise sous l'étiquette « perdre ». L'écran refuse ce
+     * poids et dit pourquoi ; ceci est le filet, pour que la règle vive dans le domaine.
+     *
+     * [decisions]: docs/11-decisions.md
      */
     private fun GoalRequest.rawDailyDelta(today: LocalDate): Double {
         val target = targetWeightKg
@@ -135,6 +154,14 @@ class CalculateDailyGoal(private val clock: Clock) {
         if (target == null || date == null) return 0.0
 
         val days = ChronoUnit.DAYS.between(today, date)
-        return if (days > 0) (target - currentWeightKg) * KCAL_PER_KILOGRAM / days else 0.0
+        val delta = if (days > 0) (target - currentWeightKg) * KCAL_PER_KILOGRAM / days else 0.0
+        return if (strategy.heads(delta)) delta else 0.0
     }
+}
+
+/** Un écart dans le sens de la stratégie : négatif pour perdre, positif pour prendre, aucun pour maintenir. */
+private fun GoalStrategy.heads(deltaKcal: Double): Boolean = when (this) {
+    GoalStrategy.LOSE -> deltaKcal < 0
+    GoalStrategy.GAIN -> deltaKcal > 0
+    GoalStrategy.MAINTAIN -> false
 }

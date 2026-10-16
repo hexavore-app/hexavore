@@ -3,14 +3,10 @@ package app.hexavore.di
 import app.hexavore.domain.diary.DiaryRepository
 import app.hexavore.domain.diary.DishPhotos
 import app.hexavore.domain.diary.PhotoSettings
-import app.hexavore.domain.usecase.AttachDishPhoto
-import app.hexavore.domain.usecase.ChooseDishPhoto
 import app.hexavore.domain.usecase.ChoosePhotoKeeping
 import app.hexavore.domain.usecase.ObserveDishPhotos
 import app.hexavore.domain.usecase.ObservePhotoKeeping
-import app.hexavore.domain.usecase.OpenDraftPhoto
 import app.hexavore.domain.usecase.PurgeDishPhotos
-import app.hexavore.domain.usecase.StageDishPhoto
 import app.hexavore.domain.usecase.SweepDishPhotos
 import app.hexavore.domain.usecase.WeighDishPhotos
 import dagger.Module
@@ -19,32 +15,19 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 
 /**
- * Construction des cas d'usage des **photos de plats**.
+ * Construction des cas d'usage des **photos de plats** : le dossier et son réglage.
  *
  * Un module à part et non huit fonctions de plus dans [DomainModule], pour la raison
  * que ce dernier explique : le projet découpe selon ce que les choses sont plutôt que
  * de relever le seuil de detekt. Ces cas d'usage parlent d'un dossier et d'un réglage,
- * les autres de plats.
+ * les autres de plats. L'image d'un **brouillon** — la déposer, l'ouvrir, la ranger —
+ * vit dans [DraftPhotoUseCaseModule] depuis qu'elle survit à la mort du processus (D166).
  *
  * @see docs/09-donnees-et-sauvegarde.md
  */
 @Module
 @InstallIn(SingletonComponent::class)
 object PhotoUseCaseModule {
-    @Provides
-    fun stageDishPhoto(photos: DishPhotos, settings: PhotoSettings): StageDishPhoto = StageDishPhoto(photos, settings)
-
-    @Provides
-    fun openDraftPhoto(photos: DishPhotos): OpenDraftPhoto = OpenDraftPhoto(photos)
-
-    @Provides
-    fun attachDishPhoto(photos: DishPhotos): AttachDishPhoto = AttachDishPhoto(photos)
-
-    // Sans `PhotoSettings`, et c'est tout le sujet : un geste explicite l'emporte sur
-    // un reglage qui ne parle que de ce qu'on garde **automatiquement** (D156).
-    @Provides
-    fun chooseDishPhoto(photos: DishPhotos): ChooseDishPhoto = ChooseDishPhoto(photos)
-
     @Provides
     fun observeDishPhotos(photos: DishPhotos): ObserveDishPhotos = ObserveDishPhotos(photos)
 

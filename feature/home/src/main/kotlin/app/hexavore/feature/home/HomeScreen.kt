@@ -23,6 +23,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,12 +47,14 @@ import app.hexavore.domain.appearance.DishDisplayStyle
 import app.hexavore.domain.diary.Dish
 import app.hexavore.domain.goal.AdjustmentSuggestion
 import app.hexavore.domain.notice.Notice
+import app.hexavore.domain.profile.UnitSystem
 import app.hexavore.domain.usecase.AdjustmentResponse
 import app.hexavore.feature.home.tour.GuidedTour
 import app.hexavore.feature.home.tour.TourAnchors
 import app.hexavore.feature.home.tour.TourStep
 import app.hexavore.feature.home.tour.TourTarget
 import app.hexavore.feature.home.tour.TourViewModel
+import app.hexavore.feature.home.tour.hidesKeyWarning
 import app.hexavore.feature.home.tour.tourAnchorOrNot
 import kotlinx.coroutines.withTimeoutOrNull
 import java.time.LocalDate
@@ -93,10 +96,13 @@ fun HomeRoute(routes: HomeRoutes) {
     HomeScreen(
         state = state,
         pendingUndo = pendingUndo,
-        aiConfigured = aiConfigured,
+        // `null` vaut « on ne sait pas encore », et c'est l'apparence neutre (D140) :
+        // celle que la barre prend pendant que le tour la presente (D158).
+        aiConfigured = aiConfigured.takeUnless { tourStep.hidesKeyWarning() },
         favoriteNameTaken = nameTaken,
         onDismissFavoriteError = viewModel::onDismissFavoriteError,
         suggestion = suggestion,
+        suggestionUnits = viewModel.units.collectAsStateWithLifecycle().value,
         onAdjustment = viewModel::onAdjustment,
         dishStyle = dishStyle,
         day = day,
@@ -106,21 +112,7 @@ fun HomeRoute(routes: HomeRoutes) {
         notices = notices,
         entry = quickEntryPanel(routes.onProposal),
         progress = progressPanel(routes.onOpenProgress),
-        calendar = { expanded, onExpandedChange ->
-            CalendarPane(
-                state = calendar,
-                // Toucher une pastille ne navigue plus : elle change la date de
-                // l'ecran, et le calendrier reste ou il est.
-                onOpenDay = viewModel::onSelectDay,
-                onVisibleMonth = calendarViewModel::onVisibleMonth,
-                selected = day,
-                // La pastille de la veille se pose sur la journee concernee, et non
-                // sur une icone : c'est la qu'on la touche pour agir.
-                flagYesterday = Notice.YESTERDAY_EMPTY in notices,
-                expanded = expanded,
-                onExpandedChange = onExpandedChange,
-            )
-        },
+        calendar = calendarSlot(calendar, day, notices, viewModel::onSelectDay, calendarViewModel::onVisibleMonth),
         // Construites la ou elles sont decrites, et non recopiees ici : les deux
         // listes avaient deja diverge une fois.
         actions = remember(viewModel, routes) { routes.toActions(viewModel) },
@@ -206,6 +198,8 @@ fun HomeScreen(
      * [calculs]: docs/03-nutrition-calculs.md
      */
     suggestion: AdjustmentSuggestion? = null,
+    /** Le système dans lequel cette carte dit ses rythmes (D162). */
+    suggestionUnits: UnitSystem = UnitSystem.METRIC,
     onAdjustment: (AdjustmentResponse) -> Unit = {},
     /**
      * Le style d'affichage des plats, tel que les réglages l'ont posé.
@@ -339,7 +333,11 @@ fun HomeScreen(
                     modifier = Modifier.weight(1f),
                 ) {
                     DayScroll(collapseOnScroll, dayScroll) {
-                        suggestion?.let { SuggestionCard(it, onAdjustment) }
+                        // Aujourd'hui seulement : une carte qui parle de trois semaines
+                        // n'a rien a faire au-dessus d'un jour passe qu'on est venu
+                        // relire. L'ecran Journee la taisait ; il a disparu, et la carte
+                        // s'etait mise a suivre chaque jour touche (D163).
+                        suggestion?.takeIf { day == null }?.let { SuggestionCard(it, suggestionUnits, onAdjustment) }
                         LoadedDay(
                             state = state,
                             dishStyle = dishStyle,
@@ -378,12 +376,18 @@ private fun Overlays(tour: (@Composable (ScrollState) -> Unit)?, scroll: ScrollS
     // dessous. Ses marges sont celles du systeme et non celles du `Scaffold` : elle
     // n'est plus dedans, c'est tout l'interet (D151).
     progress.celebrating?.let { badge ->
-        Celebration(
-            title = stringResource(R.string.home_celebration_title),
-            subtitle = badgeLabel(badge),
-            onDone = progress.onCelebrated,
-            modifier = Modifier.safeDrawingPadding(),
-        )
+        // Une composition par palier (D163). Le titre est le meme pour tous, et la
+        // celebration s'en servait de cle : apres un rattrapage, le deuxieme palier de
+        // la file heritait d'un minuteur deja ecoule -- invisible, ou fige a l'ecran
+        // quand l'appareil coupe les animations -- et la file ne se vidait plus.
+        key(badge) {
+            Celebration(
+                title = stringResource(R.string.home_celebration_title),
+                subtitle = badgeLabel(badge),
+                onDone = progress.onCelebrated,
+                modifier = Modifier.safeDrawingPadding(),
+            )
+        }
     }
 }
 
@@ -602,7 +606,10 @@ internal fun DayContent(
             MacroBlock(summary, goal, focus, anchors)
         }
     } else {
-        NoGoal(actions.onSetUpGoal)
+        // Deux absences qui ne disent pas la meme chose : une installation sans objectif
+        // invite aux cinq questions, une journee d'avant le premier objectif l'explique
+        // seulement -- l'invitation y relancait l'onboarding chez qui l'avait fini (D161).
+        if (summary.beforeFirstGoal) BeforeFirstGoal() else NoGoal(actions.onSetUpGoal)
         MacroTotalsOnly(summary)
     }
     if (summary.logged) {
@@ -615,6 +622,6 @@ internal fun DayContent(
             today = today,
         )
     } else {
-        EmptyDay()
+        EmptyDay(past = summary.date.isBefore(today))
     }
 }

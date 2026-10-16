@@ -3,8 +3,6 @@ package app.hexavore.feature.settings
 import android.Manifest
 import android.app.TimePickerDialog
 import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -26,7 +24,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.domain.reminder.Reminder
 import app.hexavore.domain.reminder.ReminderSetup
@@ -86,14 +85,26 @@ internal fun ReminderSection(
  * l'endroit où quelqu'un vient de régler un rappel — le seul moment où la question a un
  * sens.
  *
- * Rien du tout quand elle est accordée, ou quand la version d'Android ne la demande
- * pas : une ligne qui dit « tout va bien » est une ligne de trop.
+ * Rien du tout quand les notifications sonneront : une ligne qui dit « tout va bien »
+ * est une ligne de trop.
+ *
+ * **Le bouton mène toujours quelque part** ([D163][decisions]). Quand Android ne rouvre
+ * plus sa boîte, ou qu'il n'y en a pas — avant Android 13 —, il ouvre l'écran des
+ * notifications d'Hexavore dans Android. **Et l'avertissement se relit au retour** :
+ * accordée là-bas, l'autorisation laissait la phrase affichée jusqu'à ce qu'on quitte
+ * l'écran.
+ *
+ * [decisions]: docs/11-decisions.md
  */
 @Composable
 private fun PermissionNotice(anyEnabled: Boolean) {
     val context = LocalContext.current
     var granted by remember { mutableStateOf(context.notificationsAllowed()) }
-    val request = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted = it }
+    val request = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        granted = context.notificationsAllowed()
+    }
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { granted = context.notificationsAllowed() }
 
     if (granted || !anyEnabled) return
 
@@ -103,7 +114,15 @@ private fun PermissionNotice(anyEnabled: Boolean) {
             verticalArrangement = Arrangement.spacedBy(Spacing.xs),
         ) {
             Text(text = stringResource(R.string.reminders_blocked), style = MaterialTheme.typography.bodyMedium)
-            TextButton(onClick = { request.launch(Manifest.permission.POST_NOTIFICATIONS) }) {
+            TextButton(
+                onClick = {
+                    if (context.mayAskNotifications()) {
+                        request.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    } else {
+                        context.openNotificationSettings()
+                    }
+                },
+            ) {
                 Text(stringResource(R.string.reminders_allow))
             }
         }
@@ -163,11 +182,6 @@ private fun Context.pickTime(current: LocalTime, onPicked: (LocalTime) -> Unit) 
         android.text.format.DateFormat.is24HourFormat(this),
     ).show()
 }
-
-/** La permission, à la seule version qui la demande. */
-private fun Context.notificationsAllowed(): Boolean = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-    ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
-    PackageManager.PERMISSION_GRANTED
 
 /**
  * Le titre d'un rappel, et ce qu'il dit.

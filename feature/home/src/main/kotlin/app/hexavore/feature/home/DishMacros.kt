@@ -1,6 +1,5 @@
 package app.hexavore.feature.home
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -17,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import app.hexavore.core.designsystem.component.MacroShareBar
+import app.hexavore.core.designsystem.component.initialRes
 import app.hexavore.core.designsystem.theme.NeonTheme
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.domain.diary.DishSummary
@@ -122,13 +122,3 @@ internal fun DishSummary.share(macro: Macro, goal: DailyGoal?): Float? = shareOf
 
 /** Les cinq macros affichées par plat. Les calories ont déjà leur chiffre en tête. */
 private val CHIP_MACROS = listOf(Macro.PROTEIN, Macro.CARBS, Macro.SUGARS, Macro.FAT, Macro.FIBER)
-
-internal val Macro.initialRes: Int
-    @StringRes get() = when (this) {
-        Macro.CALORIES -> R.string.macro_initial_calories
-        Macro.PROTEIN -> R.string.macro_initial_protein
-        Macro.CARBS -> R.string.macro_initial_carbs
-        Macro.SUGARS -> R.string.macro_initial_sugars
-        Macro.FAT -> R.string.macro_initial_fat
-        Macro.FIBER -> R.string.macro_initial_fiber
-    }

@@ -88,6 +88,37 @@ class FoodRankingTest {
         assertEquals(FoodRanking.sort(listOf(a, b), "riz"), FoodRanking.sort(listOf(b, a), "riz"))
     }
 
+    // --- Le mot entier (D163) ------------------------------------------------------
+
+    @Test
+    fun `lait rend du lait et non de la laitue`() {
+        // « lait » commence « Laitue » : un prefixe de lettres passait devant tous les
+        // laits, et l'IA, qui ecrit « lait », y tombait.
+        val laitue = ciqual("Laitue, crue")
+        val lait = ciqual("Lait demi-écrémé, UHT")
+
+        assertEquals(listOf(lait, laitue), FoodRanking.sort(listOf(laitue, lait), "lait"))
+    }
+
+    @Test
+    fun `le mot entier passe devant ses seules lettres`() {
+        val laitue = ciqual("Laitue, crue")
+        val cafe = ciqual("Café au lait")
+
+        assertEquals(listOf(cafe, laitue), FoodRanking.sort(listOf(laitue, cafe), "lait"))
+    }
+
+    @Test
+    fun `pendant qu on ecrit, un nom qui commence par les lettres passe devant`() {
+        // « lai » n'est encore aucun mot. Le nom qui commence par ces lettres reste
+        // devant celui ou elles n'arrivent qu'au second mot, meme un peu plus long : sans
+        // ce palier, la brievete seule mettrait le petit-lait devant la laitue.
+        val laitue = ciqual("Laitue romaine, crue")
+        val petitLait = ciqual("Petit-lait")
+
+        assertEquals(listOf(laitue, petitLait), FoodRanking.sort(listOf(petitLait, laitue), "lai"))
+    }
+
     // --- La confiance, et ce qu'elle décide ---------------------------------------
 
     @Test
@@ -142,6 +173,67 @@ class FoodRankingTest {
         assertEquals(MatchVerdict.NONE, verdictFor(FoodRanking.confidence(compote, "pomme")))
     }
 
+    // --- Les noms courants (D164) ----------------------------------------------
+
+    @Test
+    fun `un nom courant rend la forme qu on mange`() {
+        // Le defaut de D163, sur les vrais libelles : le riz cru est plus court, et
+        // passait devant sur « riz » comme sur « riz blanc ». Le riz cuit s'appelle
+        // « riz » dans la table des noms courants, et ce nom est pese comme un nom.
+        val resultats = listOf("riz", "riz blanc").map { FoodRanking.sort(listOf(RIZ_CRU, RIZ_CUIT), it) }
+
+        assertEquals(listOf(listOf(RIZ_CUIT, RIZ_CRU), listOf(RIZ_CUIT, RIZ_CRU)), resultats)
+    }
+
+    @Test
+    fun `un nom courant se remplit tout seul`() {
+        // Ce que l'IA ecrit : « riz ». Sur le seul libelle, le riz cuit n'etait qu'un
+        // prefixe sur un nom a rallonge -- une relecture. Sur son nom courant, c'est
+        // une egalite de nom mesuree sur trois lettres.
+        val sansNom = RIZ_CUIT.copy(commonNames = emptySet())
+
+        assertEquals(MatchVerdict.REVIEW, verdictFor(FoodRanking.confidence(sansNom, "riz")))
+        assertEquals(MatchVerdict.AUTOMATIC, verdictFor(FoodRanking.confidence(RIZ_CUIT, "riz")))
+    }
+
+    @Test
+    fun `pendant qu on ecrit, le nom courant passe au palier des lettres`() {
+        // « ri » commence « riz » : les lettres en tete d'un nom de trois lettres. Le
+        // riz cru n'a pour lui que les lettres en tete d'un libelle plus long.
+        assertEquals(listOf(RIZ_CUIT, RIZ_CRU), FoodRanking.sort(listOf(RIZ_CRU, RIZ_CUIT), "ri"))
+    }
+
+    @Test
+    fun `un nom courant ne donne rien a une requete qui ne le nomme pas`() {
+        // « cafe sucre » ne nomme pas « cafe » : il le precise. L'index rend le cafe sans
+        // sucres ajoutes (« sucres » est dans son libelle) ; son nom courant, court, le
+        // faisait passer devant tout le reste. Les trois libelles sont ceux de l'ANSES, et
+        // ce que l'index rend pour cette requete.
+        val sansSucre = ciqual("Café, non instantané, sans sucres ajoutés, prêt à boire")
+        val boisson = ciqual(
+            "Boisson lactée aromatisée au café, sucrée, au lait partiellement écrémé, non enrichie",
+        )
+        val cola = ciqual("Cola, sucré, sans caféine")
+        val nomme = sansSucre.copy(commonNames = setOf("cafe", "cafe noir"))
+
+        assertEquals(FoodRanking.score(sansSucre, "cafe sucre"), FoodRanking.score(nomme, "cafe sucre"))
+        assertEquals(
+            FoodRanking.sort(listOf(sansSucre, boisson, cola), "cafe sucre").map { it.name },
+            FoodRanking.sort(listOf(nomme, boisson, cola), "cafe sucre").map { it.name },
+            "une requete qui ne nomme aucun nom courant se classe comme avant la table",
+        )
+    }
+
+    @Test
+    fun `un nom courant ne retire rien au libelle`() {
+        // Le meilleur des noms, pas le nom courant a la place du libelle : « riz blanc
+        // cuit », que l'IA ecrit aussi, reste un prefixe du libelle.
+        assertEquals(
+            FoodRanking.score(RIZ_CUIT.copy(commonNames = emptySet()), "riz blanc cuit"),
+            FoodRanking.score(RIZ_CUIT, "riz blanc cuit"),
+        )
+    }
+
     private fun ciqual(name: String, useCount: Int = 0) = Food(
         id = FoodId(name),
         source = FoodSource.CIQUAL,
@@ -152,6 +244,24 @@ class FoodRankingTest {
     )
 
     private companion object {
+        /** Les deux libelles de l'ANSES, et les noms courants du premier dans la table livree. */
+        val RIZ_CUIT = Food(
+            id = FoodId("9104"),
+            source = FoodSource.CIQUAL,
+            sourceRef = "9104",
+            name = "Riz blanc, cuit, sans sel ajouté",
+            commonNames = setOf("riz", "riz blanc"),
+            per100g = NutrientValues(kcal = 155.0),
+        )
+
+        val RIZ_CRU = Food(
+            id = FoodId("9100"),
+            source = FoodSource.CIQUAL,
+            sourceRef = "9100",
+            name = "Riz blanc, cru",
+            per100g = NutrientValues(kcal = 350.0),
+        )
+
         val POMME = Food(
             id = FoodId("pomme"),
             source = FoodSource.CIQUAL,

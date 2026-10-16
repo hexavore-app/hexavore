@@ -11,4 +11,16 @@ dependencies {
     // meme selecteur de galerie que l'ecran d'analyse. Ils vivent dans :core:media
     // plutot que dans :feature:capture : un :feature n'en importe pas un autre (D149).
     implementation(projects.core.media)
+
+    // `BackHandler` : le retour du systeme demande confirmation avant de jeter un
+    // brouillon qui perdrait quelque chose (D161). Declaree plutot que recue de la
+    // navigation, pour la meme raison que la serialisation dans le plugin de feature.
+    implementation(libs.androidx.activity.compose)
+}
+
+// `ReportReasonTest` lit les chaines dans le depot, et un test JVM ne declare que ses
+// classes : changer un texte laissait Gradle juger le test a jour, et le vert ne disait
+// plus rien. Les ressources sont donc une entree de la tache (D168).
+tasks.withType<Test>().configureEach {
+    inputs.dir("src/main/res").withPropertyName("resources").withPathSensitivity(PathSensitivity.RELATIVE)
 }

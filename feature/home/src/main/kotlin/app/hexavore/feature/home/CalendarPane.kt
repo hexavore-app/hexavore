@@ -26,11 +26,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -120,17 +123,22 @@ private fun WeekStrip(
     flagYesterday: Boolean,
     onOpenDay: (LocalDate) -> Unit,
 ) {
-    val firstDayOfWeek = WeekFields.of(Locale.getDefault()).firstDayOfWeek
-    val weeks = rememberWeekCalendarState(
-        // La meme periode que le mois deplie, et non quelques semaines : depuis que
-        // le glissement change de jour, on peut arriver ici sur une semaine d'il y a
-        // six mois, et un bandeau qui ne sait pas la montrer laisserait le jour
-        // affiche sans pastille.
-        startDate = state.today.minusMonths(MONTHS_BACK),
-        endDate = state.today.plusWeeks(1),
-        firstVisibleWeekDate = state.today,
-        firstDayOfWeek = firstDayOfWeek,
-    )
+    val firstDayOfWeek = WeekFields.of(displayedLocale()).firstDayOfWeek
+    // Indexe par le premier jour de la semaine : l'etat se garde d'une recreation a
+    // l'autre, premier jour compris, et un changement de langue -- qui recree l'ecran --
+    // restaurait l'ancien sous l'en-tete du nouveau (D162).
+    val weeks = key(firstDayOfWeek.value) {
+        rememberWeekCalendarState(
+            // La meme periode que le mois deplie, et non quelques semaines : depuis que
+            // le glissement change de jour, on peut arriver ici sur une semaine d'il y a
+            // six mois, et un bandeau qui ne sait pas la montrer laisserait le jour
+            // affiche sans pastille.
+            startDate = state.today.minusMonths(MONTHS_BACK),
+            endDate = state.today.plusWeeks(1),
+            firstVisibleWeekDate = state.today,
+            firstDayOfWeek = firstDayOfWeek,
+        )
+    }
 
     // Le bandeau suit le jour affiche. Sans cela, changer de jour au glissement
     // laisserait le cerne hors champ : on ne saurait plus ou l'on est.
@@ -163,12 +171,17 @@ private fun MonthPager(
     onVisibleMonth: (YearMonth) -> Unit,
 ) {
     val current = YearMonth.from(state.today)
-    val months = rememberCalendarState(
-        startMonth = current.minusMonths(MONTHS_BACK),
-        endMonth = current,
-        firstVisibleMonth = current,
-        firstDayOfWeek = WeekFields.of(Locale.getDefault()).firstDayOfWeek,
-    )
+    val locale = displayedLocale()
+    val firstDayOfWeek = WeekFields.of(locale).firstDayOfWeek
+    // Meme raison que pour le bandeau : l'etat garde son premier jour (D162).
+    val months = key(firstDayOfWeek.value) {
+        rememberCalendarState(
+            startMonth = current.minusMonths(MONTHS_BACK),
+            endMonth = current,
+            firstVisibleMonth = current,
+            firstDayOfWeek = firstDayOfWeek,
+        )
+    }
 
     LaunchedEffect(months) {
         snapshotFlow { months.firstVisibleMonth.yearMonth }
@@ -190,7 +203,7 @@ private fun MonthPager(
             modifier = Modifier.heightIn(max = MonthHeight),
             monthHeader = { month ->
                 Text(
-                    text = month.yearMonth.monthLabel(),
+                    text = month.yearMonth.monthLabel(locale),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = Spacing.sm),
@@ -226,6 +239,22 @@ internal fun cellFootprint(available: Dp): Dp = available / DAYS_PER_WEEK
  */
 internal fun ringDiameter(footprint: Dp): Dp =
     (footprint - CellPadding * 2).coerceIn(MinCellDiameter, MaxCellDiameter).coerceAtMost(footprint)
+
+/**
+ * La hauteur d'une cellule, qui est aussi le diamètre du disque du jour regardé.
+ *
+ * **La largeur se partage en sept, la hauteur n'a pas à suivre** ([D163][decisions]).
+ * L'anneau était borné pour qu'une tablette ne montre pas sept médaillons ; la cellule
+ * et son disque, non. Sur une tablette, ou un téléphone couché, une cellule carrée de
+ * 130 dp portait un anneau de 48 dp dans un disque gris de 130, et la semaine prenait
+ * la hauteur de l'écran — il restait au journal une bande de quelques pixels.
+ *
+ * La borne laisse le téléphone tenu debout tel qu'il était : sa cellule, plus étroite,
+ * reste carrée.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+internal fun cellHeight(footprint: Dp): Dp = footprint.coerceAtMost(MaxCellHeight)
 
 /**
  * L'air autour d'une pastille, **de chaque côté**.
@@ -298,12 +327,13 @@ private fun ExpandHandle(expanded: Boolean, onToggle: () -> Unit) {
 /** Les sept initiales, dans l'ordre de la locale. */
 @Composable
 private fun WeekdayHeader() {
-    val first = WeekFields.of(Locale.getDefault()).firstDayOfWeek
+    val locale = displayedLocale()
+    val first = WeekFields.of(locale).firstDayOfWeek
     Row(modifier = Modifier.fillMaxWidth()) {
         for (offset in 0 until DAYS_PER_WEEK) {
             Text(
                 text = first.plus(offset.toLong())
-                    .getDisplayName(java.time.format.TextStyle.NARROW, Locale.getDefault()),
+                    .getDisplayName(java.time.format.TextStyle.NARROW, locale),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -316,6 +346,9 @@ private fun WeekdayHeader() {
 private val MonthHeight: Dp = 320.dp
 internal val MinCellDiameter: Dp = 28.dp
 internal val MaxCellDiameter: Dp = 48.dp
+
+/** L'anneau le plus grand, et assez d'air autour pour le disque et le cercle d'or. */
+internal val MaxCellHeight: Dp = MaxCellDiameter + 16.dp
 private val HandleWidth: Dp = 32.dp
 private val HandleHeight: Dp = 4.dp
 private val ChevronSize: Dp = 18.dp
@@ -336,6 +369,20 @@ private const val DAYS_PER_WEEK = 7
  */
 internal const val MONTHS_BACK = 24L
 
-/** Le mois et l'annee, dans la langue de l'appareil. */
-internal fun YearMonth.monthLabel(): String =
-    "${month.getDisplayName(java.time.format.TextStyle.FULL_STANDALONE, Locale.getDefault())} $year"
+/** Le mois et l'annee, dans la langue que l'ecran affiche. */
+internal fun YearMonth.monthLabel(locale: Locale): String =
+    "${month.getDisplayName(java.time.format.TextStyle.FULL_STANDALONE, locale)} $year"
+
+/**
+ * La langue que l'écran affiche, et non celle du processus ([D162][decisions]).
+ *
+ * `Locale.getDefault()` est une valeur globale, que la langue choisie dans
+ * l'application rejoint par un autre chemin que l'écran. La configuration de l'écran,
+ * elle, est par définition celle des textes qu'il affiche : les initiales des jours et le
+ * premier jour de la semaine ne peuvent plus se lire dans deux langues différentes.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+@Composable
+@ReadOnlyComposable
+private fun displayedLocale(): Locale = LocalConfiguration.current.locales[0] ?: Locale.getDefault()

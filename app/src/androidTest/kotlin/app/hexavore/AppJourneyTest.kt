@@ -515,7 +515,13 @@ class AppJourneyTest {
         /** De quoi reconnaitre l'ecran sans noyer le journal de test. */
         const val EXTRAIT = 700
 
-        /** Les sept entrees du hub, dans l'ordre ou il les presente. */
+        /**
+         * Les entrees du hub qu'on ouvre une a une.
+         *
+         * Sans Open Food Facts, tenu en reserve tant qu'aucun envoi reel n'a atteint la
+         * vraie base (D158) : la section ne s'affiche plus, et la chercher ferait echouer
+         * le parcours pour une absence voulue.
+         */
         val SECTIONS = listOf(
             SettingsStrings.string.settings_profile_title,
             SettingsStrings.string.settings_ai_title,
@@ -523,7 +529,6 @@ class AppJourneyTest {
             SettingsStrings.string.settings_photos_title,
             SettingsStrings.string.settings_appearance_title,
             SettingsStrings.string.settings_notices_title,
-            SettingsStrings.string.settings_contribution_title,
         )
     }
 }

@@ -193,7 +193,7 @@ Enfin la suggestion « Chercher dans Open Food Facts », dernière dette de [D50
 
 **Piège** : un `when` sur le fournisseur ailleurs que dans la fabrique. C'est le signal que l'abstraction a fui.
 
-> **Livrée.** Les six fournisseurs, les deux modales, la résolution, le compteur de coût, et la contribution à Open Food Facts. Deux fournisseurs sur six sont éprouvés sur un vrai compte ; les quatre autres restent en réserve ([D85](11-decisions.md)). Aucun envoi réel n'a encore atteint Open Food Facts — le bac à sable existe pour ça ([D90](11-decisions.md#d90--la-contribution-part-sous-le-compte-de-lutilisateur-et-jamais-sans-lui---validée)).
+> **Livrée.** Les six fournisseurs, les deux modales, la résolution, le compteur de coût, et la contribution à Open Food Facts — **tenue en réserve** avant la publication, comme quatre des six fournisseurs ([D158](11-decisions.md)). Deux fournisseurs sur six sont éprouvés sur un vrai compte ; les quatre autres restent en réserve ([D85](11-decisions.md)). Aucun envoi réel n'a encore atteint Open Food Facts — le bac à sable existe pour ça ([D90](11-decisions.md#d90--la-contribution-part-sous-le-compte-de-lutilisateur-et-jamais-sans-lui---validée)).
 >
 > Le détail, dans l'ordre où il a été construit. Le contrat de reconnaissance et son parseur ([D72](11-decisions.md#d72--le-contrat-de-reconnaissance-et-un-parseur-qui-ne-croit-pas-le-modèle-sur-parole---validée)) : la partie qui s'éprouve entièrement sur la JVM, livrée avant tout réseau — le même ordre que la tranche 5, où le client a précédé l'écran. Trois signatures de [05](05-ia.md) n'ont pas survécu au contact du code des tranches 1 à 5, et un neuvième cas d'erreur est apparu.
 

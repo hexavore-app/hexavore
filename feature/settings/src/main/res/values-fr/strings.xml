@@ -18,8 +18,10 @@
     <string name="profile_sex_female">Femme</string>
     <string name="profile_sex_unspecified">Je préfère ne pas répondre</string>
     <string name="profile_sex_unspecified_note">Nous utilisons une estimation intermédiaire, moyenne des deux variantes de la formule.</string>
-    <string name="profile_height">Taille (cm)</string>
-    <string name="profile_weight">Poids actuel (kg)</string>
+    <!-- Sans unite : le champ l'ajoute lui-meme, dans le systeme choisi. Avec, le
+         libelle disait « Taille (cm) (cm) », et « Taille (cm) (pieds) » en imperial. -->
+    <string name="profile_height">Taille</string>
+    <string name="profile_weight">Poids actuel</string>
     <!-- Une pesée est un fait daté : ouvrir cet écran n'en crée pas une. -->
     <string name="profile_weight_note">Corriger ce poids enregistre une pesée datée d\'aujourd\'hui. Le laisser tel quel n\'en invente aucune.</string>
 
@@ -43,7 +45,7 @@
     <string name="profile_strategy_lose">Perdre du poids</string>
     <string name="profile_strategy_maintain">Maintenir</string>
     <string name="profile_strategy_gain">Prendre du poids</string>
-    <string name="profile_target_weight">Poids cible (kg)</string>
+    <string name="profile_target_weight">Poids cible</string>
 
     <!-- L'échéance en cours est une date précise, choisie un autre jour : elle ne
          correspond donc pas forcément à l'une des pastilles, et elle s'affiche telle
@@ -55,6 +57,10 @@
     <string name="profile_horizon_twelve">Dans 12 mois</string>
     <string name="profile_horizon_reachable">Au rythme sûr : %1$s</string>
     <string name="profile_pace">Soit environ %1$.2f kg par semaine.</string>
+    <!-- Le même rythme en livres, pour l'impérial (D162). -->
+    <string name="profile_pace_pounds">Soit environ %1$.2f lb par semaine.</string>
+    <!-- La depense estimee est deja sous le plancher : aucun deficit ne tient (D160). -->
+    <string name="profile_no_deficit">Votre dépense estimée (%1$d kcal) est déjà sous le minimum conseillé de %2$d kcal : aucun déficit n\'est proposé, et l\'objectif reste votre dépense. Un professionnel de santé saura vous conseiller.</string>
     <string name="profile_capped">Ce rythme dépasserait les bornes de sécurité. À un rythme sûr, votre poids cible serait atteint vers le %1$s.</string>
     <string name="profile_carbs_low">À ce niveau de calories, il reste peu de glucides une fois les protéines, les lipides et les fibres couverts. Un objectif plus haut serait plus tenable.</string>
 
@@ -109,6 +115,7 @@
     <!-- La réponse du bouton indisponible à un appui. Elle dit ce qui manque, pas
          qu'il manque quelque chose : « complétez le formulaire » n'aide personne. -->
     <string name="profile_blocked_identity">Renseignez votre date de naissance, votre sexe, votre taille et votre poids.</string>
+    <string name="profile_blocked_age">Hexavore calcule ses objectifs pour les personnes de %1$d à %2$d ans. Choisissez une autre date de naissance.</string>
     <string name="profile_blocked_activity">Choisissez le niveau qui décrit le mieux vos semaines.</string>
     <string name="profile_blocked_strategy">Choisissez un objectif : perdre, maintenir ou prendre du poids.</string>
     <string name="profile_blocked_horizon">Renseignez un poids cible et une échéance.</string>
@@ -235,7 +242,7 @@
     <string name="backup_cancel">Annuler</string>
 
     <string name="backup_export_title">Exporter mes données</string>
-    <string name="backup_export_body">Un fichier qui contient tout : le journal, les objectifs, les pesées, le catalogue et les plats favoris. Vous choisissez où l\'écrire. Ni clé d\'API ni mot de passe n\'y figurent.</string>
+    <string name="backup_export_body">Un fichier qui contient tout : le journal et ses photos, les objectifs, les pesées, le catalogue et les plats favoris. Vous choisissez où l\'écrire. Ni clé d\'API ni mot de passe n\'y figurent.</string>
     <string name="backup_export_action">Choisir un emplacement</string>
     <string name="backup_exported">Exporté, %1$d Ko</string>
     <!-- Au-dela du megaoctet : une archive qui porte des photos se compte en Mo,
@@ -247,15 +254,34 @@
     <string name="backup_import_body">Remplace tout ce qui est sur cet appareil par le contenu du fichier. Une copie de ce qui existe est conservée juste avant.</string>
     <string name="backup_import_action">Choisir un fichier</string>
     <string name="backup_restore_confirm_title">Remplacer toutes vos données ?</string>
-    <string name="backup_restore_confirm_body">Le contenu du fichier remplacera tout ce qui est sur cet appareil. Les deux ne seront pas fusionnés. Une copie de l\'état actuel est gardée juste avant, pour que vous puissiez revenir en arrière si vous vous êtes trompé de fichier.</string>
+    <string name="backup_restore_confirm_body">Le contenu du fichier remplacera tout ce qui est sur cet appareil. Les deux ne seront pas fusionnés. Une copie de l\'état actuel est gardée juste avant, pour que vous puissiez revenir en arrière depuis cet écran si vous vous êtes trompé de fichier.</string>
     <string name="backup_restore_confirm_accept">Choisir un fichier</string>
-    <string name="backup_restored">Restauré, %1$d aliments notés</string>
+    <!-- Un pluriel : une sauvegarde d'un seul aliment s'annonçait « 1 aliments notés » (D162). -->
+    <plurals name="backup_restored">
+        <item quantity="one">Restauré, %1$d aliment noté</item>
+        <item quantity="other">Restauré, %1$d aliments notés</item>
+    </plurals>
     <string name="backup_too_recent">Ce fichier vient d\'une version plus récente (format %1$d). Rien n\'a été modifié : mettez l\'application à jour.</string>
     <string name="backup_unreadable">Fichier illisible. Rien n\'a été modifié.</string>
     <string name="backup_restore_failed">La restauration a échoué. Une copie de vos données d\'avant est sur l\'appareil.</string>
 
+    <!-- Le retour sur la copie de sécurité (D162) : la boîte de restauration le
+         promettait, et aucun écran ne l'offrait. La carte ne paraît qu'après une
+         restauration, qui laisse la copie. -->
+    <string name="backup_undo_title">Revenir en arrière</string>
+    <string name="backup_undo_body">Remet le journal tel qu\'il était avant la restauration du %1$s. Les photos ne reviennent que si l\'application n\'a pas été relancée depuis.</string>
+    <string name="backup_undo_action">Revenir en arrière</string>
+    <string name="backup_undo_confirm_title">Revenir à l\'état d\'avant ?</string>
+    <string name="backup_undo_confirm_body">Le journal présent sera remplacé par celui d\'avant la dernière restauration. Il deviendra à son tour la copie de sécurité : ce retour en arrière se défait de la même façon.</string>
+    <plurals name="backup_undone">
+        <item quantity="one">Retour en arrière fait, %1$d aliment noté</item>
+        <item quantity="other">Retour en arrière fait, %1$d aliments notés</item>
+    </plurals>
+
     <string name="backup_erase_title">Effacer toutes mes données</string>
-    <string name="backup_erase_body">Supprime le journal, le profil, les objectifs, les pesées, les clés d\'API et les comptes. Les fichiers déjà exportés ne sont pas touchés.</string>
+    <!-- La copie d'avant restauration est nommée (D162) : elle survivait à l'effacement,
+         et le journal entier restait sur le téléphone. -->
+    <string name="backup_erase_body">Supprime le journal, les photos, le profil, les objectifs, les pesées, les clés d\'API et les comptes, ainsi que la copie gardée avant la dernière restauration. Les fichiers déjà exportés ne sont pas touchés.</string>
     <string name="backup_erase_action">Tout effacer</string>
     <string name="backup_erase_confirm_title">Tout effacer, sans retour possible ?</string>
     <string name="backup_erase_confirm_body">Cette action ne peut pas être annulée. Pour confirmer, écrivez %1$s ci-dessous.</string>
@@ -336,18 +362,22 @@
 
     <string name="notices_title">Notifications</string>
     <string name="notices_close">Fermer</string>
-    <string name="notices_intro">Des points colorés dans l\'application, rien de plus : aucune sonnerie, rien sur l\'écran de verrouillage, aucune permission. Chacune s\'éteint quand la situation qu\'elle signale a cessé.</string>
+    <!-- Les pastilles, et elles seules (D162) : l'écran porte aussi les rappels, qui
+         sonnent et demandent une permission, et la phrase semblait parler d'eux. -->
+    <string name="notices_intro">Les pastilles sont des points colorés dans l\'application, rien de plus : aucune sonnerie, rien sur l\'écran de verrouillage, aucune permission. Chacune s\'éteint quand la situation qu\'elle signale a cessé. Seuls les rappels, plus bas, sonnent hors de l\'application.</string>
     <string name="settings_section_flagged">Quelque chose à régler ici</string>
     <string name="notices_active_now">Allumée en ce moment</string>
 
     <string name="notices_ai_absent_title">Aucune IA configurée</string>
-    <string name="notices_ai_absent_body">Sur l\'icône du profil, tant qu\'aucune clé d\'API ne sert. Les deux boutons d\'analyse restent grisés sans elle.</string>
+    <!-- La barre n'est plus grisée sans clé : elle passe au rouge et dit ce qui manque (D162). -->
+    <string name="notices_ai_absent_body">Sur l\'icône du profil, tant qu\'aucune clé d\'API ne sert. Sans elle, la barre d\'analyse s\'affiche en rouge et dit ce qui manque.</string>
 
     <string name="notices_ai_rejected_title">Clé d\'API refusée</string>
     <string name="notices_ai_rejected_body">Sur l\'icône du profil, quand le dernier appel d\'analyse a été refusé. Sans elle, l\'analyse cesse de fonctionner sans que rien ne le dise.</string>
 
     <string name="notices_weight_title">Pas de pesée depuis une semaine</string>
-    <string name="notices_weight_body">Sur l\'icône du journal de poids. Sans pesées régulières, la tendance se tait et l\'adaptation hebdomadaire ne peut rien proposer.</string>
+    <!-- La tendance ne se tait plus depuis D159 : c'est l'adaptation qui manque d'appui (D162). -->
+    <string name="notices_weight_body">Sur l\'icône du journal de poids. Sans pesées régulières, l\'adaptation hebdomadaire n\'a rien sur quoi s\'appuyer, et ne peut rien proposer.</string>
 
     <string name="notices_yesterday_title">Hier n\'a rien de noté</string>
     <string name="notices_yesterday_body">Sur la pastille d\'hier dans le calendrier. Toucher cette journée permet d\'y noter le repas oublié.</string>
@@ -380,4 +410,37 @@
     <string name="settings_contact_site">Le site</string>
     <string name="settings_contact_github">Le code, et les tickets</string>
     <string name="settings_contact_mail">Nous écrire</string>
+    <!-- Quand rien sur le téléphone ne sait ouvrir l'adresse d'une carte, de Contact
+         comme d'À propos (D162). Elle renvoie à l'adresse, écrite sur la carte pour
+         cette raison. -->
+    <string name="settings_link_unavailable">Aucune application de ce téléphone ne sait ouvrir ce lien. L\'adresse est écrite sur la carte : vous pouvez la recopier.</string>
+
+    <!-- ===== À propos =============================================================
+         Ce qu'est l'application, et ce qu'elle doit à d'autres (D161) : la politique de
+         confidentialité que Google Play veut atteignable depuis l'application,
+         l'avertissement médical, la provenance des valeurs nutritionnelles, et les
+         licences de ce que l'APK embarque. Les noms propres ne se traduisent pas et
+         ne figurent que dans values/. -->
+    <string name="settings_about_title">À propos</string>
+    <string name="settings_about_subtitle">La version, la confidentialité, la source des données, et les licences.</string>
+    <string name="about_close">Fermer</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_tagline">Le suivi alimentaire libre : sans compte, sans serveur, sans publicité.</string>
+    <string name="about_privacy_title">Politique de confidentialité</string>
+    <string name="about_privacy_body">Ce que l\'application garde, ce qui quitte votre téléphone, et comment tout effacer.</string>
+    <!-- La politique dans la langue qu'on lit : le site publie les deux. -->
+    <string name="about_privacy_url">https://hexavore.app/confidentialite/</string>
+    <string name="about_sources_title">D\'où viennent les valeurs nutritionnelles</string>
+    <string name="about_ciqual_title">Table de composition nutritionnelle Ciqual 2025 de l\'ANSES</string>
+    <string name="about_ciqual_body">Publiée par l\'ANSES sous Licence Ouverte Etalab 2.0. Les titres courts, et les valeurs qu\'Hexavore a complétées et signale comme estimées, ne font pas partie de la table.</string>
+    <string name="about_off_body">Contient des informations d\'Open Food Facts, mises à disposition par ses contributeurs sous licence Open Database License (ODbL).</string>
+    <string name="about_licences_title">Licences</string>
+    <string name="about_licence_app_body">Logiciel libre, publié sous licence publique générale GNU, version 3.</string>
+    <string name="about_licence_inter_title">Police Inter</string>
+    <string name="about_licence_inter_body">De Rasmus Andersson et du projet Inter, sous SIL Open Font License 1.1.</string>
+    <string name="about_licence_apache_title">Bibliothèques sous licence Apache 2.0</string>
+    <string name="about_licence_apache_body">AndroidX et Jetpack Compose, Kotlin et kotlinx, Dagger Hilt, Retrofit et OkHttp, zxing-cpp.</string>
+    <string name="about_licence_desugar_body">Bibliothèques Java reportées sur les versions anciennes d\'Android, sous licence publique générale GNU, version 2, avec l\'exception de liaison (Classpath Exception).</string>
+    <string name="about_licence_calendar_title">Calendar, de Kizito Nwose</string>
+    <string name="about_licence_calendar_body">Sous licence MIT, dont le texte suit.</string>
 </resources>
