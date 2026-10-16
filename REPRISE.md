@@ -10,23 +10,28 @@ qui doit durer vit dans `docs/`, et les décisions dans `docs/11-decisions.md`.
 
 - **Branche** : `claude/sweet-shannon-2trz20`, partie du commit de D158 à D163
   (`b586485`, branche `fix/la-courbe-le-tour-et-le-premier-ecran`). Elle porte **D164 à
-  D168**, un commit par décision, poussés, et une pull request vers `main`.
+  D169**, un commit par décision, et une pull request vers `main`. D169 vient de la revue
+  à l'émulateur du 16 octobre au soir.
   Les décisions et leurs raisons sont dans `docs/11-decisions.md`, du titre « D164 » à
   la fin du fichier.
 - **Version** : `1.0.0` / `versionCode 8` dans `gradle/libs.versions.toml` ([D168](docs/11-decisions.md)).
   Aucun code au-dessus de 7 n'était connu pour être parti ; si la Console refuse le 8,
   monter au premier libre et le commenter à côté des autres.
 - **Vérifié** : `gradlew clean check --no-build-cache --no-configuration-cache` vert
-  le 16 octobre 2026, **2 653 cas exécutés** (variantes debug et release), aucun échec,
-  aucun ignoré — les tests de `build-logic`, build inclus que `clean` ne nettoie pas,
-  sont hors compte. Campagnes de défaite de D164 (16 sabotages, 16 tombés), D165 (9/9),
-  D166 (19/19), D167 (9/9) et D168 (7/7), détaillées dans leurs entrées. Le bundle de
+  le 16 octobre 2026 au soir, avec D169, **2 661 cas exécutés** (variantes debug et
+  release), aucun échec, aucun ignoré — les tests de `build-logic`, build inclus que
+  `clean` ne nettoie pas, sont hors compte. Campagnes de défaite de D164 (16 sabotages,
+  16 tombés), D165 (9/9), D166 (19/19), D167 (9/9), D168 (7/7) et D169 (4/4), détaillées
+  dans leurs entrées. Le bundle de
   release se construit (R8) : code 8, nom 1.0.0, cible 36, et ses bibliothèques natives
   64 bits sont alignées sur 16 Ko.
-- **Pas vérifié** : rien de D163 à D168 n'a été revu à l'émulateur **après** correction —
-  l'environnement qui les a faites n'avait pas d'émulateur. La liste est au § 4, et elle
-  passe avant le téléversement. Les tests instrumentés (`connectedAndroidTest`) n'ont pas
-  tourné.
+- **Revu à l'émulateur** le 16 octobre 2026 : la release 1.0.0, installée par-dessus la
+  0.9.0, puis après effacement. Ce qui a été vu est consigné dans chaque décision, § « Ce
+  que le vert ne prouve pas », de D162 à D169. Un défaut en est sorti, corrigé par D169 :
+  la pesée rendue par « Annuler » restait hors de vue (campagne 4/4, revue à l'émulateur
+  après correction).
+- **Pas vérifié** : ce qui demande la clé de l'auteur, et quelques points laissés de côté
+  (§ 4). Les tests instrumentés (`connectedAndroidTest`) n'ont pas tourné.
 - **Site** (`hexavore-site`, dépôt à part) : deux branches à fusionner à deux moments
   différents, voir § 5.
 
@@ -51,7 +56,7 @@ qui doit durer vit dans `docs/`, et les décisions dans `docs/11-decisions.md`.
   11 par fichier, `ReturnCount` 2) ; règles maison `HardcodedColor` (pas de couleur hors
   du design system) et `TimeOutsideClock` (l'heure se lit sur le port `Clock`).
 - **`strings.xml` se modifie à la main**, jamais par script ; fins de ligne LF.
-- **Chaque correction** : une décision `D169`, `D170`… dans `docs/11-decisions.md`
+- **Chaque correction** : une décision `D170`, `D171`… dans `docs/11-decisions.md`
   (`## DNNN — titre · ✓ validée`), la doc concernée mise à jour (l'ancien texte barré
   `~~…~~` quand il était faux), un test par règle, et une **campagne de défaite** —
   saboter la correction, vérifier qu'un cas tombe, défaire (voir § 7).
@@ -63,7 +68,8 @@ Dans l'ordre. Le test fermé est terminé et les formulaires sont remplis ; ce q
 est ce que la 1.0.0 change ou demande encore. Les textes à coller sont tous dans
 [`tooling/fiche/fiche-play-store.md`](tooling/fiche/fiche-play-store.md).
 
-1. **Les vérifications à l'émulateur du § 4**, sur la release, avant tout téléversement.
+1. **Les vérifications à l'émulateur du § 4** qui demandent la clé de l'auteur, sur la
+   release, avant tout téléversement. Le reste a été vu le 16 octobre.
 2. **Fusionner la pull request dans `main`.** Le workflow `politique.yml` republie alors
    la politique de confidentialité sur le site : vérifier que
    `https://hexavore.app/confidentialite/` est datée du **16 octobre 2026** et dit
@@ -92,92 +98,38 @@ est ce que la 1.0.0 change ou demande encore. Les textes à coller sont tous dan
 
 ## 4. Vérifications à l'émulateur qui restent dues
 
-Construire la release (`gradlew.bat :app:assembleRelease`), l'installer sur
-`emulator-5554` par-dessus la précédente (`adb -s emulator-5554 install -r …`), puis
-regarder ce qui suit. Les fonctions d'IA demandent la clé de l'auteur, collée par
-l'auteur dans l'émulateur.
+Le 16 octobre 2026, la release 1.0.0 a été revue sur `emulator-5554` : par-dessus la
+0.9.0 d'abord, puis après `pm clear`, avec un mois d'essai restauré (annexe A). Ce qui a
+été vu est consigné dans chaque décision, § « Ce que le vert ne prouve pas », de D162 à
+D169. Restent :
+
+**Avec la clé de l'auteur**, collée par l'auteur dans l'émulateur (Réglages →
+Intelligence artificielle) :
+- **D168** : sur une proposition d'IA (photo ou phrase), le bouton en forme d'insecte
+  s'annonce « Signaler une proposition fausse ou choquante » ; la boîte titre
+  « Proposition fausse ou choquante ? » ; le courriel préparé a pour objet « Proposition
+  d'IA fausse ou choquante ». Ne pas l'envoyer. Même chose en anglais.
+- **D166** : la procédure ci-dessous sur l'analyse, une phrase tapée et pas envoyée ;
+  puis sur un brouillon ouvert depuis une proposition d'IA, pas encore enregistrée (le
+  cas le plus cher : elle ne se rejoue pas).
+- **D164** : une photo d'assiette (riz, poulet, haricots verts) : les lignes se
+  remplissent sans relecture.
+
+**Sans clé**, laissés de côté :
+- **D163** : « Réessayer » sur Open Food Facts quand la recherche répond — elle renvoyait
+  503 à toute requête le 16 au soir, et la relance n'a pu se voir aboutir.
+- **D167** : une ligne tapée à la main dans un favori garde son nom après le passage en
+  anglais ; la gerbe, animations remises
+  (`adb -s emulator-5554 shell settings put global animator_duration_scale 1`).
+- **D165** : sous TalkBack, la ligne d'une pesée ouvre le même menu.
+- **D162** : la carte d'ajustement en impérial.
 
 **La mort du processus, la procédure** (D166) : remplir l'écran, passer Hexavore en
 arrière-plan (bouton d'accueil), `adb -s emulator-5554 shell am kill app.hexavore`, puis
 revenir par les applications récentes. La saisie doit revenir telle qu'elle était.
 
-**D168.**
-- L'accueil d'un premier lancement (`adb -s emulator-5554 shell pm clear app.hexavore`,
-  ce qui efface tout) : l'avertissement allongé se lit en entier, en français puis en
-  anglais, et à `adb -s emulator-5554 shell settings put system font_scale 1.3` (remettre
-  `1.0` après) ; « Continuer » reste atteignable par le défilement. Le même texte dans
-  Réglages → À propos.
-- Une proposition d'IA (photo ou phrase) : le bouton en forme d'insecte s'annonce
-  « Signaler une proposition fausse ou choquante » ; la boîte titre « Proposition fausse
-  ou choquante ? » ; le courriel préparé a pour objet « Proposition d'IA fausse ou
-  choquante ». Ne pas l'envoyer. Même chose en anglais.
-
-**D167.**
-- Enregistrer un favori en français, passer l'application en anglais (Réglages →
-  Apparence), puis Réglages → Favoris **et** « + » → Favoris : les composants portent les
-  noms anglais, les mêmes que l'éditeur ouvert sur ce favori. Une ligne tapée à la main
-  garde son nom.
-- Animations coupées (`adb -s emulator-5554 shell settings put global
-  animator_duration_scale 0`) : franchir un palier — enregistrer un plat avec l'étoile
-  allumée donne « Premier favori » sur un journal qui n'en a pas ; le titre et sa ligne
-  restent environ deux secondes et demie, puis disparaissent. Animations remises (`1`),
-  la gerbe passe comme avant.
-
-**D166**, écran par écran, avec la procédure ci-dessus :
-- **le brouillon de plat**, lignes remplies et champs à moitié tapés (« 150, ») ; puis
-  avec une photo ajoutée ; puis une proposition d'IA ouverte et pas encore enregistrée
-  (le cas le plus cher : elle ne se rejoue pas) ;
-- **l'analyse**, une phrase tapée et pas envoyée ;
-- **l'aliment personnel**, nom, marque, portion et valeurs ;
-- **l'onboarding**, arrêté à la troisième étape : il reprend à cette étape, avec ses
-  réponses ;
-- **le profil en cours de modification** ;
-- **la boîte de pesée**, ouverte, avec un jour et un poids changés ;
-- et le contraire : un repas **enregistré** ne revient pas après la mort du processus.
-
-**D165.**
-- Journal de poids : un appui, ou un appui long, sur une pesée ouvre son menu,
-  « Supprimer » ; la pesée quitte la liste et la courbe, et « Annuler » la remet pendant
-  cinq secondes ; passé ce délai, elle reste partie. Avec TalkBack, la ligne ouvre le
-  même menu.
-- Retirer la seule pesée : le profil se retrouve sans poids, et l'écran du profil comme
-  les pastilles le disent.
-
-**D163.**
-- Restaurer le mois d'essai (annexe A) : la file des paliers passe sans rester figée
-  (animations coupées sur cet émulateur : `settings get global animator_duration_scale`
-  rend 0) ; la carte « Ajuster votre objectif ? » ne propose plus « Augmenter … de
-  7 kcal » ; elle ne paraît plus au-dessus d'« Hier ».
-- Descendre jusqu'aux plats d'hier, revenir à aujourd'hui : la page repart du haut.
-- Réglages → Notifications : la permission y est refusée pour de bon
-  (`dumpsys package app.hexavore | grep POST_NOTIF` montre `USER_FIXED`) ; « Autoriser
-  les notifications » doit ouvrir l'écran des notifications d'Hexavore dans Android, et
-  l'avertissement disparaître au retour après les avoir permises.
-- Scanner et « Favoris » (bouton « + ») : rien sous l'heure ni sous la barre de geste.
-- Pivoter l'écran (`settings put system accelerometer_rotation 0`, puis
-  `settings put system user_rotation 1` ; remettre `0` et `1` après) : la semaine ne
-  prend plus la hauteur de l'écran.
-- Recherche « nutella » → « Chercher dans Open Food Facts » : en cas d'échec,
-  « Réessayer » relance.
-- La photo : nouvelle saisie → « Ajouter une photo » → « Prendre une photo » ; quand
-  l'appareil photo du système est ouvert, `adb -s emulator-5554 shell am kill
-  app.hexavore` ; prendre et valider ; la vignette doit apparaître.
-
-**D164.** Installer **par-dessus** une version en r7 (la 0.9.0, ou une release d'avant
-D164), pour voir la recopie de la base : rechercher « riz », « café », « café noir »,
-« lait », « avocat » — la forme qu'on mange en premier. Puis, avec la clé de l'auteur
-collée, une photo d'assiette (riz, poulet, haricots verts) : les lignes se remplissent
-sans relecture. Passer l'application en anglais et chercher « chicken », « salmon » : le
-filet grillé, le saumon cuit.
-
-**D162**, jamais vus : la question des notifications sur un onboarding neuf (après
-`adb -s emulator-5554 shell pm clear app.hexavore`, ce qui efface tout) ; la boîte de la
-caméra refusée pour de bon ; la barre d'un lien quand aucun navigateur ne répond (désactiver
-Chrome le temps de l'essai, puis le réactiver) ; les libellés en impérial (axe du graphique,
-lecture d'une pesée, carte d'ajustement, rythme du profil) ; la version écrite dans un
-export ; l'énergie du calvados et du pastis allongé à la recherche.
-
-Ce qui est vu se consigne dans la décision, § « Ce que le vert ne prouve pas ».
+L'émulateur garde le mois d'essai restauré le 16 octobre — objectif de perte, carte
+d'ajustement en attente — et ses animations sont coupées.
 
 ## 5. Le site
 
@@ -205,7 +157,10 @@ Le dépôt `hexavore-site` a **deux changements à fusionner à deux moments** :
    ```
 
    Vérifié avant livraison : `npm run check` (57 tests) et `npm run build` (six pages,
-   aucun JavaScript), la politique lue depuis cette branche-ci de l'application.
+   aucun JavaScript), la politique lue depuis cette branche-ci de l'application. Le
+   16 octobre au soir, le correctif a été appliqué tel quel dans la copie locale du site,
+   sur une branche `fix/production-1-0-0` locale, avec le même résultat ; elle n'est pas
+   poussée.
 
 La politique de confidentialité, elle, ne passe par aucune de ces branches : elle se
 republie seule quand `confidentialite/` change sur `main` (§ 3, étape 2).
@@ -223,6 +178,15 @@ Rien de ceci ne bloque la production.
   ([D168](docs/11-decisions.md)). Si l'examen en juge autrement, le bouton de signalement
   existe déjà et porte le motif ; ce qui manquerait serait un signalement qui ne passe
   pas par une messagerie.
+- **Trois défauts vus à l'émulateur le 16 octobre**, plus vieux que la 1.0.0 :
+  - **la virgule jetée** : les six valeurs d'un aliment personnel, comme celles de la
+    saisie, n'acceptent que des entiers (`isWholeNumberField`), mais le clavier numérique
+    montre « , » et « . » — « 8,5 » tapé devient « 85 » sans rien dire, dix fois trop ;
+  - **le point décimal en français** : « Poids actuel : 65.3 kg » au profil
+    (`formatDecimal`, un `toString()`) et « 65.1 » prérempli dans la boîte de pesée
+    (`BodyMeasureFields`), quand la liste des pesées dit « 65,3 kg » ;
+  - **le texte à moitié tapé du profil** : un poids « 64, » revient « 64 » après la mort
+    du processus, le champ gardant un nombre ([D166](docs/11-decisions.md)).
 
 ## 7. Le harnais de défaite
 

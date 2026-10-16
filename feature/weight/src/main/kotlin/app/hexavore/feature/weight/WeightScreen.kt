@@ -185,8 +185,11 @@ private fun Journal(state: WeightUiState.Loaded, onTrendShown: (Boolean) -> Unit
     WeightChart(state.trend, state.units, trendShown = state.trendShown, onTrendShown = onTrendShown)
     if (state.curveMissing) Note(stringResource(R.string.weight_curve_missing))
 
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-        items(state.trend.points.asReversed(), key = { it.date.toString() }) { Weighing(it, state.units, onDelete) }
+    val rows = state.trend.points.asReversed()
+    // La plus recente en tete, et gardee en vue quand elle arrive (D169).
+    val listState = rememberJournalListState(newest = rows.firstOrNull()?.date)
+    LazyColumn(state = listState, verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+        items(rows, key = { it.date.toString() }) { Weighing(it, state.units, onDelete) }
     }
 }
 
