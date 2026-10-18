@@ -41,7 +41,7 @@ Six compteurs, pas seulement les calories. Sans compte, sans pub, sans pistage.
 ### Description complète (4000 max)
 
 ```
-Suivre son alimentation échoue presque toujours pour la même raison : la saisie coûte trop cher. Trente secondes par repas, trois repas par jour, l'utilisation de l'IA est toujours payante.
+Suivre son alimentation échoue presque toujours pour la même raison : la saisie coûte trop cher. Trente secondes par repas, trois repas par jour, et l'IA qui pourrait l'accélérer est le plus souvent vendue par abonnement.
 
 Hexavore est construite autour de cette seule volonté : permettre à n'importe qui de rapidement rentrer un repas, et de pouvoir utiliser l'IA qu'il souhaite afin d'accélérer le processus.
 
@@ -110,7 +110,7 @@ Six counters, not just calories. No account, no ads, no tracking.
 ### Full description (4000 max)
 
 ```
-Food tracking almost always fails for the same reason: logging costs too much. Thirty seconds a meal, three meals a day, and AI always comes at a price.
+Food tracking almost always fails for the same reason: logging costs too much. Thirty seconds a meal, three meals a day, and the AI that could speed it up usually comes with a subscription.
 
 Hexavore is built around a single aim: let anyone log a meal quickly, using whatever AI they choose to speed it up.
 
@@ -195,6 +195,37 @@ prises en `en-GB` : la semaine y commence le lundi, comme en français.
 La règle *Contenus et services de santé* de Google Play demande à toute application de santé qui n'est pas un dispositif médical **un avertissement clair dans sa description** : elle n'est pas un dispositif médical, et elle ne diagnostique, ne traite, ne guérit ni ne prévient aucune maladie. Elle demande aussi de **rappeler de consulter un professionnel de santé** pour un avis, un diagnostic ou un traitement. Les applications de suivi nutritionnel y sont nommées. Les deux phrases closent donc les deux descriptions, et ce sont, mot pour mot, celles que l'application fait lire à l'accueil et garde dans « À propos » (`ds_medical_disclaimer`) : deux textes d'une même promesse finiraient par en dire deux ([D168](../../docs/11-decisions.md)).
 
 La même règle veut qu'une application qui se sert d'un capteur de l'appareil, la caméra par exemple, le dise dans sa description : c'est la ligne « Le scan et la photo demandent un téléphone équipé d'un appareil photo ».
+
+---
+
+## Notes de version 1.0.1 (500 max)
+
+Les quatre langues que la Console demande : fr-CA reprend fr-FR, en-US reprend
+en-GB, mot pour mot. La ligne sur la virgule n'a pas d'équivalent anglais : en
+anglais, le séparateur était déjà le bon.
+
+### fr-FR et fr-CA
+
+```
+Corrections.
+
+• En mode paysage, le contenu et la barre d'ajout ne passent plus sous l'encoche ni sous la barre de navigation.
+• Les nombres s'écrivent avec une virgule : « 65,3 kg » au profil et dans la boîte de pesée.
+• Un champ qui n'accepte que des nombres entiers le dit quand on tape une virgule, au lieu de l'ignorer en silence.
+• Un poids à moitié tapé est gardé quand Android ferme l'application en arrière-plan.
+• Une application plus légère.
+```
+
+### en-GB et en-US
+
+```
+Fixes.
+
+• In landscape, content and the add bar no longer slip under the camera cutout or the navigation bar.
+• A whole-number field now says so when you type a decimal separator, instead of silently ignoring it.
+• A half-typed weight is kept when Android closes the app in the background.
+• A lighter app.
+```
 
 ---
 

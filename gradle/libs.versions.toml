@@ -31,7 +31,7 @@ jvmToolchain = "17"
 
 # --- Identite de l'application ------------------------------------------------
 # applicationId verrouille a la premiere publication Play : docs/10-qualite-et-livraison.md.
-versionName = "1.0.0"
+versionName = "1.0.1"
 # Un code televerse ne se reprend jamais, meme sur une release supprimee : la Console
 # refuse tout bundle qui ne monte pas. Le 1 et le 2 sont donc partis pour de bon -- le
 # premier par erreur, le second avec le contenu de la 0.6.0.
@@ -58,7 +58,12 @@ versionName = "1.0.0"
 # pesee qui se retire, la saisie qui survit a la mort du processus, les noms des favoris
 # et la celebration qui se laisse lire (D164 a D167). Aucun code au-dessus de 7 n'etait
 # connu pour avoir ete televerse ; si la Console refuse le 8, monter au premier libre.
-versionCode = "8"
+#
+# 9 est la premiere correction de production (D170 a D174), et le nom passe a 1.0.1 :
+# rien de neuf, mais ce que le Play Store relevait et ce que l'emulateur montrait --
+# les barres dans le theme, R8 sur les ressources, les cotes de l'ecran en paysage, la
+# virgule d'un champ d'entiers, les nombres dans la langue, le poids a moitie tape.
+versionCode = "9"
 
 # --- Bibliotheques ------------------------------------------------------------
 androidxCore = "1.15.0"
