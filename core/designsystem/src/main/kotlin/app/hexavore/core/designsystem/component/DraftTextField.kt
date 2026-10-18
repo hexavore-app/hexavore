@@ -180,6 +180,17 @@ fun DraftTextField(
      */
     selectAllOnFocus: Boolean = false,
     accept: (String) -> Boolean = { true },
+    /**
+     * Ce qu'on fait d'une frappe **refusée** : rien, par défaut.
+     *
+     * Un refus est muet, et c'est juste tant que ce qui est refusé n'a aucun sens dans
+     * le champ. Ce n'est pas vrai d'une virgule dans un champ d'entiers : le clavier
+     * l'offre, et l'avaler sans rien dire changeait « 8,5 » en « 85 » ([D172][decisions]).
+     * Le texte refusé est passé tel qu'il aurait été.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    onRefused: (String) -> Unit = {},
 ) {
     var value by remember { mutableStateOf(TextFieldValue(initial, TextRange(initial.length))) }
     val ink = MaterialTheme.colorScheme.onSurfaceVariant
@@ -203,6 +214,8 @@ fun DraftTextField(
         if (accept(candidate.text) && (minLines > 1 || candidate.text.isSingleLine())) {
             value = candidate
             onValueChange(candidate.text)
+        } else if (candidate.text != value.text) {
+            onRefused(candidate.text)
         }
     }
 
@@ -464,9 +477,11 @@ fun String.isNumberField(): Boolean =
  * est en dessous du seuil de quantification, pas parce qu'elle vaut un quart de
  * gramme ([D52][decisions]).
  *
- * Le séparateur décimal disparaît donc du clavier **et** du filtre : laisser taper
- * « 12,5 » pour l'arrondir ensuite obligerait à réécrire le texte affiché, donc à
- * repositionner le curseur — exactement ce que [DraftTextField] évite.
+ * Le séparateur décimal est refusé : laisser taper « 12,5 » pour l'arrondir ensuite
+ * obligerait à réécrire le texte affiché, donc à repositionner le curseur — exactement
+ * ce que [DraftTextField] évite. ~~Il disparaît aussi du clavier~~ : le clavier
+ * numérique d'Android montre « , » et « . » quand même, et le refus muet changeait
+ * « 8,5 » en « 85 ». C'est [WholeNumberField] qui le dit ([D172][decisions]).
  *
  * [decisions]: docs/11-decisions.md
  */

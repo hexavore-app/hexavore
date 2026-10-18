@@ -336,6 +336,10 @@ Le cadre de tous les écrans, autour de la navigation ([D171](11-decisions.md)) 
 
 Le voile du tour ([D141](11-decisions.md)) vit dans l'accueil, que le cadre écarte du bord : il ramène ses ancres, mesurées depuis la racine, à sa propre place (`seenFrom`).
 
+### `WholeNumberField`
+
+Un `DraftTextField` d'entiers, pour les six valeurs d'une ligne, celles d'un aliment personnel et les compteurs du profil ([D52](11-decisions.md#d52--deux-savedstatehandle-une-seule-saisie-manuelle-des-grammes-entiers---validée)). **Il refuse la virgule et le dit** ([D172](11-decisions.md)) : le clavier numérique la montre, et un refus muet changeait « 8,5 » en « 85 ». Une phrase paraît sous le champ, en couleur d'erreur et annoncée par le lecteur d'écran, et reste tant que le texte n'est pas revenu avant l'endroit du refus.
+
 ---
 
 ### `Celebration`

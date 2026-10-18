@@ -5952,6 +5952,22 @@ Couchée, sur l'émulateur, la release 1.0.0 montre deux défauts que cette déc
 
 ---
 
+## D172 — Un champ d'entiers dit pourquoi il refuse la virgule · ✓ validée
+
+**Contexte.** Vu à l'émulateur le 16 octobre 2026 : les six valeurs d'une ligne de plat, celles d'un aliment personnel et les compteurs du profil n'acceptent que des entiers ([D52](#d52--deux-savedstatehandle-une-seule-saisie-manuelle-des-grammes-entiers---validée)), et le champ refusait la virgule en silence. ~~Le séparateur décimal disparaît du clavier~~ : le clavier numérique d'Android la montre quand même, et on la tape en recopiant une étiquette. « 8,5 » devenait « 85 », dix fois trop, sans que rien ne le dise.
+
+**Choix.** Trois voies ont été présentées à l'auteur : garder la décimale, l'accepter puis arrondir, ou refuser et le dire. **Refuser, et le dire.** Les entiers restent la règle de D52. Une virgule ou un point tapés ne sont toujours pas pris, mais une phrase paraît sous le champ, en couleur d'erreur et annoncée par le lecteur d'écran : « Nombres entiers seulement : la virgule est ignorée. Arrondissez — 8,5 devient 9. » Elle reste tant que le texte n'est pas revenu avant l'endroit du refus — c'est le « 85 » qu'il faut voir —, et tombe quand on efface jusque-là : un « 85 » tapé ensuite est un 85 voulu. `WholeNumberField`, dans le design system, porte la règle pour les trois écrans ; `DraftTextField` signale désormais une frappe refusée, qu'il taisait.
+
+**Écarté.** *Garder la décimale* : l'auteur garde D52. *Arrondir à l'enregistrement* : l'écran montrerait « 8,5 » et la fiche rouverte « 9 ».
+
+**Conséquences.** `WholeNumberField.kt` et le paramètre `onRefused` de `DraftTextField` dans `:core:designsystem`, la phrase dans les deux langues ; `LineEditor`, `CustomFoodScreen` et `ProfileCounters` passent par lui. Le commentaire de `isWholeNumberField`, qui disait le séparateur absent du clavier, est corrigé. Les cas : quatre dans `WholeNumberFieldTest`, nouveau.
+
+**Campagne de défaite : quatre sabotages, quatre tombés.** Le point qui n'est plus un séparateur ; un refus qui ne tombe jamais ; un refus qui tombe aussitôt ; le filtre d'entiers qui laisse passer la virgule.
+
+**Ce que le vert ne prouve pas.** Que la phrase paraisse sous le bon champ, et que le lecteur d'écran l'annonce : aucun test ne compose d'écran. **Vu à l'émulateur le 18 octobre 2026** : dans l'aliment personnel, sur la release, « 8 » puis une virgule : la phrase paraît sous « Lipides » ; « 5 » ensuite donne « 85 », et elle reste ; « 85 » effacé, elle s'en va. Les champs gardent toute leur largeur — une première version les rétrécissait, la largeur étant passée de l'appelant à la colonne qui enveloppe le champ. L'éditeur d'un plat garde ses paires côte à côte. **Pas vu** : l'annonce du lecteur d'écran, et les compteurs du profil, qui passent par le même champ.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

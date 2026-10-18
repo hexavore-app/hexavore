@@ -76,6 +76,10 @@
     <string name="ds_camera_refused_settings">Open settings</string>
     <string name="ds_camera_refused_close">Close</string>
 
+    <!-- Under a whole-number field, once a decimal separator has been refused (D172): the
+         keyboard offers it, and swallowing it in silence turned "8.5" into "85". -->
+    <string name="ds_whole_number_hint">Whole numbers only: the decimal separator is ignored. Round the value — 8.5 becomes 9.</string>
+
     <!-- The body's bounds (D160), in figures and in the chosen system: "between 37 and
          245 kg" can be fixed, "invalid value" does not say which way to go. -->
     <string name="ds_body_height_range">Enter a height between %1$s and %2$s.</string>
