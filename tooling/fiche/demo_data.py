@@ -37,7 +37,7 @@ CIQUAL = REPO / "core" / "database" / "src" / "main" / "assets" / "ciqual.db"
 # docs/09 : la version du format que cette archive declare. Un fichier plus recent
 # que l'application est refuse avant toute ecriture, donc ce numero se suit.
 FORMAT_VERSION = 1
-APP_VERSION = "0.6.0"
+APP_VERSION = "1.0.0"
 
 # Le decalage entre l'heure qu'on veut lire sur la capture et l'instant ecrit dans
 # le fichier.
@@ -90,22 +90,28 @@ CODES = [
     "31074",  # Chocolat noir 70 %
     "2070",   # Jus d'orange, pur jus
     "17130",  # Huile de colza
-    # Les aliments des deux repas photographies. Voir photos/PROVENANCE.md :
+    # Les aliments des trois repas photographies. Voir photos/PROVENANCE.md :
     # chacun decrit ce que l'image montre, et pas l'inverse.
     "7200",   # Pain de mie blanc, preemballe
     "22011",  # Oeuf poche -- CIQUAL n'a pas d'oeuf au plat, ni frit ni poele
     "20385",  # Tomate sans precision, crue (aliment moyen)
-    "28900",  # Jambon cuit, superieur
-    "20116",  # Chou blanc, cru
+    "25502",  # Burger au poulet, de restauration rapide
+    "4032",   # Frites, surgelees, cuites en friteuse
+    "6200",   # Boeuf, steak ou bifteck grille/poele
 ]
 
-# Les trois repas de la journee visible, decrits a part de la rotation qui
+# Les quatre repas de la journee visible, decrits a part de la rotation qui
 # remplit l'historique.
 #
-# **La photo commande la composition, jamais le contraire.** Deux d'entre eux
+# **La photo commande la composition, jamais le contraire.** Trois d'entre eux
 # portent une image de repas reelle ; leurs aliments et leurs quantites decrivent
 # ce qu'on y voit. Un plat qui listerait autre chose que sa photo serait un
 # mensonge que la premiere personne a comparer les deux verrait.
+#
+# **Cinq aliments fibreux sur la journee, pas un de plus** (voir `summarise`) :
+# les tomates cerises du diner sont notees « Tomate », la meme fiche que celles du
+# petit-dejeuner, et ses jeunes pousses « Salade verte », celle du midi. Une
+# fiche de plus par repas ferait deborder la bulle de la capture 2.
 #
 # Le gouter n'a pas de photo, et c'est voulu : il vient d'un scan, et l'image
 # qu'un scan garde est la vue qui a lu le code-barres, pas une assiette (D127).
@@ -115,12 +121,16 @@ TODAY = [
         [("7200", 90), ("22011", 60), ("20385", 60), ("17270", 5)],
     ),
     (
-        "LUNCH", "PHOTO_AI", "dejeuner",
-        [("7200", 100), ("12115", 35), ("28900", 60), ("20116", 100)],
+        "LUNCH", "PHOTO_AI", "burger",
+        [("25502", 180), ("4032", 110), ("25604", 50), ("20385", 30)],
     ),
     (
         "SNACK", "BARCODE", None,
-        [(SCANNED["id"], 200), ("15000", 25)],
+        [(SCANNED["id"], 200)],
+    ),
+    (
+        "DINNER", "PHOTO_AI", "steak",
+        [("6200", 150), ("25604", 60), ("20385", 60), ("17270", 5)],
     ),
 ]
 
@@ -321,8 +331,8 @@ def build(language: str, today: date) -> dict:
             usage.setdefault(code, []).append(index)
         return dish_id
 
-    # La journee visible, a l'echelle 1. Le diner manque, et c'est le sujet de
-    # l'ecran -- « ce qu'il reste a manger ».
+    # La journee visible, a l'echelle 1, diner compris : c'est le soir sur la
+    # barre d'etat (shoot.py), et il reste encore de quoi manger.
     for moment, source, _, template in TODAY:
         log(today, moment, template, source, 0, 1.0)
 

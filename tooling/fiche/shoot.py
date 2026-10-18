@@ -23,8 +23,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from driver import Driver  # noqa: E402
-from flows import LABELS, import_archive, restore_data, snapshot_data  # noqa: E402
+from driver import PACKAGE, Driver, NotFound  # noqa: E402
+from flows import LABELS, dismiss_tour, import_archive, restore_data, snapshot_data  # noqa: E402
 
 LOCALES = {"fr": "fr-FR", "en": "en-GB"}
 
@@ -84,7 +84,7 @@ def shoot(d: Driver, language: str, out: Path) -> list[Path]:
     #    montre l'hexagone entier **et** la bulle entiere. Il se remesure si la
     #    figure ou la bulle changent de hauteur.
     d.tap(d.bring_into_view(labels["macro_bar"], low=900, high=1400), settle=1.6)
-    fit_bubble(d)
+    fit_bubble(d, floor=bar_top(d, labels) - BAR_CLEARANCE)
     snap("quartier")
     d.launch(fresh=True, settle=4)
 
@@ -109,35 +109,41 @@ def shoot(d: Driver, language: str, out: Path) -> list[Path]:
 
     # 5. La recherche, hors ligne.
     d.launch(fresh=True, settle=4)
-    d.tap(labels["add"], exact=True, settle=2.0)
+    d.tap(d.wait(labels["more_ways"]), settle=1.5)
+    d.tap(labels["by_hand"], settle=2.0)
+    d.tap(labels["search_field"], settle=0.8)
     d.type_text(SEARCH_PROBE[language], settle=2.0)
     # Le clavier couvre la moitie basse : un retour arriere le referme sans
     # quitter l'ecran, et les resultats reprennent la place.
-    d.back(settle=1.2)
+    d.hide_keyboard()
     snap("recherche")
     d.back(settle=1.0)
 
+    # **Apres chaque lancement, le premier appui attend son etiquette** : l'accueil
+    # met plus ou moins longtemps a se composer, et un appui parti trop tot ne
+    # trouve rien.
+
     # 6. Le mois deplie : chaque jour porte l'atteinte de ses six objectifs.
     d.launch(fresh=True, settle=4)
-    d.tap(labels["month"], settle=1.8)
+    d.tap(d.wait(labels["month"]), settle=1.8)
     snap("mois")
 
     # 7. Le journal de poids et sa tendance.
     d.launch(fresh=True, settle=4)
-    d.tap(labels["weight"], settle=2.0)
+    d.tap(d.wait(labels["weight"]), settle=2.0)
     snap("poids")
 
     # 8. Ce que l'application fait de vos donnees : un fichier, exportable et
     #    effacable, sur l'appareil et nulle part ailleurs.
     d.launch(fresh=True, settle=4)
-    d.tap(labels["settings"], settle=1.5)
+    d.tap(d.wait(labels["settings"]), settle=1.5)
     d.tap(labels["backup"], exact=True, settle=1.8)
     snap("donnees")
 
     return shots
 
 
-def fit_bubble(d: Driver, *, step: int = 100, tries: int = 12) -> int:
+def fit_bubble(d: Driver, *, floor: int, step: int = 100, tries: int = 12) -> int:
     """Descendre juste assez pour que la bulle tienne entiere, et pas plus.
 
     **Mesure plutot que constante.** Un recul ecrit en dur marchait tant que la
@@ -157,33 +163,63 @@ def fit_bubble(d: Driver, *, step: int = 100, tries: int = 12) -> int:
         # coupee au tiers, et le tir reussit quand meme.
         stable = stable + 1 if rows == seen else 0
         if rows and stable >= 2:
-            return _lift(d, rows)
+            return _lift(d, rows, floor)
         seen = rows
         d.drag(step, settle=0.9)
     return seen
 
 
-# La derniere ligne de la bulle doit affleurer ce bord, juste au-dessus de la
-# barre de navigation gestuelle.
-BUBBLE_FLOOR = 1855
+# L'air laisse entre la derniere ligne de la bulle et le haut des boutons de la
+# barre du bas : la barre deborde un peu au-dessus de ses boutons.
+BAR_CLEARANCE = 48
 
 
-def _lift(d: Driver, rows: int) -> int:
-    """Remonter le trop-plein, une fois la bulle entiere connue.
+def bar_top(d: Driver, labels: dict) -> int:
+    """Le haut des boutons de la barre du bas, ou la page cesse d'etre visible.
+
+    **Depuis la 1.0.0, une barre de saisie couvre le bas de l'accueil**, la ou
+    il n'y avait que des boutons flottants. La bulle d'un quartier peut s'etendre
+    dessous : ses lignes restent alors dans l'arbre d'accessibilite, donc
+    comptees comme visibles, alors qu'on ne les voit pas. On cale donc la bulle
+    sur cette barre, mesuree a chaque tir, et non sur le bas de l'ecran.
+    """
+    tops = [n.bounds[1] for n in d.tree() if n.desc in labels["bar_buttons"] or n.text in labels["bar_buttons"]]
+    if not tops:
+        raise NotFound("La barre du bas n'est pas a l'ecran")
+    return min(tops)
+
+
+def _lift(d: Driver, rows: int, floor: int) -> int:
+    """Caler la derniere ligne de la bulle sur le bord donne, une fois la bulle entiere connue.
 
     La boucle depasse d'un pas -- il en faut un de plus pour savoir qu'il n'y a
     plus rien a reveler -- et ce pas est pris sur le haut de l'hexagone. Une
-    fois toutes les lignes a l'ecran, la plus basse donne le vrai bas de la
-    bulle, donc de combien on peut redescendre la page sans rien perdre.
+    fois toutes les lignes dans l'arbre, la plus basse donne le vrai bas de la
+    bulle : on remonte la page si elle passe sous la barre, on la redescend s'il
+    reste de la marge.
     """
     bottom = max(
         (node.bounds[3] for node in d.tree() if BUBBLE_ROW.match(node.text.strip())),
         default=0,
     )
-    slack = BUBBLE_FLOOR - bottom
-    if slack > 20:
-        d.drag(-slack, settle=1.0)
+    gap = floor - bottom
+    if abs(gap) > 20:
+        d.drag(-gap, settle=1.0)
     return rows
+
+
+def settle_notification_question(d: Driver) -> None:
+    """Repondre d'avance a la question des notifications.
+
+    Depuis D162, l'application la pose a l'ouverture tant qu'Android ne l'a pas
+    tranchee. Sa boite systeme se poserait sur la premiere capture, ou volerait
+    le premier appui du tir. Refusee et figee, comme le fait quelqu'un qui a deja
+    repondu : un refus plutot qu'un accord, pour qu'aucun rappel ne s'affiche en
+    plein tir.
+    """
+    permission = "android.permission.POST_NOTIFICATIONS"
+    d.shell(f"pm revoke {PACKAGE} {permission}")
+    d.shell(f"pm set-permission-flags {PACKAGE} {permission} user-set user-fixed")
 
 
 def silence_ai_notice(d: Driver, language: str) -> None:
@@ -218,14 +254,21 @@ def main() -> None:
     out.mkdir(parents=True, exist_ok=True)
 
     d = Driver()
-    d.prepare_screen()
+    # Le soir : la journee visible porte son diner, a 19:55 (demo_data.py). Une
+    # barre d'etat a midi au-dessus d'un diner deja mange se verrait.
+    d.prepare_screen(clock="2030")
     d.set_language(LOCALES[language])
+    settle_notification_question(d)
+    dismiss_tour(d, language)
 
     if options.reseed:
         import_archive(d, language, f"hexavore-demo-{language}.zip")
         snapshot_data(d, seed)
     else:
         restore_data(d, seed)
+    # Une seconde fois : si l'etat de la visite vit dans la base, le semis l'a
+    # remis a neuf avec le reste.
+    dismiss_tour(d, language)
 
     silence_ai_notice(d, language)
     shots = shoot(d, language, out)

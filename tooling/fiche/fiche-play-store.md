@@ -222,6 +222,30 @@ First public release of Hexavore.
 • An entry in progress survives when Android closes the app in the background.
 ```
 
+### fr-CA et en-US
+
+La Console demande aussi ces deux langues. Le français canadien reprend le texte
+de fr-FR tel quel ; l'anglais américain reprend en-GB, à un mot près —
+*analyzed* et non *analysed*.
+
+```
+Première version publique d'Hexavore.
+
+• Quatre façons de noter un repas : code-barres, recherche hors ligne dans la table CIQUAL, photo ou phrase analysées par l'IA de votre choix, avec votre propre clé.
+• La recherche trouve la forme qu'on mange : « riz » propose le riz cuit, « café » le café qu'on boit.
+• Une pesée se supprime depuis le journal de poids, avec annulation.
+• Une saisie en cours survit quand Android ferme l'application en arrière-plan.
+```
+
+```
+First public release of Hexavore.
+
+• Four ways to log a meal: barcode, offline search in the CIQUAL table, or a photo or sentence analyzed by the AI of your choice, with your own key.
+• Search finds the form you eat: "rice" suggests cooked rice, "coffee" the coffee you drink.
+• A weigh-in can be deleted from the weight log, and undone.
+• An entry in progress survives when Android closes the app in the background.
+```
+
 ---
 
 ## Accès à l'application, pour l'examen

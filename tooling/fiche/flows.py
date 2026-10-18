@@ -25,13 +25,20 @@ LABELS = {
         "choose_file": "Choisir un fichier",
         "photos": "Photos des plats",
         "weight": "Journal de poids",
-        "add": "Ajouter",
+        # La recherche s'ouvre par le menu du « + » de la barre du bas.
+        "more_ways": "Autres façons d'ajouter",
+        "by_hand": "Ajouter à la main",
+        "search_field": "Chercher un aliment",
+        # Les deux boutons de la barre du bas, qui dit ou s'arrete la page visible.
+        "bar_buttons": ["Autres façons d'ajouter", "Photographier le repas"],
         "month": "Afficher le mois",
         # La barre des fibres et non celle des proteines : sa bulle ne liste que
         # cinq aliments, sans ligne « n autres », et c'est la seule qui tienne
         # entiere sous l'hexagone en 1080x1920. Voir shoot.py, ecran 2.
         "macro_bar": "Fibres",
         "dishes": "Goûter",
+        # Les boutons de la visite guidee, dans l'ordre ou elle les montre.
+        "tour": ["Passer", "Plus tard", "J'ai compris"],
         # Ce qui doit etre a l'ecran avant qu'on declenche, ecran par ecran.
         "expect": ["Aujourd'hui", "Fibres", "Goûter", "Enregistrer", "Saisie manuelle", "2026", "Journal de poids", "Sauvegarde"],
     },
@@ -41,10 +48,14 @@ LABELS = {
         "choose_file": "Choose a file",
         "photos": "Dish photos",
         "weight": "Weight log",
-        "add": "Add",
+        "more_ways": "Other ways to add",
+        "by_hand": "Add by hand",
+        "search_field": "Search for a food",
+        "bar_buttons": ["Other ways to add", "Photograph the meal"],
         "month": "Show the month",
         "macro_bar": "Fibre,",
         "dishes": "Snack",
+        "tour": ["Skip", "Later", "Got it"],
         "expect": ["Today", "Fibre", "Snack", "Save", "Enter by hand", "2026", "Weight log", "Backup"],
     },
 }
@@ -53,6 +64,34 @@ LABELS = {
 PICKER_ROOTS = "Show roots"
 PICKER_DOWNLOADS = "Downloads"
 PICKER_LIST_VIEW = "List view"
+
+
+def dismiss_tour(d: Driver, language: str) -> None:
+    """Passer la visite guidee, comme quelqu'un qui la connait deja.
+
+    Elle s'ouvre sur l'accueil d'une application qui ne l'a jamais montree, avec
+    des repas d'exemple dans la journee, puis enchaine deux cartes sur la cle
+    d'IA. Rien de cela n'a sa place dans une capture : on appuie sur ce qui la
+    referme jusqu'a ce que plus rien ne le propose, deux lectures de suite.
+
+    **Libelles exacts.** « Passer » se lit aussi dans des phrases, et une
+    recherche par sous-chaine viserait la mauvaise.
+    """
+    buttons = LABELS[language]["tour"]
+    d.launch(fresh=True, settle=4)
+    quiet = 0
+    for _ in range(12):
+        nodes = d.tree()
+        hit = next((n for label in buttons for n in nodes if label in (n.text, n.desc)), None)
+        if hit is None:
+            quiet += 1
+            if quiet >= 2:
+                return
+            time.sleep(1.0)
+            continue
+        quiet = 0
+        d.tap(hit, settle=1.2)
+    raise NotFound("La visite guidee ne se referme pas")
 
 
 def import_archive(d: Driver, language: str, file_name: str) -> None:
@@ -76,7 +115,8 @@ def import_archive(d: Driver, language: str, file_name: str) -> None:
     d.tap(labels["choose_file"])          # le bouton du dialogue de confirmation
     time.sleep(3.0)
 
-    d.tap(PICKER_ROOTS, settle=2.0)
+    # Le selecteur met plus ou moins longtemps a s'ouvrir : on attend son tiroir.
+    d.tap(d.wait(PICKER_ROOTS), settle=2.0)
     # « Downloads » apparait deux fois quand le tiroir couvre la liste : celui du
     # tiroir est le dernier de l'arbre.
     roots = [n for n in d.tree() if n.text == PICKER_DOWNLOADS]
