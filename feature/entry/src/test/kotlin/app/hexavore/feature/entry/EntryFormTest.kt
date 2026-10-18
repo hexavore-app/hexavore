@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.util.Locale
 
 /**
  * La frontière entre le texte des champs et les nombres du domaine.
@@ -82,10 +83,15 @@ class EntryFormTest {
     }
 
     @Test
-    fun `une valeur decimale garde sa decimale a la relecture`() {
-        val relu = EntryFormLine.of(ligne(quantity = "12,5").toDraftLine())
+    fun `une valeur decimale garde sa decimale a la relecture, avec le separateur de la langue`() {
+        // « 12.5 » en francais etait un `toString()` (D173).
+        assertEquals("12,5", enLangue(Locale.FRENCH) { relue("12,5") })
+        assertEquals("12.5", enLangue(Locale.ENGLISH) { relue("12,5") })
+    }
 
-        assertEquals("12.5", relu.quantity)
+    @Test
+    fun `une demi-portion se relit sans arrondi`() {
+        assertEquals("0,25", enLangue(Locale.FRENCH) { relue("0,25") })
     }
 
     @Test
@@ -182,6 +188,9 @@ class EntryFormTest {
         assertEquals(line.revision + 1, line.apply(LineEdit.Substitute(RIZ_COMPLET)).revision)
     }
 
+    /** La quantité d'une ligne telle qu'un champ la relit, une fois passée par le brouillon. */
+    private fun relue(quantite: String): String = EntryFormLine.of(ligne(quantity = quantite).toDraftLine()).quantity
+
     private fun ligne(
         name: String = "Riz",
         quantity: String = "150",
@@ -208,5 +217,16 @@ class EntryFormTest {
             name = "Riz complet cuit",
             per100g = NutrientValues(kcal = 111.0),
         )
+    }
+}
+
+/** La langue de l'application, le temps d'un bloc : c'est elle que suit le texte d'un champ. */
+private fun <T> enLangue(locale: Locale, block: () -> T): T {
+    val avant = Locale.getDefault()
+    Locale.setDefault(locale)
+    try {
+        return block()
+    } finally {
+        Locale.setDefault(avant)
     }
 }

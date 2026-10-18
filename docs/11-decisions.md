@@ -5968,6 +5968,34 @@ Couchée, sur l'émulateur, la release 1.0.0 montre deux défauts que cette déc
 
 ---
 
+## D173 — Un nombre s'écrit dans la langue de l'application · ✓ validée
+
+**Contexte.** Vu à l'émulateur le 16 octobre 2026 : « Poids actuel : 65.3 kg » au profil, et « 65.1 » prérempli dans la boîte de pesée, quand la liste des pesées disait « 65,3 kg » juste à côté. Le profil passait par `formatDecimal`, le champ par `formatted` : deux `toString()`, qui ne connaissent que le point. Une quantité décimale rouverte dans la saisie disait « 12.5 » de la même façon.
+
+**Choix.** **Un seul formateur, `asDecimalText`, dans le design system** : le séparateur de la langue de l'application, une décimale au plus — trois pour une quantité, qu'une demi-portion ou un quart de litre se relisent sans arrondi —, la moitié arrondie vers le haut, et **sans séparateur de milliers**, parce que le même texte préremplit des champs : un « 1 736 » à espace insécable ne passerait plus leur filtre, qui refuserait alors toute frappe. Le profil, les champs de poids et de taille, les phrases du corps — qui avaient déjà le leur, à l'identique — et les quantités de la saisie passent par lui. `toDecimalOrNull` relit un champ, virgule ou point. `formatGrams`, à l'accueil, était juste et reste à sa place.
+
+**Conséquences.** `DecimalText.kt` dans `:core:designsystem` ; `formatDecimal` (`:feature:settings`), `BodyMeasureFields`, `BodyMessages` et `EntryForm` s'en servent. Les cas : six dans `DecimalTextTest`, nouveau ; dans `EntryFormTest`, le cas qui attendait « 12.5 » se joue en français puis en anglais, et un autre relit une demi-portion.
+
+**Campagne de défaite : cinq sabotages, cinq tombés.** La langue ignorée ; les milliers séparés ; l'arrondi au pair ; une seule décimale pour les quantités ; la relecture qui ne comprend plus la virgule.
+
+**Ce que le vert ne prouve pas.** Que l'application impose bien sa langue au format des nombres sous Android 8 à 12, où c'est `AppCompatDelegate` et non le système qui la pose : vu sur Android 16 seulement. **Vu à l'émulateur le 18 octobre 2026** : sur la release, en français : « Poids actuel : 79,9 kg » au profil, « 79,9 » prérempli dans son champ de poids et dans la boîte de pesée.
+
+---
+
+## D174 — Le poids à moitié tapé survit à la mort du processus · ✓ validée
+
+**Contexte.** [D166](#d166--une-saisie-survit-à-la-mort-du-processus---validée) l'avait vu et laissé : au profil, un poids tapé « 64, » revenait « 64 » après la mort du processus. Le `ViewModel` garde un nombre, et un nombre ne se souvient pas d'une virgule en attente ; le champ, lui, ne lisait son texte qu'à sa première composition. Le même champ sert à l'onboarding et dans la boîte de pesée.
+
+**Choix.** **Le champ garde aussi son texte**, par `rememberSaveable`, et le reprend à sa recréation **s'il dit encore le même nombre** que la valeur gardée ; sinon, il écrit la valeur dans la langue de l'application (`fieldText`). La valeur reste la vérité : un texte qui dirait autre chose qu'elle afficherait un nombre que l'écran n'enregistrera pas. Une rotation en profite aussi.
+
+**Conséquences.** `BodyMeasureFields` dans `:core:designsystem`. Les cas : quatre dans `BodyFieldTextTest`, nouveau.
+
+**Campagne de défaite : trois sabotages, trois tombés.** Le texte gardé jamais repris ; le texte gardé toujours repris, même quand il dit autre chose que la valeur ; la valeur écrite avec un `toString()`.
+
+**Ce que le vert ne prouve pas.** Aucun test ne tue de processus. **Vu à l'émulateur le 18 octobre 2026** : sur la release, le profil en modification, « 64, » tapé dans le poids ; l'application en arrière-plan, `am kill`, un nouveau processus au retour par les applications récentes : le champ dit « 64, ». Quitté sans enregistrer, le profil garde 79,9 kg. **Pas vu** : l'onboarding et la boîte de pesée, qui passent par le même champ.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

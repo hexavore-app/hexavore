@@ -1,5 +1,6 @@
 package app.hexavore.feature.entry
 
+import app.hexavore.core.designsystem.component.asDecimalText
 import app.hexavore.domain.diary.DishId
 import app.hexavore.domain.diary.DraftLine
 import app.hexavore.domain.diary.DraftLineId
@@ -309,13 +310,16 @@ private fun number(text: String): Double? = text
  * Un nombre tel qu'on le remet dans un champ.
  *
  * Sans décimale quand il n'en a pas : « 150 » et non « 150.0 », qui donnerait à
- * chaque relecture d'un plat l'apparence d'une précision au dixième de gramme.
+ * chaque relecture d'un plat l'apparence d'une précision au dixième de gramme. Avec
+ * le séparateur de la langue quand il en a une : « 12,5 » en français, et non le
+ * « 12.5 » d'un `toString()` ([D173][decisions]). Trois décimales au plus : une demi-
+ * portion ou un quart de litre se relisent sans arrondi.
+ *
+ * [decisions]: docs/11-decisions.md
  */
-private fun Double?.asField(): String = when {
-    this == null -> ""
-    this == toLong().toDouble() -> toLong().toString()
-    else -> toString()
-}
+private fun Double?.asField(): String = this?.asDecimalText(fractionDigits = FIELD_FRACTION_DIGITS).orEmpty()
+
+private const val FIELD_FRACTION_DIGITS = 3
 
 /**
  * Une valeur nutritionnelle telle qu'on la met dans un champ : un entier.

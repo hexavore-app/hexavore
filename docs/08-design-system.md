@@ -340,6 +340,8 @@ Le voile du tour ([D141](11-decisions.md)) vit dans l'accueil, que le cadre éca
 
 Un `DraftTextField` d'entiers, pour les six valeurs d'une ligne, celles d'un aliment personnel et les compteurs du profil ([D52](11-decisions.md#d52--deux-savedstatehandle-une-seule-saisie-manuelle-des-grammes-entiers---validée)). **Il refuse la virgule et le dit** ([D172](11-decisions.md)) : le clavier numérique la montre, et un refus muet changeait « 8,5 » en « 85 ». Une phrase paraît sous le champ, en couleur d'erreur et annoncée par le lecteur d'écran, et reste tant que le texte n'est pas revenu avant l'endroit du refus.
 
+Les nombres décimaux, eux, s'écrivent par `asDecimalText` : le séparateur de la langue, une décimale au plus, sans séparateur de milliers ([D173](11-decisions.md)).
+
 ---
 
 ### `Celebration`

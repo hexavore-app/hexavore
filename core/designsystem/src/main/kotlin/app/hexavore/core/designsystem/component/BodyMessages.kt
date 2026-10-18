@@ -9,7 +9,6 @@ import app.hexavore.domain.profile.FeetAndInches
 import app.hexavore.domain.profile.UnitSystem
 import app.hexavore.domain.profile.centimetresToInches
 import app.hexavore.domain.profile.kilogramsToPounds
-import java.text.NumberFormat
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToInt
@@ -155,8 +154,7 @@ private fun Double.rounded(rounding: Rounding): Double = when (rounding) {
 }
 
 /** « 88,4 » en français, « 88.4 » en anglais : le séparateur est celui de la langue. */
-private fun decimal(value: Double): String =
-    NumberFormat.getNumberInstance().apply { maximumFractionDigits = 1 }.format(value)
+private fun decimal(value: Double): String = value.asDecimalText()
 
 private const val TENTHS = 10.0
 private const val INCHES_PER_FOOT = 12
