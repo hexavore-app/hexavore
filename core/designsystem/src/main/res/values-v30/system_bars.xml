@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A partir d'Android 11, l'encoche est toujours ouverte, couche comme debout :
+  LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS, le mode qu'Android 15 impose et que posait
+  deja androidx ici. Les ecrans s'en ecartent par leurs marges (`safeDrawing`).
+-->
+<resources>
+    <!-- LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS -->
+    <integer name="system_cutout_mode">3</integer>
+</resources>

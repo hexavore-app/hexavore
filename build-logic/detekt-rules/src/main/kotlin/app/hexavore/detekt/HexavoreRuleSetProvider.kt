@@ -5,7 +5,7 @@ import io.gitlab.arturbosch.detekt.api.RuleSet
 import io.gitlab.arturbosch.detekt.api.RuleSetProvider
 
 /**
- * Les trois règles de docs/10-qualite-et-livraison.md.
+ * Les quatre règles de docs/10-qualite-et-livraison.md.
  *
  * Elles encodent des décisions de conception qui, autrement, ne tiendraient que
  * par la vigilance de la revue. Une règle écrite dans un document se contourne
@@ -20,6 +20,7 @@ class HexavoreRuleSetProvider : RuleSetProvider {
             HardcodedColor(config),
             AndroidImportInDomain(config),
             TimeOutsideClock(config),
+            DeprecatedSystemBars(config),
         ),
     )
 

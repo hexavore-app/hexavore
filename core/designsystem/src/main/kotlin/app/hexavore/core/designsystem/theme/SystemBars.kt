@@ -1,33 +1,43 @@
 package app.hexavore.core.designsystem.theme
 
-import android.graphics.Color
-import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
-import androidx.activity.enableEdgeToEdge
+import android.app.Activity
+import android.content.res.Configuration
+import android.os.Build
+import androidx.core.view.WindowCompat
 
 /**
- * Les barres du système, réglées sur le thème **de l'application** ([D162][decisions]).
+ * Le contenu passe sous les barres du système, et leurs icônes suivent le thème **de
+ * l'application** ([D162][decisions], [D170][decisions]).
  *
- * `enableEdgeToEdge()` sans argument choisit la couleur des icônes d'après le mode du
- * **système**. Tant que le thème le suivait, c'était la même chose. Depuis qu'il se
- * force ([D113][decisions]), un thème sombre sur un téléphone clair laissait l'heure et
- * la batterie en noir sur fond noir — et l'inverse en clair.
+ * **Les icônes suivent l'application, pas le système.** Depuis que le thème se force
+ * ([D113][decisions]), un thème sombre sur un téléphone clair laissait l'heure et la
+ * batterie en noir sur fond noir — et l'inverse en clair.
  *
- * **Ici et non dans `:app`** : les deux voiles de la barre de navigation sont des
- * couleurs, et les couleurs ne s'écrivent que dans le design system. Ce sont celles
- * qu'Android pose par défaut ; seul change ce qui décide entre les deux.
+ * **Les couleurs des barres ne sont plus réglées ici**, mais dans `Theme.Hexavore`.
+ * `enableEdgeToEdge()` les posait par `Window.setStatusBarColor` et
+ * `setNavigationBarColor`, et ouvrait l'encoche en `SHORT_EDGES` : trois appels
+ * qu'Android 15 rend obsolètes, et que le Play Store relève dans le code de toute
+ * application qui le vise. Ils ne servaient qu'avant Android 15 ; le thème de fenêtre
+ * dit la même chose sans un appel. Ce qui reste ici n'est pas obsolète.
  *
  * [decisions]: docs/11-decisions.md
  */
-fun ComponentActivity.edgeToEdgeFollowing(darkTheme: Boolean) {
-    enableEdgeToEdge(
-        statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { darkTheme },
-        navigationBarStyle = SystemBarStyle.auto(LIGHT_SCRIM, DARK_SCRIM) { darkTheme },
-    )
+fun Activity.edgeToEdgeFollowing(darkTheme: Boolean) {
+    // Android 15 l'impose a qui vise l'API 35 ; avant lui, c'est cet appel qui le fait.
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+    }
+    WindowCompat.getInsetsController(window, window.decorView).run {
+        isAppearanceLightStatusBars = !darkTheme
+        // Sous l'API 29, la barre de navigation garde son voile sombre : ses icones
+        // restent claires, quel que soit le theme (values/system_bars.xml).
+        isAppearanceLightNavigationBars = !darkTheme && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+    }
 }
 
-/** Le voile clair que pose Android derrière une barre de navigation à trois boutons. */
-private val LIGHT_SCRIM = Color.argb(0xE6, 0xFF, 0xFF, 0xFF)
-
-/** Et le sombre. */
-private val DARK_SCRIM = Color.argb(0x80, 0x1B, 0x1B, 0x1B)
+/**
+ * Le mode du système : le seul connu au lancement, avant que le réglage de
+ * l'application ne soit lu. C'est lui que suit le thème de fenêtre.
+ */
+fun Activity.systemIsDark(): Boolean =
+    (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES

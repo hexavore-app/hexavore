@@ -24,9 +24,9 @@ import app.hexavore.core.designsystem.theme.Spacing
  * ### Le défaut rapporté à l'usage
  *
  * Les boutons de fermeture touchaient le bord de l'écran, sous l'horloge et les icônes
- * du système. La cause n'était pas une marge oubliée sept fois : `enableEdgeToEdge()`
- * est actif — l'application dessine d'un bord à l'autre, ce qui est le comportement
- * moderne voulu — et **`Scaffold` n'applique pas les encoches à ce qu'on met dans son
+ * du système. La cause n'était pas une marge oubliée sept fois : l'application dessine
+ * d'un bord à l'autre (`edgeToEdgeFollowing`), ce qui est le comportement moderne
+ * voulu — et **`Scaffold` n'applique pas les encoches à ce qu'on met dans son
  * emplacement `topBar`**. Il les retire du corps, en supposant que la barre s'en
  * charge. Aucune des sept ne s'en chargeait.
  *

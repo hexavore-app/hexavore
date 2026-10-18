@@ -105,11 +105,12 @@ Un test Robolectric voit les assets de `:core:database`, dont `ciqual.db`, grâc
 | **Android Lint** | Spécifique Android, accessibilité | avertissements bloquants sur les règles a11y |
 | **Dependency Analysis** | Dépendances déclarées inutiles ou manquantes | non, rapport |
 
-Trois règles detekt personnalisées, qui encodent les décisions de cette documentation au lieu de compter sur la vigilance :
+Quatre règles detekt personnalisées, qui encodent les décisions de cette documentation au lieu de compter sur la vigilance :
 
 1. **Pas de couleur codée en dur** hors `:core:designsystem` — interdit `Color(0x…)` ailleurs ([08](08-design-system.md#ressources)).
 2. **Pas d'import Android dans `:domain`** — doublon volontaire de la contrainte Gradle, avec un message d'erreur qui explique pourquoi.
 3. **Pas de `System.currentTimeMillis()` ni de `LocalDate.now()`** hors des implémentations de `Clock` — c'est ce qui garantit que le temps reste testable.
+4. **Pas de couleur de barre système ni de `SHORT_EDGES` dans le code**, ni d'`enableEdgeToEdge` qui les pose : Android 15 les rend obsolètes et le Play Store les relève. Les barres se règlent dans le thème de fenêtre ([D170](11-decisions.md)).
 
 Ces règles vivent dans `build-logic/detekt-rules` et sont couvertes par leurs propres tests unitaires : une règle qu'on croit active sans l'avoir éprouvée ne protège rien.
 
@@ -314,7 +315,7 @@ Les clés de signature sont des secrets de dépôt. Le trousseau n'est **jamais*
 
 **Aucune variante de distribution n'existe** ([D168](11-decisions.md)) : un seul binaire, celui que le Play Store distribue. Rien de ce qui les justifiait n'a été écrit — ni lien de don, ni vérification de mise à jour, et l'application ne contacte rien au démarrage, ce que sa politique de confidentialité promet —, et la sauvegarde Drive est repoussée ([09](09-donnees-et-sauvegarde.md)). Si un lien de don arrive un jour, la règle tient toujours : absent du binaire publié, et non masqué à l'exécution, parce qu'un contenu caché reste dans l'APK et reste détectable à l'examen.
 
-Types de build : `debug` (journalisation détaillée, suffixe `.debug` pour cohabiter), `release` (R8 avec réduction de ressources, journalisation neutralisée).
+Types de build : `debug` (journalisation détaillée, suffixe `.debug` pour cohabiter), `release` (R8 avec réduction de ressources — par R8 lui-même depuis [D170](11-decisions.md), qui voit ensemble le code et les ressources —, journalisation neutralisée).
 
 ---
 

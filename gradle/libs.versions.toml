@@ -10,7 +10,12 @@
 # AGP 8.7 est le dernier palier que comprend Android Studio Ladybug (2024.2.1),
 # l'IDE de la machine de developpement. Voir D15 dans docs/11-decisions.md pour
 # le raisonnement et le chemin de montee.
-agp = "8.11.1"
+#
+# 8.13 et non 8.11 pour la reduction optimisee des ressources (D170) : R8 juge du code
+# et des ressources d'un meme regard, et le Play Store la reclamait. AGP 9 la donnerait
+# d'office, mais il demande Gradle 9 et Kotlin 2.2, que D15 tient a l'ecart tant que
+# detekt 2.0 n'est pas stable.
+agp = "8.13.2"
 kotlin = "2.0.21"
 ksp = "2.0.21-1.0.28"
 

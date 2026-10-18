@@ -24,6 +24,10 @@ hexavore:
     allowedFileNames:
       - 'SystemClock.kt'
 
+  DeprecatedSystemBars:
+    # Partout : les barres se reglent dans le theme de fenetre (D170).
+    active: true
+
 complexity:
   LongParameterList:
     # Un composable expose ses etats et ses evenements en parametres : c'est la
