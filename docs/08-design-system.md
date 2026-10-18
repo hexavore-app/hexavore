@@ -328,6 +328,13 @@ La barre d'ajout de l'accueil ([D131](11-decisions.md)) : un champ de texte, un 
 - **La barre ne connaît pas le clavier.** C'est l'écran qui remonte, d'un seul `imePadding()` posé sur le `Scaffold` ([D135](11-decisions.md)). Poser cette marge sur la seule barre la faisait monter d'une hauteur de clavier **au-dessus** de celui-ci : la fenêtre s'était déjà rétrécie, et la marge s'ajoutait à ce rétrécissement. La barre ne garde que celle de la barre de navigation, **retranchée de celle du clavier** — `navigationBars.exclude(ime)` — sans quoi elle réserverait de la place à une barre système cachée sous le clavier.
 - **Le champ est un `DraftTextField`** comme tous les champs du projet ([D45](11-decisions.md#d45--un-champ-de-saisie-tient-son-texte-lui-même---validée)). Il porte ici deux choses que le composant a apprises pour lui : la touche d'action du clavier — « envoyer », parce qu'il n'y a pas de champ suivant — et le bouton d'envoi **dans** le champ, qui n'apparaît que lorsqu'il y a quelque chose à envoyer.
 - **Sans clé d'IA**, le champ est remplacé par une surface de même forme, en `surfaceVariant`, cliquable et annoncée comme indisponible. Pas de pointillés : la forme en pointillés appartient à ce qui a été estimé ([D25](11-decisions.md#d25--lestimation-ia-se-signale-par-une-forme-pas-par-une-couleur---validée)), et un champ verrouillé n'est pas une valeur incertaine.
+- **Les côtés ne sont pas son affaire** : couché, la barre de navigation et l'encoche passent sur le côté, et c'est [`ScreenFrame`](#screenframe) qui les retire, pour tous les écrans ([D171](11-decisions.md)).
+
+### `ScreenFrame`
+
+Le cadre de tous les écrans, autour de la navigation ([D171](11-decisions.md)) : il peint le fond du thème et retire **les côtés seulement** de `safeDrawing` — l'encoche, et une barre de navigation posée sur le côté quand le téléphone est couché. La marge consomme ce qu'elle retire : `Scaffold` et `safeDrawingPadding`, plus bas, ne le comptent pas deux fois. Le haut et le bas restent à chaque écran. Debout, elle vaut zéro.
+
+Le voile du tour ([D141](11-decisions.md)) vit dans l'accueil, que le cadre écarte du bord : il ramène ses ancres, mesurées depuis la racine, à sa propre place (`seenFrom`).
 
 ---
 

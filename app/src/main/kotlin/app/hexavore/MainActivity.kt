@@ -8,6 +8,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.hexavore.core.designsystem.component.ScreenFrame
 import app.hexavore.core.designsystem.theme.NeonTheme
 import app.hexavore.core.designsystem.theme.edgeToEdgeFollowing
 import app.hexavore.core.designsystem.theme.systemIsDark
@@ -60,7 +61,11 @@ class MainActivity : AppCompatActivity() {
             }
 
             NeonTheme(darkTheme = dark) {
-                HexavoreNavHost()
+                // Les cotes de l'ecran, une fois pour tous : l'encoche et une barre de
+                // navigation posee sur le cote, en paysage (D171).
+                ScreenFrame {
+                    HexavoreNavHost()
+                }
             }
         }
     }

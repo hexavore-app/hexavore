@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -66,12 +67,24 @@ class TourAnchors {
 /**
  * Déclare qu'un élément est ce dont le tour parle.
  *
- * `boundsInRoot` et non `boundsInWindow` : le voile du tour est posé à la racine de
- * l'accueil, et les deux doivent compter depuis la même origine, sinon le trou se
- * décale de la hauteur de la barre d'état.
+ * `boundsInRoot` et non `boundsInWindow` : l'ancre et le voile doivent compter depuis la
+ * même origine, sinon le trou se décale de la hauteur de la barre d'état. Le voile
+ * ramène ensuite l'ancre à sa propre place, par [seenFrom].
  */
 fun Modifier.tourAnchor(anchors: TourAnchors, target: TourTarget): Modifier =
     onGloballyPositioned { anchors.place(target, it.boundsInRoot()) }
+
+/**
+ * Le rectangle d'une ancre vu depuis ce qui le dessine, posé en [origin] de la racine.
+ *
+ * Les ancres comptent depuis la racine de la composition ; le voile, depuis sa propre
+ * place. Les deux coïncidaient tant que l'accueil commençait au coin de l'écran. En
+ * paysage, le cadre des écrans l'en écarte de la largeur de l'encoche ou de la barre de
+ * navigation, et le trou se serait décalé d'autant sur le côté ([D171][decisions]).
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+internal fun Rect.seenFrom(origin: Offset): Rect = translate(-origin)
 
 /**
  * Pose une ancre de tour, ou rien du tout.
