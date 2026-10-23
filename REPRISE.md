@@ -1,4 +1,4 @@
-# Reprise — la 1.0.1, après D174
+# Reprise — la 1.0.1, après D175
 
 Ce fichier dit **où en est le travail et comment le reprendre**, sans rien supposer de
 la conversation qui l'a produit. Il se supprime quand ses chantiers sont faits : ce
@@ -21,14 +21,16 @@ qui doit durer vit dans `docs/`, et les décisions dans `docs/11-decisions.md`.
   - **D172** — un champ d'entiers dit pourquoi il refuse la virgule ;
   - **D173** — un nombre s'écrit dans la langue de l'application ;
   - **D174** — le poids à moitié tapé survit à la mort du processus ;
+  - **D175** — « Configurer » répond au tour guidé, qui revenait à chaque lancement
+    (retour d'usage du 23 octobre) ;
   - la version, les notes de version 1.0.1 et une accroche reformulée dans la fiche ;
   - les captures de la fiche 1.0.0 (`tooling/fiche`), dans un commit à part.
 - **Vérifié** : `gradlew clean check bundleRelease --no-build-cache --no-configuration-cache` vert
-  le 18 octobre 2026 au soir : **2 703 cas exécutés** (variantes debug et release), aucun
+  le 23 octobre 2026, D175 comprise : **2 703 cas exécutés** (variantes debug et release), aucun
   échec, aucun ignoré — les 18 cas des règles detekt, dans `build-logic`, passés le même
-  jour. Campagnes de défaite : D170 11/11, D171 2/2, D172 4/4, D173 5/5, D174 3/3. Le
+  jour. Campagnes de défaite : D170 11/11, D171 2/2, D172 4/4, D173 5/5, D174 3/3, D175 3/3. Le
   bundle 1.0.1 (code 9) se construit et se signe, et `dexdump` n'y trouve aucun des trois
-  relevés du Play Store (§ 3). Revu à l'émulateur : API 36 pour D170 à D174, API 30 pour
+  relevés du Play Store (§ 3). Revu à l'émulateur : API 36 pour D170 à D175, API 30 pour
   D170.
 - **Site** : deux pull requests sur `hexavore-site`, § 4.
 
@@ -56,7 +58,7 @@ qui doit durer vit dans `docs/`, et les décisions dans `docs/11-decisions.md`.
   du design system), `TimeOutsideClock` (l'heure se lit sur le port `Clock`) et
   `DeprecatedSystemBars` (les barres se règlent dans le thème de fenêtre, D170).
 - **`strings.xml` se modifie à la main**, jamais par script ; fins de ligne LF.
-- **Chaque correction** : une décision `D175`, `D176`… dans `docs/11-decisions.md`
+- **Chaque correction** : une décision `D176`, `D177`… dans `docs/11-decisions.md`
   (`## DNNN — titre · ✓ validée`), la doc concernée mise à jour (l'ancien texte barré
   `~~…~~` quand il était faux), un test par règle, et une **campagne de défaite** —
   saboter la correction, vérifier qu'un cas tombe, défaire (voir § 7).

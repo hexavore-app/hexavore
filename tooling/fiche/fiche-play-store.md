@@ -209,9 +209,10 @@ anglais, le séparateur était déjà le bon.
 ```
 Corrections.
 
-• En mode paysage, le contenu et la barre d'ajout ne passent plus sous l'encoche ni sous la barre de navigation.
-• Les nombres s'écrivent avec une virgule : « 65,3 kg » au profil et dans la boîte de pesée.
-• Un champ qui n'accepte que des nombres entiers le dit quand on tape une virgule, au lieu de l'ignorer en silence.
+• Le guide du premier lancement s'arrête après « Configurer » et ne revient plus.
+• En paysage, le contenu et la barre d'ajout ne passent plus sous l'encoche ni sous la barre de navigation.
+• Les nombres s'écrivent avec une virgule : « 65,3 kg ».
+• Un champ de nombres entiers dit pourquoi il refuse une virgule, au lieu de l'ignorer.
 • Un poids à moitié tapé est gardé quand Android ferme l'application en arrière-plan.
 • Une application plus légère.
 ```
@@ -221,6 +222,7 @@ Corrections.
 ```
 Fixes.
 
+• The first-launch guide ends after "Set it up" and no longer comes back.
 • In landscape, content and the add bar no longer slip under the camera cutout or the navigation bar.
 • A whole-number field now says so when you type a decimal separator, instead of silently ignoring it.
 • A half-typed weight is kept when Android closes the app in the background.

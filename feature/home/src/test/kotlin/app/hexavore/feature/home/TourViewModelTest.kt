@@ -29,9 +29,9 @@ import java.time.LocalDate
 /**
  * Quand le tour revient, et quand il s'arrête pour de bon.
  *
- * La règle tient en une phrase : **il revient tant qu'on n'y a pas répondu**. Passer et
- * aller au bout sont les deux réponses ; fermer l'application au milieu, ou partir poser
- * une clé, n'en sont pas ([D141][decisions]).
+ * La règle tient en une phrase : **il revient tant qu'on n'y a pas répondu**. Passer,
+ * aller au bout et partir poser une clé sont les trois réponses ; fermer l'application au
+ * milieu n'en est pas une ([D141][decisions], [D175][decisions]).
  *
  * C'est la règle la plus facile à casser sans s'en apercevoir — un `markSeen()` déplacé
  * d'une ligne, et le tour disparaît pour quelqu'un qui ne l'a jamais vu.
@@ -87,17 +87,23 @@ class TourViewModelTest {
     }
 
     @Test
-    fun `partir poser une cle ne repond pas, et le tour reviendra`() = runTest(dispatcher) {
+    fun `partir poser une cle y repond, et le tour ne revient pas au lancement suivant`() = runTest(dispatcher) {
         val viewModel = tour()
         testScheduler.runCurrent()
 
-        viewModel.onLeaveForSettings()
+        viewModel.onConfigure()
         testScheduler.runCurrent()
 
-        assertNull(viewModel.step.value, "Le tour doit s'effacer le temps des reglages.")
-        assertFalse(reglages.seen.value, "Il n'a pas ete repondu : il doit revenir.")
-        // Les plats partent quand meme : ils n'ont rien a faire dans un vrai journal.
-        assertTrue(journal.observeDay(JOUR).first().isEmpty())
+        assertNull(viewModel.step.value, "Le tour doit s'effacer avant les reglages.")
+        assertTrue(reglages.seen.value, "Configurer est une reponse (D175).")
+        assertTrue(journal.observeDay(JOUR).first().isEmpty(), "Les plats d'exemple sont restes.")
+
+        // Le lancement suivant : un autre tour, avec le meme souvenir.
+        val relance = tour()
+        testScheduler.runCurrent()
+        testScheduler.runCurrent()
+
+        assertNull(relance.step.value, "Le tour revenait au redemarrage chez qui avait configure.")
     }
 
     @Test

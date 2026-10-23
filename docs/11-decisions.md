@@ -4886,7 +4886,7 @@ La proposition de clé arrive **après** qu'on a vu à quoi elle sert. Proposée
 
 Le souvenir se pose **à la fin**, et sur les deux seules fins qui sont une réponse : « Passer » et « J'ai compris ». Fermer l'application au milieu d'une bulle ne décide rien, et un tour qui disparaîtrait là-dessus aurait été manqué par celui-là même qu'il visait — le premier lancement est la seule fois où il sert à quelque chose.
 
-**Partir poser une clé n'est pas une réponse non plus.** Quelqu'un qui appuie sur « Configurer » va faire ce que le tour lui demandait : il le retrouve au retour, et la barre y est déverrouillée, ce qu'il était précisément venu voir.
+~~**Partir poser une clé n'est pas une réponse non plus.** Quelqu'un qui appuie sur « Configurer » va faire ce que le tour lui demandait : il le retrouve au retour, et la barre y est déverrouillée, ce qu'il était précisément venu voir.~~ **Si** : le tour revenait à chaque lancement chez qui avait suivi son conseil ([D175](#d175--configurer-répond-au-tour---validée)).
 
 ### Conséquences
 
@@ -5993,6 +5993,20 @@ Couchée, sur l'émulateur, la release 1.0.0 montre deux défauts que cette déc
 **Campagne de défaite : trois sabotages, trois tombés.** Le texte gardé jamais repris ; le texte gardé toujours repris, même quand il dit autre chose que la valeur ; la valeur écrite avec un `toString()`.
 
 **Ce que le vert ne prouve pas.** Aucun test ne tue de processus. **Vu à l'émulateur le 18 octobre 2026** : sur la release, le profil en modification, « 64, » tapé dans le poids ; l'application en arrière-plan, `am kill`, un nouveau processus au retour par les applications récentes : le champ dit « 64, ». Quitté sans enregistrer, le profil garde 79,9 kg. **Pas vu** : l'onboarding et la boîte de pesée, qui passent par le même champ.
+
+---
+
+## D175 — « Configurer » répond au tour · ✓ validée
+
+**Contexte.** Retour d'usage de l'auteur, le 23 octobre 2026 : le guide du premier lancement se répétait après un appui sur « Configurer », et revenait au redémarrage. [D141](#d141--le-premier-lancement-se-raconte-sur-lapplication-elle-même---validée) l'avait voulu ainsi : partir poser une clé n'était pas une réponse, et le tour devait se retrouver au retour. Il s'effaçait donc sans poser son souvenir (`onLeaveForSettings`). Au lancement suivant, `tour.seen` valait toujours faux, et le tour repartait de la première bulle, plats d'exemple compris — chez quelqu'un qui venait de suivre le conseil de la dernière. Le commentaire de l'accueil disait déjà que « Configurer » termine le tour ; le code faisait l'inverse.
+
+**Choix.** **« Configurer » est une réponse**, comme « Passer » et « J'ai compris » : le souvenir se pose avant de naviguer, et les plats d'exemple repartent. `onConfigure` remplace `onLeaveForSettings`, et la fermeture à deux régimes disparaît avec lui : seule une application fermée au milieu d'une bulle laisse encore la question ouverte. Ce que D141 voulait montrer au retour — la barre déverrouillée par la clé — se voit tout aussi bien sans le tour par-dessus.
+
+**Conséquences.** `TourViewModel` et l'accueil, dans `:feature:home`. Dans `TourViewModelTest`, le cas qui voulait que le tour revienne veut désormais qu'il ne revienne pas, au lancement suivant compris.
+
+**Campagne de défaite : trois sabotages, trois tombés.** « Configurer » qui efface le tour sans poser le souvenir ; une fin qui ne pose plus le souvenir ; un tour répondu qui se rejoue au lancement. L'appel lui-même, dans l'accueil, n'a pas de cas pour le voir : aucun test ne compose d'écran.
+
+**Ce que le vert ne prouve pas.** **Vu à l'émulateur le 23 octobre 2026**, API 36, sur la variante debug effacée : l'onboarding, puis le tour jusqu'à « Gemini est gratuit » ; « Configurer » ouvre l'écran des clés et pose `tour.seen` dans le fichier des pastilles, qui ne l'avait pas avant ; le retour à l'accueil n'y remontre pas le tour ; l'application arrêtée puis relancée non plus, et les plats d'exemple sont partis.
 
 ---
 
