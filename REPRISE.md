@@ -1,4 +1,4 @@
-# Reprise — la 1.0.1, après D175
+# Reprise — la 1.0.2, après D175
 
 Ce fichier dit **où en est le travail et comment le reprendre**, sans rien supposer de
 la conversation qui l'a produit. Il se supprime quand ses chantiers sont faits : ce
@@ -13,7 +13,7 @@ qui doit durer vit dans `docs/`, et les décisions dans `docs/11-decisions.md`.
   `play.google.com/store/apps/details?id=app.hexavore` rendait 404 — : en examen, ou en
   attente de publication.
 - **La branche `fix/1-0-1-les-retours-du-play-store`**, une pull request vers `main`,
-  porte la 1.0.1 (`versionCode 9`) :
+  porte la 1.0.2 (`versionCode 10`) — le 9, en 1.0.1, n'est jamais parti :
   - **D170** — les retours du Play Store : les barres du système passent dans le thème de
     fenêtre, R8 réduit les ressources, AGP monte en 8.13.2 ;
   - **D171** — les côtés de l'écran (l'encoche, une barre de navigation posée sur le
@@ -23,13 +23,13 @@ qui doit durer vit dans `docs/`, et les décisions dans `docs/11-decisions.md`.
   - **D174** — le poids à moitié tapé survit à la mort du processus ;
   - **D175** — « Configurer » répond au tour guidé, qui revenait à chaque lancement
     (retour d'usage du 23 octobre) ;
-  - la version, les notes de version 1.0.1 et une accroche reformulée dans la fiche ;
+  - la version, les notes de version 1.0.2 et une accroche reformulée dans la fiche ;
   - les captures de la fiche 1.0.0 (`tooling/fiche`), dans un commit à part.
 - **Vérifié** : `gradlew clean check bundleRelease --no-build-cache --no-configuration-cache` vert
   le 23 octobre 2026, D175 comprise : **2 703 cas exécutés** (variantes debug et release), aucun
   échec, aucun ignoré — les 18 cas des règles detekt, dans `build-logic`, passés le même
   jour. Campagnes de défaite : D170 11/11, D171 2/2, D172 4/4, D173 5/5, D174 3/3, D175 3/3. Le
-  bundle 1.0.1 (code 9) se construit et se signe, et `dexdump` n'y trouve aucun des trois
+  bundle 1.0.2 (code 10) se construit et se signe, et `dexdump` n'y trouve aucun des trois
   relevés du Play Store (§ 3). Revu à l'émulateur : API 36 pour D170 à D175, API 30 pour
   D170.
 - **Site** : deux pull requests sur `hexavore-site`, § 4.
@@ -64,7 +64,7 @@ qui doit durer vit dans `docs/`, et les décisions dans `docs/11-decisions.md`.
   saboter la correction, vérifier qu'un cas tombe, défaire (voir § 7).
 - Aucun pronom pour l'auteur, Charly Flu, dans les textes.
 
-## 3. Publier la 1.0.1
+## 3. Publier la 1.0.2
 
 Dans l'ordre. Les textes à coller sont dans
 [`tooling/fiche/fiche-play-store.md`](tooling/fiche/fiche-play-store.md).
@@ -90,7 +90,7 @@ Dans l'ordre. Les textes à coller sont dans
    clé Gemini est gratuite. À relire avant de la recoller ; le reste de la description ne
    change pas.
 5. **Production → Créer une release** : téléverser le bundle, coller les **notes de
-   version 1.0.1** (fr-FR, fr-CA, en-GB, en-US), déploiement progressif.
+   version 1.0.2** (fr-FR, fr-CA, en-GB, en-US), déploiement progressif.
 6. **Relire les recommandations de la Console** : celle des API obsolètes doit
    disparaître ; celle d'AGP 9 restera, tant que D15 tient la chaîne en Kotlin 2.0.
 
@@ -144,7 +144,7 @@ carte d'ajustement en attente —, en français, ses animations coupées. Sa var
 `debug` a été effacée le 18 octobre pour jouer le tour : elle repart d'un premier
 lancement, en anglais.
 
-## 6. Ce qui reste après la 1.0.1
+## 6. Ce qui reste après la 1.0.2
 
 - **Le paysage** reste « non optimisé » (`docs/01`) : titre et calendrier fixes, barre du
   bas fixe, il reste peu de hauteur au journal. Ne rien changer à la mise en page sans

@@ -198,7 +198,10 @@ La même règle veut qu'une application qui se sert d'un capteur de l'appareil, 
 
 ---
 
-## Notes de version 1.0.1 (500 max)
+## Notes de version 1.0.2 (500 max)
+
+La 1.0.1 (code 9) n'est jamais partie : la 1.0.2 (code 10) est la première version
+publiée après la 1.0.0, et ses notes disent tout ce qui a changé depuis elle.
 
 Les quatre langues que la Console demande : fr-CA reprend fr-FR, en-US reprend
 en-GB, mot pour mot. La ligne sur la virgule n'a pas d'équivalent anglais : en
