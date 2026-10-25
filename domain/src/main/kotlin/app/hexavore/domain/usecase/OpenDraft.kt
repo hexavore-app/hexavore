@@ -1,6 +1,6 @@
 package app.hexavore.domain.usecase
 
-import app.hexavore.domain.ai.PendingRecognition
+import app.hexavore.domain.ai.PendingProposal
 import app.hexavore.domain.diary.DishId
 import app.hexavore.domain.diary.DraftLine
 import app.hexavore.domain.diary.EntryDraft
@@ -45,10 +45,10 @@ sealed interface DraftOrigin {
     data class Scanned(val food: FoodId) : DraftOrigin
 
     /**
-     * Ce qu'un modèle vient de proposer, déposé par l'écran de capture.
+     * Ce qu'un modèle vient de proposer, déjà résolu, déposé par l'analyse.
      *
      * **Sans charge**, seule des cinq : la proposition ne tient pas dans une route
-     * ([PendingRecognition]), et l'origine ne fait que dire où aller la chercher. Une
+     * ([PendingProposal]), et l'origine ne fait que dire où aller la chercher. Une
      * cinquième branche ici plutôt qu'un chemin à part, parce que c'est exactement la
      * même question — d'où vient ce brouillon — et que l'écran de validation ne doit
      * pas apprendre à en distinguer deux sortes.
@@ -66,14 +66,20 @@ sealed interface DraftOrigin {
  * **Une saisie neuve, elle, ne rend jamais `null`.** Une fiche introuvable donne un
  * brouillon vierge plutôt qu'un écran d'erreur : il reste plus utile de saisir à la
  * main que de repartir de zéro, et la ligne vide dit déjà qu'il n'y a rien.
+ *
+ * **Aucune origine n'appelle un modèle** ([D176][decisions]). Ouvrir est une lecture —
+ * une base, un dépôt —, et c'est ce qui permet à l'écran de validation de s'ouvrir
+ * aussitôt. L'estimation d'une proposition se faisait ici, et l'écran restait noir le
+ * temps qu'elle revienne ; cette classe n'a plus de quoi la faire.
+ *
+ * [decisions]: docs/11-decisions.md
  */
 class OpenDraft(
     private val dishes: GetDishDraft,
     private val favorites: GetFavoriteDraft,
     private val create: CreateDraft,
     private val foods: FoodLookup,
-    private val pending: PendingRecognition,
-    private val resolve: ResolveRecognition,
+    private val pending: PendingProposal,
 ) {
     suspend operator fun invoke(origin: DraftOrigin): EntryDraft? = when (origin) {
         is DraftOrigin.Dish -> dishes(origin.id)
@@ -84,18 +90,19 @@ class OpenDraft(
     }
 
     /**
-     * Le brouillon d'une proposition, **résolu ici et pas ailleurs**.
+     * Le brouillon d'une proposition, **tel que l'analyse l'a résolu**.
      *
-     * La résolution demande le catalogue ; la faire dans l'écran de capture en ferait
-     * un second endroit qui sait fabriquer un plat, et le premier libellé introuvable
-     * aurait deux comportements possibles.
+     * La résolution reste en un seul endroit, `ResolveRecognition`, et c'est l'analyse
+     * qui l'appelle depuis [D176][decisions] : le premier libellé introuvable n'a donc
+     * toujours qu'un comportement possible.
      *
      * `null` quand le dépôt est vide — une deuxième ouverture, ou un processus
      * redémarré entre les deux écrans. C'est le même `null` qu'un plat supprimé
      * pendant qu'on l'ouvrait, et il mène au même écran : il n'y a rien à valider.
+     *
+     * [decisions]: docs/11-decisions.md
      */
-    private suspend fun proposedDraft(): EntryDraft? =
-        pending.take()?.let { proposal -> resolve(proposal.recognition, proposal.source) }
+    private fun proposedDraft(): EntryDraft? = pending.take()
 
     /**
      * `null` si la fiche a disparu, là où [newDraft] rendrait un brouillon vierge.

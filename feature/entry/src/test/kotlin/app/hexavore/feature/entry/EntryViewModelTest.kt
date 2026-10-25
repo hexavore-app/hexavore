@@ -15,7 +15,7 @@ import app.hexavore.core.testing.RecordedReports
 import app.hexavore.core.testing.SequentialIdGenerator
 import app.hexavore.domain.ai.EstimatedUnit
 import app.hexavore.domain.ai.EstimationOutcome
-import app.hexavore.domain.ai.InMemoryPendingRecognition
+import app.hexavore.domain.ai.InMemoryPendingProposal
 import app.hexavore.domain.ai.Recognition
 import app.hexavore.domain.ai.RecognizedItem
 import app.hexavore.domain.diary.Dish
@@ -446,7 +446,7 @@ class EntryViewModelTest {
         // depose, la route ne porte qu'un drapeau, et l'ecran recoit un brouillon
         // comme il en recoit depuis la tranche 2.
         runBlocking { catalogue.save(RIZ) }
-        pending.offer(Recognition(listOf(item("riz", 1.0), item("tofu fume", 80.0))), EntrySource.TEXT_AI)
+        deposer(item("riz", 1.0), item("tofu fume", 80.0))
 
         val state = viewModel(proposal = true).content()
 
@@ -461,7 +461,7 @@ class EntryViewModelTest {
     fun `une proposition deja reprise ne se rejoue pas`() = runTest(dispatcher) {
         // Revenir sur la validation par le bouton « retour » ne doit pas ressusciter
         // un plat qu'on vient d'enregistrer, ni le dedoubler.
-        pending.offer(Recognition(listOf(item("riz", 1.0))), EntrySource.TEXT_AI)
+        deposer(item("riz", 1.0))
         viewModel(proposal = true).content()
 
         val etat = viewModel(proposal = true).uiState
@@ -596,7 +596,7 @@ class EntryViewModelTest {
     fun `une proposition intacte se perdrait, elle ne se rejoue pas`() = runTest(dispatcher) {
         // Le cas qui a fait poser la question : un glissement depuis le bord emportait
         // ce qu'un modele venait de proposer, et la proposition est deja reprise.
-        pending.offer(Recognition(listOf(item("riz", 1.0))), EntrySource.TEXT_AI)
+        deposer(item("riz", 1.0))
 
         assertTrue(viewModel(proposal = true).content().unsaved)
     }
@@ -671,7 +671,7 @@ class EntryViewModelTest {
         // Le depot des propositions se vide a la premiere lecture : sans memoire, l'ecran
         // recree disait « plus disponible », et le repas paye etait perdu.
         runBlocking { catalogue.save(RIZ) }
-        pending.offer(Recognition(listOf(item("riz", 1.0), item("tofu fume", 80.0))), EntrySource.TEXT_AI)
+        deposer(item("riz", 1.0), item("tofu fume", 80.0))
         val handle = route(proposal = true)
         val avant = viewModel(handle = handle).content()
 
@@ -832,15 +832,6 @@ class EntryViewModelTest {
                 create = create,
                 foods = catalogue,
                 pending = pending,
-                resolve = ResolveRecognition(
-                    ResolveFoodLabel(catalogue, FixedLanguage()),
-                    create,
-                    // Aucun repli : ces cas ne parlent pas de l'etape 4, et un estimateur
-                    // qui repondrait remplirait des lignes qu'ils veulent vides.
-                    estimate = { EstimationOutcome.Estimated(emptyList()) },
-                    // Le francais : les libelles des decors de ce fichier le sont.
-                    languages = FixedLanguage(),
-                ),
             ),
             addFoodLine = AddFoodLine(catalogue, create),
             observeUnitSystem = ObserveUnitSystem(profils),
@@ -894,8 +885,29 @@ class EntryViewModelTest {
 
     private val favoris = InMemoryFavoriteDishes()
 
-    /** Le dépôt des propositions, partagé entre l'écran qui dépose et celui qui reprend. */
-    private val pending = InMemoryPendingRecognition()
+    /** Le dépôt des propositions, partagé entre l'analyse qui dépose et l'écran qui reprend. */
+    private val pending = InMemoryPendingProposal()
+
+    /**
+     * Ce que l'analyse aurait déposé : la reconnaissance, **déjà résolue** ([D176][decisions]).
+     *
+     * La résolution n'est plus l'affaire de cet écran ; la rejouer ici donne au décor le
+     * brouillon que l'application lui remettrait, sans qu'il ait d'estimateur à appeler.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    private suspend fun deposer(vararg items: RecognizedItem) {
+        val resolution = ResolveRecognition(
+            ResolveFoodLabel(catalogue, FixedLanguage()),
+            create,
+            // Aucun repli : ces cas ne parlent pas de l'etape 4, et un estimateur
+            // qui repondrait remplirait des lignes qu'ils veulent vides.
+            estimate = { EstimationOutcome.Estimated(emptyList()) },
+            // Le francais : les libelles des decors de ce fichier le sont.
+            languages = FixedLanguage(),
+        )
+        pending.offer(resolution(Recognition(items.toList()), EntrySource.TEXT_AI))
+    }
 
     private fun item(label: String, quantity: Double) =
         RecognizedItem(label = label, quantity = quantity, unit = EstimatedUnit.G, confidence = 0.9f)

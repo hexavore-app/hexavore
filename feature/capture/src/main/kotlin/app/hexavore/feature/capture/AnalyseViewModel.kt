@@ -12,6 +12,7 @@ import app.hexavore.domain.ai.PhotoConsent
 import app.hexavore.domain.ai.RecognitionInput
 import app.hexavore.domain.ai.RecognitionOutcome
 import app.hexavore.domain.usecase.AnalyseMeal
+import app.hexavore.domain.usecase.AnalysisProgress
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -80,6 +81,16 @@ internal data class AnalyseUiState(
      * [decisions]: docs/11-decisions.md
      */
     val retrying: Boolean = false,
+    /**
+     * `true` quand le modèle a répondu et qu'il estime ce que le catalogue ne connaît pas.
+     *
+     * **Le second appel se voit désormais**, sur cet écran et non plus derrière celui de
+     * validation, qui restait noir le temps qu'il revienne ([D176][decisions]). La phrase
+     * dit que l'on a avancé : l'assiette est lue, ce sont ses valeurs qu'on attend.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val estimating: Boolean = false,
     /** L'issue du dernier essai, quand il a échoué. Effacée dès qu'on relance. */
     val error: AiError? = null,
     /**
@@ -156,6 +167,18 @@ internal class AnalyseViewModel @Inject constructor(
     /** L'analyse en vol, gardée pour pouvoir la couper. */
     private var analysis: Job? = null
 
+    /**
+     * Ce que l'analyse dit d'elle-même, écrit là où l'écran le lit.
+     *
+     * Une estimation qui commence met fin à la relance : si elle part, c'est que la
+     * seconde tentative a abouti, et la phrase doit dire ce qu'on attend maintenant.
+     */
+    private val progress = object : AnalysisProgress {
+        override suspend fun retrying() = state.update { it.copy(retrying = true) }
+
+        override suspend fun estimating() = state.update { it.copy(retrying = false, estimating = true) }
+    }
+
     fun onPhoto(jpeg: ByteArray) {
         // Une nouvelle photo efface l'echec de la precedente : ce qui s'affichait ne
         // se rapporte plus a ce qu'on regarde.
@@ -229,7 +252,7 @@ internal class AnalyseViewModel @Inject constructor(
     fun onCancel() {
         analysis?.cancel()
         analysis = null
-        state.update { it.copy(analysing = false, retrying = false) }
+        state.update { it.settled() }
     }
 
     /**
@@ -251,31 +274,25 @@ internal class AnalyseViewModel @Inject constructor(
      * 24 cm » — là où une phrase seule décrit tout le repas.
      */
     private suspend fun analyse(shown: AnalyseUiState) {
-        state.update { it.copy(analysing = true, retrying = false, error = null) }
+        state.update { it.copy(analysing = true, retrying = false, estimating = false, error = null) }
         val written = shown.text.trim()
-
-        // Ce que le cas d'usage appelle quand il repart : l'ecran le dit, et c'est la
-        // seule raison pour laquelle la relance n'est pas un intercepteur HTTP (D156).
-        val onBusy: suspend () -> Unit = { state.update { it.copy(retrying = true) } }
 
         // Rien n'entoure cet appel : une annulation doit traverser. `onCancel` a deja
         // remis l'ecran en etat, et l'attraper ici pour ecrire un echec ferait revivre
         // un etat que l'utilisateur vient de quitter.
         //
-        // Le rangement de la photo et le depot sont dans le cas d'usage, depuis que la
-        // barre du bas envoie la meme chose sans ouvrir d'ecran (D131).
+        // Le rangement de la photo, la resolution et le depot sont dans le cas d'usage,
+        // depuis que la barre du bas envoie la meme chose sans ouvrir d'ecran (D131) ;
+        // ce qu'il annonce en route passe par `progress` (D156, D176).
         val outcome = when (val photo = shown.photo) {
-            null -> analyseMeal(RecognitionInput.Text(written), onBusy)
-            else -> analyseMeal(RecognitionInput.Photo(photo.jpeg, written.ifBlank { null }), onBusy)
+            null -> analyseMeal(RecognitionInput.Text(written), progress)
+            else -> analyseMeal(RecognitionInput.Photo(photo.jpeg, written.ifBlank { null }), progress)
         }
 
         state.update { current ->
             when (outcome) {
-                is RecognitionOutcome.Recognized ->
-                    current.copy(analysing = false, retrying = false, analysed = true)
-
-                is RecognitionOutcome.Failed ->
-                    current.copy(analysing = false, retrying = false, error = outcome.error)
+                is RecognitionOutcome.Recognized -> current.settled().copy(analysed = true)
+                is RecognitionOutcome.Failed -> current.settled().copy(error = outcome.error)
             }
         }
     }
@@ -288,3 +305,12 @@ internal class AnalyseViewModel @Inject constructor(
         const val MEMORY_KEY = "hexavore.analyse.text"
     }
 }
+
+/**
+ * L'écran quand plus rien n'est en vol : ni analyse, ni relance, ni estimation.
+ *
+ * Un seul endroit pour les trois drapeaux de l'attente, parce qu'ils retombent ensemble —
+ * succès, échec ou annulation — et qu'en oublier un laisserait une phrase d'attente sous
+ * un écran qui n'attend plus.
+ */
+private fun AnalyseUiState.settled(): AnalyseUiState = copy(analysing = false, retrying = false, estimating = false)

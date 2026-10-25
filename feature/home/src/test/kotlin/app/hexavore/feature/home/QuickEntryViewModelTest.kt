@@ -2,10 +2,12 @@ package app.hexavore.feature.home
 
 import app.hexavore.core.testing.InMemoryDishPhotos
 import app.hexavore.core.testing.InMemoryPhotoSettings
+import app.hexavore.core.testing.resolutionForTests
 import app.hexavore.domain.ai.AiError
 import app.hexavore.domain.ai.EstimatedUnit
+import app.hexavore.domain.ai.EstimationOutcome
 import app.hexavore.domain.ai.FoodRecognizer
-import app.hexavore.domain.ai.InMemoryPendingRecognition
+import app.hexavore.domain.ai.InMemoryPendingProposal
 import app.hexavore.domain.ai.Recognition
 import app.hexavore.domain.ai.RecognitionInput
 import app.hexavore.domain.ai.RecognitionOutcome
@@ -13,6 +15,7 @@ import app.hexavore.domain.ai.RecognizedItem
 import app.hexavore.domain.diary.EntrySource
 import app.hexavore.domain.usecase.AnalyseMeal
 import app.hexavore.domain.usecase.StageDishPhoto
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
@@ -44,7 +47,7 @@ import org.junit.jupiter.api.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class QuickEntryViewModelTest {
     private val dispatcher = UnconfinedTestDispatcher()
-    private val pending = InMemoryPendingRecognition()
+    private val pending = InMemoryPendingProposal()
     private val sent = mutableListOf<RecognitionInput>()
     private var outcome: RecognitionOutcome = RecognitionOutcome.Recognized(Recognition(listOf(RIZ)))
 
@@ -190,8 +193,29 @@ internal class QuickEntryViewModelTest {
         assertFalse(viewModel.uiState.value.proposed)
     }
 
+    @Test
+    fun `l estimation se dit sur la barre, puis la validation s ouvre`() = runTest {
+        // La meme phrase que l'ecran d'IA : l'estimation s'attendait derriere l'ecran de
+        // validation, noir le temps qu'elle revienne (D176).
+        val reponse = CompletableDeferred<EstimationOutcome>()
+        val viewModel = QuickEntryViewModel(
+            AnalyseMeal(recognizer, pending, stagePhoto, resolutionForTests(estimate = { reponse.await() })),
+        )
+
+        viewModel.onSend("un bol de riz")
+
+        assertTrue(viewModel.uiState.value.estimating, "l'attente de l'estimation doit se dire")
+        assertFalse(viewModel.uiState.value.proposed, "la validation ne s'ouvre pas avant d'avoir de quoi s'ouvrir")
+
+        reponse.complete(EstimationOutcome.Estimated(emptyList()))
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.estimating)
+        assertTrue(viewModel.uiState.value.proposed)
+    }
+
     private fun viewModel(recognizer: FoodRecognizer = this.recognizer) =
-        QuickEntryViewModel(AnalyseMeal(recognizer, pending, stagePhoto))
+        QuickEntryViewModel(AnalyseMeal(recognizer, pending, stagePhoto, resolutionForTests()))
 
     private companion object {
         val RIZ = RecognizedItem(label = "riz", quantity = 1.0, unit = EstimatedUnit.BOWL, confidence = 0.9f)

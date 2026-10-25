@@ -167,7 +167,7 @@ L'ordre est fixe. Un ordre adaptatif « selon vos habitudes » ferait bouger les
 
 **Sans clé d'IA**, le champ et l'appareil photo passent en **rouge** et expliquent à l'appui ([D136](11-decisions.md)). ~~Ils étaient gris.~~ Le gris disait « indisponible » sans dire qu'il y a quelque chose à faire, et personne n'allait le chercher. Le champ porte alors le texte qui le dit — « Configurez l'IA pour décrire vos repas » — et une marque d'alerte accompagne les deux, parce qu'une couleur ne travaille jamais seule.
 
-**Une phrase part sans avertissement**, comme depuis toujours : [05](05-ia.md) ne demande le consentement que pour une photo. L'attente se lit sur une ligne au-dessus du champ — la journée reste visible — et **l'annulation coupe réellement la requête**. Un échec laisse la phrase dans le champ et offre la saisie manuelle : un fournisseur en panne ne doit pas empêcher de noter son repas.
+**Une phrase part sans avertissement**, comme depuis toujours : [05](05-ia.md) ne demande le consentement que pour une photo. L'attente se lit sur une ligne au-dessus du champ — la journée reste visible —, estimation des aliments inconnus comprise ([D176](11-decisions.md)), et **l'annulation coupe réellement la requête**. Un échec laisse la phrase dans le champ et offre la saisie manuelle : un fournisseur en panne ne doit pas empêcher de noter son repas.
 
 **Le champ tient quatre lignes.** Une phrase de repas en fait souvent deux ou trois, et un champ d'une seule ligne les faisait défiler horizontalement : on écrivait sans voir le début de ce qu'on écrivait ([D135](11-decisions.md)). Au repos il n'en montre qu'une, et la barre reste basse — c'est ce qu'on voit en permanence au-dessus du pouce.
 
@@ -241,6 +241,8 @@ Trois zones, de haut en bas :
 
 L'image est réduite (1024 px sur le côté long, JPEG qualité 80) avant l'envoi. **Annuler coupe réellement la requête** : ce qui n'est pas parti n'est pas facturé.
 
+**Une seule attente, et elle se dit** ([D176](11-decisions.md)). Pendant l'analyse, l'indicateur reste et la phrase change avec ce qu'on attend : « Analyse en cours… », « Service saturé, nouvelle tentative… » quand le fournisseur a dû être relancé, puis « Estimation des valeurs nutritionnelles… » quand le modèle a répondu et qu'il estime ce que le catalogue ne connaît pas. ~~Cette estimation se faisait à l'ouverture de l'écran de validation, resté noir le temps qu'elle revienne.~~ L'écran de validation s'ouvre ensuite sur un brouillon complet.
+
 **La touche du clavier referme, elle ne saute pas de ligne** ([D136](11-decisions.md)). Le champ en tient trois, mais on y précise une photo en une phrase, et la seule chose qu'on veuille ensuite est de voir le bouton d'analyse — que le clavier recouvre.
 
 **L'avertissement ne concerne que la photo.** Elle envoie une image de votre repas — et de ce qui l'entoure — à un tiers, et cela se dit une fois avant le premier envoi ([05](05-ia.md)). Une phrase tapée part sans avertissement : celui qui l'écrit sait exactement ce qu'il envoie.
@@ -283,6 +285,8 @@ Tap → écran de validation avec la quantité par défaut de l'aliment (voir [0
 ## Écran de validation d'entrée
 
 Le point de convergence. Une ou plusieurs lignes, chacune éditable, un bouton d'enregistrement.
+
+**Il s'ouvre aussitôt, et jamais sur un fond vide** ([D176](11-decisions.md)). L'ouvrir est une lecture — un plat, un favori, une fiche, ou la proposition qu'une analyse a déjà résolue — : rien n'y appelle un modèle. Une ouverture qui tarderait quand même affiche un indicateur passé quatre dixièmes de seconde, assez tard pour qu'une ouverture ordinaire ne fasse rien clignoter.
 
 Chaque ligne présente :
 

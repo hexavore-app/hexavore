@@ -171,15 +171,37 @@ class ResolveRecognitionTest {
     private var estimation: EstimationOutcome = EstimationOutcome.Estimated(emptyList())
     private val demandes = mutableListOf<List<String>>()
 
+    /** L'annonce et l'appel de l'etape 4, dans l'ordre ou ils ont eu lieu (D176). */
+    private val deroule = mutableListOf<String>()
+
     private suspend fun resolve(vararg items: RecognizedItem) = ResolveRecognition(
         resolve = ResolveFoodLabel(CATALOGUE, FRANCAIS),
         create = CreateDraft(FixedClock.atNoon(JOUR), ids, InMemorySelectedDay(FixedClock.atNoon(JOUR).today())),
         estimate = { labels ->
             demandes += labels
+            deroule += "appel"
             estimation
         },
         languages = FRANCAIS,
-    )(Recognition(items.toList()), EntrySource.TEXT_AI)
+    )(Recognition(items.toList()), EntrySource.TEXT_AI) { deroule += "annonce" }
+
+    @Test
+    fun `l estimation s annonce avant de partir`() = runTest {
+        // L'ecran qui attend dit ce qu'il attend, et il le dit avant de l'attendre : une
+        // annonce apres l'appel expliquerait une attente deja passee (D176).
+        resolve(item("tofu fume au sesame", 100.0, EstimatedUnit.G))
+
+        assertEquals(listOf("annonce", "appel"), deroule)
+    }
+
+    @Test
+    fun `rien a estimer ne s annonce pas`() = runTest {
+        // Le cas courant : tout est resolu, rien ne part, et l'ecran n'a pas a parler
+        // d'une estimation qui n'aura pas lieu.
+        resolve(item("pomme", 1.0, EstimatedUnit.PIECE))
+
+        assertEquals(emptyList<String>(), deroule)
+    }
 
     @Test
     fun `un libelle resolu ne part pas au repli`() = runTest {

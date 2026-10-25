@@ -108,6 +108,9 @@
     <string name="home_shoot">Photograph the meal</string>
     <string name="home_analysing">Analysing…</string>
     <string name="home_analysing_busy">Service overloaded, trying again…</string>
+    <!-- The same sentence as the AI screen: the estimate used to be waited for behind a
+         black screen (D176). -->
+    <string name="home_analysing_estimating">Estimating nutrition values…</string>
     <string name="home_analyse_cancel">Cancel</string>
     <!-- A provider that is down must never stop you from logging a meal. -->
     <string name="home_analyse_manual">Add by hand</string>

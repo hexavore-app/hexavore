@@ -53,7 +53,7 @@ data class EntryDestination(
      *
      * **Un drapeau et non une charge**, seul de tous les arguments de cette route :
      * ce qu'un modèle a proposé ne tient pas dans un état de navigation, et
-     * `PendingRecognition` le porte à côté. C'est ce que le paragraphe ci-dessus
+     * `PendingProposal` le porte à côté, déjà résolu (D176). C'est ce que le paragraphe ci-dessus
      * annonçait — « il faudra un brouillon en attente, partagé entre l'écran qui le
      * produit et celui qui le valide » —, et ça n'a pas ajouté de mode à l'écran :
      * une cinquième origine, comme les quatre autres.

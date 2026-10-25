@@ -33,6 +33,9 @@
     <string name="analyse_submit">Analyser</string>
     <string name="analyse_running">Analyse en cours…</string>
     <string name="analyse_running_busy">Service saturé, nouvelle tentative…</string>
+    <!-- L'assiette est lue ; ce sont les valeurs de ce que le catalogue ne connaît pas
+         qu'on attend. Elle s'attendait derrière un écran noir (D176). -->
+    <string name="analyse_running_estimating">Estimation des valeurs nutritionnelles…</string>
     <string name="analyse_cancel">Annuler</string>
     <string name="analyse_manual">Saisir ce repas à la main</string>
 

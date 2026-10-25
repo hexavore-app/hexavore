@@ -1,7 +1,7 @@
 package app.hexavore.di
 
 import app.hexavore.domain.ai.NutritionEstimator
-import app.hexavore.domain.ai.PendingRecognition
+import app.hexavore.domain.ai.PendingProposal
 import app.hexavore.domain.food.FoodLookup
 import app.hexavore.domain.food.FoodSearch
 import app.hexavore.domain.language.ContentLanguages
@@ -41,16 +41,15 @@ object DraftUseCaseModule {
         favorites: GetFavoriteDraft,
         create: CreateDraft,
         foods: FoodLookup,
-        pending: PendingRecognition,
-        resolve: ResolveRecognition,
-    ): OpenDraft = OpenDraft(dishes, favorites, create, foods, pending, resolve)
+        pending: PendingProposal,
+    ): OpenDraft = OpenDraft(dishes, favorites, create, foods, pending)
 
     /**
      * La résolution d'une proposition, et le résolveur de libellés qu'elle chaîne.
      *
-     * Les deux ici parce qu'ils n'ont qu'un appelant — l'ouverture d'un brouillon — et
-     * que `ResolveFoodLabel` n'a jamais eu de fournisseur : il attendait depuis sa
-     * livraison quelqu'un pour l'appeler.
+     * Toujours ici, bien que leur appelant soit désormais l'analyse et non plus
+     * l'ouverture d'un brouillon (D176) : ce qu'elles fabriquent est un brouillon, et
+     * c'est ce module qui dit comment on en obtient un.
      */
     @Provides
     fun resolveRecognition(

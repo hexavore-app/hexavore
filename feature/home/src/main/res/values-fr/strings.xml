@@ -111,6 +111,9 @@
     <string name="home_shoot">Photographier le repas</string>
     <string name="home_analysing">Analyse en cours…</string>
     <string name="home_analysing_busy">Service saturé, nouvelle tentative…</string>
+    <!-- La même phrase que l'écran d'IA : l'estimation s'attendait derrière un écran
+         noir (D176). -->
+    <string name="home_analysing_estimating">Estimation des valeurs nutritionnelles…</string>
     <string name="home_analyse_cancel">Annuler</string>
     <!-- Un fournisseur en panne ne doit jamais empêcher de noter son repas. -->
     <string name="home_analyse_manual">Ajouter à la main</string>

@@ -130,7 +130,10 @@ internal fun EntryRoute(
 internal fun EntryScreen(state: EntryUiState, actions: EntryActions, modifier: Modifier = Modifier) {
     Surface(color = MaterialTheme.colorScheme.background, modifier = modifier.fillMaxSize()) {
         when (state) {
-            EntryUiState.Loading, EntryUiState.Saved -> Unit
+            // Plus jamais un fond vide qui dure (D176) : l'ouverture se signale si elle
+            // tarde. Enregistre, l'ecran se referme deja, il n'a rien a montrer.
+            EntryUiState.Loading -> DraftOpening()
+            EntryUiState.Saved -> Unit
             EntryUiState.Unavailable -> UnavailableDish(actions.onClose)
             is EntryUiState.Error -> WriteFailed(actions.onRetry, actions.onClose)
             is EntryUiState.Content -> DraftEditor(state, actions)

@@ -206,11 +206,15 @@ private fun Analysis(state: AnalyseUiState, onAnalyse: () -> Unit, onCancel: () 
             verticalAlignment = Alignment.CenterVertically,
         ) {
             CircularProgressIndicator(modifier = Modifier.padding(Spacing.xs))
-            // Le meme emplacement pour les deux phrases, et non une ligne de plus : ce
-            // qui change est la raison d'attendre, pas le fait d'attendre (D156).
+            // Le meme emplacement pour les trois phrases, et non une ligne de plus : ce
+            // qui change est la raison d'attendre, pas le fait d'attendre (D156, D176).
             Text(
                 text = stringResource(
-                    if (state.retrying) R.string.analyse_running_busy else R.string.analyse_running,
+                    when {
+                        state.estimating -> R.string.analyse_running_estimating
+                        state.retrying -> R.string.analyse_running_busy
+                        else -> R.string.analyse_running
+                    },
                 ),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.weight(1f),
