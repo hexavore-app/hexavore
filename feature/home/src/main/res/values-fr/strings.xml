@@ -287,4 +287,52 @@
     <string name="tour_settings_title">Tout le reste est ici</string>
     <string name="tour_settings_body">Votre profil et vos objectifs, la clé d\'IA, la sauvegarde, les photos, les rappels et le thème. Rien ne quitte ce téléphone.</string>
     <string name="calendar_day_perfect_a11y">Le %1$d, journée dorée</string>
+
+    <!-- ===== À l'ouverture (D179) ===================================================
+         Une astuce, ou la demande d'avis, toutes les quelques ouvertures. Chaque astuce
+         dit un geste qu'on ne devine pas, en une phrase, et ne paraît qu'une fois. -->
+    <string name="opening_tip_done">J\'ai compris</string>
+    <string name="opening_tip_stop">Ne plus afficher d\'astuces</string>
+    <string name="opening_tip_get_key">Obtenir ma clé</string>
+    <string name="opening_later">Plus tard</string>
+
+    <string name="opening_tip_free_key_title">Une IA gratuite vous attend</string>
+    <string name="opening_tip_free_key_body">Décrivez un repas en une phrase, ou photographiez l\'assiette : avec une clé Gemini gratuite, l\'IA fait les comptes à votre place. Deux minutes, une seule fois.</string>
+    <string name="opening_tip_quarter_title">Touchez l\'hexagone</string>
+    <string name="opening_tip_quarter_body">Chaque quartier dit quels aliments l\'ont rempli : touchez-en un pour voir d\'où viennent vos protéines, ou vos sucres.</string>
+    <string name="opening_tip_photo_note_title">Un mot sous la photo</string>
+    <string name="opening_tip_photo_note_body">Sous une photo, une précision rend l\'analyse plus juste : « l\'assiette fait 24 cm », « la sauce est allégée ».</string>
+    <string name="opening_tip_dish_menu_title">Un appui long sur un plat</string>
+    <string name="opening_tip_dish_menu_body">Il ouvre son menu : le copier sur un autre jour, le mettre en favori, ou le supprimer.</string>
+    <string name="opening_tip_favourites_title">Vos plats habituels</string>
+    <string name="opening_tip_favourites_body">Mettez un plat en favori, par son étoile ou par l\'appui long : il se rejoue ensuite depuis le « + », sans rien ressaisir.</string>
+    <string name="opening_tip_catch_up_title">Un repas oublié ?</string>
+    <string name="opening_tip_catch_up_body">Touchez un jour du calendrier : ce que vous noterez ira sur ce jour-là.</string>
+    <string name="opening_tip_swipe_title">Changer de jour d\'un geste</string>
+    <string name="opening_tip_swipe_body">Balayez l\'accueil de côté pour passer au jour d\'avant, ou revenir à celui d\'après.</string>
+    <string name="opening_tip_estimates_title">Ce que l\'IA estime se voit</string>
+    <string name="opening_tip_estimates_body">Quand aucune base ne connaît un aliment, l\'IA estime ses valeurs, et la ligne le signale : un coup d\'œil avant d\'enregistrer suffit.</string>
+    <string name="opening_tip_accents_title">Pas besoin d\'accents</string>
+    <string name="opening_tip_accents_body">La recherche les ignore : « creme brulee » trouve « crème brûlée ».</string>
+    <string name="opening_tip_barcode_title">Scanné une fois, retrouvé partout</string>
+    <string name="opening_tip_barcode_body">Un produit scanné reste dans votre catalogue, même sans connexion : la fois suivante, il se retrouve en tapant son nom.</string>
+    <string name="opening_tip_weigh_in_title">Une pesée par semaine</string>
+    <string name="opening_tip_weigh_in_body">Notez votre poids au moins une fois par semaine : la tendance se dessine, et si vous visez un poids, Hexavore vous propose d\'ajuster l\'objectif.</string>
+    <string name="opening_tip_reminders_title">Un rappel, si vous voulez</string>
+    <string name="opening_tip_reminders_body">Hexavore peut vous prévenir quand un repas n\'est pas noté : dans les réglages, rubrique Notifications.</string>
+    <string name="opening_tip_backup_title">Vos données, dans un fichier</string>
+    <string name="opening_tip_backup_body">Dans les réglages, rubrique Sauvegarde : tout s\'exporte dans un fichier que vous rangez où vous voulez, et se restaure sur un autre téléphone.</string>
+
+    <!-- La demande d'avis. Toutes les étoiles mènent à la fiche : trier les notes serait
+         contraire aux consignes de Google. Le visage triste est celui que l'auteur a
+         demandé, pour dire que « ne plus demander » se respecte sans s'en réjouir. -->
+    <string name="opening_rating_title">Votre avis compte beaucoup</string>
+    <string name="opening_rating_body">Hexavore est gratuite et sans publicité : une note sur le Play Store est ce qui nous aide le plus à nous faire connaître. Combien d\'étoiles lui donneriez-vous ?</string>
+    <string name="opening_rating_hint">Touchez une étoile : la fiche d\'Hexavore s\'ouvre sur le Play Store, pour y laisser votre note.</string>
+    <string name="opening_rating_already">J\'ai déjà noté</string>
+    <string name="opening_rating_never">Ne plus demander 😢</string>
+    <plurals name="opening_rating_star">
+        <item quantity="one">%1$d étoile sur %2$d</item>
+        <item quantity="other">%1$d étoiles sur %2$d</item>
+    </plurals>
 </resources>

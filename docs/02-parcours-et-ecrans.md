@@ -173,6 +173,16 @@ L'ordre est fixe. Un ordre adaptatif « selon vos habitudes » ferait bouger les
 
 **La barre monte avec le clavier.** Elle est une pièce de la structure et non une couche flottante : c'est elle qui borne la page, la liste des plats s'arrête au-dessus, et la bulle des sources n'a plus à la faire disparaître pour être lisible ([D122](11-decisions.md#d122--un-quartier-touché-dit-ce-qui-la-rempli---validée)).
 
+### Les messages à l'ouverture
+
+**Toutes les quelques ouvertures, une boîte : une astuce, ou la demande d'un avis** ([D179](11-decisions.md)). Une **ouverture** est un retour sur l'accueil après trente minutes d'absence, ou la toute première : les allers-retours d'un même repas n'en font qu'une. Rien avant la troisième — la première est celle de l'onboarding et du tour —, **une boîte au plus par ouverture**, et au moins quatre ouvertures entre deux. Rien pendant le tour, ni à côté du rapport de plantage, qui passe seul.
+
+**Les astuces** disent chacune un geste qu'on ne devine pas — le quartier qui s'explique, l'appui long sur un plat, le jour qu'on rattrape —, en une phrase, **une seule fois**, dans un ordre fixe qui va du plus utile au plus anecdotique. Celles qui ne s'appliquent pas passent leur tour : la clé gratuite à qui en a une, la photo à qui n'en a pas. Deux réponses : « J'ai compris », ou « Ne plus afficher d'astuces », que l'écran des notifications rallume. L'astuce de la clé gratuite mène, elle, au guide de la clé.
+
+**La demande d'avis** attend une semaine d'usage et dix plats notés, et passe devant l'astuce quand les deux sont dues. Cinq étoiles, et **la même fiche du Play Store derrière chacune** : trier les notes — les bonnes vers le Play Store, les mauvaises vers un courriel — est courant et contraire aux consignes de Google. Trois autres réponses, de la plus douce à la plus définitive : « Plus tard », qui la repousse de vingt ouvertures ; « J'ai déjà noté » et « Ne plus demander », qui la closent. Une étoile touchée la clôt aussi. L'écran **Contact** garde un lien « Noter Hexavore sur le Play Store », pour qui veut le faire sans attendre qu'on le lui demande.
+
+Toucher à côté d'une boîte vaut « J'ai compris » pour une astuce et « Plus tard » pour la demande d'avis : se débarrasser d'une boîte n'est jamais un refus définitif. **Rien ne sort du téléphone** : ni notification système, ni travail de fond, et la fiche ne s'ouvre que sous le doigt de celui qui touche une étoile.
+
 ---
 
 ## Progression

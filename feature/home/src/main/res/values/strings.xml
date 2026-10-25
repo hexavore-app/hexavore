@@ -286,4 +286,52 @@
     <string name="tour_settings_title">Everything else is here</string>
     <string name="tour_settings_body">Your profile and targets, the AI key, backup, photos, reminders and the theme. Nothing leaves this phone.</string>
     <string name="calendar_day_perfect_a11y">The %1$d, a golden day</string>
+
+    <!-- ===== When the app opens (D179) ================================================
+         A tip, or the request for a rating, every few openings. Each tip tells a gesture
+         nobody guesses, in one sentence, and appears only once. -->
+    <string name="opening_tip_done">Got it</string>
+    <string name="opening_tip_stop">Don\'t show tips again</string>
+    <string name="opening_tip_get_key">Get my key</string>
+    <string name="opening_later">Later</string>
+
+    <string name="opening_tip_free_key_title">A free AI is waiting for you</string>
+    <string name="opening_tip_free_key_body">Describe a meal in a sentence, or photograph the plate: with a free Gemini key, the AI does the counting for you. Two minutes, once.</string>
+    <string name="opening_tip_quarter_title">Touch the hexagon</string>
+    <string name="opening_tip_quarter_body">Each quarter says which foods filled it: touch one to see where your protein, or your sugars, come from.</string>
+    <string name="opening_tip_photo_note_title">A word under the photo</string>
+    <string name="opening_tip_photo_note_body">Under a photo, one detail makes the analysis more accurate: "the plate is 24 cm across", "the sauce is a light one".</string>
+    <string name="opening_tip_dish_menu_title">A long press on a meal</string>
+    <string name="opening_tip_dish_menu_body">It opens its menu: copy it to another day, make it a favourite, or delete it.</string>
+    <string name="opening_tip_favourites_title">Your usual meals</string>
+    <string name="opening_tip_favourites_body">Make a meal a favourite, with its star or a long press: it then replays from the "+", without typing anything again.</string>
+    <string name="opening_tip_catch_up_title">Forgot a meal?</string>
+    <string name="opening_tip_catch_up_body">Touch a day in the calendar: whatever you log next goes on that day.</string>
+    <string name="opening_tip_swipe_title">Change day with a swipe</string>
+    <string name="opening_tip_swipe_body">Swipe the home screen sideways to go to the day before, or back to the day after.</string>
+    <string name="opening_tip_estimates_title">What the AI estimates shows</string>
+    <string name="opening_tip_estimates_body">When no database knows a food, the AI estimates its values, and the line says so: a glance before saving is enough.</string>
+    <string name="opening_tip_accents_title">Accents are optional</string>
+    <string name="opening_tip_accents_body">Search ignores them on both sides, so you never need to type one.</string>
+    <string name="opening_tip_barcode_title">Scanned once, found anywhere</string>
+    <string name="opening_tip_barcode_body">A scanned product stays in your catalogue, even with no connection: next time, you find it by typing its name.</string>
+    <string name="opening_tip_weigh_in_title">One weigh-in a week</string>
+    <string name="opening_tip_weigh_in_body">Log your weight at least once a week: the trend takes shape, and if you are aiming for a weight, Hexavore suggests adjusting your target.</string>
+    <string name="opening_tip_reminders_title">A reminder, if you like</string>
+    <string name="opening_tip_reminders_body">Hexavore can let you know when a meal has not been logged: in Settings, under Notifications.</string>
+    <string name="opening_tip_backup_title">Your data, in a file</string>
+    <string name="opening_tip_backup_body">In Settings, under Backup: everything exports to a file you keep wherever you like, and restores on another phone.</string>
+
+    <!-- The rating request. Every star leads to the store page: sorting ratings would go
+         against Google's guidelines. The sad face is the one the author asked for, to say
+         that "don't ask again" is respected without being welcomed. -->
+    <string name="opening_rating_title">Your opinion means a lot</string>
+    <string name="opening_rating_body">Hexavore is free and ad-free: a rating on the Play Store is what helps us most to get known. How many stars would you give it?</string>
+    <string name="opening_rating_hint">Tap a star: Hexavore\'s page opens on the Play Store, where you can leave your rating.</string>
+    <string name="opening_rating_already">I\'ve already rated it</string>
+    <string name="opening_rating_never">Don\'t ask again 😢</string>
+    <plurals name="opening_rating_star">
+        <item quantity="one">%1$d star out of %2$d</item>
+        <item quantity="other">%1$d stars out of %2$d</item>
+    </plurals>
 </resources>

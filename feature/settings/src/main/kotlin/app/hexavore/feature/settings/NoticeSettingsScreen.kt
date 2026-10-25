@@ -51,6 +51,7 @@ internal fun NoticeSettingsRoute(onClose: () -> Unit, viewModel: NoticeSettingsV
     NoticeSettingsScreen(
         state = state,
         onToggle = viewModel::onToggle,
+        onToggleTips = viewModel::onToggleTips,
         onToggleReminder = viewModel::onToggleReminder,
         onReminderTime = viewModel::onReminderTime,
         onClose = onClose,
@@ -61,6 +62,7 @@ internal fun NoticeSettingsRoute(onClose: () -> Unit, viewModel: NoticeSettingsV
 private fun NoticeSettingsScreen(
     state: NoticeUiState,
     onToggle: (Notice, Boolean) -> Unit,
+    onToggleTips: (Boolean) -> Unit,
     onToggleReminder: (Reminder, Boolean) -> Unit,
     onReminderTime: (Reminder, LocalTime) -> Unit,
     onClose: () -> Unit,
@@ -99,6 +101,10 @@ private fun NoticeSettingsScreen(
                 )
             }
 
+            // Les astuces se voient elles aussi en ouvrant l'application : elles suivent les
+            // pastilles, avant ce qui sonne dehors (D179).
+            TipsRow(enabled = state.tips, onToggle = onToggleTips)
+
             // Les rappels viennent apres les pastilles, et l'ordre dit leur cout :
             // les unes se voient en ouvrant l'application, les autres sonnent dehors.
             ReminderSection(setup = state.reminders, onToggle = onToggleReminder, onTime = onReminderTime)
@@ -128,6 +134,38 @@ private fun NoticeRow(notice: Notice, enabled: Boolean, active: Boolean, onToggl
                 }
                 Text(
                     text = stringResource(notice.bodyRes),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Switch(checked = enabled, onCheckedChange = onToggle)
+        }
+    }
+}
+
+/**
+ * Les astuces de l'ouverture : **le chemin du retour** de « Ne plus afficher d'astuces »
+ * ([D179][decisions]).
+ *
+ * Sans lui, un appui de travers dans une boîte éteindrait les astuces pour de bon. Pas de
+ * point « en ce moment » : une astuce ne surveille rien, elle paraît ou non.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+@Composable
+private fun TipsRow(enabled: Boolean, onToggle: (Boolean) -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(Spacing.cardPadding),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+            ) {
+                Text(text = stringResource(R.string.notices_tips_title), style = MaterialTheme.typography.titleSmall)
+                Text(
+                    text = stringResource(R.string.notices_tips_body),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

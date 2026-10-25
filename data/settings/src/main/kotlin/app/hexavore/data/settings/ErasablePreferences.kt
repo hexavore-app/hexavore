@@ -66,6 +66,8 @@ internal data class FlowBackedStores(
     val notices: StoredNoticeSettings,
     val deep: StoredDeepAnalysisSettings,
     val reminders: StoredReminderSettings,
+    /** L'interrupteur des astuces, que l'ecran des notifications observe (D179). */
+    val openings: StoredOpeningLedger,
 ) {
     /** Chacun remet son flux d'accord avec un disque qu'on s'apprete a vider. */
     suspend fun forgetAll() {
@@ -75,5 +77,6 @@ internal data class FlowBackedStores(
         notices.forget()
         deep.forget()
         reminders.forget()
+        openings.forget()
     }
 }

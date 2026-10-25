@@ -384,6 +384,9 @@
 
     <string name="notices_yesterday_title">Hier n\'a rien de noté</string>
     <string name="notices_yesterday_body">Sur la pastille d\'hier dans le calendrier. Toucher cette journée permet d\'y noter le repas oublié.</string>
+    <!-- Le chemin du retour de « Ne plus afficher d'astuces » (D179). -->
+    <string name="notices_tips_title">Astuces à l\'ouverture</string>
+    <string name="notices_tips_body">De temps en temps, en ouvrant l\'application, un geste qu\'on ne devine pas. Chacune une seule fois, et jamais plus d\'une à la fois.</string>
 
     <!-- L\'analyse approfondie : le modele interroge le catalogue avant de conclure,
          au lieu de laisser un score de ressemblance choisir a sa place. -->
@@ -408,11 +411,13 @@
     <string name="settings_favorites_edit">Modifier ce favori</string>
     <string name="settings_favorites_empty">Aucun favori. Touchez l\'étoile sur un plat pour l\'enregistrer ; il reviendra sous le bouton +.</string>
     <string name="settings_contact_title">Contact</string>
-    <string name="settings_contact_subtitle">Le code, le site, et où écrire.</string>
+    <string name="settings_contact_subtitle">Le code, le site, où écrire, et où nous noter.</string>
     <string name="settings_contact_intro">Hexavore est un logiciel libre. Un défaut, une idée, un mot : les trois nous arrivent.</string>
     <string name="settings_contact_site">Le site</string>
     <string name="settings_contact_github">Le code, et les tickets</string>
     <string name="settings_contact_mail">Nous écrire</string>
+    <!-- La demande d'avis de l'ouverture, toujours à portée (D179). -->
+    <string name="settings_contact_rate">Noter Hexavore sur le Play Store</string>
     <!-- Quand rien sur le téléphone ne sait ouvrir l'adresse d'une carte, de Contact
          comme d'À propos (D162). Elle renvoie à l'adresse, écrite sur la carte pour
          cette raison. -->

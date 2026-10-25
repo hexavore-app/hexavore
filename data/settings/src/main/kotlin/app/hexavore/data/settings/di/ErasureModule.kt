@@ -8,6 +8,7 @@ import app.hexavore.data.settings.StoredAiCredentials
 import app.hexavore.data.settings.StoredContributionSettings
 import app.hexavore.data.settings.StoredDeepAnalysisSettings
 import app.hexavore.data.settings.StoredNoticeSettings
+import app.hexavore.data.settings.StoredOpeningLedger
 import app.hexavore.data.settings.StoredReminderSettings
 import app.hexavore.domain.backup.StoredPreferences
 import app.hexavore.domain.concurrency.DispatcherProvider
@@ -68,7 +69,7 @@ internal object ErasureModule {
     ): List<@JvmSuppressWildcards SharedPreferences> = listOf(ai, adjustment, contribution, notices)
 
     /**
-     * Les six magasins qui portent un flux, reunis.
+     * Les sept magasins qui portent un flux, reunis.
      *
      * Sortis du fournisseur principal quand le seuil de parametres a mordu, et le
      * decoupage suit ce que les choses sont : ici ceux qui doivent etre prevenus,
@@ -83,7 +84,8 @@ internal object ErasureModule {
         notices: StoredNoticeSettings,
         deep: StoredDeepAnalysisSettings,
         reminders: StoredReminderSettings,
-    ) = FlowBackedStores(credentials, contribution, adjustment, notices, deep, reminders)
+        openings: StoredOpeningLedger,
+    ) = FlowBackedStores(credentials, contribution, adjustment, notices, deep, reminders, openings)
 
     @Provides
     @Singleton
