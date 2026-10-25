@@ -29,6 +29,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -41,7 +42,9 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -116,14 +119,24 @@ internal fun GuidedTour(
 
     SuitLaCible(step, anchors, scroll, cible != null) { cible }
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize().blockingTaps()) {
+    // Le voile compte depuis sa propre place, et non depuis la racine : en paysage, le
+    // cadre des ecrans l'ecarte de l'encoche ou de la barre de navigation (D171).
+    var origine by remember { mutableStateOf(Offset.Zero) }
+    val vue = cible?.seenFrom(origine)
+
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .onGloballyPositioned { origine = it.positionInRoot() }
+            .blockingTaps(),
+    ) {
         val hauteur = with(LocalDensity.current) { maxHeight.toPx() }
         val ecart = with(LocalDensity.current) { GAP.toPx() }
 
-        Veil(cible)
+        Veil(vue)
         Bubble(
             step = step,
-            cadre = BubbleFrame(cible, hauteur, ecart),
+            cadre = BubbleFrame(vue, hauteur, ecart),
             keyless = keyless,
             onNext = onNext,
             onConfigureAi = onConfigureAi,

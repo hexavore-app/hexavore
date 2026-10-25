@@ -4886,7 +4886,7 @@ La proposition de clé arrive **après** qu'on a vu à quoi elle sert. Proposée
 
 Le souvenir se pose **à la fin**, et sur les deux seules fins qui sont une réponse : « Passer » et « J'ai compris ». Fermer l'application au milieu d'une bulle ne décide rien, et un tour qui disparaîtrait là-dessus aurait été manqué par celui-là même qu'il visait — le premier lancement est la seule fois où il sert à quelque chose.
 
-**Partir poser une clé n'est pas une réponse non plus.** Quelqu'un qui appuie sur « Configurer » va faire ce que le tour lui demandait : il le retrouve au retour, et la barre y est déverrouillée, ce qu'il était précisément venu voir.
+~~**Partir poser une clé n'est pas une réponse non plus.** Quelqu'un qui appuie sur « Configurer » va faire ce que le tour lui demandait : il le retrouve au retour, et la barre y est déverrouillée, ce qu'il était précisément venu voir.~~ **Si** : le tour revenait à chaque lancement chez qui avait suivi son conseil ([D175](#d175--configurer-répond-au-tour---validée)).
 
 ### Conséquences
 
@@ -5894,6 +5894,119 @@ Le sabotage de l'objet français — revenu à « incorrecte » — a d'abord **
 **Campagne de défaite : quatre sabotages, quatre tombés.** La liste défilée qui remonte aussi ; une tête inchangée qui remonte ; une première pesée qui demande une remontée ; rien qui ne remonte jamais.
 
 **Ce que le vert ne prouve pas.** Aucun test ne compose d'écran, et donc aucun cas ne compose l'état de liste : que la demande parte avant la mesure ne se voit qu'à l'émulateur, en retirant puis rendant la pesée la plus récente, et en notant une pesée pour un jour plus récent que la tête. **Vu à l'émulateur le 16 octobre 2026**, sur la release corrigée : la pesée du 16 retirée puis rendue revient en tête de liste ; retirée pour de bon puis notée à nouveau, elle y arrive aussi ; la liste défilée jusqu'au 10, une pesée du 9 retirée puis rendue, la liste ne bouge pas et la pesée reprend sa place.
+
+---
+
+## D170 — Les retours du Play Store sur la 1.0.0 : les barres passent dans le thème, et R8 réduit les ressources · ✓ validée
+
+**Contexte.** La 1.0.0 est en production, et la Console a rendu trois recommandations — aucune ne bloque :
+
+- **« L'affichage bord à bord pourrait ne pas être disponible pour tous les utilisateurs »** : une application qui vise l'API 35 doit gérer ses encarts, ou appeler `enableEdgeToEdge()`.
+- **« Votre appli utilise des API ou paramètres obsolètes pour l'affichage bord à bord »** : `Window.setStatusBarColor`, `Window.setNavigationBarColor` et `LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES`, relevés en `c.q.b`, `c.s.b` et `E2.a.t`.
+- **« Améliorez la mémoire et les performances avec l'optimisation R8 »** : la réduction optimisée des ressources n'est pas activée, et AGP 9 est conseillé.
+
+**Les trois emplacements, retrouvés dans le fichier de correspondance du bundle téléversé, sont tous dans androidx.activity 1.9.3.** `c.q` est `EdgeToEdgeApi26` et `c.s` `EdgeToEdgeApi29` : leurs `setUp` posent les deux couleurs. `E2.a.t` est un accès que R8 a sorti dans une classe synthétique ; il écrit `1` (`SHORT_EDGES`) dans `layoutInDisplayCutoutMode`, pour `EdgeToEdgeApi28`. Aucun ne vient du code de l'application : c'est `enableEdgeToEdge()` — la fonction que la première recommandation conseille d'appeler — qui déclenche la deuxième. Elle a besoin de ces appels avant Android 15, où ils sont le seul moyen de colorer une barre ; à partir de 15, ils s'exécutent pour ne rien faire.
+
+**Monter de version n'y peut rien.** Sur la branche principale d'androidx, `enableEdgeToEdge` est dépréciée au profit de `WindowCompat.enableEdgeToEdge(window)`, d'androidx.core — qui appelle `setStatusBarColor`, `setNavigationBarColor` et `SHORT_EDGES` lui aussi, sans même de garde de version. Et le relevé ne lit pas les gardes : `c.q.b` ne tourne que de l'API 26 à 28, et il est relevé.
+
+**Ce que le relevé ne lit pas : le thème, ni le mode `ALWAYS`.** Compose Material3 livre dans l'APK un thème de fenêtre, `EdgeToEdgeFloatingDialogTheme`, que R8 garde (`resources.txt`) et qui pose `android:statusBarColor`, `android:navigationBarColor` et un mode d'encoche : rien n'en est relevé. La même classe synthétique écrit `3` (`ALWAYS`) dans le même champ, en `E2.a.B`, sans être relevée. Le relevé porte sur les appels du code compilé, et sur la seule valeur `SHORT_EDGES`. Rejoué sur le bundle téléversé, `dexdump` retrouve exactement ses trois emplacements.
+
+**Choix.**
+
+- **Les barres se règlent dans `Theme.Hexavore`**, sans un appel. Barre d'état transparente. Barre de navigation transparente à partir de l'API 29, où le système pose lui-même un voile derrière trois boutons — ce que faisait androidx. **En dessous, un voile sombre et des icônes claires, quel que soit le thème** : androidx choisissait un voile clair ou sombre selon le mode du système, mais l'application peut se forcer à l'inverse de lui ([D113](#d113--apparence-existe-et-suivre-le-système-est-un-choix---validée)) et un thème de fenêtre ne lit que le système. Le voile sombre se lit sur les deux, et c'est celui qu'androidx posait aux versions sans icônes sombres. L'encoche : `ALWAYS` à partir de l'API 30, comme androidx et comme Android 15 l'impose ; **le mode par défaut aux API 28 et 29**, au lieu de `SHORT_EDGES`. Tenu debout, le contenu y passe pareil, l'encoche tenant dans la barre d'état ; couché, une bande noire la contourne. Le thème a deux étages : `Base.Theme.Hexavore` change avec le mode du système, `Theme.Hexavore` pose les barres, qui ne changent qu'avec la version d'Android — le thème sombre ne peut donc pas les défaire.
+- **Ce qui reste dans le code n'est pas obsolète.** `edgeToEdgeFollowing` fait passer le contenu sous les barres avant Android 15 (`WindowCompat.setDecorFitsSystemWindows`, qu'Android 15 rend inutile et qui n'est donc plus appelé à partir de lui), et règle leurs icônes sur le thème de l'application (`WindowCompat.getInsetsController`, [D162](#d162--le-reste-du-tour--ce-que-lapplication-promettait-sans-le-tenir---validée)). Elle est appelée au lancement avec le mode du système — le seul connu avant que le réglage soit lu, et celui que peint le thème de fenêtre —, puis à chaque changement de thème. `:core:designsystem` ne dépend plus d'androidx.activity ; la galerie de la variante `debug` passe par la même fonction.
+- **Une quatrième règle detekt maison, `DeprecatedSystemBars`.** Une couleur de barre, celle du séparateur, `SHORT_EDGES` ou `enableEdgeToEdge` dans le code casse le build, dans tous les modules. Elle lit des noms et non des types, detekt tournant ici sans résolution de types ; un import ne compte pas, l'usage se signale une fois.
+- **R8 réduit les ressources lui-même** (`android.r8.optimizedResourceShrinking`) : il voit ensemble le code et les ressources, et ne garde une ressource que si le code qu'il garde y mène. L'option n'existe qu'à partir d'AGP 8.12 : **AGP passe de 8.11.1 à 8.13.2**, dernier palier de la ligne 8, sous le même Gradle 8.13.
+- **AGP 9 attend.** Il exige Gradle 9 et Kotlin 2.2, et D15 comme [D128](#d128--lapplication-vise-android-16-et-la-chaîne-monte-avec-elle---validée) tiennent la chaîne en Kotlin 2.0 tant que detekt 2.0 n'est pas stable — il en est à l'alpha 6, du 4 août 2026. La recommandation restera affichée ; ce qu'AGP 9 apporterait ici de plus que 8.13, la réduction optimisée, est déjà là.
+
+**Écarté.** *Monter androidx.activity* : la suite appelle les mêmes API. *Poser les couleurs par le code sous une garde de version* : le relevé ne lit pas les gardes. *Ignorer la recommandation* : elle ne bloque rien, mais elle dit vrai — ces appels ne font plus rien à partir d'Android 15 — et elle se règle sans rien perdre. *Relever `minSdk`* : hors de proportion.
+
+### Les encarts en paysage, vus en route et laissés à une décision
+
+Couchée, sur l'émulateur, la release 1.0.0 montre deux défauts que cette décision ne règle pas, et que la nouvelle reproduit au pixel près. Avec trois boutons, la barre de navigation passe sur le côté, et **le « + » de la barre d'ajout glisse dessous**. Avec une encoche, **le contenu de l'accueil passe sous elle** : `Scaffold` ne retire du corps que les barres, pas l'encoche, et la barre d'ajout ne retire rien sur les côtés. Les écrans qui posent `safeDrawingPadding` s'en écartent déjà. Le paysage est « non optimisé » ([docs/01](01-perimetre.md)), et `REPRISE.md` dit de n'y rien faire sans décision. Le correctif n'est d'ailleurs pas local : une marge posée à la racine décalerait le trou du voile du tour, qui compte ses ancres depuis la racine (`boundsInRoot`). **Réglés par [D171](#d171--les-côtés-de-lécran-se-retirent-une-fois-pour-tous---validée)**, sur décision de l'auteur.
+
+**Conséquences.** Dans `:core:designsystem` : `Theme.Hexavore` et `Base.Theme.Hexavore`, `system_bars.xml` en trois versions (`values`, `values-v29`, `values-v30`), `SystemBars.kt` réécrit, la dépendance à androidx.activity remplacée par androidx.core, et `SystemBarsThemeTest` (quatre cas). `MainActivity` et `GalleryActivity` n'appellent plus `enableEdgeToEdge`. Dans `build-logic/detekt-rules` : `DeprecatedSystemBars` et ses cinq cas, activée dans `config/detekt/detekt.yml`. AGP dans `gradle/libs.versions.toml`, l'option de R8 dans `gradle.properties`. [docs/06](06-architecture.md) et [docs/10](10-qualite-et-livraison.md) comptent quatre règles. Dans le bundle : plus aucun appel aux couleurs de barres, plus aucune écriture du mode d'encoche, plus aucune classe `EdgeToEdge` ; `resources.pb` passe de 741 à 628 Ko (−15 %) et 37 ressources de moins, le dex perd 48 Ko, le bundle 69 Ko.
+
+**Campagne de défaite : onze sabotages, onze tombés.** La barre d'état colorée dans le thème ; la barre de navigation absente du thème ; `SHORT_EDGES` à partir de l'API 30, puis en dessous ; un voile clair sous l'API 29 ; une barre opaque à partir de 29 ; un `Theme.Hexavore` dans `values-night` ; la règle aveugle à `enableEdgeToEdge` ; la règle qui compte les imports ; `enableEdgeToEdge` qui revient dans `MainActivity` ; une couleur de barre posée dans `SystemBars.kt`. Les neuf premiers font tomber un cas ; les deux derniers, detekt.
+
+**Ce que le vert ne prouve pas.** Que le Play Store ne relève plus rien : il ne le dira qu'au prochain téléversement. Le relevé a été rejoué au plus près — `dexdump` sur le bundle, qui retrouvait exactement les trois emplacements dans l'ancien —, mais son analyse appartient à Google. **Vu à l'émulateur le 18 octobre 2026**, ancienne et nouvelle release côte à côte. Sur l'API 36 : portrait à trois boutons avec encoche, et paysage, identiques au pixel près, horloge et icônes du système mises à part ; navigation par gestes en clair et en sombre ; thème clair forcé sur un système sombre et l'inverse, à trois boutons comme par gestes — icônes lisibles partout, voile assorti au thème de l'application. Sur l'API 30, où le thème de fenêtre règle réellement les barres : clair, sombre, portrait avec encoche et paysage, identiques au pixel près. **Pas vu** : les API 26 à 29, faute d'image système sur ce poste — c'est là que le voile devient sombre en mode clair, et que l'encoche suit le mode par défaut.
+
+---
+
+## D171 — Les côtés de l'écran se retirent une fois, pour tous · ✓ validée
+
+**Contexte.** [D170](#d170--les-retours-du-play-store-sur-la-100--les-barres-passent-dans-le-thème-et-r8-réduit-les-ressources---validée) les a vus en route, et ils étaient déjà dans la 1.0.0 : couché, avec trois boutons, **le « + » de la barre d'ajout passait sous la barre de navigation**, posée sur le côté ; avec une encoche, **le contenu de l'accueil passait sous elle**. Chaque écran gérait ses encarts à sa façon. `Scaffold` retire du corps les barres mais pas l'encoche, `ScreenTopBar` ne retire que la barre d'état, la barre d'ajout ne retirait rien sur les côtés ; les écrans à `safeDrawingPadding` s'en sortaient seuls. Le paysage est « non optimisé » ([docs/01](01-perimetre.md)), et `REPRISE.md` voulait une décision avant d'y toucher : l'auteur l'a donnée le 18 octobre 2026 — corriger ce qui passe sous les barres, sans toucher à la mise en page.
+
+**Choix.**
+
+- **Les côtés se retirent une fois, à la racine.** `ScreenFrame`, dans le design system, enveloppe la navigation : il peint le fond du thème et retire `safeDrawing` sur les côtés seulement — l'encoche, et une barre de navigation posée sur le côté. La marge **consomme** ce qu'elle retire : `Scaffold`, `safeDrawingPadding` et les autres marges d'encarts, plus bas, ne le comptent pas une seconde fois. Le haut et le bas restent l'affaire de chaque écran, où la barre d'état, la barre d'ajout et le clavier ont leurs règles. Debout, la marge vaut zéro et rien ne bouge.
+- **Le voile du tour compte depuis sa propre place.** Ses ancres sont mesurées depuis la racine de la composition (`boundsInRoot`) ; le voile vit dans l'accueil, que le cadre écarte désormais du bord. `seenFrom` ramène l'ancre dans le repère du voile : sans elle, le trou se serait décalé de la largeur de l'encoche.
+
+**Écarté.** *Corriger écran par écran* : sept `Scaffold`, `ScreenTopBar`, la barre d'ajout — autant de règles qui se ressemblent, et l'écran ajouté demain l'oublierait. *Voiler aussi la bande de l'encoche pendant le tour* : le `NavHost` coupe ce qui dépasse de ses bords, et il faudrait sortir le tour de la navigation.
+
+**Conséquences.** `ScreenFrame.kt` dans `:core:designsystem`, autour du `NavHost` de `MainActivity` ; `seenFrom` dans `TourAnchors.kt`, et `GuidedTour` qui suit sa propre position. Les cas : deux dans `TourAnchorsTest`, nouveau. Pendant le chargement de la destination de départ, l'écran montre le fond du thème de l'application, et non plus celui de la fenêtre.
+
+**Campagne de défaite : deux sabotages, deux tombés.** `seenFrom` qui rend l'ancre telle quelle ; `seenFrom` qui ajoute l'origine au lieu de la retrancher. Le troisième, `ScreenFrame` retiré de `MainActivity`, n'a aucun cas pour le voir : aucun test ne compose d'écran.
+
+**Ce que le vert ne prouve pas.** Que le cadre retire les côtés, et rien qu'eux : cela ne se voit qu'à l'écran. **Vu à l'émulateur le 18 octobre 2026**, API 36, trois boutons, encoche « tall ». Debout, l'accueil est identique au pixel près à la release de D170 — écart maximal de 2 sur 255. Couché dans les deux sens, l'accueil commence après l'encoche et le « + » est entier, à gauche de la barre de navigation ; les réglages (`ScreenTopBar`) et l'écran d'IA (`Scaffold`) aussi, sans marge comptée deux fois. Le tour, joué couché sur la variante debug après effacement de ses données, pose ses trous exactement sur le calendrier, le champ, l'appareil photo, le « + » et le profil. **Reste** : pendant le tour, la bande à côté de l'encoche n'est pas voilée.
+
+---
+
+## D172 — Un champ d'entiers dit pourquoi il refuse la virgule · ✓ validée
+
+**Contexte.** Vu à l'émulateur le 16 octobre 2026 : les six valeurs d'une ligne de plat, celles d'un aliment personnel et les compteurs du profil n'acceptent que des entiers ([D52](#d52--deux-savedstatehandle-une-seule-saisie-manuelle-des-grammes-entiers---validée)), et le champ refusait la virgule en silence. ~~Le séparateur décimal disparaît du clavier~~ : le clavier numérique d'Android la montre quand même, et on la tape en recopiant une étiquette. « 8,5 » devenait « 85 », dix fois trop, sans que rien ne le dise.
+
+**Choix.** Trois voies ont été présentées à l'auteur : garder la décimale, l'accepter puis arrondir, ou refuser et le dire. **Refuser, et le dire.** Les entiers restent la règle de D52. Une virgule ou un point tapés ne sont toujours pas pris, mais une phrase paraît sous le champ, en couleur d'erreur et annoncée par le lecteur d'écran : « Nombres entiers seulement : la virgule est ignorée. Arrondissez — 8,5 devient 9. » Elle reste tant que le texte n'est pas revenu avant l'endroit du refus — c'est le « 85 » qu'il faut voir —, et tombe quand on efface jusque-là : un « 85 » tapé ensuite est un 85 voulu. `WholeNumberField`, dans le design system, porte la règle pour les trois écrans ; `DraftTextField` signale désormais une frappe refusée, qu'il taisait.
+
+**Écarté.** *Garder la décimale* : l'auteur garde D52. *Arrondir à l'enregistrement* : l'écran montrerait « 8,5 » et la fiche rouverte « 9 ».
+
+**Conséquences.** `WholeNumberField.kt` et le paramètre `onRefused` de `DraftTextField` dans `:core:designsystem`, la phrase dans les deux langues ; `LineEditor`, `CustomFoodScreen` et `ProfileCounters` passent par lui. Le commentaire de `isWholeNumberField`, qui disait le séparateur absent du clavier, est corrigé. Les cas : quatre dans `WholeNumberFieldTest`, nouveau.
+
+**Campagne de défaite : quatre sabotages, quatre tombés.** Le point qui n'est plus un séparateur ; un refus qui ne tombe jamais ; un refus qui tombe aussitôt ; le filtre d'entiers qui laisse passer la virgule.
+
+**Ce que le vert ne prouve pas.** Que la phrase paraisse sous le bon champ, et que le lecteur d'écran l'annonce : aucun test ne compose d'écran. **Vu à l'émulateur le 18 octobre 2026** : dans l'aliment personnel, sur la release, « 8 » puis une virgule : la phrase paraît sous « Lipides » ; « 5 » ensuite donne « 85 », et elle reste ; « 85 » effacé, elle s'en va. Les champs gardent toute leur largeur — une première version les rétrécissait, la largeur étant passée de l'appelant à la colonne qui enveloppe le champ. L'éditeur d'un plat garde ses paires côte à côte. **Pas vu** : l'annonce du lecteur d'écran, et les compteurs du profil, qui passent par le même champ.
+
+---
+
+## D173 — Un nombre s'écrit dans la langue de l'application · ✓ validée
+
+**Contexte.** Vu à l'émulateur le 16 octobre 2026 : « Poids actuel : 65.3 kg » au profil, et « 65.1 » prérempli dans la boîte de pesée, quand la liste des pesées disait « 65,3 kg » juste à côté. Le profil passait par `formatDecimal`, le champ par `formatted` : deux `toString()`, qui ne connaissent que le point. Une quantité décimale rouverte dans la saisie disait « 12.5 » de la même façon.
+
+**Choix.** **Un seul formateur, `asDecimalText`, dans le design system** : le séparateur de la langue de l'application, une décimale au plus — trois pour une quantité, qu'une demi-portion ou un quart de litre se relisent sans arrondi —, la moitié arrondie vers le haut, et **sans séparateur de milliers**, parce que le même texte préremplit des champs : un « 1 736 » à espace insécable ne passerait plus leur filtre, qui refuserait alors toute frappe. Le profil, les champs de poids et de taille, les phrases du corps — qui avaient déjà le leur, à l'identique — et les quantités de la saisie passent par lui. `toDecimalOrNull` relit un champ, virgule ou point. `formatGrams`, à l'accueil, était juste et reste à sa place.
+
+**Conséquences.** `DecimalText.kt` dans `:core:designsystem` ; `formatDecimal` (`:feature:settings`), `BodyMeasureFields`, `BodyMessages` et `EntryForm` s'en servent. Les cas : six dans `DecimalTextTest`, nouveau ; dans `EntryFormTest`, le cas qui attendait « 12.5 » se joue en français puis en anglais, et un autre relit une demi-portion.
+
+**Campagne de défaite : cinq sabotages, cinq tombés.** La langue ignorée ; les milliers séparés ; l'arrondi au pair ; une seule décimale pour les quantités ; la relecture qui ne comprend plus la virgule.
+
+**Ce que le vert ne prouve pas.** Que l'application impose bien sa langue au format des nombres sous Android 8 à 12, où c'est `AppCompatDelegate` et non le système qui la pose : vu sur Android 16 seulement. **Vu à l'émulateur le 18 octobre 2026** : sur la release, en français : « Poids actuel : 79,9 kg » au profil, « 79,9 » prérempli dans son champ de poids et dans la boîte de pesée.
+
+---
+
+## D174 — Le poids à moitié tapé survit à la mort du processus · ✓ validée
+
+**Contexte.** [D166](#d166--une-saisie-survit-à-la-mort-du-processus---validée) l'avait vu et laissé : au profil, un poids tapé « 64, » revenait « 64 » après la mort du processus. Le `ViewModel` garde un nombre, et un nombre ne se souvient pas d'une virgule en attente ; le champ, lui, ne lisait son texte qu'à sa première composition. Le même champ sert à l'onboarding et dans la boîte de pesée.
+
+**Choix.** **Le champ garde aussi son texte**, par `rememberSaveable`, et le reprend à sa recréation **s'il dit encore le même nombre** que la valeur gardée ; sinon, il écrit la valeur dans la langue de l'application (`fieldText`). La valeur reste la vérité : un texte qui dirait autre chose qu'elle afficherait un nombre que l'écran n'enregistrera pas. Une rotation en profite aussi.
+
+**Conséquences.** `BodyMeasureFields` dans `:core:designsystem`. Les cas : quatre dans `BodyFieldTextTest`, nouveau.
+
+**Campagne de défaite : trois sabotages, trois tombés.** Le texte gardé jamais repris ; le texte gardé toujours repris, même quand il dit autre chose que la valeur ; la valeur écrite avec un `toString()`.
+
+**Ce que le vert ne prouve pas.** Aucun test ne tue de processus. **Vu à l'émulateur le 18 octobre 2026** : sur la release, le profil en modification, « 64, » tapé dans le poids ; l'application en arrière-plan, `am kill`, un nouveau processus au retour par les applications récentes : le champ dit « 64, ». Quitté sans enregistrer, le profil garde 79,9 kg. **Pas vu** : l'onboarding et la boîte de pesée, qui passent par le même champ.
+
+---
+
+## D175 — « Configurer » répond au tour · ✓ validée
+
+**Contexte.** Retour d'usage de l'auteur, le 23 octobre 2026 : le guide du premier lancement se répétait après un appui sur « Configurer », et revenait au redémarrage. [D141](#d141--le-premier-lancement-se-raconte-sur-lapplication-elle-même---validée) l'avait voulu ainsi : partir poser une clé n'était pas une réponse, et le tour devait se retrouver au retour. Il s'effaçait donc sans poser son souvenir (`onLeaveForSettings`). Au lancement suivant, `tour.seen` valait toujours faux, et le tour repartait de la première bulle, plats d'exemple compris — chez quelqu'un qui venait de suivre le conseil de la dernière. Le commentaire de l'accueil disait déjà que « Configurer » termine le tour ; le code faisait l'inverse.
+
+**Choix.** **« Configurer » est une réponse**, comme « Passer » et « J'ai compris » : le souvenir se pose avant de naviguer, et les plats d'exemple repartent. `onConfigure` remplace `onLeaveForSettings`, et la fermeture à deux régimes disparaît avec lui : seule une application fermée au milieu d'une bulle laisse encore la question ouverte. Ce que D141 voulait montrer au retour — la barre déverrouillée par la clé — se voit tout aussi bien sans le tour par-dessus.
+
+**Conséquences.** `TourViewModel` et l'accueil, dans `:feature:home`. Dans `TourViewModelTest`, le cas qui voulait que le tour revienne veut désormais qu'il ne revienne pas, au lancement suivant compris.
+
+**Campagne de défaite : trois sabotages, trois tombés.** « Configurer » qui efface le tour sans poser le souvenir ; une fin qui ne pose plus le souvenir ; un tour répondu qui se rejoue au lancement. L'appel lui-même, dans l'accueil, n'a pas de cas pour le voir : aucun test ne compose d'écran.
+
+**Ce que le vert ne prouve pas.** **Vu à l'émulateur le 23 octobre 2026**, API 36, sur la variante debug effacée : l'onboarding, puis le tour jusqu'à « Gemini est gratuit » ; « Configurer » ouvre l'écran des clés et pose `tour.seen` dans le fichier des pastilles, qui ne l'avait pas avant ; le retour à l'accueil n'y remontre pas le tour ; l'application arrêtée puis relancée non plus, et les plats d'exemple sont partis.
 
 ---
 

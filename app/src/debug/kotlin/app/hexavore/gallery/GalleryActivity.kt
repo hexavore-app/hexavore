@@ -2,8 +2,9 @@ package app.hexavore.gallery
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import app.hexavore.core.designsystem.theme.edgeToEdgeFollowing
+import app.hexavore.core.designsystem.theme.systemIsDark
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -29,7 +30,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class GalleryActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        edgeToEdgeFollowing(darkTheme = systemIsDark())
         setContent {
             GalleryRoute()
         }

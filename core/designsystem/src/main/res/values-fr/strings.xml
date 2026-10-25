@@ -74,6 +74,10 @@
     <string name="ds_camera_refused_settings">Ouvrir les réglages</string>
     <string name="ds_camera_refused_close">Fermer</string>
 
+    <!-- Sous un champ d'entiers, une fois un separateur decimal refuse (D172) : le clavier
+         l'offre, et l'avaler sans rien dire changeait « 8,5 » en « 85 ». -->
+    <string name="ds_whole_number_hint">Nombres entiers seulement : la virgule est ignorée. Arrondissez — 8,5 devient 9.</string>
+
     <!-- Les bornes du corps (D160), en chiffres et dans le systeme choisi : « entre 37
          et 245 kg » se corrige, « valeur invalide » ne dit pas dans quel sens aller. -->
     <string name="ds_body_height_range">Indiquez une taille entre %1$s et %2$s.</string>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A partir d'Android 10, la barre de navigation est transparente : le systeme y pose
+  lui-meme un voile quand elle a trois boutons, et rien en navigation par gestes
+  (`enforceNavigationBarContrast`, vrai par defaut). C'est ce que faisait androidx.
+-->
+<resources>
+    <color name="system_navigation_bar">@android:color/transparent</color>
+</resources>

@@ -133,8 +133,11 @@ fun HomeRoute(routes: HomeRoutes) {
  * Sorti de [HomeRoute] quand le seuil de longueur a mordu, et le découpage suit ce que
  * les choses sont : l'accueil assemble des états, celle-ci décide d'un seul.
  *
- * **« Configurer » termine le tour avant de naviguer** : revenir des réglages ne doit
- * pas retomber au milieu d'une phrase qui parlait d'autre chose.
+ * **« Configurer » termine le tour avant de naviguer** ([D175][decisions]) : c'est une
+ * réponse, et ni le retour des réglages ni le lancement suivant ne doivent retomber au
+ * milieu d'une phrase qui parlait d'autre chose.
+ *
+ * [decisions]: docs/11-decisions.md
  */
 private fun tourOverlay(
     step: TourStep?,
@@ -151,9 +154,9 @@ private fun tourOverlay(
             keyless = keyless,
             onNext = { viewModel.onNext(keyless) },
             onConfigureAi = {
-                // Pas `onFinish` : partir poser une cle n'est pas renoncer au tour,
-                // et il se represente au retour (D141).
-                viewModel.onLeaveForSettings()
+                // Une reponse, et non une parenthese : le tour se representait a chaque
+                // lancement chez qui avait suivi son conseil (D175).
+                viewModel.onConfigure()
                 onConfigureAi()
             },
             onFinish = viewModel::onFinish,

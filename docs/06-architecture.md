@@ -70,7 +70,7 @@ La flèche du bas remonte : `:data` dépend de `:domain`, jamais l'inverse. Un `
                             titres courts (D88) et les teneurs complétées (D89)
 ```
 
-Un artefact vit à côté de cette liste sans y figurer : `build-logic/detekt-rules`, qui contient les trois règles d'analyse statique de [10](10-qualite-et-livraison.md#analyse-statique). Ce n'est pas un module du projet mais un **build inclus** : son code tourne sur la JVM de Gradle, pas sur un téléphone, et il n'a rien à faire dans le graphe de dépendances de l'application ([D16](11-decisions.md#d16--les-règles-detekt-vivent-dans-un-build-inclus---par-défaut)).
+Un artefact vit à côté de cette liste sans y figurer : `build-logic/detekt-rules`, qui contient les quatre règles d'analyse statique de [10](10-qualite-et-livraison.md#analyse-statique). Ce n'est pas un module du projet mais un **build inclus** : son code tourne sur la JVM de Gradle, pas sur un téléphone, et il n'a rien à faire dans le graphe de dépendances de l'application ([D16](11-decisions.md#d16--les-règles-detekt-vivent-dans-un-build-inclus---par-défaut)).
 
 **Où vivent `Clock` et `DispatcherProvider`.** Les *interfaces* sont dans `:domain` : ce sont des ports, et un port appartient au métier qui l'exige. Les *implémentations* — celles qui lisent vraiment l'horloge de l'appareil — sont dans `:core:common`. La règle detekt qui interdit `LocalDate.now()` ailleurs nomme explicitement les fichiers autorisés.
 

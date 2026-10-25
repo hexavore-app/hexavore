@@ -41,7 +41,7 @@ Six compteurs, pas seulement les calories. Sans compte, sans pub, sans pistage.
 ### Description complète (4000 max)
 
 ```
-Suivre son alimentation échoue presque toujours pour la même raison : la saisie coûte trop cher. Trente secondes par repas, trois repas par jour, l'utilisation de l'IA est toujours payante.
+Suivre son alimentation échoue presque toujours pour la même raison : la saisie coûte trop cher. Trente secondes par repas, trois repas par jour, et l'IA qui pourrait l'accélérer est le plus souvent vendue par abonnement.
 
 Hexavore est construite autour de cette seule volonté : permettre à n'importe qui de rapidement rentrer un repas, et de pouvoir utiliser l'IA qu'il souhaite afin d'accélérer le processus.
 
@@ -110,7 +110,7 @@ Six counters, not just calories. No account, no ads, no tracking.
 ### Full description (4000 max)
 
 ```
-Food tracking almost always fails for the same reason: logging costs too much. Thirty seconds a meal, three meals a day, and AI always comes at a price.
+Food tracking almost always fails for the same reason: logging costs too much. Thirty seconds a meal, three meals a day, and the AI that could speed it up usually comes with a subscription.
 
 Hexavore is built around a single aim: let anyone log a meal quickly, using whatever AI they choose to speed it up.
 
@@ -198,6 +198,42 @@ La même règle veut qu'une application qui se sert d'un capteur de l'appareil, 
 
 ---
 
+## Notes de version 1.0.2 (500 max)
+
+La 1.0.1 (code 9) n'est jamais partie : la 1.0.2 (code 10) est la première version
+publiée après la 1.0.0, et ses notes disent tout ce qui a changé depuis elle.
+
+Les quatre langues que la Console demande : fr-CA reprend fr-FR, en-US reprend
+en-GB, mot pour mot. La ligne sur la virgule n'a pas d'équivalent anglais : en
+anglais, le séparateur était déjà le bon.
+
+### fr-FR et fr-CA
+
+```
+Corrections.
+
+• Le guide du premier lancement s'arrête après « Configurer » et ne revient plus.
+• En paysage, le contenu et la barre d'ajout ne passent plus sous l'encoche ni sous la barre de navigation.
+• Les nombres s'écrivent avec une virgule : « 65,3 kg ».
+• Un champ de nombres entiers dit pourquoi il refuse une virgule, au lieu de l'ignorer.
+• Un poids à moitié tapé est gardé quand Android ferme l'application en arrière-plan.
+• Une application plus légère.
+```
+
+### en-GB et en-US
+
+```
+Fixes.
+
+• The first-launch guide ends after "Set it up" and no longer comes back.
+• In landscape, content and the add bar no longer slip under the camera cutout or the navigation bar.
+• A whole-number field now says so when you type a decimal separator, instead of silently ignoring it.
+• A half-typed weight is kept when Android closes the app in the background.
+• A lighter app.
+```
+
+---
+
 ## Notes de version 1.0.0 (500 max)
 
 ### fr-FR
@@ -217,6 +253,30 @@ Première version publique d'Hexavore.
 First public release of Hexavore.
 
 • Four ways to log a meal: barcode, offline search in the CIQUAL table, or a photo or sentence analysed by the AI of your choice, with your own key.
+• Search finds the form you eat: "rice" suggests cooked rice, "coffee" the coffee you drink.
+• A weigh-in can be deleted from the weight log, and undone.
+• An entry in progress survives when Android closes the app in the background.
+```
+
+### fr-CA et en-US
+
+La Console demande aussi ces deux langues. Le français canadien reprend le texte
+de fr-FR tel quel ; l'anglais américain reprend en-GB, à un mot près —
+*analyzed* et non *analysed*.
+
+```
+Première version publique d'Hexavore.
+
+• Quatre façons de noter un repas : code-barres, recherche hors ligne dans la table CIQUAL, photo ou phrase analysées par l'IA de votre choix, avec votre propre clé.
+• La recherche trouve la forme qu'on mange : « riz » propose le riz cuit, « café » le café qu'on boit.
+• Une pesée se supprime depuis le journal de poids, avec annulation.
+• Une saisie en cours survit quand Android ferme l'application en arrière-plan.
+```
+
+```
+First public release of Hexavore.
+
+• Four ways to log a meal: barcode, offline search in the CIQUAL table, or a photo or sentence analyzed by the AI of your choice, with your own key.
 • Search finds the form you eat: "rice" suggests cooked rice, "coffee" the coffee you drink.
 • A weigh-in can be deleted from the weight log, and undone.
 • An entry in progress survives when Android closes the app in the background.

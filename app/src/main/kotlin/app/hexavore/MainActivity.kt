@@ -2,15 +2,16 @@ package app.hexavore
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.hexavore.core.designsystem.component.ScreenFrame
 import app.hexavore.core.designsystem.theme.NeonTheme
 import app.hexavore.core.designsystem.theme.edgeToEdgeFollowing
+import app.hexavore.core.designsystem.theme.systemIsDark
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -42,7 +43,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        // Avant la premiere image, le mode du systeme : celui de l'application n'est pas
+        // encore lu, et c'est celui que peint le theme de fenetre (D170).
+        edgeToEdgeFollowing(darkTheme = systemIsDark())
         setContent {
             val mode by theme.mode.collectAsStateWithLifecycle()
 
@@ -58,7 +61,11 @@ class MainActivity : AppCompatActivity() {
             }
 
             NeonTheme(darkTheme = dark) {
-                HexavoreNavHost()
+                // Les cotes de l'ecran, une fois pour tous : l'encoche et une barre de
+                // navigation posee sur le cote, en paysage (D171).
+                ScreenFrame {
+                    HexavoreNavHost()
+                }
             }
         }
     }

@@ -11,7 +11,7 @@ Les textes de la fiche sont dans [fiche-play-store.md](fiche-play-store.md).
 
 1. **`demo_data.py`** écrit deux archives de sauvegarde, une par langue, avec le
    journal d'un utilisateur fictif : sept semaines de repas, onze semaines de
-   pesées, un objectif qui court, et les deux photos de `photos/` attachées aux
+   pesées, un objectif qui court, et les trois photos de `photos/` attachées aux
    repas qu'elles montrent. Il imprime les six compteurs de la journée visible :
    c'est le seul endroit où une erreur de portion se voit avant d'avoir refait
    tout un tir.
@@ -37,7 +37,7 @@ réglages. Sans ce détour, il faudrait automatiser un sélecteur de date, qui
 serait le maillon le plus fragile de toute la chaîne. Ces deux lignes sont de
 toute façon écrasées par l'import qui suit.
 
-**Une photo ne décore pas un plat, elle le décrit.** Deux repas de la journée
+**Une photo ne décore pas un plat, elle le décrit.** Trois repas de la journée
 visible portent une vraie image ; leurs aliments et leurs quantités décrivent ce
 qu'on y voit. Une photo de steak sur un plat qui liste du saumon serait un
 mensonge dans la vitrine, et la première personne à comparer les deux le
@@ -67,8 +67,24 @@ qu'un écran déborde.
 **Un AVD en 1080x1920.** Celui d'Android Studio est en 1080x2400, soit du 9:20,
 plus allongé que ce que la Console accepte. Copier le `config.ini` d'un AVD
 existant en changeant `hw.lcd.height = 1920`, `skin.name = 1080x1920`,
-`PlayStore.enabled = false`, et retirer `hw.device.name` et `hw.device.hash2`
-(la résolution ne correspond plus à aucun profil d'appareil).
+`PlayStore.enabled = false`, `hw.keyboard = no`, et retirer `hw.device.name` et
+`hw.device.hash2` (la résolution ne correspond plus à aucun profil d'appareil).
+
+**`hw.keyboard = no`, et ce n'est pas un détail.** Avec un clavier physique
+déclaré, il suffit d'avoir tapé une fois au clavier du PC dans l'émulateur —
+pour y coller une clé, par exemple — pour que Gboard passe en mode « clavier
+physique » et n'affiche plus qu'une petite barre flottante. Elle se pose sur la
+capture de la recherche, et elle ne consomme pas le retour arrière : le tir
+quittait l'écran au lieu de refermer le clavier, puis échouait plus loin. Ni le
+réglage `show_ime_with_hard_keyboard` ni un redémarrage de Gboard n'en sortent ;
+retirer le clavier de l'AVD, puis un démarrage à froid (`-no-snapshot-load`), si.
+
+**Une clé d'IA collée dans l'application de l'AVD.** Sans clé, la 1.0.0 affiche
+en bas de l'accueil une barre rouge « Configurez l'IA pour décrire vos repas » :
+c'est vrai pour quelqu'un qui n'en a pas, mais une fiche n'a pas à s'ouvrir sur
+un reste à faire. La clé se colle à la main dans Réglages → Intelligence
+artificielle ; aucun script n'en tape, et elle n'est jamais écrite dans le dépôt.
+Une clé gratuite de Google AI Studio suffit : le tir n'appelle pas l'IA.
 
 **ImageMagick 7 avec librsvg**, pour convertir les vecteurs de l'icône.
 `magick -list format | grep RSVG` doit répondre.
@@ -82,6 +98,10 @@ adb exec-out cat /system/fonts/Roboto-Regular.ttf > /tmp/Roboto-Regular.ttf
 C'est la police des captures elles-mêmes, et elle est sous licence Apache 2.0.
 
 ## Tirer
+
+Si un autre émulateur tourne, `export ANDROID_SERIAL=emulator-5556` (le numéro
+de l'AVD de tir) avant tout : `driver.py` parle au seul appareil qu'adb lui
+désigne.
 
 ```bash
 python tooling/fiche/demo_data.py --today "$(adb shell date +%Y-%m-%d | tr -d '\r')" --out /tmp/fiche/seed

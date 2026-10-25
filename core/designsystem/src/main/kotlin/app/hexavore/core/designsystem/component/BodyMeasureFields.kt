@@ -12,6 +12,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
@@ -24,6 +25,7 @@ import app.hexavore.domain.profile.centimetresToFeetAndInches
 import app.hexavore.domain.profile.feetAndInchesToCentimetres
 import app.hexavore.domain.profile.kilogramsToPounds
 import app.hexavore.domain.profile.poundsToKilograms
+import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
@@ -186,6 +188,11 @@ private fun joined(feet: Double?, inches: Double?): Double? = when {
  * Nettoyer obligerait à réécrire le texte affiché, donc à repositionner le curseur
  * ([D45][decisions]).
  *
+ * **Le texte tapé survit à la mort du processus** ([D174][decisions]). La valeur gardée
+ * est un nombre, et un nombre ne se souvient pas d'une virgule en attente : « 64, »
+ * revenait « 64 ». Le champ garde donc aussi son texte, et le reprend s'il dit encore
+ * le même nombre — [fieldText].
+ *
  * [decisions]: docs/11-decisions.md
  */
 @Composable
@@ -196,9 +203,14 @@ private fun NumberField(
     modifier: Modifier,
     isError: Boolean,
 ) {
+    var typed by rememberSaveable { mutableStateOf<String?>(null) }
+
     DraftTextField(
-        initial = value?.let { formatted(it) }.orEmpty(),
-        onValueChange = { text -> onValueChange(text.replace(',', '.').toDoubleOrNull()) },
+        initial = fieldText(typed, value),
+        onValueChange = { text ->
+            typed = text
+            onValueChange(text.toDecimalOrNull())
+        },
         label = label,
         keyboardType = KeyboardType.Decimal,
         accept = { it.isNumberField() },
@@ -210,7 +222,17 @@ private fun NumberField(
 /** Un dixième d'unité : 0,1 lb pèse 45 g, ce qui est déjà sous le bruit d'une balance. */
 private fun Double.rounded(): Double = (this * TENTHS).roundToInt() / TENTHS
 
-private fun formatted(value: Double): String =
-    if (value % 1.0 == 0.0) value.toInt().toString() else value.rounded().toString()
+/**
+ * Le texte d'un champ numérique quand il se recompose de zéro : ce qui avait été tapé,
+ * **s'il dit encore le même nombre** que la valeur gardée ; sinon la valeur, écrite dans
+ * la langue de l'application ([D173][decisions], [D174][decisions]).
+ *
+ * La valeur reste la vérité : un texte qui dirait autre chose qu'elle afficherait un
+ * nombre que l'écran n'enregistrera pas.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+fun fieldText(typed: String?, value: Double?, locale: Locale = Locale.getDefault()): String =
+    if (typed != null && typed.toDecimalOrNull() == value) typed else value?.asDecimalText(locale = locale).orEmpty()
 
 private const val TENTHS = 10.0

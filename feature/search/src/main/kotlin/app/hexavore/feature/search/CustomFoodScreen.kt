@@ -29,8 +29,8 @@ import app.hexavore.core.designsystem.component.DraftTextField
 import app.hexavore.core.designsystem.component.NeonButton
 import app.hexavore.core.designsystem.component.NeonButtonAvailability
 import app.hexavore.core.designsystem.component.NeonButtonStyle
+import app.hexavore.core.designsystem.component.WholeNumberField
 import app.hexavore.core.designsystem.component.isNumberField
-import app.hexavore.core.designsystem.component.isWholeNumberField
 import app.hexavore.core.designsystem.theme.NeonTheme
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.domain.food.FoodId
@@ -174,16 +174,15 @@ private fun ColumnScope.NutrientFields(form: CustomFoodForm, actions: CustomFood
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
     FORM_MACROS.forEach { macro ->
-        DraftTextField(
+        // Des entiers, comme sur l'ecran de saisie : les deux ecrans decrivent les memes
+        // six valeurs, et deux regles pour la meme chose divergent. Le champ dit pourquoi
+        // il refuse la virgule qu'on tape en recopiant une etiquette (D172).
+        WholeNumberField(
             initial = form.macros[macro].orEmpty(),
             onValueChange = { actions.onMacroChange(macro, it) },
             label = stringResource(macro.fieldRes),
             modifier = Modifier.fillMaxWidth(),
             labelColor = NeonTheme.macros[macro].base,
-            // Des entiers, comme sur l'ecran de saisie : les deux ecrans decrivent
-            // les memes six valeurs, et deux regles pour la meme chose divergent.
-            keyboardType = KeyboardType.Number,
-            accept = String::isWholeNumberField,
         )
     }
 }

@@ -184,6 +184,21 @@ class Driver:
             previous = current
             self.drag(500)
 
+    def hide_keyboard(self, *, settle: float = 1.2, timeout: float = 4.0) -> None:
+        """Refermer le clavier, et seulement lui.
+
+        **Un retour arriere a l'aveugle ferme l'ecran quand le clavier n'est pas
+        encore la** : le tir revenait alors a l'accueil et echouait plus loin, sur
+        une etiquette absente, sans dire que c'etait une question de moment. On
+        attend donc que le clavier soit affiche avant de le renvoyer.
+        """
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            if "mInputShown=true" in self.shell("dumpsys input_method"):
+                self.back(settle=settle)
+                return
+            time.sleep(0.3)
+
     def type_text(self, text: str, *, settle: float = 0.6) -> None:
         self.shell(f"input text {text.replace(' ', '%s')}")
         time.sleep(settle)

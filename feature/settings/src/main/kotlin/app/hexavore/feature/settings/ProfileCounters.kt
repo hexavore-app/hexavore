@@ -6,9 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
-import app.hexavore.core.designsystem.component.DraftTextField
-import app.hexavore.core.designsystem.component.isWholeNumberField
+import app.hexavore.core.designsystem.component.WholeNumberField
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.domain.nutrition.Macro
 import kotlin.math.roundToInt
@@ -72,7 +70,8 @@ private fun CounterLine(macro: Macro, value: Double) {
  */
 @Composable
 private fun MacroField(macro: Macro, value: Double?, actions: ProfileActions) {
-    DraftTextField(
+    // Des entiers, et le champ dit pourquoi il refuse une virgule (D172).
+    WholeNumberField(
         initial = value?.roundToInt()?.toString().orEmpty(),
         onValueChange = { actions.onMacroChange(macro, it.toDoubleOrNull()) },
         label = stringResource(
@@ -80,8 +79,6 @@ private fun MacroField(macro: Macro, value: Double?, actions: ProfileActions) {
             stringResource(macro.labelRes),
             stringResource(macro.unitRes),
         ),
-        keyboardType = KeyboardType.Number,
-        accept = { it.isWholeNumberField() },
         modifier = Modifier.fillMaxWidth(),
     )
 }

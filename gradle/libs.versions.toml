@@ -10,7 +10,12 @@
 # AGP 8.7 est le dernier palier que comprend Android Studio Ladybug (2024.2.1),
 # l'IDE de la machine de developpement. Voir D15 dans docs/11-decisions.md pour
 # le raisonnement et le chemin de montee.
-agp = "8.11.1"
+#
+# 8.13 et non 8.11 pour la reduction optimisee des ressources (D170) : R8 juge du code
+# et des ressources d'un meme regard, et le Play Store la reclamait. AGP 9 la donnerait
+# d'office, mais il demande Gradle 9 et Kotlin 2.2, que D15 tient a l'ecart tant que
+# detekt 2.0 n'est pas stable.
+agp = "8.13.2"
 kotlin = "2.0.21"
 ksp = "2.0.21-1.0.28"
 
@@ -26,7 +31,7 @@ jvmToolchain = "17"
 
 # --- Identite de l'application ------------------------------------------------
 # applicationId verrouille a la premiere publication Play : docs/10-qualite-et-livraison.md.
-versionName = "1.0.0"
+versionName = "1.0.2"
 # Un code televerse ne se reprend jamais, meme sur une release supprimee : la Console
 # refuse tout bundle qui ne monte pas. Le 1 et le 2 sont donc partis pour de bon -- le
 # premier par erreur, le second avec le contenu de la 0.6.0.
@@ -53,7 +58,16 @@ versionName = "1.0.0"
 # pesee qui se retire, la saisie qui survit a la mort du processus, les noms des favoris
 # et la celebration qui se laisse lire (D164 a D167). Aucun code au-dessus de 7 n'etait
 # connu pour avoir ete televerse ; si la Console refuse le 8, monter au premier libre.
-versionCode = "8"
+#
+# 9 est la premiere correction de production (D170 a D174), et le nom passe a 1.0.1 :
+# rien de neuf, mais ce que le Play Store relevait et ce que l'emulateur montrait --
+# les barres dans le theme, R8 sur les ressources, les cotes de l'ecran en paysage, la
+# virgule d'un champ d'entiers, les nombres dans la langue, le poids a moitie tape.
+#
+# 10 y ajoute le tour qui revenait apres "Configurer" (D175), et le nom passe a 1.0.2,
+# a la demande de l'auteur, avant de televerser. Le 9 n'est jamais parti : la 1.0.2 est
+# la premiere version publiee apres la 1.0.0, et ses notes disent tout depuis elle.
+versionCode = "10"
 
 # --- Bibliotheques ------------------------------------------------------------
 androidxCore = "1.15.0"

@@ -26,8 +26,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import app.hexavore.core.designsystem.component.DraftTextField
+import app.hexavore.core.designsystem.component.WholeNumberField
 import app.hexavore.core.designsystem.component.isNumberField
-import app.hexavore.core.designsystem.component.isWholeNumberField
 import app.hexavore.core.designsystem.theme.NeonTheme
 import app.hexavore.core.designsystem.theme.Spacing
 import app.hexavore.domain.nutrition.Macro
@@ -311,7 +311,9 @@ private fun MacroTextField(
     modifier: Modifier = Modifier,
     isError: Boolean = false,
 ) {
-    DraftTextField(
+    // Des entiers : personne ne compte les demi-grammes. Le clavier offre pourtant la
+    // virgule, et le champ dit pourquoi il la refuse (D172).
+    WholeNumberField(
         initial = line.macros[macro].orEmpty(),
         onValueChange = { actions.onLineEdit(line.id, LineEdit.MacroValue(macro, it)) },
         label = stringResource(macro.fieldRes),
@@ -323,10 +325,6 @@ private fun MacroTextField(
         // dit champ par champ, parce qu'une marque de ligne mentirait sur les trois
         // autres.
         estimated = macro in line.estimated,
-        // Des entiers : personne ne compte les demi-grammes, et le separateur
-        // decimal disparait du clavier comme du filtre.
-        keyboardType = KeyboardType.Number,
-        accept = String::isWholeNumberField,
     )
 }
 

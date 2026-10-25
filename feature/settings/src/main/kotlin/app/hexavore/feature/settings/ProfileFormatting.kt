@@ -5,6 +5,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import app.hexavore.core.designsystem.component.asDecimalText
 import app.hexavore.domain.goal.GoalHorizon
 import app.hexavore.domain.goal.GoalStrategy
 import app.hexavore.domain.nutrition.Macro
@@ -39,8 +40,8 @@ internal fun ReadLine(text: String) {
     )
 }
 
-internal fun formatDecimal(value: Double): String =
-    if (value % 1.0 == 0.0) value.toInt().toString() else value.toString()
+/** « 65,3 » et non « 65.3 » en français : la langue de l'application (D173). */
+internal fun formatDecimal(value: Double): String = value.asDecimalText()
 
 /** « 14 mars 2027 » et non « 2027-03-14 » : l'ISO n'existe que pour le stockage. */
 internal fun LocalDate.formatLong(): String = format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))

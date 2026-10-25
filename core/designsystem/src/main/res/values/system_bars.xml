@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Les barres du systeme sous l'API 29, lues par `Theme.Hexavore` (D170).
+
+  **Un voile sombre derriere la barre de navigation, quel que soit le theme.** Avant
+  Android 10, le systeme ne sait pas garantir seul le contraste d'une barre
+  transparente : il faut un fond. androidx en choisissait un clair ou un sombre selon le
+  mode du systeme, mais l'application peut se forcer a l'inverse de lui (D113), et un
+  theme de fenetre ne lit que le systeme. Le voile sombre, icones claires, se lit sur
+  les deux ; c'est celui que posait androidx sur les versions sans icones sombres.
+
+  **L'encoche par defaut** : le contenu y passe tenu debout, ou elle tient dans la barre
+  d'etat ; couche, une bande noire la contourne. SHORT_EDGES, qui l'ouvrait aussi couche,
+  est l'un des trois releves du Play Store.
+-->
+<resources>
+    <color name="system_navigation_bar">#801B1B1B</color>
+    <!-- LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT -->
+    <integer name="system_cutout_mode">0</integer>
+</resources>
