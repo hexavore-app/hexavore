@@ -36,6 +36,7 @@ import app.hexavore.core.designsystem.component.NeonButton
 import app.hexavore.core.designsystem.component.NeonButtonAvailability
 import app.hexavore.core.designsystem.component.NeonButtonStyle
 import app.hexavore.core.designsystem.component.ScreenTopBar
+import app.hexavore.core.designsystem.component.SlowAnalysisNote
 import app.hexavore.core.designsystem.component.aiErrorMessage
 import app.hexavore.core.designsystem.component.diagnostic
 import app.hexavore.core.designsystem.theme.Spacing
@@ -221,6 +222,9 @@ private fun Analysis(state: AnalyseUiState, onAnalyse: () -> Unit, onCancel: () 
             )
             TextButton(onClick = onCancel) { Text(stringResource(R.string.analyse_cancel)) }
         }
+        // Sous l'indicateur et non a sa place : elle ne dit pas ce qu'on attend, elle
+        // dit que c'est normal d'attendre (D177).
+        state.slow?.let { SlowAnalysisNote(it) }
         return
     }
 

@@ -6024,6 +6024,20 @@ Couchée, sur l'émulateur, la release 1.0.0 montre deux défauts que cette déc
 
 ---
 
+## D177 — Passé dix secondes, l'attente se dit · ✓ validée
+
+**Contexte.** Le même retour d'usage que [D176](#d176--une-seule-attente--lestimation-se-fait-pendant-lanalyse---validée) : avec une clé Gemini gratuite, l'analyse prend parfois du temps, et l'écran n'en dit pas plus que « Analyse en cours… ». On ne sait pas s'il y a un problème, et celui qui doute referme l'écran en perdant sa photo. L'auteur demande, passé dix secondes, une boîte de texte discrète : le nom de l'IA, le fait qu'elle prend plus de temps que prévu, que cela arrive parce que les demandes gratuites ne sont pas prioritaires, et que c'est le prix de la gratuité.
+
+**Choix.** **Une note, et non une étape** : elle s'ajoute sous l'indicateur sans changer sa phrase, parce qu'elle ne dit pas ce qu'on attend mais que c'est normal d'attendre. `AnalyseMeal` surveille l'attente à côté de l'analyse, dans la même portée : passé `SLOW_ANALYSIS_MILLIS`, `AnalysisProgress.slow()` est appelé une fois, et la surveillance s'arrête avec l'analyse, quelle que soit son issue. Le seuil vit dans le domaine, comme la relance de [D156](#d156--les-trois-murs-de-la-mise-en-route-et-le-mode-de-mise-au-point-qui-ne-servait-plus---validée), pour que les deux endroits qui attendent le disent au même moment. La note, `SlowAnalysisNote`, vit dans le design system à côté des messages d'erreur. Elle nomme le fournisseur, relu au moment de le nommer, et **ne parle de gratuité qu'à une offre gratuite** (`AiProvider.free`) : à une clé payante, qui n'est pas moins prioritaire, elle dit que le service est sans doute très demandé. Elle finit par « L'analyse continue », s'annonce poliment au lecteur d'écran, et retombe avec l'attente.
+
+**Conséquences.** `AnalyseMeal` et `SLOW_ANALYSIS_MILLIS` dans `:domain` ; `SlowAnalysis` et `SlowAnalysisNote` dans `:core:designsystem` ; les deux `ViewModel` d'analyse, dont celui de la barre du bas reçoit désormais `AiSettings`. Les cas : dans `AnalyseMealTest`, trente secondes s'annoncent une fois, neuf ne s'annoncent pas, et une analyse finie ne s'annonce plus dix secondes plus tard ; dans `AnalyseViewModelTest`, l'écran nomme le fournisseur gratuit et dit sa gratuité, n'en parle pas à une clé payante, n'affiche rien avant dix secondes, et la note retombe avec l'annulation ; dans `QuickEntryViewModelTest`, la barre fait de même.
+
+**Campagne de défaite : sept sabotages, sept tombés.** L'attente qui ne s'annonce jamais ; le seuil divisé par deux ; la surveillance qui survit à l'analyse ; la gratuité dite à l'envers ; la note de l'écran d'IA, puis celle de la barre, qui survivent à l'attente ; la barre qui tait la lenteur.
+
+**Ce que le vert ne prouve pas.** La note elle-même, sa place sous l'indicateur et son annonce au lecteur d'écran ne se voient qu'à l'émulateur, et seulement devant un fournisseur lent : dix secondes d'attente ne s'obtiennent pas sur commande.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

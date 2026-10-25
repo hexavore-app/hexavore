@@ -16,11 +16,14 @@ import app.hexavore.domain.ai.Recognition
 import app.hexavore.domain.ai.RecognitionInput
 import app.hexavore.domain.ai.RecognitionOutcome
 import app.hexavore.domain.ai.RecognizedItem
+import app.hexavore.domain.ai.SLOW_ANALYSIS_MILLIS
 import app.hexavore.domain.diary.EntrySource
 import app.hexavore.domain.nutrition.NutrientValues
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertArrayEquals
@@ -53,12 +56,16 @@ internal class AnalyseMealTest {
     /** Combien de fois le port a ete appele : c'est ce que la relance change. */
     private var calls = 0
 
+    /** Ce que le fournisseur met a repondre, en temps virtuel : zero par defaut. */
+    private var latence = 0L
+
     /** Ce que l'etape 4 repondra. Rien par defaut : la plupart des cas n'en parlent pas. */
     private var repondre: suspend (List<String>) -> EstimationOutcome = { EstimationOutcome.Estimated(emptyList()) }
 
     private val analyse = AnalyseMeal(
         recognizer = FoodRecognizer {
             calls++
+            delay(latence)
             outcome
         },
         pending = pending,
@@ -174,6 +181,55 @@ internal class AnalyseMealTest {
         runCurrent()
 
         assertNull(pending.take())
+    }
+
+    /**
+     * Passé dix secondes, l'attente **s'annonce, une fois** (D177).
+     *
+     * L'horloge virtuelle de `runTest` saute l'attente : ce qui s'éprouve est le seuil et
+     * le compte, pas trente secondes.
+     */
+    @Test
+    fun `passe dix secondes, l attente s annonce une fois`() = runTest {
+        latence = SLOW_ANALYSIS_MILLIS * 3
+        val lenteurs = compteur()
+
+        analyse(RecognitionInput.Text("un bol de riz"), lenteurs)
+
+        assertEquals(1, lenteurs.fois)
+    }
+
+    @Test
+    fun `neuf secondes ne s annoncent pas`() = runTest {
+        // Le seuil est celui que l'auteur a demande : une analyse lente mais ordinaire
+        // n'a pas a s'excuser (D177).
+        latence = SLOW_ANALYSIS_MILLIS - 1_000
+        val lenteurs = compteur()
+
+        analyse(RecognitionInput.Text("un bol de riz"), lenteurs)
+
+        assertEquals(0, lenteurs.fois)
+    }
+
+    @Test
+    fun `une analyse finie ne s annonce plus, meme dix secondes plus tard`() = runTest {
+        // La surveillance s'arrete avec l'analyse : une note tombee apres coup parlerait
+        // d'une attente deja finie, sur un ecran parti ailleurs.
+        val lenteurs = compteur()
+
+        analyse(RecognitionInput.Text("un bol de riz"), lenteurs)
+        advanceTimeBy(SLOW_ANALYSIS_MILLIS * 2)
+
+        assertEquals(0, lenteurs.fois)
+    }
+
+    /** Un écran qui compte les annonces de lenteur, et rien d'autre. */
+    private fun compteur() = object : AnalysisProgress {
+        var fois = 0
+
+        override suspend fun slow() {
+            fois++
+        }
     }
 
     /**

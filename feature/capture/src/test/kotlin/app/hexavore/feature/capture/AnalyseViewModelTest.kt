@@ -1,6 +1,7 @@
 package app.hexavore.feature.capture
 
 import androidx.lifecycle.SavedStateHandle
+import app.hexavore.core.designsystem.component.SlowAnalysis
 import app.hexavore.core.testing.InMemoryDishPhotos
 import app.hexavore.core.testing.InMemoryPhotoSettings
 import app.hexavore.core.testing.resolutionForTests
@@ -19,6 +20,7 @@ import app.hexavore.domain.ai.Recognition
 import app.hexavore.domain.ai.RecognitionInput
 import app.hexavore.domain.ai.RecognitionOutcome
 import app.hexavore.domain.ai.RecognizedItem
+import app.hexavore.domain.ai.SLOW_ANALYSIS_MILLIS
 import app.hexavore.domain.diary.EntrySource
 import app.hexavore.domain.usecase.AnalyseMeal
 import app.hexavore.domain.usecase.StageDishPhoto
@@ -27,6 +29,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -383,6 +386,54 @@ internal class AnalyseViewModelTest {
     }
 
     @Test
+    fun `passe dix secondes, l ecran nomme le fournisseur qui fait attendre`() = runTest {
+        // La reponse a « est-ce que ca marche ? » : oui, et c'est le prix de la gratuite
+        // (D177). Le fournisseur est nomme, et la gratuite n'est dite qu'a une offre gratuite.
+        val viewModel = waiting(settings = GEMINI)
+        viewModel.onText("un bol de riz")
+        viewModel.onAnalyse()
+
+        advanceTimeBy(SLOW_ANALYSIS_MILLIS + 1)
+
+        assertEquals(SlowAnalysis(provider = "Google Gemini", free = true), viewModel.uiState.value.slow)
+        assertTrue(viewModel.uiState.value.analysing, "la note n'interrompt rien")
+    }
+
+    @Test
+    fun `une cle payante n entend pas parler de gratuite`() = runTest {
+        val viewModel = waiting(settings = SETTINGS)
+        viewModel.onText("un bol de riz")
+        viewModel.onAnalyse()
+
+        advanceTimeBy(SLOW_ANALYSIS_MILLIS + 1)
+
+        assertEquals(SlowAnalysis(provider = "Anthropic", free = false), viewModel.uiState.value.slow)
+    }
+
+    @Test
+    fun `avant dix secondes, aucune note`() = runTest {
+        val viewModel = waiting(settings = GEMINI)
+        viewModel.onText("un bol de riz")
+        viewModel.onAnalyse()
+
+        advanceTimeBy(SLOW_ANALYSIS_MILLIS - 1)
+
+        assertNull(viewModel.uiState.value.slow)
+    }
+
+    @Test
+    fun `la note retombe avec l attente`() = runTest {
+        val viewModel = waiting(settings = GEMINI)
+        viewModel.onText("un bol de riz")
+        viewModel.onAnalyse()
+        advanceTimeBy(SLOW_ANALYSIS_MILLIS + 1)
+
+        viewModel.onCancel()
+
+        assertNull(viewModel.uiState.value.slow, "une note sous un ecran qui n'attend plus mentirait")
+    }
+
+    @Test
     fun `revenir sur l ecran ne repart pas vers une validation vide`() = runTest {
         val viewModel = viewModel()
         viewModel.onText("un bol de riz")
@@ -401,6 +452,13 @@ internal class AnalyseViewModelTest {
         consent = consent,
         settings = SETTINGS,
         savedStateHandle = handle,
+    )
+
+    /** Un écran dont le fournisseur ne répond jamais : l'attente dure tant qu'on ne l'annule pas. */
+    private fun waiting(settings: AiSettings) = AnalyseViewModel(
+        analyseMeal = AnalyseMeal({ awaitCancellation() }, pending, stagePhoto, resolutionForTests()),
+        consent = consent,
+        settings = settings,
     )
 
     /** Un écran dont l'étape 4 répond quand on le décide : tout libellé y part, le catalogue est vide. */
@@ -437,6 +495,16 @@ internal class AnalyseViewModelTest {
     private companion object {
         val JPEG = byteArrayOf(1, 2, 3)
         val RIZ = RecognizedItem(label = "riz", quantity = 1.0, unit = EstimatedUnit.BOWL, confidence = 0.9f)
+
+        /** Le fournisseur gratuit : celui à qui la note parle de gratuité (D177). */
+        val GEMINI = AiSettings {
+            AiConfiguration(
+                provider = AiProvider.GEMINI,
+                apiKey = ApiKey("cle-gemini-de-test"),
+                model = "gemini-3.5-flash-lite",
+                baseUrl = "https://generativelanguage.googleapis.com/",
+            )
+        }
 
         val SETTINGS = AiSettings {
             AiConfiguration(

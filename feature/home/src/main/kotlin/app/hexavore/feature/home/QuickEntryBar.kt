@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.hexavore.core.designsystem.component.CameraGlyph
 import app.hexavore.core.designsystem.component.DraftTextField
+import app.hexavore.core.designsystem.component.SlowAnalysisNote
 import app.hexavore.core.designsystem.component.aiErrorMessage
 import app.hexavore.core.designsystem.theme.Radius
 import app.hexavore.core.designsystem.theme.Spacing
@@ -442,6 +443,8 @@ private fun Analysis(state: QuickEntryUiState, onCancel: () -> Unit) {
         )
         TextButton(onClick = onCancel) { Text(stringResource(R.string.home_analyse_cancel)) }
     }
+    // La meme note que l'ecran d'IA, sous la ligne d'attente (D177).
+    state.slow?.let { SlowAnalysisNote(it) }
 }
 
 /**

@@ -1,9 +1,14 @@
 package app.hexavore.feature.home
 
+import app.hexavore.core.designsystem.component.SlowAnalysis
 import app.hexavore.core.testing.InMemoryDishPhotos
 import app.hexavore.core.testing.InMemoryPhotoSettings
 import app.hexavore.core.testing.resolutionForTests
+import app.hexavore.domain.ai.AiConfiguration
 import app.hexavore.domain.ai.AiError
+import app.hexavore.domain.ai.AiProvider
+import app.hexavore.domain.ai.AiSettings
+import app.hexavore.domain.ai.ApiKey
 import app.hexavore.domain.ai.EstimatedUnit
 import app.hexavore.domain.ai.EstimationOutcome
 import app.hexavore.domain.ai.FoodRecognizer
@@ -12,6 +17,7 @@ import app.hexavore.domain.ai.Recognition
 import app.hexavore.domain.ai.RecognitionInput
 import app.hexavore.domain.ai.RecognitionOutcome
 import app.hexavore.domain.ai.RecognizedItem
+import app.hexavore.domain.ai.SLOW_ANALYSIS_MILLIS
 import app.hexavore.domain.diary.EntrySource
 import app.hexavore.domain.usecase.AnalyseMeal
 import app.hexavore.domain.usecase.StageDishPhoto
@@ -20,6 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -200,6 +207,7 @@ internal class QuickEntryViewModelTest {
         val reponse = CompletableDeferred<EstimationOutcome>()
         val viewModel = QuickEntryViewModel(
             AnalyseMeal(recognizer, pending, stagePhoto, resolutionForTests(estimate = { reponse.await() })),
+            GEMINI,
         )
 
         viewModel.onSend("un bol de riz")
@@ -214,10 +222,35 @@ internal class QuickEntryViewModelTest {
         assertTrue(viewModel.uiState.value.proposed)
     }
 
+    @Test
+    fun `passe dix secondes, la barre nomme le fournisseur qui fait attendre`() = runTest {
+        // La meme note que l'ecran d'IA, sous la ligne d'attente (D177).
+        val viewModel = viewModel(recognizer = { awaitCancellation() })
+        viewModel.onSend("un bol de riz")
+
+        advanceTimeBy(SLOW_ANALYSIS_MILLIS + 1)
+
+        assertEquals(SlowAnalysis(provider = "Google Gemini", free = true), viewModel.uiState.value.slow)
+
+        viewModel.onCancel()
+
+        assertNull(viewModel.uiState.value.slow, "la note retombe avec l'attente")
+    }
+
     private fun viewModel(recognizer: FoodRecognizer = this.recognizer) =
-        QuickEntryViewModel(AnalyseMeal(recognizer, pending, stagePhoto, resolutionForTests()))
+        QuickEntryViewModel(AnalyseMeal(recognizer, pending, stagePhoto, resolutionForTests()), GEMINI)
 
     private companion object {
         val RIZ = RecognizedItem(label = "riz", quantity = 1.0, unit = EstimatedUnit.BOWL, confidence = 0.9f)
+
+        /** Le fournisseur gratuit, celui que la note nomme et dont elle dit la gratuité (D177). */
+        val GEMINI = AiSettings {
+            AiConfiguration(
+                provider = AiProvider.GEMINI,
+                apiKey = ApiKey("cle-gemini-de-test"),
+                model = "gemini-3.5-flash-lite",
+                baseUrl = "https://generativelanguage.googleapis.com/",
+            )
+        }
     }
 }

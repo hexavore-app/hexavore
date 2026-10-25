@@ -103,3 +103,18 @@ sealed interface AiError {
  * relance* plutôt que *trois mille*.
  */
 const val BUSY_RETRY_DELAY_MILLIS: Long = 3_000
+
+/**
+ * Au-delà de combien d'attente l'analyse dit qu'elle tarde ([D177][decisions]).
+ *
+ * **Dix secondes**, le chiffre que l'auteur a demandé, et il tombe juste : une analyse
+ * ordinaire répond en deux à six, une relance sur `503` en ajoute trois, et c'est passé
+ * dix qu'une attente muette commence à se lire comme une panne — le moment où l'on se
+ * demande s'il faut tout refermer et reprendre la photo.
+ *
+ * **La note n'interrompt rien** : l'analyse continue, l'indicateur reste, « Annuler »
+ * aussi. Elle dit seulement qui fait attendre, et pourquoi c'est normal.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+const val SLOW_ANALYSIS_MILLIS: Long = 10_000

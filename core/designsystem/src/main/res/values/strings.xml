@@ -130,6 +130,13 @@
     <string name="ds_ai_error_unreadable">The provider answered something unexpected.</string>
     <string name="ds_ai_error_server">The service is unavailable. Try again later.</string>
 
+    <!-- The note that appears when the AI takes more than ten seconds (D177). It answers
+         "is it working?" and says there is nothing to do. "The price of free" is only said
+         to a free tier: a paid key is not given a lower priority. -->
+    <string name="ds_ai_slow_free">%1$s is taking longer than usual. It happens: on the free tier, your requests are not prioritised; that\'s the price of free. The analysis carries on.</string>
+    <string name="ds_ai_slow_paid">%1$s is taking longer than usual: the service is probably very busy right now. The analysis carries on.</string>
+    <string name="ds_ai_slow_unnamed">The AI</string>
+
     <!-- The weekly adjustment card. Three outcomes, and nothing is ever applied without
          explicit agreement (docs/02). -->
     <string name="ds_adjustment_title">Adjust your target?</string>

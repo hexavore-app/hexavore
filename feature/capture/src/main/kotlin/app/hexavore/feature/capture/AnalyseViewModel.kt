@@ -5,6 +5,7 @@ import androidx.compose.runtime.Stable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.hexavore.core.designsystem.component.SlowAnalysis
 import app.hexavore.core.ui.FormMemory
 import app.hexavore.domain.ai.AiError
 import app.hexavore.domain.ai.AiSettings
@@ -91,6 +92,16 @@ internal data class AnalyseUiState(
      * [decisions]: docs/11-decisions.md
      */
     val estimating: Boolean = false,
+    /**
+     * Qui fait attendre, quand l'analyse dure depuis plus de dix secondes ; `null` sinon.
+     *
+     * **Une note, pas une étape** ([D177][decisions]) : elle s'ajoute sous l'indicateur
+     * sans changer sa phrase, parce qu'elle ne dit pas ce qu'on attend mais que c'est
+     * normal d'attendre. Elle retombe avec l'attente.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val slow: SlowAnalysis? = null,
     /** L'issue du dernier essai, quand il a échoué. Effacée dès qu'on relance. */
     val error: AiError? = null,
     /**
@@ -177,6 +188,13 @@ internal class AnalyseViewModel @Inject constructor(
         override suspend fun retrying() = state.update { it.copy(retrying = true) }
 
         override suspend fun estimating() = state.update { it.copy(retrying = false, estimating = true) }
+
+        // Le fournisseur est relu au moment de le nommer : c'est celui de l'analyse en
+        // vol, puisque la configuration ne change pas de fournisseur pendant un appel.
+        override suspend fun slow() {
+            val provider = runCatching { settings.current() }.getOrNull()?.provider
+            state.update { it.copy(slow = SlowAnalysis.of(provider)) }
+        }
     }
 
     fun onPhoto(jpeg: ByteArray) {
@@ -274,7 +292,7 @@ internal class AnalyseViewModel @Inject constructor(
      * 24 cm » — là où une phrase seule décrit tout le repas.
      */
     private suspend fun analyse(shown: AnalyseUiState) {
-        state.update { it.copy(analysing = true, retrying = false, estimating = false, error = null) }
+        state.update { it.settled().copy(analysing = true, error = null) }
         val written = shown.text.trim()
 
         // Rien n'entoure cet appel : une annulation doit traverser. `onCancel` a deja
@@ -307,10 +325,11 @@ internal class AnalyseViewModel @Inject constructor(
 }
 
 /**
- * L'écran quand plus rien n'est en vol : ni analyse, ni relance, ni estimation.
+ * L'écran quand plus rien n'est en vol : ni analyse, ni relance, ni estimation, ni note.
  *
- * Un seul endroit pour les trois drapeaux de l'attente, parce qu'ils retombent ensemble —
+ * Un seul endroit pour ce que l'attente affiche, parce que tout retombe ensemble —
  * succès, échec ou annulation — et qu'en oublier un laisserait une phrase d'attente sous
  * un écran qui n'attend plus.
  */
-private fun AnalyseUiState.settled(): AnalyseUiState = copy(analysing = false, retrying = false, estimating = false)
+private fun AnalyseUiState.settled(): AnalyseUiState =
+    copy(analysing = false, retrying = false, estimating = false, slow = null)

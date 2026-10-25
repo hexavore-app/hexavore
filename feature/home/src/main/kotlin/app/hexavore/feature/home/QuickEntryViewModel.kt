@@ -3,7 +3,9 @@ package app.hexavore.feature.home
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.hexavore.core.designsystem.component.SlowAnalysis
 import app.hexavore.domain.ai.AiError
+import app.hexavore.domain.ai.AiSettings
 import app.hexavore.domain.ai.RecognitionInput
 import app.hexavore.domain.ai.RecognitionOutcome
 import app.hexavore.domain.usecase.AnalyseMeal
@@ -51,6 +53,13 @@ data class QuickEntryUiState(
      * [decisions]: docs/11-decisions.md
      */
     val estimating: Boolean = false,
+    /**
+     * Qui fait attendre, passé dix secondes ; `null` sinon. La même note que l'écran
+     * d'IA, sous la ligne d'attente ([D177][decisions]).
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    val slow: SlowAnalysis? = null,
     /** L'issue du dernier envoi, quand il a échoué. Effacée dès qu'on relance. */
     val error: AiError? = null,
     /**
@@ -81,7 +90,11 @@ data class QuickEntryUiState(
  * [decisions]: docs/11-decisions.md
  */
 @HiltViewModel
-internal class QuickEntryViewModel @Inject constructor(private val analyseMeal: AnalyseMeal) : ViewModel() {
+internal class QuickEntryViewModel @Inject constructor(
+    private val analyseMeal: AnalyseMeal,
+    /** Le fournisseur, relu pour que la note des dix secondes le nomme (D177). */
+    private val settings: AiSettings,
+) : ViewModel() {
     private val state = MutableStateFlow(QuickEntryUiState())
     val uiState: StateFlow<QuickEntryUiState> = state.asStateFlow()
 
@@ -93,6 +106,11 @@ internal class QuickEntryViewModel @Inject constructor(private val analyseMeal: 
         override suspend fun retrying() = state.update { it.copy(retrying = true) }
 
         override suspend fun estimating() = state.update { it.copy(retrying = false, estimating = true) }
+
+        override suspend fun slow() {
+            val provider = runCatching { settings.current() }.getOrNull()?.provider
+            state.update { it.copy(slow = SlowAnalysis.of(provider)) }
+        }
     }
 
     /**
@@ -105,7 +123,7 @@ internal class QuickEntryViewModel @Inject constructor(private val analyseMeal: 
         val written = text.trim()
         if (written.isEmpty() || state.value.analysing) return
 
-        state.update { it.copy(analysing = true, retrying = false, estimating = false, error = null) }
+        state.update { it.settled().copy(analysing = true, error = null) }
         analysis = viewModelScope.launch {
             // Rien n'entoure cet appel : une annulation doit traverser. `onCancel` a
             // deja remis la barre en etat, et l'attraper ici ferait revivre un etat
@@ -142,6 +160,6 @@ internal class QuickEntryViewModel @Inject constructor(private val analyseMeal: 
     }
 }
 
-/** La barre quand plus rien n'est en vol : les trois drapeaux de l'attente retombent ensemble. */
+/** La barre quand plus rien n'est en vol : tout ce que l'attente affiche retombe ensemble. */
 private fun QuickEntryUiState.settled(): QuickEntryUiState =
-    copy(analysing = false, retrying = false, estimating = false)
+    copy(analysing = false, retrying = false, estimating = false, slow = null)

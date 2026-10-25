@@ -6,8 +6,11 @@ import app.hexavore.domain.ai.FoodRecognizer
 import app.hexavore.domain.ai.PendingProposal
 import app.hexavore.domain.ai.RecognitionInput
 import app.hexavore.domain.ai.RecognitionOutcome
+import app.hexavore.domain.ai.SLOW_ANALYSIS_MILLIS
 import app.hexavore.domain.diary.EntrySource
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /**
  * Soumet un repas au modèle, résout ce qu'il propose, et dépose le brouillon.
@@ -50,15 +53,31 @@ class AnalyseMeal(
 ) {
     /**
      * @param progress ce que l'écran qui attend doit pouvoir dire : une seconde tentative
-     *   qui part ([D156][decisions]), une estimation qui commence ([D176][decisions]).
-     *   Muet par défaut.
+     *   qui part ([D156][decisions]), une estimation qui commence ([D176][decisions]), une
+     *   attente qui dépasse [SLOW_ANALYSIS_MILLIS] ([D177][decisions]). Muet par défaut.
      * @return l'issue telle que le port la rend. Le succès a déjà été résolu et déposé
      *   quand elle revient ; l'appelant n'a plus qu'à céder la place.
      */
     suspend operator fun invoke(
         input: RecognitionInput,
         progress: AnalysisProgress = AnalysisProgress.Silent,
-    ): RecognitionOutcome {
+    ): RecognitionOutcome = coroutineScope {
+        // L'attente se surveille a cote de l'analyse et s'arrete avec elle, quelle que
+        // soit son issue : une annonce qui tomberait apres coup parlerait d'une attente
+        // deja finie (D177).
+        val watch = launch {
+            delay(SLOW_ANALYSIS_MILLIS)
+            progress.slow()
+        }
+        try {
+            analyse(input, progress)
+        } finally {
+            watch.cancel()
+        }
+    }
+
+    /** Les quatre gestes, dans leur ordre. */
+    private suspend fun analyse(input: RecognitionInput, progress: AnalysisProgress): RecognitionOutcome {
         val outcome = recognizer.recognizeRetryingWhenBusy(input, progress)
         if (outcome !is RecognitionOutcome.Recognized) return outcome
 
@@ -78,8 +97,8 @@ class AnalyseMeal(
 /**
  * Ce que l'analyse annonce à l'écran qui l'attend.
  *
- * **Une interface plutôt qu'un rappel par étape.** L'analyse a deux choses à dire en
- * cours de route, et deux paramètres fonctionnels côte à côte se confondent à l'appel ;
+ * **Une interface plutôt qu'un rappel par étape.** L'analyse a trois choses à dire en
+ * cours de route, et trois paramètres fonctionnels côte à côte se confondent à l'appel ;
  * un objet qui les nomme ne se trompe pas de rôle. Chaque étape est muette par défaut :
  * la barre du bas et les tests n'implémentent que ce qu'ils affichent.
  *
@@ -97,6 +116,14 @@ interface AnalysisProgress {
      * pas ([D176][decisions]). Jamais appelé quand tout a été résolu — le cas courant.
      */
     suspend fun estimating() = Unit
+
+    /**
+     * L'analyse dure depuis [SLOW_ANALYSIS_MILLIS], et elle continue ([D177][decisions]).
+     *
+     * **Une fois par analyse**, et jamais après elle : la surveillance s'arrête avec
+     * l'issue, quelle qu'elle soit. L'écran y nomme qui fait attendre ; il n'arrête rien.
+     */
+    suspend fun slow() = Unit
 
     /** Rien à dire. */
     object Silent : AnalysisProgress
