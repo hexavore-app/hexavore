@@ -34,7 +34,7 @@ import app.hexavore.feature.search.navigateToManualEntryFor
 import app.hexavore.feature.search.navigateToSearch
 import app.hexavore.feature.search.navigateToSearchForDraft
 import app.hexavore.feature.search.searchScreens
-import app.hexavore.feature.settings.AiSettingsDestination
+import app.hexavore.feature.settings.navigateToKeyGuide
 import app.hexavore.feature.settings.navigateToSettings
 import app.hexavore.feature.settings.settingsScreens
 import app.hexavore.feature.weight.navigateToWeight
@@ -101,7 +101,9 @@ private fun HexavoreNavHost(startDestination: Any, modifier: Modifier = Modifier
                 // Le hub existe desormais : sa deuxieme section est arrivee, ce qui est
                 // exactement l echeance que D59 avait ecrite.
                 onOpenSettings = { navController.navigateToSettings() },
-                onConfigureAi = { navController.navigate(AiSettingsDestination) },
+                // Le guide de la cle gratuite, pose sur les reglages d'IA : c'est la qu'on
+                // revient la coller (D178).
+                onConfigureAi = { navController.navigateToKeyGuide() },
                 onOpenFavorites = { navController.navigateToFavorites() },
                 onOpenWeight = { navController.navigateToWeight() },
                 onOpenProgress = { navController.navigateToProgress() },

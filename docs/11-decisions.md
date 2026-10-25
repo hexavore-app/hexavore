@@ -6038,6 +6038,20 @@ Couchée, sur l'émulateur, la release 1.0.0 montre deux défauts que cette déc
 
 ---
 
+## D178 — L'IA gratuite se dit en mots de tous les jours, et « Obtenir ma clé » mène au guide · ✓ validée
+
+**Contexte.** Retour de l'auteur, le 25 octobre 2026 : la première invitation à configurer l'IA est « un peu mystique pour un non-développeur ». Le dialogue de l'accueil parlait de « fournisseur d'IA », de « votre propre clé » et d'appels « facturés » ; le tour disait qu'une clé est demandée sans dire ce que c'est ; et « Configurer » ouvrait la liste des fournisseurs, où il fallait encore déplier une carte et trouver « Récupérer la clé ». L'auteur propose l'idée à dire : pour avoir une IA gratuite, il faut nous aider en récupérant une clé, qui donne accès à une IA liée à l'un de ses comptes.
+
+**Choix.** **Dire pourquoi, puis ce qu'est une clé, puis ce que ça coûte.** Hexavore est gratuite et n'a pas de serveur, donc l'IA passe par **son propre compte Google** ; une clé est **un code personnel qui ouvre cet accès** ; c'est gratuit, sans abonnement ni carte bancaire, deux minutes une seule fois. Le dialogue (« Activez l'IA, gratuitement »), l'étape du tour (« Une IA gratuite, avec votre compte Google »), la barre verrouillée (« Activez l'IA gratuite pour décrire vos repas ») et la carte des réglages le disent avec les mêmes mots ; l'introduction des réglages commence par ce qu'est une clé. Le mot « illimitée » n'y figure pas : l'offre de Google a un plafond quotidien, et la fiche, qui le dit, le dit avec un renvoi. **Le bouton devient « Obtenir ma clé »**, dans le dialogue comme dans le tour, et il ouvre le guide de la clé du fournisseur mis en avant, posé sur les réglages d'IA (`navigateToKeyGuide`) : on lit les étapes, on part chez Google, et l'on revient sur la carte de Gemini, déjà dépliée, pour coller la clé.
+
+**Conséquences.** Les textes de `:feature:home` et `:feature:settings`, dans les deux langues ; `navigateToKeyGuide` dans `:feature:settings`, que `:app` branche sur `onConfigureAi`. Les textes nomment Gemini et le disent gratuit : un cas d'`AiProviderTest` tient le fournisseur recommandé pour Gemini, et gratuit.
+
+**Campagne de défaite : deux sabotages, deux tombés.** Le recommandé qui quitte Gemini ; le recommandé qui cesse d'être gratuit. Les textes eux-mêmes et la navigation n'ont pas de cas : aucun test ne compose d'écran ni ne conduit un `NavController`.
+
+**Ce que le vert ne prouve pas.** Que les mots soient les bons : ils se jugent en les lisant, et l'auteur les relira. La navigation empilée ne se voit qu'à l'émulateur, comme le retour sur la carte de Gemini après le passage par le navigateur.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

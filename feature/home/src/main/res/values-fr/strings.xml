@@ -106,7 +106,9 @@
          l'application : c'est donc la barre elle-même, et non un bouton qui ouvre un
          écran. -->
     <string name="home_describe_label">Qu\'avez-vous mangé ?</string>
-    <string name="home_describe_locked">Configurez l\'IA pour décrire vos repas</string>
+    <!-- Ce qui manque, dit comme une invitation : l'IA est gratuite, il reste à
+         l'activer (D178). « Configurez » parlait à qui sait déjà ce qu'on configure. -->
+    <string name="home_describe_locked">Activez l\'IA gratuite pour décrire vos repas</string>
     <string name="home_send_description">Analyser ce repas</string>
     <string name="home_shoot">Photographier le repas</string>
     <string name="home_analysing">Analyse en cours…</string>
@@ -123,12 +125,14 @@
          (D73). Le grise ne se voit pas au lecteur d'ecran, d'ou cette phrase. -->
     <string name="home_analyse_unavailable">indisponible, aucune clé d\'IA</string>
 
-    <!-- Ce qui manque, ce que ça coûte, et où aller. Le bouton ouvre la section d'IA
-         et non le hub : qui vient d'appuyer sur l'appareil photo cherche l'endroit où
-         mettre une clé, pas la liste des réglages. -->
-    <string name="home_ai_title">Analyser un repas avec l\'IA</string>
-    <string name="home_ai_explanation">Votre photo ou votre description part chez le fournisseur d\'IA que vous choisissez, avec votre propre clé. C\'est lui qui vous facture ses appels. Hexavore n\'a aucun serveur.</string>
-    <string name="home_ai_configure">Configurer</string>
+    <!-- Ce qui manque, ce que ça coûte, et où aller, en mots de tous les jours (D178) :
+         pourquoi l'IA passe par son propre compte, ce qu'est une clé, et que c'est
+         gratuit. L'ancienne phrase parlait de fournisseur et de facturation à quelqu'un
+         qui ne sait pas ce qu'est une clé d'API. Le bouton ouvre le guide de la clé
+         Gemini, posé sur la section d'IA : on y revient pour la coller. -->
+    <string name="home_ai_title">Activez l\'IA, gratuitement</string>
+    <string name="home_ai_explanation">Hexavore est gratuite et n\'a pas de serveur : pour lire vos photos et vos phrases, elle s\'appuie sur Gemini, l\'IA de Google, avec votre propre compte Google.\n\nIl vous suffit d\'y récupérer une clé, un code personnel qui ouvre cet accès, puis de la coller ici. C\'est gratuit, sans abonnement ni carte bancaire, et cela prend deux minutes, une seule fois.</string>
+    <string name="home_ai_configure">Obtenir ma clé</string>
     <string name="home_ai_later">Plus tard</string>
 
     <!-- Le nom est proposé depuis les aliments du plat, puis librement réécrit : un
@@ -255,15 +259,17 @@
     <string name="tour_photo_body">Une prise, et vous pouvez ajouter un mot si l\'image est ambiguë. Ce que vous écrivez l\'emporte sur ce qui est vu.</string>
     <string name="tour_more_title">Et quand vous préférez être exact</string>
     <string name="tour_more_body">Un code-barres, le catalogue de 3 484 aliments hors ligne, ou un plat que vous avez gardé. Ces trois-là ne demandent jamais de clé.</string>
-    <string name="tour_ai_title">Gemini est gratuit</string>
-    <string name="tour_ai_body">La phrase et la photo demandent une clé. Google en donne une : quelques analyses par jour ne coûtent rien, et aucune carte n\'est demandée. Deux minutes suffisent.</string>
+    <!-- La première fois qu'on parle de clé, et la plus importante (D178) : pourquoi un
+         compte, ce qu'est une clé, ce que ça coûte. -->
+    <string name="tour_ai_title">Une IA gratuite, avec votre compte Google</string>
+    <string name="tour_ai_body">Hexavore n\'a ni serveur ni abonnement : pour la phrase et la photo, elle s\'appuie sur Gemini, l\'IA de Google, avec votre propre compte. Il suffit d\'y récupérer une clé, un code personnel à coller ici : c\'est gratuit, sans carte bancaire, et cela prend deux minutes, une seule fois.</string>
     <string name="tour_degraded_title">Sans clé, il manque deux gestes</string>
     <string name="tour_degraded_body">Le champ et l\'appareil photo restent en rouge : tout le reste fonctionne, et vous pourrez poser une clé quand vous voudrez depuis les réglages. Rien n\'est perdu entre-temps.</string>
     <string name="tour_next">Suivant</string>
     <string name="tour_skip">Passer</string>
     <string name="tour_done">J\'ai compris</string>
     <string name="tour_later">Plus tard</string>
-    <string name="tour_configure">Configurer</string>
+    <string name="tour_configure">Obtenir ma clé</string>
     <string name="tour_calories_title">Calories : le triangle du haut</string>
     <string name="tour_calories_body">Le sommet de l\'hexagone, et le grand chiffre juste en dessous : ce qu\'il vous reste d\'énergie pour la journée. Le triangle grandit à mesure que vous mangez, et déborde du contour si vous dépassez.</string>
     <string name="tour_protein_title">Protéines : à droite du sommet</string>

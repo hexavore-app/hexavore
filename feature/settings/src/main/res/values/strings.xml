@@ -165,8 +165,11 @@
     <!-- Ce que personne ne lit dans un paragraphe : c'est gratuit. La reponse qui
          decide si quelqu'un configure une cle ou referme l'ecran (D138). -->
     <string name="ai_free_title">%1$s is free</string>
-    <string name="ai_free_body">A free tier covers everyday use: a few analyses a day cost nothing. You create a key in a few minutes, and no card is asked for.</string>
-    <string name="ai_intro">Your keys stay on this device, encrypted by its keystore. Calls go to your provider, with nothing in between: Hexavore has no server.</string>
+    <!-- In everyday words (D178): "tier" and "everyday use" did not say that a day's meals
+         fit in it with room to spare. -->
+    <string name="ai_free_body">An account is all it takes, and the free tier easily covers a day\'s meals: no subscription, no card. The key, a personal code to paste here, takes two minutes to get, once.</string>
+    <!-- What a key is, before saying where it stays (D178). -->
+    <string name="ai_intro">A key is a personal code that links Hexavore to your account with an AI provider. It stays on this phone, encrypted by its keystore, and calls go straight to the provider: Hexavore has no server.</string>
 
     <!-- The usage counter. The date of the reading accompanies the amount: docs/05 wants
          the price table dated and flagged as indicative, because an out-of-date estimate

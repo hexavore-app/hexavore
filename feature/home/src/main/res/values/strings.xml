@@ -103,7 +103,9 @@
     <!-- The bottom bar. Writing what you ate is the most frequent gesture of the
          application, so it is the bar itself and not a button that opens a screen. -->
     <string name="home_describe_label">What did you eat?</string>
-    <string name="home_describe_locked">Set up AI to describe your meals</string>
+    <!-- What is missing, said as an invitation: the AI is free, it only needs turning on
+         (D178). "Set up" spoke to someone who already knows what there is to set up. -->
+    <string name="home_describe_locked">Turn on the free AI to describe your meals</string>
     <string name="home_send_description">Analyse this meal</string>
     <string name="home_shoot">Photograph the meal</string>
     <string name="home_analysing">Analysing…</string>
@@ -120,12 +122,14 @@
          dimming is invisible to a screen reader, hence this sentence. -->
     <string name="home_analyse_unavailable">unavailable, no AI key</string>
 
-    <!-- What is missing, what it costs, and where to go. The button opens the AI section
-         and not the hub: someone who has just tapped the camera is looking for the place
-         to put a key, not for the list of settings. -->
-    <string name="home_ai_title">Analyse a meal with AI</string>
-    <string name="home_ai_explanation">Your photo or your description goes to the AI provider you choose, with your own key. They are the ones who bill you for their calls. Hexavore has no server.</string>
-    <string name="home_ai_configure">Set up</string>
+    <!-- What is missing, what it costs, and where to go, in everyday words (D178): why the
+         AI goes through your own account, what a key is, and that it is free. The old
+         sentence spoke of providers and billing to someone who does not know what an API
+         key is. The button opens the Gemini key guide, laid over the AI section: that is
+         where you come back to paste it. -->
+    <string name="home_ai_title">Turn on the AI, for free</string>
+    <string name="home_ai_explanation">Hexavore is free and has no server: to read your photos and sentences, it relies on Gemini, Google\'s AI, through your own Google account.\n\nAll you need is a key from it, a personal code that opens that access, which you then paste here. It is free, with no subscription and no card, and it takes two minutes, once.</string>
+    <string name="home_ai_configure">Get my key</string>
     <string name="home_ai_later">Later</string>
 
     <!-- The name is suggested from the foods in the dish, then freely rewritten: a
@@ -254,15 +258,17 @@
     <string name="tour_photo_body">One shot, and you can add a word if the picture is ambiguous. What you write wins over what is seen.</string>
     <string name="tour_more_title">And when you prefer to be exact</string>
     <string name="tour_more_body">A barcode, the catalogue of 3,484 foods offline, or a dish you saved. These three never need a key.</string>
-    <string name="tour_ai_title">Gemini is free</string>
-    <string name="tour_ai_body">The sentence and the photo need a key. Google gives one away: a few analyses a day cost nothing, and no card is asked for. Two minutes is enough.</string>
+    <!-- The first time a key is mentioned, and the one that matters most (D178): why an
+         account, what a key is, what it costs. -->
+    <string name="tour_ai_title">A free AI, with your Google account</string>
+    <string name="tour_ai_body">Hexavore has no server and no subscription: for sentences and photos, it relies on Gemini, Google\'s AI, through your own account. All it takes is a key from it, a personal code to paste here: it is free, no card needed, and it takes two minutes, once.</string>
     <string name="tour_degraded_title">Without a key, two gestures are missing</string>
     <string name="tour_degraded_body">The field and the camera stay red: everything else works, and you can set a key up whenever you like from Settings. Nothing is lost in the meantime.</string>
     <string name="tour_next">Next</string>
     <string name="tour_skip">Skip</string>
     <string name="tour_done">Got it</string>
     <string name="tour_later">Later</string>
-    <string name="tour_configure">Set it up</string>
+    <string name="tour_configure">Get my key</string>
     <string name="tour_calories_title">Calories: the top triangle</string>
     <string name="tour_calories_body">The top of the hexagon, and the big number right below it: the energy you have left for the day. The triangle grows as you eat, and spills past the outline if you go over.</string>
     <string name="tour_protein_title">Protein: right of the top</string>
