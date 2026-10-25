@@ -6066,6 +6066,20 @@ Couchée, sur l'émulateur, la release 1.0.0 montre deux défauts que cette déc
 
 ---
 
+## D180 — La fiche parle à qui l'installe, et l'IA gratuite y a sa capture · ✓ validée
+
+**Contexte.** Retour de l'auteur, le 25 octobre 2026, sur la fiche de la 1.0.2 : la quatrième capture disait « La photo reste, et tout se corrige », ce qui ne veut rien dire pour qui ne connaît pas l'écran ; la sixième montrait le mois déplié, quand la chose à dire est que l'IA est gratuite ; et la description, juste, était écrite pour qui conçoit l'application — elle ouvrait sur un constat, « la saisie coûte trop cher », et décrivait des mécanismes. Le même jour, l'auteur a tranché deux points : la sixième capture montre **l'analyse d'une assiette**, et elle dit « Une solution IA gratuite et illimitée* », **avec un renvoi** qui dit le plafond de l'offre gratuite de Google — quand l'application, elle, n'écrit pas « illimitée » ([D178](#d178--lia-gratuite-se-dit-en-mots-de-tous-les-jours-et--obtenir-ma-clé--mène-au-guide---validée)).
+
+**Choix.** **La quatrième capture dit « Tout est éditable »**, les mots de l'auteur. **La sixième montre l'écran d'analyse** avec la photo du dîner et un mot pour la préciser, juste avant « Analyser » ; rien ne part chez un modèle. On y arrive par l'appareil photo de la barre, seul bouton qui l'ouvre : l'appareil du système se referme d'un retour, la permission de la caméra est accordée d'avance, et la photo est poussée dans la galerie (`flows.open_analysis`). **Le renvoi est sur l'image**, en pied, posé par `compose.py` depuis `captions.json` : une capture se voit sans la description, et « illimitée* » sans son renvoi promettrait plus que ce que Google tient. **La description est réécrite pour l'utilisateur** : ce qu'on y gagne d'abord — noter un repas en une photo ou une phrase, une IA gratuite avec son propre compte Google —, comment ça marche ensuite, et ce que l'application ne fait pas en dernier. Elle garde ce que les règles de Google demandent : la phrase sur l'appareil photo, les sources ouvertes, et l'avertissement santé, mot pour mot. La brève description suit : « Une photo de l'assiette, et l'IA fait les comptes. Gratuit, sans pub ni compte. » Seul Claude est nommé à côté de Gemini : c'est le seul autre fournisseur proposé.
+
+**Conséquences.** `fiche-play-store.md` (les deux descriptions, les deux brèves, les notes de version 1.1.0 dans les quatre langues), `captions.json`, `compose.py`, `flows.py` et `shoot.py` dans `tooling/fiche` ; le README de la chaîne. `MedicalDisclaimerTest` tient toujours l'avertissement des deux descriptions pour celui de l'application. `bootstrap_db.py` suit le schéma 9 (`leisure_sessions`), sans quoi la chaîne ne passait plus l'onboarding.
+
+**Campagne de défaite : non jouée.** Les deux sabotages préparés — l'avertissement abrégé dans chaque description — visent `MedicalDisclaimerTest`, qui n'a pas changé.
+
+**Ce que le vert ne prouve pas.** **Les seize captures ne sont pas encore refaites** : la chaîne ne tourne que sur l'émulateur de tir, avec une clé collée dans son application, et la nouvelle étape 6 (`open_analysis`) n'y a jamais tourné. Les captures ne se jugent qu'en les regardant. Le collage dans la Console revient à l'auteur : les textes, les seize captures et les notes de version.
+
+---
+
 ## Décisions prises par défaut, à confirmer
 
 Ces points n'ont pas été arbitrés explicitement. J'ai tranché pour que la spécification soit complète et cohérente ; chacun se change sans rien casser à ce stade.

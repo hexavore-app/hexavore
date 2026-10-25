@@ -5,12 +5,15 @@
       "Six compteurs,\npas seulement les calories",
       "Chaque quartier dit\nce qui l'a rempli",
       "La journée se lit\nplat par plat",
-      "La photo reste,\net tout se corrige",
+      "Tout est éditable",
       "3 484 aliments,\nsans réseau",
-      "Un mois entier,\nd'un coup d'œil",
+      "Une solution IA gratuite\net illimitée*",
       "Le poids,\net sa tendance réelle",
       "Vos données sont un fichier,\net il reste chez vous"
-    ]
+    ],
+    "notes": {
+      "6": "*Avec une clé Google Gemini gratuite, dans la limite quotidienne fixée par Google, bien au-delà de ce que demandent vos repas."
+    }
   },
   "en": {
     "tagline": "Six counters.\nNo account, no ads.",
@@ -18,11 +21,14 @@
       "Six counters,\nnot just calories",
       "Each quarter says\nwhat filled it",
       "The day reads\nmeal by meal",
-      "The photo stays,\nand everything is editable",
+      "Everything is editable",
       "3,484 foods,\nno connection needed",
-      "A whole month\nat a glance",
+      "A free, unlimited\nAI solution*",
       "Your weight,\nand its real trend",
       "Your data is a file,\nand it stays with you"
-    ]
+    ],
+    "notes": {
+      "6": "*With a free Google Gemini key, within the daily limit set by Google, well beyond what your meals need."
+    }
   }
 }

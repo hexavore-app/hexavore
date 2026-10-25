@@ -70,10 +70,15 @@ def build(destination: Path) -> None:
 
     now = int(time.time() * 1000)
     today = date.today()
+    # L'activite en deux reponses depuis le schema 9 : le metier, et les seances de la
+    # semaine. « Debout » et trois seances, c'est ce que la migration 8 -> 9 fait de
+    # l'ancien « moderement actif » que ce profil portait. Le schema est lu dans le
+    # depot, mais les valeurs ne le sont pas : une colonne neuve fait echouer ce script
+    # sur une contrainte NOT NULL, et c'est ainsi qu'on l'apprend (D180).
     db.execute(
-        """INSERT INTO profile (id, birth_date, sex, height_cm, activity_level, unit_system,
-                                created_at, updated_at)
-           VALUES (?, '1991-04-12', 'MALE', 178.0, 'MODERATE', 'METRIC', ?, ?)""",
+        """INSERT INTO profile (id, birth_date, sex, height_cm, activity_level, leisure_sessions,
+                                unit_system, created_at, updated_at)
+           VALUES (?, '1991-04-12', 'MALE', 178.0, 'ON_FEET', 3, 'METRIC', ?, ?)""",
         (SINGLETON, now, now),
     )
     db.execute(

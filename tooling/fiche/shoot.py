@@ -24,7 +24,15 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from driver import PACKAGE, Driver, NotFound  # noqa: E402
-from flows import LABELS, dismiss_tour, import_archive, restore_data, snapshot_data  # noqa: E402
+from flows import (  # noqa: E402
+    LABELS,
+    dismiss_tour,
+    import_archive,
+    open_analysis,
+    push_analysis_photo,
+    restore_data,
+    snapshot_data,
+)
 
 LOCALES = {"fr": "fr-FR", "en": "en-GB"}
 
@@ -123,10 +131,12 @@ def shoot(d: Driver, language: str, out: Path) -> list[Path]:
     # met plus ou moins longtemps a se composer, et un appui parti trop tot ne
     # trouve rien.
 
-    # 6. Le mois deplie : chaque jour porte l'atteinte de ses six objectifs.
+    # 6. L'IA gratuite : l'ecran d'analyse, la photo d'une assiette et un mot pour la
+    #    preciser, juste avant « Analyser » (D180). Elle remplace le mois deplie : l'IA
+    #    gratuite est ce qu'une fiche doit dire, le mois se decouvre.
     d.launch(fresh=True, settle=4)
-    d.tap(d.wait(labels["month"]), settle=1.8)
-    snap("mois")
+    open_analysis(d, language)
+    snap("analyse")
 
     # 7. Le journal de poids et sa tendance.
     d.launch(fresh=True, settle=4)
@@ -271,6 +281,7 @@ def main() -> None:
     dismiss_tour(d, language)
 
     silence_ai_notice(d, language)
+    push_analysis_photo(d)
     shots = shoot(d, language, out)
     for path in shots:
         print(f"  {path.name}  {path.stat().st_size // 1024} Ko")

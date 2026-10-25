@@ -5,7 +5,10 @@ présentation. Tout se refait d'une commande, et c'est le but : une fiche se
 refait à chaque version qui change un écran, et personne ne reprend seize
 captures à la main deux fois.
 
-Les textes de la fiche sont dans [fiche-play-store.md](fiche-play-store.md).
+Les textes de la fiche sont dans [fiche-play-store.md](fiche-play-store.md), les
+phrases des captures dans [captions.json](captions.json). Une phrase qui porte un
+astérisque y a son renvoi, sous `notes`, que `compose.py` pose en pied d'image
+([D180](../../docs/11-decisions.md)).
 
 ## Ce que la chaîne fait
 
@@ -157,9 +160,17 @@ un écran plus court que les téléphones réels, en thème sombre, avec une bar
 d'état en mode démonstration. Ce que l'application fait d'une barre d'état
 chargée, d'un thème clair ou d'une grande police reste à regarder ailleurs.
 
-**Que les huit écrans couvrent l'application.** Le scan, l'analyse par photo et
-l'onboarding n'y sont pas : les deux premiers ont besoin d'une caméra réelle et
-d'une clé d'IA, le troisième disparaît après la première ouverture.
+**Que les huit écrans couvrent l'application.** Le scan, ~~l'analyse par photo~~
+le résultat d'une analyse et l'onboarding n'y sont pas : les deux premiers ont
+besoin d'une caméra réelle et d'un appel payé ou compté, le troisième disparaît
+après la première ouverture. **L'écran d'analyse, lui, y est depuis la 1.1.0**
+([D180](../../docs/11-decisions.md)), avant qu'on appuie sur « Analyser » : la
+sixième capture, qui dit l'IA gratuite, montre une assiette prise dans la galerie
+et un mot pour la préciser. On y arrive par l'appareil photo de la barre, seul
+bouton qui l'ouvre ; l'appareil du système se referme d'un retour, la permission
+de la caméra est accordée d'avance, et la photo du dîner est poussée dans la
+galerie puis annoncée au MediaStore (`flows.open_analysis`). Rien ne part chez un
+modèle.
 
 **Qu'un écran soit bien composé.** La chaîne cadre ce qu'on lui demande de
 cadrer. Trois défauts ont été trouvés en **regardant** les images, pas en les

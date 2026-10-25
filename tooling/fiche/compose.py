@@ -43,6 +43,14 @@ CORNER = 44
 CAPTION_TOP = 96
 CAPTION_SIZE = 62
 CAPTION_WIDTH = 880
+# Le renvoi d'une phrase qui porte un asterisque, sous la capture : la place qui reste
+# entre le bas du telephone (SHOT_TOP + SHOT_HEIGHT) et le bord du canevas. Petit, et
+# lisible quand meme : une promesse a asterisque dont on ne lit pas le renvoi est une
+# promesse sans renvoi (D180).
+NOTE_TOP = 1856
+NOTE_SIZE = 24
+NOTE_WIDTH = 960
+NOTE_HEIGHT = 58
 
 FEATURE = (1024, 500)
 
@@ -138,12 +146,16 @@ def rounded_shot(shot: Path, target: Path, height: int) -> tuple[int, int]:
     return width, height
 
 
-def montage(shot: Path, caption: str, font: Path, out: Path, accent: str) -> Path:
-    """Un bandeau de texte, puis la capture. Le format de la fiche.
+def montage(shot: Path, caption: str, font: Path, out: Path, accent: str, note: str | None = None) -> Path:
+    """Un bandeau de texte, puis la capture, et le renvoi s'il y en a un. Le format de la fiche.
 
     Le degrade et la lueur ne sont pas du decor : une capture presque noire
     posee sur un fond noir disparait dans la vignette de resultat de recherche,
     qui est l'endroit ou cette image travaille.
+
+    **Le renvoi est sur l'image, et non dans la description seule** (D180) : une
+    capture se voit sans la description, et « illimitee* » sans son renvoi dirait
+    plus que ce que l'offre gratuite de Google tient.
     """
     tints = palette()
     work = out.parent / f".{out.stem}"
@@ -175,14 +187,23 @@ def montage(shot: Path, caption: str, font: Path, out: Path, accent: str) -> Pat
         label,
     )
 
-    run(
+    layers = [
         background,
         glow, "-geometry", "+0+0", "-composite",
         device, "-geometry", f"+{left}+{SHOT_TOP}", "-composite",
         label, "-geometry", f"+{(CANVAS[0] - CAPTION_WIDTH) // 2}+{CAPTION_TOP}", "-composite",
-        out,
-    )
-    for temporary in (device, background, glow, label):
+    ]
+    footnote = work.with_suffix(".note.png")
+    if note:
+        run(
+            "-background", "none", "-fill", "#9A9AB0", "-font", font,
+            "-pointsize", str(NOTE_SIZE), "-size", f"{NOTE_WIDTH}x{NOTE_HEIGHT}",
+            "-gravity", "center", f"caption:{note}",
+            footnote,
+        )
+        layers += [footnote, "-geometry", f"+{(CANVAS[0] - NOTE_WIDTH) // 2}+{NOTE_TOP}", "-composite"]
+    run(*layers, out)
+    for temporary in (device, background, glow, label, footnote):
         temporary.unlink(missing_ok=True)
     return out
 
@@ -256,9 +277,12 @@ def main() -> None:
         shots = sorted((options.work / "shots" / language).glob("*.png"))
         out = store / language
         out.mkdir(parents=True, exist_ok=True)
+        # Les renvois, par numero de capture a partir de 1 : celui que porte le nom du fichier.
+        notes = texts.get("notes", {})
         for index, shot in enumerate(shots):
             caption = texts["captures"][index]
-            print(montage(shot, caption, options.font, out / f"{shot.stem}.png", accents[index]))
+            note = notes.get(str(index + 1))
+            print(montage(shot, caption, options.font, out / f"{shot.stem}.png", accents[index], note))
         print(feature_graphic(texts["tagline"], options.font, out / "presentation-1024x500.png"))
 
 
