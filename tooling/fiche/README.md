@@ -120,7 +120,10 @@ python tooling/fiche/compose.py --work /tmp/fiche --font /tmp/Roboto-Regular.ttf
 base figée est reposée telle quelle : le sélecteur de documents sort de la
 boucle, et un tir dure une minute au lieu de trois.
 
-Le résultat atterrit dans `out/`, que le `.gitignore` du projet couvre déjà par
+~~Le résultat atterrit dans `out/`~~ Les montages atterrissent dans `/tmp/fiche/store/`,
+les captures brutes dans `/tmp/fiche/shots/` ; on les recopie dans `out/` (`fr/`, `en/`,
+`brut/`), d'où ils partent vers la Console, en rangeant les précédents dans un
+sous-dossier à leur numéro de version. Le `.gitignore` du projet couvre déjà `out/` par
 sa règle `out/`. Quinze mégaoctets de PNG n'ont rien à faire dans l'historique
 quand la chaîne les reproduit à l'identique.
 

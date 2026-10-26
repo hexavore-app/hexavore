@@ -71,7 +71,7 @@ Une recherche parmi 3 484 aliments, même sans connexion.
 
 Le scan et la photo demandent un téléphone équipé d'un appareil photo.
 
-TOUT EST ÉDITABLE
+TOUT EST MODIFIABLE
 
 Chaque proposition se vérifie avant d'être enregistrée : un aliment, une quantité ou une valeur se corrige d'un geste, et ce que l'IA a estimé est signalé. Un repas oublié se rattrape sur n'importe quel jour passé.
 

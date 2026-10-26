@@ -1,4 +1,4 @@
-# Reprise — la 1.1.0, après D180
+# Reprise — la 1.1.0, après D181
 
 Ce fichier dit **où en est le travail et comment le reprendre**, sans rien supposer de
 la conversation qui l'a produit. Il se supprime quand ses chantiers sont faits : ce
@@ -23,13 +23,19 @@ qui doit durer vit dans `docs/`, et les décisions dans `docs/11-decisions.md`.
   - **D179** — une astuce, ou la demande d'un avis, toutes les quelques ouvertures ;
   - **D180** — la fiche du Play Store parle à qui l'installe, et l'IA gratuite y a sa
     capture ;
+  - **D181** — l'écran de validation paraît sur l'écran qu'on quitte : plus d'aplat
+    sombre le temps qu'il se compose, à chaque ouverture, avec ou sans IA ;
   - la version et ses notes dans les quatre langues.
 - **Vérifié** : `gradlew clean check bundleRelease --no-build-cache --no-configuration-cache` vert
-  le 25 octobre 2026 : **2 757 cas exécutés**, aucun échec, aucun ignoré ; le bundle 1.1.0
-  (code 11) se construit. Campagnes de défaite : D176 7/7, D177 7/7, D178 2/2, D179 16/16.
-  **Pas encore fait** : la revue à l'émulateur des écrans neufs (tour, dialogue, astuces,
-  demande d'avis, interrupteur, lien de contact), les seize captures de la fiche (D180),
-  le contrôle `dexdump` du bundle, et la campagne de D180.
+  le 26 octobre 2026 : **2 759 cas exécutés**, aucun échec, aucun ignoré ; le bundle 1.1.0
+  (code 11) se construit. Campagnes de défaite : D176 7/7, D177 7/7, D178 2/2, D179 16/16,
+  D180 2/2, D181 1/1. **Revu à l'émulateur** le 25 octobre, consigné dans chaque décision :
+  sans clé, le tour, le dialogue, les astuces, l'interrupteur et le lien de contact ;
+  avec la clé de l'auteur et un réseau ralenti, la note des dix secondes et le passage à
+  l'écran de validation, filmés ; la demande d'avis et son étoile. Les seize captures
+  sont refaites (§ 3). Le bundle signé construit sur la branche passe le contrôle
+  `dexdump` du § 3 : les trois recherches ne rendent rien. **Reste** : l'œil de l'auteur
+  sur un téléphone (§ 5), et le collage dans la Console (§ 3).
 - **Site** : rien en attente, § 4.
 
 ## 2. Règles de travail sur ce dépôt (à relire avant de toucher à quoi que ce soit)
@@ -87,9 +93,11 @@ Dans l'ordre. Les textes à coller sont dans
 4. **Fiche principale, dans les deux langues** : la brève description **et** la
    description complète sont réécrites ([D180](docs/11-decisions.md)). Les recoller toutes
    les deux ; le nom de l'application ne change pas.
-5. **Les captures** : les seize montages, **à refaire d'abord** (`tooling/fiche/README.md`, sur `Hexavore_Shots`). La 4 change de phrase, la 6
-   d'écran et porte un renvoi en pied d'image ; les six autres sont refaites à
-   l'identique. Remplacer les huit de chaque langue, dans l'ordre des numéros.
+5. **Les captures** : les seize montages sont faits, dans `tooling/fiche/out/fr/` et
+   `out/en/` (les précédents rangés dans `out/1.0.0/`). La 4 dit « Tout est modifiable »,
+   la 6 montre l'écran d'analyse et porte un renvoi en pied d'image ; les six autres sont
+   refaites à l'identique. Remplacer les huit de chaque langue, dans l'ordre des numéros.
+   Le bandeau `presentation-1024x500.png` ne change pas.
 6. **Production → Créer une release** : téléverser le bundle, coller les **notes de
    version 1.1.0** (fr-FR, fr-CA, en-GB, en-US), déploiement progressif.
 7. **Le formulaire Data Safety ne change pas** : le registre des ouvertures reste sur le
@@ -106,6 +114,14 @@ politique de confidentialité s'y republiera seule à la fusion de la 1.1.0.
 
 Aucune ne bloque. Ce qui a été vu est consigné dans chaque décision, § « Ce que le vert
 ne prouve pas ».
+
+**La 1.1.0, sur un téléphone** :
+- **D181** : le passage vers l'écran de validation, à l'œil. L'émulateur l'a mesuré ; la
+  vitesse de composition d'un vrai téléphone est la seule qui compte.
+- **D176, D177** : une vraie lenteur de Gemini. L'émulateur l'a simulée par
+  `adb -s emulator-5554 emu network delay 8000`, Wi-Fi coupé
+  (`svc wifi disable`, `svc data enable`) : la latence n'agit que sur les données
+  mobiles. `network delay none` et `svc wifi enable` ensuite.
 
 **Avec la clé de l'auteur** :
 - **D164** : la même assiette **en photo** — l'appareil photo de l'émulateur ne montre
@@ -134,10 +150,13 @@ revenir par les applications récentes. La saisie doit revenir telle qu'elle ét
 
 L'émulateur API 36 garde le mois d'essai restauré le 16 octobre — objectif de perte,
 carte d'ajustement en attente —, en français, ses animations coupées. Sa variante
-`debug` a été effacée le 18 octobre pour jouer le tour : elle repart d'un premier
-lancement, en anglais.
+`debug` ~~a été effacée le 18 octobre pour jouer le tour : elle repart d'un premier
+lancement, en anglais~~ est en français, sans clé ; les astuces y sont éteintes depuis
+la revue du 25 octobre (« Ne plus afficher d'astuces »). L'émulateur de tir,
+`Hexavore_Shots`, porte la clé de l'auteur et la base de démonstration anglaise ; la
+chaîne des captures y coupe les animations, `release_screen` les rend.
 
-## 6. Ce qui reste après la 1.0.2
+## 6. Ce qui reste ~~après la 1.0.2~~ après la 1.1.0
 
 - **Le paysage** reste « non optimisé » (`docs/01`) : titre et calendrier fixes, barre du
   bas fixe, il reste peu de hauteur au journal. Ne rien changer à la mise en page sans
@@ -147,6 +166,12 @@ lancement, en anglais.
 - **Tests d'image** et **`CONTRIBUTING.md`**, prévus pour la 1.0 dans `docs/10` et
   partis sans elle.
 - **La sauvegarde Google Drive**, repoussée (`docs/09`).
+- **Sans clé, l'écran d'IA dit « Le fournisseur actif ne sait pas appeler d'outils »**,
+  alors qu'aucun fournisseur n'est actif (vu le 25 octobre). Une phrase à réserver au cas
+  où un fournisseur sans outils est réellement choisi.
+- **Un profil de référence** (*baseline profile*) : la première composition de l'écran
+  de validation coûte 0,1 à 0,3 s sur l'émulateur, optimisée ; D181 en masque l'effet,
+  pas le coût.
 - **Le contenu généré par une IA** : Hexavore se tient hors du champ de la règle
   ([D168](docs/11-decisions.md)). Si l'examen en juge autrement, le bouton de signalement
   existe déjà et porte le motif ; ce qui manquerait serait un signalement qui ne passe
