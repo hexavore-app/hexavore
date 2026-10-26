@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -140,6 +141,13 @@ internal class EntryViewModel @Inject constructor(
      * Elle ne dépend que de la date, jamais du contenu des champs : sans ce
      * `distinctUntilChanged`, chaque frappe relancerait une lecture de la base pour
      * un chiffre qui n'a pas bougé.
+     *
+     * **Le brouillon n'attend pas la journée** ([D181][decisions]). Elle ne se lit
+     * qu'une fois la date connue, donc après le brouillon : deux lectures de la base à
+     * la suite, et l'écran restait vide tout ce temps, à chaque ouverture. Il paraît
+     * désormais dès que le brouillon est prêt, et le restant le rejoint.
+     *
+     * [decisions]: docs/11-decisions.md
      */
     private val day: Flow<DaySummary?> =
         form
@@ -155,6 +163,7 @@ internal class EntryViewModel @Inject constructor(
                     // pour une information de confort.
                     getDaySummary(date)
                         .map<DaySummary, DaySummary?> { it }
+                        .onStart { emit(null) }
                         .catch { emit(null) }
                 }
             }

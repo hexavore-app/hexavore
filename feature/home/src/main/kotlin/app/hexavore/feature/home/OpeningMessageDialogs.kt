@@ -80,6 +80,10 @@ internal fun OpeningMessageHost(onConfigureAi: () -> Unit, viewModel: OpeningMes
  * **« Ne plus afficher d'astuces » éteint, il ne supprime pas** : l'interrupteur se
  * retrouve dans l'écran des notifications. L'astuce de la clé gratuite fait exception :
  * son bouton mène au guide de la clé, et l'autre la remet à plus tard.
+ *
+ * **Les deux issues d'une astuce sont empilées**, comme celles de la demande d'avis : côte
+ * à côte, elles ne tiennent pas sur une ligne, et la boîte les séparait alors d'un grand
+ * vide, la plus définitive en bas, isolée.
  */
 @Composable
 private fun TipDialog(tip: OpeningTip, onAnswer: (OpeningAnswer) -> Unit, onGetKey: () -> Unit) {
@@ -93,19 +97,22 @@ private fun TipDialog(tip: OpeningTip, onAnswer: (OpeningAnswer) -> Unit, onGetK
             if (leadsToKey) {
                 TextButton(onClick = onGetKey) { Text(stringResource(R.string.opening_tip_get_key)) }
             } else {
-                TextButton(onClick = { onAnswer(OpeningAnswer.SEEN) }) {
-                    Text(stringResource(R.string.opening_tip_done))
+                Column(horizontalAlignment = Alignment.End) {
+                    TextButton(onClick = { onAnswer(OpeningAnswer.SEEN) }) {
+                        Text(stringResource(R.string.opening_tip_done))
+                    }
+                    TextButton(onClick = { onAnswer(OpeningAnswer.NO_MORE_TIPS) }) {
+                        Text(stringResource(R.string.opening_tip_stop))
+                    }
                 }
             }
         },
-        dismissButton = {
-            if (leadsToKey) {
+        dismissButton = if (leadsToKey) {
+            {
                 TextButton(onClick = { onAnswer(OpeningAnswer.SEEN) }) { Text(stringResource(R.string.opening_later)) }
-            } else {
-                TextButton(onClick = { onAnswer(OpeningAnswer.NO_MORE_TIPS) }) {
-                    Text(stringResource(R.string.opening_tip_stop))
-                }
             }
+        } else {
+            null
         },
     )
 }

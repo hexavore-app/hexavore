@@ -251,10 +251,10 @@ class TourJourneyTest {
      *
      * ### Sans clé, le tour finit par l'étape dégradée
      *
-     * Une installation neuve n'a pas de clé d'IA, donc l'étape « Gemini est gratuit »
-     * propose « Plus tard », et le tour enchaîne sur ce que ce refus coûte. C'est le
-     * chemin que prend l'écrasante majorité des premiers lancements, et donc celui que
-     * ce test parcourt.
+     * Une installation neuve n'a pas de clé d'IA, donc l'étape de l'IA — « Une IA
+     * gratuite, avec votre compte Google » depuis D178 — propose « Plus tard », et le
+     * tour enchaîne sur ce que ce refus coûte. C'est le chemin que prend l'écrasante
+     * majorité des premiers lancements, et donc celui que ce test parcourt.
      */
     @Test
     fun le_tour_se_raconte_en_entier_puis_s_en_va() {

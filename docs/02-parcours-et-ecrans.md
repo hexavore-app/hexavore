@@ -298,7 +298,7 @@ Tap → écran de validation avec la quantité par défaut de l'aliment (voir [0
 
 Le point de convergence. Une ou plusieurs lignes, chacune éditable, un bouton d'enregistrement.
 
-**Il s'ouvre aussitôt, et jamais sur un fond vide** ([D176](11-decisions.md)). L'ouvrir est une lecture — un plat, un favori, une fiche, ou la proposition qu'une analyse a déjà résolue — : rien n'y appelle un modèle. Une ouverture qui tarderait quand même affiche un indicateur passé quatre dixièmes de seconde, assez tard pour qu'une ouverture ordinaire ne fasse rien clignoter.
+**Il s'ouvre aussitôt, et jamais sur un fond vide** ([D176](11-decisions.md)). L'ouvrir est une lecture — un plat, un favori, une fiche, ou la proposition qu'une analyse a déjà résolue — : rien n'y appelle un modèle. **Il n'attend pas non plus la journée** : le restant le rejoint dès qu'elle est lue. Et le temps qu'il se compose, **l'écran qu'on quitte reste affiché dessous** au lieu d'un aplat sombre ([D181](11-decisions.md)). Une ouverture qui tarderait quand même affiche un indicateur passé quatre dixièmes de seconde, assez tard pour qu'une ouverture ordinaire ne fasse rien clignoter.
 
 Chaque ligne présente :
 

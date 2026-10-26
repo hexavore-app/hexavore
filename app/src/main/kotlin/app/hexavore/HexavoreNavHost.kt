@@ -1,5 +1,7 @@
 package app.hexavore
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -13,6 +15,7 @@ import app.hexavore.feature.capture.analyseScreen
 import app.hexavore.feature.capture.navigateToAnalyse
 import app.hexavore.feature.entry.EntryDestination
 import app.hexavore.feature.entry.entryScreen
+import app.hexavore.feature.entry.keptUnderEntry
 import app.hexavore.feature.entry.navigateToEntry
 import app.hexavore.feature.entry.navigateToEntryFor
 import app.hexavore.feature.entry.navigateToEntryForFavorite
@@ -78,7 +81,15 @@ fun HexavoreNavHost(modifier: Modifier = Modifier, viewModel: StartDestinationVi
 private fun HexavoreNavHost(startDestination: Any, modifier: Modifier = Modifier) {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = startDestination, modifier = modifier) {
+    NavHost(
+        navController = navController,
+        startDestination = startDestination,
+        modifier = modifier,
+        // Le fondu par defaut du NavHost, sauf vers la validation : l'ecran qu'on quitte
+        // y reste peint dessous, au lieu d'un aplat sombre le temps qu'elle se compose
+        // (D181).
+        exitTransition = { keptUnderEntry(otherwise = fadeOut(tween(NAV_FADE_MILLIS))) },
+    ) {
         homeScreen(
             routes = HomeRoutes(
                 // Un seul bouton, et il ouvre la recherche : la saisie manuelle y est
@@ -237,3 +248,6 @@ private fun NavGraphBuilder.searchScreens(navController: NavHostController) {
         onClose = { navController.popBackStack() },
     )
 }
+
+/** La duree du fondu que `NavHost` applique d'office : la reprendre, c'est ne rien changer ailleurs. */
+private const val NAV_FADE_MILLIS = 700

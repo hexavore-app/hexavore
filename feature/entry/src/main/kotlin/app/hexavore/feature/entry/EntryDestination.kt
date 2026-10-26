@@ -1,8 +1,12 @@
 package app.hexavore.feature.entry
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import app.hexavore.domain.diary.DishId
@@ -182,3 +186,20 @@ fun NavGraphBuilder.entryScreen(onAddFood: () -> Unit, onClose: () -> Unit) {
         )
     }
 }
+
+/**
+ * Ce que devient l'écran qu'on quitte : **gardé peint dessous quand on va vers la
+ * validation** ([D181][decisions]), sinon [otherwise].
+ *
+ * Le temps que la validation se compose, elle ne peint rien, pas même son fond. Sans
+ * cette règle, l'écran quitté s'effaçait pendant ce temps, et c'est un aplat presque
+ * noir qu'on voyait entre les deux, à chaque ouverture. L'écran quitté reste donc
+ * entier jusqu'à la fin du fondu, et la validation paraît par-dessus.
+ *
+ * Exposée ici plutôt qu'écrite dans `:app` : c'est une règle de cet écran, et `:app`
+ * n'a pas à savoir pourquoi il en faut une.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+fun AnimatedContentTransitionScope<NavBackStackEntry>.keptUnderEntry(otherwise: ExitTransition): ExitTransition =
+    if (targetState.destination.hasRoute<EntryDestination>()) ExitTransition.KeepUntilTransitionsFinished else otherwise

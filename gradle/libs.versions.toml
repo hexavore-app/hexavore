@@ -71,7 +71,8 @@ versionName = "1.1.0"
 # 11 est la premiere montee mineure, et le nom passe a 1.1.0 : des fonctionnalites, et
 # non des correctifs -- une seule attente apres l'analyse, la note des dix secondes,
 # l'IA gratuite dite en mots de tous les jours, les astuces et la demande d'avis a
-# l'ouverture, et la fiche reecrite (D176 a D180).
+# l'ouverture, la fiche reecrite, et l'ecran de validation qui parait sans noir
+# (D176 a D181).
 versionCode = "11"
 
 # --- Bibliotheques ------------------------------------------------------------

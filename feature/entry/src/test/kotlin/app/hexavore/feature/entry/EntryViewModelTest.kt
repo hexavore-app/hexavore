@@ -30,6 +30,8 @@ import app.hexavore.domain.food.Food
 import app.hexavore.domain.food.FoodId
 import app.hexavore.domain.food.FoodServing
 import app.hexavore.domain.food.FoodSource
+import app.hexavore.domain.goal.Goal
+import app.hexavore.domain.goal.Goals
 import app.hexavore.domain.nutrition.Macro
 import app.hexavore.domain.nutrition.Macros
 import app.hexavore.domain.nutrition.NutrientValues
@@ -59,8 +61,11 @@ import app.hexavore.domain.usecase.UpdateFavoriteDish
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -68,6 +73,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withTimeout
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -410,6 +416,29 @@ class EntryViewModelTest {
 
         assertEquals(500.0, impact.draftKcal)
         assertEquals(objectif.daily.kcal - 1100.0, impact.remainingKcal)
+    }
+
+    /**
+     * Une journée qui ne se lit pas encore ne retient pas l'écran ([D181][decisions]).
+     *
+     * Elle se lisait après le brouillon, et l'écran restait vide jusqu'à ce qu'elle
+     * réponde : une demi-seconde de noir à chaque ouverture, avec ou sans IA. Le délai
+     * est en temps virtuel : sans la correction, l'écran ne s'ouvre jamais, et le test
+     * tombe au lieu d'attendre.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    @Test
+    fun `le brouillon parait sans attendre la journee`() = runTest(dispatcher) {
+        val journeeMuette = object : Goals by goals {
+            override fun observeGoalOn(date: LocalDate): Flow<Goal?> = flow { awaitCancellation() }
+        }
+        val viewModel = viewModel(objectifs = journeeMuette)
+
+        val ouvert = withTimeout(OUVERTURE_MILLIS) { viewModel.content() }
+
+        assertEquals(1, ouvert.form.lines.size)
+        assertNull(ouvert.impact)
     }
 
     @Test
@@ -823,6 +852,7 @@ class EntryViewModelTest {
          * qu'Android fait en recréant l'écran après avoir tué le processus (D166).
          */
         handle: SavedStateHandle = route(dishId, favoriteId, scannedFoodId, proposal, editingFavorite),
+        objectifs: Goals = goals,
     ) = EntryViewModel(
         savedStateHandle = handle,
         composition = DraftComposition(
@@ -840,7 +870,7 @@ class EntryViewModelTest {
             chooseDishPhoto = ChooseDishPhoto(depot),
             keptDraftPhoto = KeptDraftPhoto(depot),
         ),
-        getDaySummary = GetDaySummary(diary, goals, clock),
+        getDaySummary = GetDaySummary(diary, objectifs, clock),
         saveDraft = SaveDraft(LogDish(diary, catalogue, favoris, clock, ids), UpdateDish(diary, ids)),
         favorites = DraftFavorites(
             saveFavoriteDish = SaveFavoriteDish(favoris, ids),
@@ -913,6 +943,9 @@ class EntryViewModelTest {
         RecognizedItem(label = label, quantity = quantity, unit = EstimatedUnit.G, confidence = 0.9f)
 
     private companion object {
+        /** Bien plus qu'il n'en faut en temps virtuel, où rien ne s'écoule seul. */
+        const val OUVERTURE_MILLIS = 1_000L
+
         val RIZ = Food(
             id = FoodId("f-riz"),
             source = FoodSource.CIQUAL,

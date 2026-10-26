@@ -6022,6 +6022,8 @@ Couchée, sur l'émulateur, la release 1.0.0 montre deux défauts que cette déc
 
 **Ce que le vert ne prouve pas.** Aucun test ne compose d'écran : l'indicateur de `DraftOpening` et le délai qui le retient ne se voient qu'à l'émulateur. Aucun appel réel non plus : la durée du noir, et sa disparition, se mesurent avec une clé.
 
+**Vérifié à l'émulateur, le 25 octobre 2026.** Sur l'émulateur de tir, avec la clé Gemini de l'auteur et huit secondes de latence ajoutées au réseau (`adb emu network delay`, qui n'agit que sur les données mobiles), chaque passage filmé et mesuré image par image : une phrase analysée en 14,5 s, puis 0,5 s de noir ; une photo en 19 s, puis 0,4 s. **Le noir ne suit plus l'attente.** Ce qui en reste n'est pas l'IA : un plat déjà noté, rouvert depuis la journée, montre 0,6 s du même noir. C'est l'ouverture de l'écran de validation elle-même, que [D181](#d181--lécran-de-validation-paraît-sur-lécran-quon-quitte---validée) traite.
+
 ---
 
 ## D177 — Passé dix secondes, l'attente se dit · ✓ validée
@@ -6035,6 +6037,8 @@ Couchée, sur l'émulateur, la release 1.0.0 montre deux défauts que cette déc
 **Campagne de défaite : sept sabotages, sept tombés.** L'attente qui ne s'annonce jamais ; le seuil divisé par deux ; la surveillance qui survit à l'analyse ; la gratuité dite à l'envers ; la note de l'écran d'IA, puis celle de la barre, qui survivent à l'attente ; la barre qui tait la lenteur.
 
 **Ce que le vert ne prouve pas.** La note elle-même, sa place sous l'indicateur et son annonce au lecteur d'écran ne se voient qu'à l'émulateur, et seulement devant un fournisseur lent : dix secondes d'attente ne s'obtiennent pas sur commande.
+
+**Vu à l'émulateur, le 25 octobre 2026**, dans les conditions de [D176](#d176--une-seule-attente--lestimation-se-fait-pendant-lanalyse---validée) : la note paraît sous la barre du bas pendant l'analyse d'une phrase, et sur l'écran d'IA à 11 s de l'analyse d'une photo, avec « Google Gemini » et la phrase de la gratuité.
 
 ---
 
@@ -6050,6 +6054,8 @@ Couchée, sur l'émulateur, la release 1.0.0 montre deux défauts que cette déc
 
 **Ce que le vert ne prouve pas.** Que les mots soient les bons : ils se jugent en les lisant, et l'auteur les relira. La navigation empilée ne se voit qu'à l'émulateur, comme le retour sur la carte de Gemini après le passage par le navigateur.
 
+**Vu à l'émulateur, le 25 octobre 2026**, sans clé : l'étape du tour et son « Obtenir ma clé », qui ouvre le guide de la clé Gemini posé sur les réglages d'IA ; le retour sur ces réglages ; le dialogue du bouton photo.
+
 ---
 
 ## D179 — Toutes les quelques ouvertures, une astuce ou la demande d'un avis · ✓ validée
@@ -6064,19 +6070,39 @@ Couchée, sur l'émulateur, la release 1.0.0 montre deux défauts que cette déc
 
 **Ce que le vert ne prouve pas.** Aucun test ne compose d'écran : les deux boîtes, leur lecture au lecteur d'écran et l'interrupteur des notifications ne se voient qu'à l'émulateur. Que la fiche s'ouvre dans le Play Store et non dans le navigateur dépend du téléphone. Et que le rythme soit le bon ne se mesure qu'à l'usage — c'est pourquoi il tient en cinq constantes.
 
+**Vu à l'émulateur, le 25 octobre 2026.** Sans clé : l'astuce de la clé, puis une astuce ordinaire, et « Ne plus afficher d'astuces » qui éteint l'interrupteur de Notifications ; le lien « Noter Hexavore » de Contact. Avec les dix plats et la semaine qu'elle attend : la demande d'avis, ses cinq étoiles nommées au lecteur d'écran (« 4 étoiles sur 5 »), et une étoile qui ouvre la fiche dans le Play Store et clôt la demande. **Une correction** : côte à côte, les deux issues d'une astuce ne tenaient pas sur une ligne, et la boîte les séparait d'un grand vide, la plus définitive isolée en bas ; elles sont désormais empilées, comme celles de la demande d'avis (`OpeningMessageDialogs.TipDialog`).
+
 ---
 
 ## D180 — La fiche parle à qui l'installe, et l'IA gratuite y a sa capture · ✓ validée
 
 **Contexte.** Retour de l'auteur, le 25 octobre 2026, sur la fiche de la 1.0.2 : la quatrième capture disait « La photo reste, et tout se corrige », ce qui ne veut rien dire pour qui ne connaît pas l'écran ; la sixième montrait le mois déplié, quand la chose à dire est que l'IA est gratuite ; et la description, juste, était écrite pour qui conçoit l'application — elle ouvrait sur un constat, « la saisie coûte trop cher », et décrivait des mécanismes. Le même jour, l'auteur a tranché deux points : la sixième capture montre **l'analyse d'une assiette**, et elle dit « Une solution IA gratuite et illimitée* », **avec un renvoi** qui dit le plafond de l'offre gratuite de Google — quand l'application, elle, n'écrit pas « illimitée » ([D178](#d178--lia-gratuite-se-dit-en-mots-de-tous-les-jours-et--obtenir-ma-clé--mène-au-guide---validée)).
 
-**Choix.** **La quatrième capture dit « Tout est éditable »**, les mots de l'auteur. **La sixième montre l'écran d'analyse** avec la photo du dîner et un mot pour la préciser, juste avant « Analyser » ; rien ne part chez un modèle. On y arrive par l'appareil photo de la barre, seul bouton qui l'ouvre : l'appareil du système se referme d'un retour, la permission de la caméra est accordée d'avance, et la photo est poussée dans la galerie (`flows.open_analysis`). **Le renvoi est sur l'image**, en pied, posé par `compose.py` depuis `captions.json` : une capture se voit sans la description, et « illimitée* » sans son renvoi promettrait plus que ce que Google tient. **La description est réécrite pour l'utilisateur** : ce qu'on y gagne d'abord — noter un repas en une photo ou une phrase, une IA gratuite avec son propre compte Google —, comment ça marche ensuite, et ce que l'application ne fait pas en dernier. Elle garde ce que les règles de Google demandent : la phrase sur l'appareil photo, les sources ouvertes, et l'avertissement santé, mot pour mot. La brève description suit : « Une photo de l'assiette, et l'IA fait les comptes. Gratuit, sans pub ni compte. » Seul Claude est nommé à côté de Gemini : c'est le seul autre fournisseur proposé.
+**Choix.** **La quatrième capture dit ~~« Tout est éditable »~~ « Tout est modifiable »** : l'auteur avait écrit « éditable », puis a retenu le mot courant, le même jour. **La sixième montre l'écran d'analyse** avec la photo du dîner et un mot pour la préciser, juste avant « Analyser » ; rien ne part chez un modèle. On y arrive par l'appareil photo de la barre, seul bouton qui l'ouvre : l'appareil du système se referme d'un retour, la permission de la caméra est accordée d'avance, et la photo est poussée dans la galerie (`flows.open_analysis`). **Le renvoi est sur l'image**, en pied, posé par `compose.py` depuis `captions.json` : une capture se voit sans la description, et « illimitée* » sans son renvoi promettrait plus que ce que Google tient. **La description est réécrite pour l'utilisateur** : ce qu'on y gagne d'abord — noter un repas en une photo ou une phrase, une IA gratuite avec son propre compte Google —, comment ça marche ensuite, et ce que l'application ne fait pas en dernier. Elle garde ce que les règles de Google demandent : la phrase sur l'appareil photo, les sources ouvertes, et l'avertissement santé, mot pour mot. La brève description suit : « Une photo de l'assiette, et l'IA fait les comptes. Gratuit, sans pub ni compte. » Seul Claude est nommé à côté de Gemini : c'est le seul autre fournisseur proposé.
 
 **Conséquences.** `fiche-play-store.md` (les deux descriptions, les deux brèves, les notes de version 1.1.0 dans les quatre langues), `captions.json`, `compose.py`, `flows.py` et `shoot.py` dans `tooling/fiche` ; le README de la chaîne. `MedicalDisclaimerTest` tient toujours l'avertissement des deux descriptions pour celui de l'application. `bootstrap_db.py` suit le schéma 9 (`leisure_sessions`), sans quoi la chaîne ne passait plus l'onboarding.
 
-**Campagne de défaite : non jouée.** Les deux sabotages préparés — l'avertissement abrégé dans chaque description — visent `MedicalDisclaimerTest`, qui n'a pas changé.
+**Campagne de défaite : ~~non jouée~~ 2/2, le 25 octobre 2026.** Les deux sabotages — l'avertissement abrégé dans chaque description — font tomber `MedicalDisclaimerTest`, qui n'a pas changé.
 
-**Ce que le vert ne prouve pas.** **Les seize captures ne sont pas encore refaites** : la chaîne ne tourne que sur l'émulateur de tir, avec une clé collée dans son application, et la nouvelle étape 6 (`open_analysis`) n'y a jamais tourné. Les captures ne se jugent qu'en les regardant. Le collage dans la Console revient à l'auteur : les textes, les seize captures et les notes de version.
+**Ce que le vert ne prouve pas.** ~~**Les seize captures ne sont pas encore refaites**~~ **Les seize captures sont refaites**, le 25 octobre 2026, sur l'émulateur de tir où la clé de l'auteur était déjà collée, et regardées une à une ; elles attendent dans `tooling/fiche/out/`, les précédentes rangées dans `out/1.0.0/`. Le premier envoi d'une photo pose une boîte, « Votre photo va partir » : la capture 6 se prend avant « Analyser », elle ne la croise pas. La chaîne coupe les animations de l'émulateur pour des images stables ; `release_screen` les rend. Le collage dans la Console revient à l'auteur : les textes, les seize captures et les notes de version.
+
+---
+
+## D181 — L'écran de validation paraît sur l'écran qu'on quitte · ✓ validée
+
+**Contexte.** Vérifiée à l'émulateur, [D176](#d176--une-seule-attente--lestimation-se-fait-pendant-lanalyse---validée) tient : le noir ne suit plus l'attente de l'IA. Mais l'écran de validation restait sombre un instant à **chaque** ouverture, avec ou sans IA : un plat déjà noté, rouvert depuis la journée, le montrait autant qu'une proposition. L'auteur a demandé, le 25 octobre 2026, qu'il disparaisse dans la 1.1.0.
+
+**Cause, mesurée et non supposée.** Deux choses s'ajoutaient. L'écran attendait, pour paraître, le brouillon **puis** le bilan de la journée, qui ne se lit qu'une fois la date connue : deux lectures de la base à la suite. Et surtout, sa première composition coûte : une demi-seconde par image en debug sur l'émulateur, 0,1 à 0,3 s une fois optimisé (`dumpsys gfxinfo`). Pendant ce temps, on voyait son fond, presque noir, l'écran quitté s'étant déjà effacé dans le fondu.
+
+**Choix.** **L'écran qu'on quitte reste peint dessous** jusqu'à la fin du fondu quand on va vers la validation (`keptUnderEntry`, posé sur le `NavHost` de `:app` ; le fondu par défaut partout ailleurs), et **la validation ne peint rien tant qu'elle s'ouvre**, pas même son fond : on voit l'écran quitté, puis elle paraît par-dessus. **Le bilan de la journée commence par « pas encore lu »** : le brouillon paraît dès qu'il est prêt, et le restant le rejoint, comme il le faisait déjà quand la journée ne se lit pas. L'indicateur de D176 reste, pour une ouverture qui durerait au-delà du fondu.
+
+**Conséquences.** `EntryViewModel`, `EntryScreen` et `EntryDestination` dans `:feature:entry` ; `HexavoreNavHost` ; un cas dans `EntryViewModelTest`, où une journée qui ne répond jamais ne retient plus l'écran.
+
+**Campagne de défaite : un sabotage, un tombé.** L'écran qui attend de nouveau la journée. La navigation n'a pas de cas : aucun test ne compose d'écran ni ne conduit un `NavController`, comme pour [D178](#d178--lia-gratuite-se-dit-en-mots-de-tous-les-jours-et--obtenir-ma-clé--mène-au-guide---validée).
+
+**Vérifié à l'émulateur, le 25 octobre 2026**, chaque passage filmé et mesuré image par image (luminosité moyenne), sur un plat rouvert depuis la journée, animations actives comme sur un téléphone. Avant, sur une build optimisée : l'écran tombe de 38 à 24 pendant 0,4 s. Après : il ne descend qu'à 35 pendant 0,1 s, le fondu d'un écran à l'autre, sans noir ; de même sur la build debug, pourtant plus lente. Les films de D176 avaient été tournés animations coupées, comme les laisse la chaîne des captures : sans fondu, le noir y paraissait plus long qu'il n'est.
+
+**Ce que le vert ne prouve pas.** La mesure est faite sur l'émulateur ; sur un téléphone, l'écran se compose plus vite, et l'œil de l'auteur tranchera. Une ouverture qui dépasse le fondu (700 ms) montre de nouveau le fond, avec l'indicateur de D176.
 
 ---
 
