@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.hexavore.domain.notice.Notice
 import app.hexavore.domain.notice.NoticeSettings
+import app.hexavore.domain.opening.TipSettings
 import app.hexavore.domain.reminder.Reminder
 import app.hexavore.domain.reminder.ReminderSetup
 import app.hexavore.domain.usecase.ChooseReminder
@@ -31,18 +32,29 @@ import javax.inject.Inject
 internal class NoticeSettingsViewModel @Inject constructor(
     private val settings: NoticeSettings,
     private val chooseReminder: ChooseReminder,
+    /** Les astuces de l'ouverture (D179) : elles se taisent d'ici, et s'y rallument. */
+    private val tips: TipSettings,
     observeNotices: ObserveNotices,
     observeReminders: ObserveReminders,
 ) : ViewModel() {
     val uiState: StateFlow<NoticeUiState> =
-        combine(settings.observe(), observeNotices(), observeReminders()) { allumees, actives, rappels ->
-            NoticeUiState(enabled = allumees, active = actives, reminders = rappels)
+        combine(
+            settings.observe(),
+            observeNotices(),
+            observeReminders(),
+            tips.observe(),
+        ) { allumees, actives, rappels, astuces ->
+            NoticeUiState(enabled = allumees, active = actives, reminders = rappels, tips = astuces)
         }
             .catch { emit(NoticeUiState()) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MILLIS), NoticeUiState())
 
     fun onToggle(notice: Notice, enabled: Boolean) {
         viewModelScope.launch { settings.setEnabled(notice, enabled) }
+    }
+
+    fun onToggleTips(enabled: Boolean) {
+        viewModelScope.launch { tips.setEnabled(enabled) }
     }
 
     /**
@@ -74,4 +86,6 @@ internal data class NoticeUiState(
     val active: Set<Notice> = emptySet(),
     /** Les quatre rappels : lesquels sonnent, et a quelle heure. */
     val reminders: ReminderSetup = ReminderSetup(),
+    /** Les astuces de l'ouverture, allumees ou non (D179). Allumees tant qu'on n'a rien dit. */
+    val tips: Boolean = true,
 )

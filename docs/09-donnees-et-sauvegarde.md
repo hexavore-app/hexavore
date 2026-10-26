@@ -10,6 +10,7 @@
 | Photos analysées | `cacheDir`, supprimées immédiatement | sans objet |
 | Photos des plats | `filesDir/plats/`, une par plat | oui, dans l'archive |
 | Base CIQUAL | `assets/`, lecture seule | non, elle est dans l'APK |
+| Rythme des messages à l'ouverture : ouvertures comptées, astuces vues, réponse à la demande d'avis ([D179](11-decisions.md)) | `SharedPreferences` du fichier des pastilles | non : un état de l'écran, qui repart à neuf avec l'effacement |
 
 `android:allowBackup="false"` dans le manifeste : la sauvegarde automatique d'Android est désactivée au profit d'un mécanisme explicite. La sauvegarde système exfiltrerait les clés API vers Google Drive sans que l'utilisateur en soit informé — exactement ce que ce document s'emploie à empêcher.
 

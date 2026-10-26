@@ -1,6 +1,6 @@
 # Privacy policy
 
-*Last updated: October 16, 2026*
+*Last updated: October 25, 2026*
 
 Hexavore is a free and open-source food tracking app for Android. This page explains which data the app handles, where it goes, and how to erase it.
 
@@ -27,7 +27,7 @@ For any question about this policy: [contact@hexavore.app](mailto:contact@hexavo
 - **Your food log**: dishes, foods, quantities, nutrition values, time of entry.
 - **The photos of your dishes**, when you confirm a scanned or analyzed meal, or when you add one to a dish yourself. They stay on the phone and go nowhere. You can remove the one attached to a dish, stop keeping them, or erase them all: **Settings → Dish photos**.
 - **Your custom foods, your favorites**, and the Open Food Facts products you have already looked up.
-- **Your settings**: AI provider API keys, display preferences.
+- **Your settings**: AI provider API keys, display preferences, and what it takes to space out the tips and the rating request shown when the app opens: a count of openings, the tips already seen, what you answered.
 
 This is health information. It does not leave the phone, except in the cases described below. Android's automatic backup is turned off for Hexavore: your data does not reach your Google account without you knowing either.
 

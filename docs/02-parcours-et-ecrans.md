@@ -165,13 +165,23 @@ L'ordre est fixe. Un ordre adaptatif « selon vos habitudes » ferait bouger les
 
 **Chaque entrée de la feuille porte son nom et une ligne qui dit ce qu'elle ouvre.** Un glyphe seul se reconnaît, jamais ne s'explique : ★ et ⌗ occupaient la colonne sans dire où ils menaient avant qu'on y soit allé.
 
-**Sans clé d'IA**, le champ et l'appareil photo passent en **rouge** et expliquent à l'appui ([D136](11-decisions.md)). ~~Ils étaient gris.~~ Le gris disait « indisponible » sans dire qu'il y a quelque chose à faire, et personne n'allait le chercher. Le champ porte alors le texte qui le dit — « Configurez l'IA pour décrire vos repas » — et une marque d'alerte accompagne les deux, parce qu'une couleur ne travaille jamais seule.
+**Sans clé d'IA**, le champ et l'appareil photo passent en **rouge** et expliquent à l'appui ([D136](11-decisions.md)). ~~Ils étaient gris.~~ Le gris disait « indisponible » sans dire qu'il y a quelque chose à faire, et personne n'allait le chercher. Le champ porte alors le texte qui le dit — ~~« Configurez l'IA pour décrire vos repas »~~ « Activez l'IA gratuite pour décrire vos repas » ([D178](11-decisions.md)) — et une marque d'alerte accompagne les deux, parce qu'une couleur ne travaille jamais seule.
 
-**Une phrase part sans avertissement**, comme depuis toujours : [05](05-ia.md) ne demande le consentement que pour une photo. L'attente se lit sur une ligne au-dessus du champ — la journée reste visible — et **l'annulation coupe réellement la requête**. Un échec laisse la phrase dans le champ et offre la saisie manuelle : un fournisseur en panne ne doit pas empêcher de noter son repas.
+**Une phrase part sans avertissement**, comme depuis toujours : [05](05-ia.md) ne demande le consentement que pour une photo. L'attente se lit sur une ligne au-dessus du champ — la journée reste visible —, estimation des aliments inconnus comprise ([D176](11-decisions.md)), avec la note des dix secondes de l'écran d'IA quand elle s'allonge ([D177](11-decisions.md)), et **l'annulation coupe réellement la requête**. Un échec laisse la phrase dans le champ et offre la saisie manuelle : un fournisseur en panne ne doit pas empêcher de noter son repas.
 
 **Le champ tient quatre lignes.** Une phrase de repas en fait souvent deux ou trois, et un champ d'une seule ligne les faisait défiler horizontalement : on écrivait sans voir le début de ce qu'on écrivait ([D135](11-decisions.md)). Au repos il n'en montre qu'une, et la barre reste basse — c'est ce qu'on voit en permanence au-dessus du pouce.
 
 **La barre monte avec le clavier.** Elle est une pièce de la structure et non une couche flottante : c'est elle qui borne la page, la liste des plats s'arrête au-dessus, et la bulle des sources n'a plus à la faire disparaître pour être lisible ([D122](11-decisions.md#d122--un-quartier-touché-dit-ce-qui-la-rempli---validée)).
+
+### Les messages à l'ouverture
+
+**Toutes les quelques ouvertures, une boîte : une astuce, ou la demande d'un avis** ([D179](11-decisions.md)). Une **ouverture** est un retour sur l'accueil après trente minutes d'absence, ou la toute première : les allers-retours d'un même repas n'en font qu'une. Rien avant la troisième — la première est celle de l'onboarding et du tour —, **une boîte au plus par ouverture**, et au moins quatre ouvertures entre deux. Rien pendant le tour, ni à côté du rapport de plantage, qui passe seul.
+
+**Les astuces** disent chacune un geste qu'on ne devine pas — le quartier qui s'explique, l'appui long sur un plat, le jour qu'on rattrape —, en une phrase, **une seule fois**, dans un ordre fixe qui va du plus utile au plus anecdotique. Celles qui ne s'appliquent pas passent leur tour : la clé gratuite à qui en a une, la photo à qui n'en a pas. Deux réponses : « J'ai compris », ou « Ne plus afficher d'astuces », que l'écran des notifications rallume. L'astuce de la clé gratuite mène, elle, au guide de la clé.
+
+**La demande d'avis** attend une semaine d'usage et dix plats notés, et passe devant l'astuce quand les deux sont dues. Cinq étoiles, et **la même fiche du Play Store derrière chacune** : trier les notes — les bonnes vers le Play Store, les mauvaises vers un courriel — est courant et contraire aux consignes de Google. Trois autres réponses, de la plus douce à la plus définitive : « Plus tard », qui la repousse de vingt ouvertures ; « J'ai déjà noté » et « Ne plus demander », qui la closent. Une étoile touchée la clôt aussi. L'écran **Contact** garde un lien « Noter Hexavore sur le Play Store », pour qui veut le faire sans attendre qu'on le lui demande.
+
+Toucher à côté d'une boîte vaut « J'ai compris » pour une astuce et « Plus tard » pour la demande d'avis : se débarrasser d'une boîte n'est jamais un refus définitif. **Rien ne sort du téléphone** : ni notification système, ni travail de fond, et la fiche ne s'ouvre que sous le doigt de celui qui touche une étoile.
 
 ---
 
@@ -241,11 +251,15 @@ Trois zones, de haut en bas :
 
 L'image est réduite (1024 px sur le côté long, JPEG qualité 80) avant l'envoi. **Annuler coupe réellement la requête** : ce qui n'est pas parti n'est pas facturé.
 
+**Une seule attente, et elle se dit** ([D176](11-decisions.md)). Pendant l'analyse, l'indicateur reste et la phrase change avec ce qu'on attend : « Analyse en cours… », « Service saturé, nouvelle tentative… » quand le fournisseur a dû être relancé, puis « Estimation des valeurs nutritionnelles… » quand le modèle a répondu et qu'il estime ce que le catalogue ne connaît pas. ~~Cette estimation se faisait à l'ouverture de l'écran de validation, resté noir le temps qu'elle revienne.~~ L'écran de validation s'ouvre ensuite sur un brouillon complet.
+
+**Passé dix secondes, une note discrète paraît sous l'indicateur** ([D177](11-decisions.md)) : *« Google Gemini prend plus de temps que prévu. Cela arrive : avec l'offre gratuite, vos demandes ne passent pas en priorité, c'est le prix de la gratuité. L'analyse continue. »* Elle répond à la seule question qu'on se pose devant une attente qui s'allonge — est-ce que ça marche ? — et dit qu'il n'y a rien à faire. Elle nomme le fournisseur, et ne parle de gratuité qu'à une offre gratuite : à une clé payante, elle dit que le service est sans doute très demandé. Elle n'interrompt rien, se lit au lecteur d'écran quand elle paraît, et retombe avec l'attente. La barre du bas porte la même, sous sa ligne d'attente.
+
 **La touche du clavier referme, elle ne saute pas de ligne** ([D136](11-decisions.md)). Le champ en tient trois, mais on y précise une photo en une phrase, et la seule chose qu'on veuille ensuite est de voir le bouton d'analyse — que le clavier recouvre.
 
 **L'avertissement ne concerne que la photo.** Elle envoie une image de votre repas — et de ce qui l'entoure — à un tiers, et cela se dit une fois avant le premier envoi ([05](05-ia.md)). Une phrase tapée part sans avertissement : celui qui l'écrit sait exactement ce qu'il envoie.
 
-**Aucune clé API configurée.** Le bouton d'IA reste visible mais grisé ; un tap ouvre une explication courte et un raccourci vers la section d'IA des réglages. Le masquer laisserait croire que la fonctionnalité n'existe pas.
+**Aucune clé API configurée.** Le bouton d'IA reste visible mais grisé ; un tap ouvre une explication courte et ~~un raccourci vers la section d'IA des réglages~~ **« Obtenir ma clé »**, qui mène droit au guide de la clé Gemini, posé sur la section d'IA ([D178](11-decisions.md)) : on y lit les étapes, on part sur le site de Google, et l'on revient sur la carte de Gemini, déjà ouverte, pour coller la clé. L'explication parle comme on parle : Hexavore est gratuite et n'a pas de serveur, l'IA passe donc par **son propre compte Google**, et une clé est **un code personnel qui ouvre cet accès** — gratuit, sans abonnement ni carte bancaire, deux minutes une seule fois. ~~Elle parlait de fournisseur et de facturation.~~ Le tour guidé le dit avec les mêmes mots, et son bouton porte le même nom. Le masquer laisserait croire que la fonctionnalité n'existe pas.
 
 **Échec.** Les erreurs sont traduites en langage humain, jamais en code HTTP : clé invalide → « Votre clé pour *Gemini* a été refusée. Vérifiez-la dans les réglages. » ; quota → « Votre fournisseur a refusé la requête : quota atteint. » ; réseau → « Pas de connexion. » Dans tous les cas, **la photo et la phrase sont conservées** le temps de proposer de réessayer, et une porte de sortie vers la saisie manuelle est offerte.
 
@@ -283,6 +297,8 @@ Tap → écran de validation avec la quantité par défaut de l'aliment (voir [0
 ## Écran de validation d'entrée
 
 Le point de convergence. Une ou plusieurs lignes, chacune éditable, un bouton d'enregistrement.
+
+**Il s'ouvre aussitôt, et jamais sur un fond vide** ([D176](11-decisions.md)). L'ouvrir est une lecture — un plat, un favori, une fiche, ou la proposition qu'une analyse a déjà résolue — : rien n'y appelle un modèle. **Il n'attend pas non plus la journée** : le restant le rejoint dès qu'elle est lue. Et le temps qu'il se compose, **l'écran qu'on quitte reste affiché dessous** au lieu d'un aplat sombre ([D181](11-decisions.md)). Une ouverture qui tarderait quand même affiche un indicateur passé quatre dixièmes de seconde, assez tard pour qu'une ouverture ordinaire ne fasse rien clignoter.
 
 Chaque ligne présente :
 

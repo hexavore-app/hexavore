@@ -129,6 +129,13 @@
     <string name="ds_ai_error_unreadable">Le fournisseur a répondu quelque chose d\'inattendu.</string>
     <string name="ds_ai_error_server">Le service est indisponible. Réessayez plus tard.</string>
 
+    <!-- La note qui paraît quand l'IA dépasse dix secondes (D177). Elle répond à « est-ce
+         que ça marche ? » et dit qu'on n'a rien à faire. « Le prix de la gratuité » ne se
+         dit qu'à une offre gratuite : une clé payante n'est pas moins prioritaire. -->
+    <string name="ds_ai_slow_free">%1$s prend plus de temps que prévu. Cela arrive : avec l\'offre gratuite, vos demandes ne passent pas en priorité, c\'est le prix de la gratuité. L\'analyse continue.</string>
+    <string name="ds_ai_slow_paid">%1$s prend plus de temps que prévu : le service est sans doute très demandé en ce moment. L\'analyse continue.</string>
+    <string name="ds_ai_slow_unnamed">L\'IA</string>
+
     <!-- La carte d'ajustement hebdomadaire. Trois issues, et rien n'est jamais
          appliqué sans accord explicite (docs/02). -->
     <string name="ds_adjustment_title">Ajuster votre objectif ?</string>

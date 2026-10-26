@@ -48,6 +48,17 @@ class AiProviderTest {
     }
 
     @Test
+    fun `le recommande est gratuit, et c est Gemini que les invitations nomment`() {
+        // L'invitation de l'accueil et le tour disent « Gemini, l'IA de Google » et
+        // « gratuit » en toutes lettres, et « Obtenir ma cle » ouvre le guide du
+        // recommande (D178). En changer sans recrire ces textes les ferait mentir.
+        val recommande = AiProvider.entries.single { it.recommended }
+
+        assertEquals(AiProvider.GEMINI, recommande)
+        assertTrue(recommande.free, "l'invitation promet une IA gratuite")
+    }
+
+    @Test
     fun `le relais generique ne pretend pas avoir de console`() {
         // Personne ne sait quel service il designe : proposer un lien reviendrait a
         // envoyer quelqu'un chez un fournisseur qu'il n'a pas choisi.

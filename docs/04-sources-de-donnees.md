@@ -216,6 +216,8 @@ Ces deux valeurs datent de la conception et **n'ont été calibrées contre rien
 
 **4. Repli IA.** Toutes les lignes non résolues partent en **un seul second appel** groupé, qui demande une estimation des macros pour 100 g. Le résultat est marqué `source = AI_ESTIMATE`, porte un badge distinct dans l'interface, et n'est jamais versé au catalogue partagé — c'est une estimation, pas une référence.
 
+**Ce second appel se fait pendant l'analyse**, sous l'indicateur qui attend déjà la reconnaissance, et l'écran le dit : « Estimation des valeurs nutritionnelles… » ([D176](11-decisions.md)). ~~La résolution se faisait à l'ouverture de l'écran de validation.~~ Faite là, elle laissait l'écran noir le temps que le fournisseur réponde — jusqu'à une minute, d'autant plus longue qu'il était déjà lent pour l'analyse. L'écran de validation s'ouvre désormais sur un brouillon complet, et « Annuler » couvre les deux appels.
+
 Sans clé API valide à ce moment-là, la ligne est présentée à zéro avec une invitation à la compléter ou à la remplacer.
 
 ### Le catalogue outillé : quand le modèle choisit lui-même

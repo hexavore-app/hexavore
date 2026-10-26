@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import app.hexavore.core.designsystem.component.ScreenTopBar
 import app.hexavore.core.designsystem.theme.Spacing
+import app.hexavore.domain.opening.STORE_LISTING
 import app.hexavore.domain.report.REPORT_ADDRESS
 
 /**
@@ -29,11 +30,13 @@ import app.hexavore.domain.report.REPORT_ADDRESS
  * modèle : qui voulait écrire pour autre chose n'avait nulle part où aller
  * ([D148][decisions]).
  *
- * ### Les trois, et pas une de plus
+ * ### Les quatre, et pas une de plus
  *
  * Le dépôt pour **lire le code** et ouvrir un ticket, le site pour **savoir ce que
  * c'est**, l'adresse pour **écrire**. Chacune s'adresse à quelqu'un de différent, et
- * aucune ne remplace les deux autres.
+ * aucune ne remplace les deux autres. La fiche du Play Store s'y ajoute pour **noter
+ * l'application** quand on le veut, et non seulement quand l'ouverture le propose
+ * ([D179][decisions]) : c'est la même adresse que la demande d'avis.
  *
  * **L'adresse est celle du signalement**, lue depuis le domaine et non recopiée : deux
  * adresses écrites à deux endroits finissent par différer, et c'est la seconde que
@@ -41,7 +44,7 @@ import app.hexavore.domain.report.REPORT_ADDRESS
  *
  * ### Ce qui ouvre quoi
  *
- * `LocalUriHandler` pour les trois, y compris le `mailto:` — c'est le même geste pour
+ * `LocalUriHandler` pour les quatre, y compris le `mailto:` — c'est le même geste pour
  * l'utilisateur, et le système sait seul quelle application s'en charge. Un `Intent`
  * construit à la main demanderait de savoir ce qui est installé. Quand rien ne s'en
  * charge, [rememberLinkOpener] le dit au lieu de faire tomber l'écran ([D162][decisions]).
@@ -86,6 +89,7 @@ internal fun ContactScreen(onClose: () -> Unit) {
             LinkCard(stringResource(R.string.settings_contact_mail), REPORT_ADDRESS) {
                 ouvrir("mailto:$REPORT_ADDRESS")
             }
+            LinkCard(stringResource(R.string.settings_contact_rate), STORE_LISTING) { ouvrir(STORE_LISTING) }
         }
     }
 }

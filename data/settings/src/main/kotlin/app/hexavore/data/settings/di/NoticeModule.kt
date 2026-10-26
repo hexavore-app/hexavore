@@ -4,10 +4,13 @@ import android.content.Context
 import android.content.SharedPreferences
 import app.hexavore.data.settings.StoredKeyRejection
 import app.hexavore.data.settings.StoredNoticeSettings
+import app.hexavore.data.settings.StoredOpeningLedger
 import app.hexavore.data.settings.StoredTourSettings
 import app.hexavore.domain.concurrency.DispatcherProvider
 import app.hexavore.domain.notice.KeyRejection
 import app.hexavore.domain.notice.NoticeSettings
+import app.hexavore.domain.opening.OpeningLedger
+import app.hexavore.domain.opening.TipSettings
 import app.hexavore.domain.tour.TourSettings
 import dagger.Module
 import dagger.Provides
@@ -61,6 +64,26 @@ internal object NoticeModule {
 
     @Provides
     fun tour(stored: StoredTourSettings): TourSettings = stored
+
+    /**
+     * Le registre des ouvertures et l'interrupteur des astuces (D179), dans le même fichier
+     * que le tour : l'état de ce que l'écran a déjà dit, qui ne part pas avec une clé.
+     *
+     * **Une seule instance pour les deux ports** : l'interrupteur qu'une astuce éteint doit
+     * se voir éteint sur l'écran des notifications, sans attendre un redémarrage.
+     */
+    @Provides
+    @Singleton
+    fun openingStore(
+        @Named(NOTICE_PREFERENCES) preferences: SharedPreferences,
+        dispatchers: DispatcherProvider,
+    ): StoredOpeningLedger = StoredOpeningLedger(preferences, dispatchers)
+
+    @Provides
+    fun openingLedger(stored: StoredOpeningLedger): OpeningLedger = stored
+
+    @Provides
+    fun tipSettings(stored: StoredOpeningLedger): TipSettings = stored
 
     @Provides
     @Singleton

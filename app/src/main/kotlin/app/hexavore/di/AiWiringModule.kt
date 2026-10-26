@@ -3,9 +3,10 @@ package app.hexavore.di
 import android.util.Log
 import app.hexavore.BuildConfig
 import app.hexavore.domain.ai.FoodRecognizer
-import app.hexavore.domain.ai.InMemoryPendingRecognition
-import app.hexavore.domain.ai.PendingRecognition
+import app.hexavore.domain.ai.InMemoryPendingProposal
+import app.hexavore.domain.ai.PendingProposal
 import app.hexavore.domain.usecase.AnalyseMeal
+import app.hexavore.domain.usecase.ResolveRecognition
 import app.hexavore.domain.usecase.StageDishPhoto
 import app.hexavore.integration.ai.NetworkLog
 import dagger.Module
@@ -48,19 +49,24 @@ internal object AiWiringModule {
      */
     @Provides
     @Singleton
-    fun pendingRecognition(): PendingRecognition = InMemoryPendingRecognition()
+    fun pendingProposal(): PendingProposal = InMemoryPendingProposal()
 
     /**
      * L'analyse, **partagee par les deux endroits qui la declenchent**.
      *
      * L'ecran d'IA et la barre du bas envoient la meme chose au meme port ; le cas
-     * d'usage est ce qui les empeche de diverger ([D131][decisions]).
+     * d'usage est ce qui les empeche de diverger ([D131][decisions]). Il resout aussi ce
+     * que le modele propose, estimation comprise, avant de le deposer ([D176][decisions]).
      *
      * [decisions]: docs/11-decisions.md
      */
     @Provides
-    fun analyseMeal(recognizer: FoodRecognizer, pending: PendingRecognition, stagePhoto: StageDishPhoto): AnalyseMeal =
-        AnalyseMeal(recognizer, pending, stagePhoto)
+    fun analyseMeal(
+        recognizer: FoodRecognizer,
+        pending: PendingProposal,
+        stagePhoto: StageDishPhoto,
+        resolve: ResolveRecognition,
+    ): AnalyseMeal = AnalyseMeal(recognizer, pending, stagePhoto, resolve)
 
     @Provides
     @Singleton

@@ -1,4 +1,4 @@
-# Reprise — la 1.0.2, après D175
+# Reprise — la 1.1.0, après D181
 
 Ce fichier dit **où en est le travail et comment le reprendre**, sans rien supposer de
 la conversation qui l'a produit. Il se supprime quand ses chantiers sont faits : ce
@@ -8,31 +8,35 @@ qui doit durer vit dans `docs/`, et les décisions dans `docs/11-decisions.md`.
 
 ## 1. Où en est le travail
 
-- **En production : la 1.0.0** (`versionCode 8`), fusionnée par la pull request #101
-  (D158 à D169). Le 18 octobre 2026, sa fiche ne répondait pas encore au public — le lien
-  `play.google.com/store/apps/details?id=app.hexavore` rendait 404 — : en examen, ou en
-  attente de publication.
-- **La branche `fix/1-0-1-les-retours-du-play-store`**, une pull request vers `main`,
-  porte la 1.0.2 (`versionCode 10`) — le 9, en 1.0.1, n'est jamais parti :
-  - **D170** — les retours du Play Store : les barres du système passent dans le thème de
-    fenêtre, R8 réduit les ressources, AGP monte en 8.13.2 ;
-  - **D171** — les côtés de l'écran (l'encoche, une barre de navigation posée sur le
-    côté) se retirent une fois, à la racine ;
-  - **D172** — un champ d'entiers dit pourquoi il refuse la virgule ;
-  - **D173** — un nombre s'écrit dans la langue de l'application ;
-  - **D174** — le poids à moitié tapé survit à la mort du processus ;
-  - **D175** — « Configurer » répond au tour guidé, qui revenait à chaque lancement
-    (retour d'usage du 23 octobre) ;
-  - la version, les notes de version 1.0.2 et une accroche reformulée dans la fiche ;
-  - les captures de la fiche 1.0.0 (`tooling/fiche`), dans un commit à part.
+- **En production : la 1.0.2** (`versionCode 10`). Le 25 octobre 2026, la fiche
+  `play.google.com/store/apps/details?id=app.hexavore` répond au public et affiche 1.0.2.
+  La pull request #102 qui la porte a été fusionnée le même jour : `main` la contient.
+- **Le site** : hexavore-site#3 et #4 fusionnées le 25 octobre ; `hexavore.app` dit
+  « Disponible sur Google Play » et mène à la fiche, en français et en anglais.
+- **La branche `feat/1-1-0-l-attente-la-cle-et-les-avis`**, une pull request vers `main`,
+  porte la 1.1.0 (`versionCode 11`), tirée des retours de l'auteur du 25 octobre :
+  - **D176** — une seule attente : l'estimation de ce que le catalogue ne connaît pas se
+    fait pendant l'analyse, et l'écran de validation ne passe plus par le noir ;
+  - **D177** — passé dix secondes, une note nomme l'IA qui fait attendre ;
+  - **D178** — l'IA gratuite se dit en mots de tous les jours, et « Obtenir ma clé » mène
+    au guide de la clé Gemini ;
+  - **D179** — une astuce, ou la demande d'un avis, toutes les quelques ouvertures ;
+  - **D180** — la fiche du Play Store parle à qui l'installe, et l'IA gratuite y a sa
+    capture ;
+  - **D181** — l'écran de validation paraît sur l'écran qu'on quitte : plus d'aplat
+    sombre le temps qu'il se compose, à chaque ouverture, avec ou sans IA ;
+  - la version et ses notes dans les quatre langues.
 - **Vérifié** : `gradlew clean check bundleRelease --no-build-cache --no-configuration-cache` vert
-  le 23 octobre 2026, D175 comprise : **2 703 cas exécutés** (variantes debug et release), aucun
-  échec, aucun ignoré — les 18 cas des règles detekt, dans `build-logic`, passés le même
-  jour. Campagnes de défaite : D170 11/11, D171 2/2, D172 4/4, D173 5/5, D174 3/3, D175 3/3. Le
-  bundle 1.0.2 (code 10) se construit et se signe, et `dexdump` n'y trouve aucun des trois
-  relevés du Play Store (§ 3). Revu à l'émulateur : API 36 pour D170 à D175, API 30 pour
-  D170.
-- **Site** : deux pull requests sur `hexavore-site`, § 4.
+  le 26 octobre 2026 : **2 759 cas exécutés**, aucun échec, aucun ignoré ; le bundle 1.1.0
+  (code 11) se construit. Campagnes de défaite : D176 7/7, D177 7/7, D178 2/2, D179 16/16,
+  D180 2/2, D181 1/1. **Revu à l'émulateur** le 25 octobre, consigné dans chaque décision :
+  sans clé, le tour, le dialogue, les astuces, l'interrupteur et le lien de contact ;
+  avec la clé de l'auteur et un réseau ralenti, la note des dix secondes et le passage à
+  l'écran de validation, filmés ; la demande d'avis et son étoile. Les seize captures
+  sont refaites (§ 3). Le bundle signé construit sur la branche passe le contrôle
+  `dexdump` du § 3 : les trois recherches ne rendent rien. **Reste** : l'œil de l'auteur
+  sur un téléphone (§ 5), et le collage dans la Console (§ 3).
+- **Site** : rien en attente, § 4.
 
 ## 2. Règles de travail sur ce dépôt (à relire avant de toucher à quoi que ce soit)
 
@@ -64,18 +68,19 @@ qui doit durer vit dans `docs/`, et les décisions dans `docs/11-decisions.md`.
   saboter la correction, vérifier qu'un cas tombe, défaire (voir § 7).
 - Aucun pronom pour l'auteur, Charly Flu, dans les textes.
 
-## 3. Publier la 1.0.2
+## 3. Publier la 1.1.0
 
 Dans l'ordre. Les textes à coller sont dans
 [`tooling/fiche/fiche-play-store.md`](tooling/fiche/fiche-play-store.md).
 
-1. **Fusionner la pull request** une fois la CI verte.
+1. **Fusionner la pull request** une fois la CI verte. La politique de confidentialité
+   change avec elle ([D179](docs/11-decisions.md)) : elle se republie seule sur le site à
+   la fusion. Vérifier ensuite que `hexavore.app/confidentialite` dit « 25 octobre 2026 ».
 2. **Construire le bundle signé** depuis `main` : `gradlew.bat :app:bundleRelease`, avec
    la clé de téléversement de la machine de l'auteur. Le bundle sort non signé sans elle.
 3. **Vérifier ce que le Play Store relève, avant de téléverser** ([D170](docs/11-decisions.md)) :
    les trois dernières commandes doivent ne rien rendre. `dexdump` est dans
-   `build-tools/35.0.1` du SDK ; rejouées sur le bundle de la 1.0.0, elles retrouvaient
-   exactement les trois emplacements relevés.
+   `build-tools/35.0.1` du SDK.
 
    ```
    unzip -o app/build/outputs/bundle/release/app-release.aab 'base/dex/*' -d dex
@@ -85,34 +90,38 @@ Dans l'ordre. Les textes à coller sont dans
    grep "EdgeToEdgeApi" app/build/outputs/mapping/release/mapping.txt
    ```
 
-4. **Fiche principale**, dans les deux langues : l'accroche de la description complète
-   est reformulée — elle disait l'IA « toujours payante », et la fiche dit plus bas qu'une
-   clé Gemini est gratuite. À relire avant de la recoller ; le reste de la description ne
-   change pas.
-5. **Production → Créer une release** : téléverser le bundle, coller les **notes de
-   version 1.0.2** (fr-FR, fr-CA, en-GB, en-US), déploiement progressif.
-6. **Relire les recommandations de la Console** : celle des API obsolètes doit
-   disparaître ; celle d'AGP 9 restera, tant que D15 tient la chaîne en Kotlin 2.0.
+4. **Fiche principale, dans les deux langues** : la brève description **et** la
+   description complète sont réécrites ([D180](docs/11-decisions.md)). Les recoller toutes
+   les deux ; le nom de l'application ne change pas.
+5. **Les captures** : les seize montages sont faits, dans `tooling/fiche/out/fr/` et
+   `out/en/` (les précédents rangés dans `out/1.0.0/`). La 4 dit « Tout est modifiable »,
+   la 6 montre l'écran d'analyse et porte un renvoi en pied d'image ; les six autres sont
+   refaites à l'identique. Remplacer les huit de chaque langue, dans l'ordre des numéros.
+   Le bandeau `presentation-1024x500.png` ne change pas.
+6. **Production → Créer une release** : téléverser le bundle, coller les **notes de
+   version 1.1.0** (fr-FR, fr-CA, en-GB, en-US), déploiement progressif.
+7. **Le formulaire Data Safety ne change pas** : le registre des ouvertures reste sur le
+   téléphone, et la fiche du Play Store ne s'ouvre que sous le doigt de l'utilisateur.
 
 ## 4. Le site
 
-- [hexavore-app/hexavore-site#3](https://github.com/hexavore-app/hexavore-site/pull/3) —
-  D161, D162 : la valeur estimée se dit, l'application ne transmet que les courriels
-  qu'on envoie. **À fusionner maintenant.**
-- [hexavore-app/hexavore-site#4](https://github.com/hexavore-app/hexavore-site/pull/4) —
-  D168 : « Disponible sur Google Play », le bouton vers la fiche, l'avertissement santé.
-  **En brouillon, empilée sur #3** : quand le lien de la fiche s'ouvre dans une fenêtre
-  privée, la passer en « Ready for review » et la fusionner après #3 (GitHub la reporte
-  sur `main`).
-
-Vérifiés le 18 octobre : `npm run check` (57 tests) et `npm run build` (six pages,
-aucun JavaScript). La politique de confidentialité ne passe par aucune de ces branches :
-elle se republie seule quand `confidentialite/` change sur `main` de l'application.
+Rien en attente. hexavore-site#3 et #4 ont été fusionnées le 25 octobre 2026, et la
+publication est passée : l'accueil dit « Disponible sur Google Play, pour Android 8 et
+plus », et son premier bouton mène à la fiche, en français comme en anglais. La
+politique de confidentialité s'y republiera seule à la fusion de la 1.1.0.
 
 ## 5. Vérifications à l'émulateur qui restent dues
 
 Aucune ne bloque. Ce qui a été vu est consigné dans chaque décision, § « Ce que le vert
 ne prouve pas ».
+
+**La 1.1.0, sur un téléphone** :
+- **D181** : le passage vers l'écran de validation, à l'œil. L'émulateur l'a mesuré ; la
+  vitesse de composition d'un vrai téléphone est la seule qui compte.
+- **D176, D177** : une vraie lenteur de Gemini. L'émulateur l'a simulée par
+  `adb -s emulator-5554 emu network delay 8000`, Wi-Fi coupé
+  (`svc wifi disable`, `svc data enable`) : la latence n'agit que sur les données
+  mobiles. `network delay none` et `svc wifi enable` ensuite.
 
 **Avec la clé de l'auteur** :
 - **D164** : la même assiette **en photo** — l'appareil photo de l'émulateur ne montre
@@ -141,10 +150,13 @@ revenir par les applications récentes. La saisie doit revenir telle qu'elle ét
 
 L'émulateur API 36 garde le mois d'essai restauré le 16 octobre — objectif de perte,
 carte d'ajustement en attente —, en français, ses animations coupées. Sa variante
-`debug` a été effacée le 18 octobre pour jouer le tour : elle repart d'un premier
-lancement, en anglais.
+`debug` ~~a été effacée le 18 octobre pour jouer le tour : elle repart d'un premier
+lancement, en anglais~~ est en français, sans clé ; les astuces y sont éteintes depuis
+la revue du 25 octobre (« Ne plus afficher d'astuces »). L'émulateur de tir,
+`Hexavore_Shots`, porte la clé de l'auteur et la base de démonstration anglaise ; la
+chaîne des captures y coupe les animations, `release_screen` les rend.
 
-## 6. Ce qui reste après la 1.0.2
+## 6. Ce qui reste ~~après la 1.0.2~~ après la 1.1.0
 
 - **Le paysage** reste « non optimisé » (`docs/01`) : titre et calendrier fixes, barre du
   bas fixe, il reste peu de hauteur au journal. Ne rien changer à la mise en page sans
@@ -154,6 +166,12 @@ lancement, en anglais.
 - **Tests d'image** et **`CONTRIBUTING.md`**, prévus pour la 1.0 dans `docs/10` et
   partis sans elle.
 - **La sauvegarde Google Drive**, repoussée (`docs/09`).
+- **Sans clé, l'écran d'IA dit « Le fournisseur actif ne sait pas appeler d'outils »**,
+  alors qu'aucun fournisseur n'est actif (vu le 25 octobre). Une phrase à réserver au cas
+  où un fournisseur sans outils est réellement choisi.
+- **Un profil de référence** (*baseline profile*) : la première composition de l'écran
+  de validation coûte 0,1 à 0,3 s sur l'émulateur, optimisée ; D181 en masque l'effet,
+  pas le coût.
 - **Le contenu généré par une IA** : Hexavore se tient hors du champ de la règle
   ([D168](docs/11-decisions.md)). Si l'examen en juge autrement, le bouton de signalement
   existe déjà et porte le motif ; ce qui manquerait serait un signalement qui ne passe

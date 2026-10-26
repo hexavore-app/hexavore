@@ -32,6 +32,11 @@ LABELS = {
         # Les deux boutons de la barre du bas, qui dit ou s'arrete la page visible.
         "bar_buttons": ["Autres façons d'ajouter", "Photographier le repas"],
         "month": "Afficher le mois",
+        # L'ecran d'analyse de la capture 6 (D180) : l'appareil photo de la barre du bas,
+        # le bouton de la galerie dans le cadre, et le champ qui precise la photo.
+        "shoot": "Photographier le repas",
+        "pick": "Choisir une image",
+        "note_field": "Un détail à préciser",
         # La barre des fibres et non celle des proteines : sa bulle ne liste que
         # cinq aliments, sans ligne « n autres », et c'est la seule qui tienne
         # entiere sous l'hexagone en 1080x1920. Voir shoot.py, ecran 2.
@@ -40,7 +45,10 @@ LABELS = {
         # Les boutons de la visite guidee, dans l'ordre ou elle les montre.
         "tour": ["Passer", "Plus tard", "J'ai compris"],
         # Ce qui doit etre a l'ecran avant qu'on declenche, ecran par ecran.
-        "expect": ["Aujourd'hui", "Fibres", "Goûter", "Enregistrer", "Saisie manuelle", "2026", "Journal de poids", "Sauvegarde"],
+        "expect": [
+            "Aujourd'hui", "Fibres", "Goûter", "Enregistrer", "Saisie manuelle",
+            "La photo de votre repas", "Journal de poids", "Sauvegarde",
+        ],
     },
     "en": {
         "settings": "Profile and targets",
@@ -53,10 +61,16 @@ LABELS = {
         "search_field": "Search for a food",
         "bar_buttons": ["Other ways to add", "Photograph the meal"],
         "month": "Show the month",
+        "shoot": "Photograph the meal",
+        "pick": "Choose an image",
+        "note_field": "Anything to add",
         "macro_bar": "Fibre,",
         "dishes": "Snack",
         "tour": ["Skip", "Later", "Got it"],
-        "expect": ["Today", "Fibre", "Snack", "Save", "Enter by hand", "2026", "Weight log", "Backup"],
+        "expect": [
+            "Today", "Fibre", "Snack", "Save", "Enter by hand",
+            "The photo of your meal", "Weight log", "Backup",
+        ],
     },
 }
 
@@ -172,3 +186,65 @@ def restore_data(d: Driver, folder: Path) -> None:
 
 
 _PACKAGE = "app.hexavore.debug"
+
+
+# La photo de la capture 6 (D180) : le diner du jour visible, que la galerie de l'AVD
+# n'a pas. Elle y est poussee, nommee pour se reconnaitre, puis annoncee au MediaStore :
+# le selecteur de photos ne liste que ce qu'il a indexe.
+ANALYSIS_PHOTO = Path(__file__).resolve().parent / "photos" / "steak.jpg"
+ANALYSIS_PHOTO_ON_DEVICE = "/sdcard/Pictures/hexavore-fiche-steak.jpg"
+
+# Ce qu'on ecrit sous la photo, en ASCII : `input text` ne sait pas taper un accent.
+ANALYSIS_NOTE = {"fr": "steak de 200 g, sauce au poivre", "en": "a 200 g steak, pepper sauce"}
+
+
+def push_analysis_photo(d: Driver) -> None:
+    """Poser la photo du diner dans la galerie de l'appareil."""
+    d.run("push", str(ANALYSIS_PHOTO), ANALYSIS_PHOTO_ON_DEVICE)
+    d.shell(f"am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file://{ANALYSIS_PHOTO_ON_DEVICE}")
+    time.sleep(2.0)
+
+
+def open_analysis(d: Driver, language: str) -> None:
+    """L'ecran d'analyse, une assiette choisie dans la galerie et un mot pour la preciser.
+
+    **Par l'appareil photo de la barre, faute d'autre chemin** : c'est le seul bouton qui
+    ouvre l'ecran d'analyse, et il declenche l'appareil du systeme dans la foulee
+    (D131). On le referme -- le cadre reste alors vide, et c'est un ecran utilisable --,
+    puis on passe par la galerie. Rien ne part : la capture montre ce qu'on envoie, pas
+    ce qu'un modele rend.
+
+    La permission de la camera est accordee d'avance, comme celle des notifications est
+    refusee d'avance : une boite systeme se poserait sur l'ecran, ou volerait l'appui.
+    """
+    labels = LABELS[language]
+    d.shell(f"pm grant {_PACKAGE} android.permission.CAMERA")
+    d.tap(d.wait(labels["shoot"]), settle=3.0)
+    # L'appareil du systeme, et les boites de son premier lancement : on recule jusqu'a
+    # retrouver le cadre vide.
+    for _ in range(4):
+        if d.present(labels["pick"]):
+            break
+        d.back(settle=1.5)
+    d.tap(d.wait(labels["pick"]), settle=3.0)
+    pick_latest_photo(d)
+    d.tap(d.wait(labels["note_field"]), settle=0.8)
+    d.type_text(ANALYSIS_NOTE[language], settle=1.0)
+    d.hide_keyboard()
+
+
+def pick_latest_photo(d: Driver, timeout: float = 12.0) -> None:
+    """Toucher la premiere photo du selecteur de photos du systeme.
+
+    Il est dans la langue de l'appareil, comme DocumentsUI, et chaque vignette s'y annonce
+    « Photo taken on ... ». La plus recente vient en tete : c'est celle qu'on vient de
+    pousser.
+    """
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        photos = [n for n in d.tree() if n.desc.startswith("Photo")]
+        if photos:
+            d.tap(photos[0], settle=3.0)
+            return
+        time.sleep(1.0)
+    raise NotFound("Le selecteur de photos ne montre aucune photo")

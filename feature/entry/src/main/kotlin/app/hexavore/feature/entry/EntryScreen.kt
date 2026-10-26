@@ -128,9 +128,19 @@ internal fun EntryRoute(
  */
 @Composable
 internal fun EntryScreen(state: EntryUiState, actions: EntryActions, modifier: Modifier = Modifier) {
+    // Rien de peint pendant l'ouverture, pas meme le fond : l'ecran qu'on quitte reste
+    // dessous le temps du fondu (D181), et c'est lui qu'on voit au lieu d'un aplat
+    // sombre. Si elle tarde encore, elle se signale (D176).
+    if (state == EntryUiState.Loading) {
+        DraftOpening()
+        return
+    }
     Surface(color = MaterialTheme.colorScheme.background, modifier = modifier.fillMaxSize()) {
         when (state) {
-            EntryUiState.Loading, EntryUiState.Saved -> Unit
+            // Traitee plus haut, sans fond. Enregistre, l'ecran se referme deja, il n'a
+            // rien a montrer.
+            EntryUiState.Loading -> Unit
+            EntryUiState.Saved -> Unit
             EntryUiState.Unavailable -> UnavailableDish(actions.onClose)
             is EntryUiState.Error -> WriteFailed(actions.onRetry, actions.onClose)
             is EntryUiState.Content -> DraftEditor(state, actions)

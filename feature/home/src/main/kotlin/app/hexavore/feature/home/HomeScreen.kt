@@ -68,6 +68,9 @@ fun HomeRoute(routes: HomeRoutes) {
     // Au lancement qui suit un plantage, et une seule fois : refuser oublie la trace
     // autant qu'accepter (D138).
     CrashReportOffer()
+    // Une astuce, ou la demande d'avis, toutes les quelques ouvertures -- et jamais a
+    // cote du rapport de plantage ni pendant le tour (D179).
+    OpeningMessageHost(onConfigureAi = routes.onConfigureAi)
 
     val viewModel: HomeViewModel = hiltViewModel()
     val calendarViewModel: CalendarViewModel = hiltViewModel()

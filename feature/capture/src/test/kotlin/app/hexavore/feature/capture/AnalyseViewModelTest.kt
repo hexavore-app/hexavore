@@ -1,28 +1,35 @@
 package app.hexavore.feature.capture
 
 import androidx.lifecycle.SavedStateHandle
+import app.hexavore.core.designsystem.component.SlowAnalysis
 import app.hexavore.core.testing.InMemoryDishPhotos
 import app.hexavore.core.testing.InMemoryPhotoSettings
+import app.hexavore.core.testing.resolutionForTests
 import app.hexavore.domain.ai.AiConfiguration
 import app.hexavore.domain.ai.AiError
 import app.hexavore.domain.ai.AiProvider
 import app.hexavore.domain.ai.AiSettings
 import app.hexavore.domain.ai.ApiKey
 import app.hexavore.domain.ai.EstimatedUnit
+import app.hexavore.domain.ai.EstimationOutcome
 import app.hexavore.domain.ai.FoodRecognizer
-import app.hexavore.domain.ai.InMemoryPendingRecognition
+import app.hexavore.domain.ai.InMemoryPendingProposal
+import app.hexavore.domain.ai.NutritionEstimator
 import app.hexavore.domain.ai.PhotoConsent
 import app.hexavore.domain.ai.Recognition
 import app.hexavore.domain.ai.RecognitionInput
 import app.hexavore.domain.ai.RecognitionOutcome
 import app.hexavore.domain.ai.RecognizedItem
+import app.hexavore.domain.ai.SLOW_ANALYSIS_MILLIS
 import app.hexavore.domain.diary.EntrySource
 import app.hexavore.domain.usecase.AnalyseMeal
 import app.hexavore.domain.usecase.StageDishPhoto
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -52,7 +59,7 @@ import org.junit.jupiter.api.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class AnalyseViewModelTest {
     private val dispatcher = UnconfinedTestDispatcher()
-    private val pending = InMemoryPendingRecognition()
+    private val pending = InMemoryPendingProposal()
     private val consent = RecordingConsent()
     private val sent = mutableListOf<RecognitionInput>()
     private var outcome: RecognitionOutcome = RecognitionOutcome.Recognized(Recognition(listOf(RIZ)))
@@ -298,6 +305,7 @@ internal class AnalyseViewModelTest {
                 },
                 pending = pending,
                 stagePhoto = stagePhoto,
+                resolve = resolutionForTests(),
             ),
             consent = consent,
             settings = SETTINGS,
@@ -330,6 +338,7 @@ internal class AnalyseViewModelTest {
                 },
                 pending = pending,
                 stagePhoto = stagePhoto,
+                resolve = resolutionForTests(),
             ),
             consent = consent,
             settings = SETTINGS,
@@ -341,6 +350,87 @@ internal class AnalyseViewModelTest {
 
         assertTrue(coupe, "la requete en vol doit etre coupee, pas seulement masquee")
         assertFalse(viewModel.uiState.value.analysing)
+    }
+
+    @Test
+    fun `l estimation se dit pendant qu elle se fait, et se tait apres`() = runTest {
+        // L'estimation s'attend ici, et non plus derriere un ecran de validation reste
+        // noir (D176) : la phrase change, l'indicateur reste.
+        val reponse = CompletableDeferred<EstimationOutcome>()
+        val viewModel = estimating { reponse.await() }
+        viewModel.onText("un bol de riz")
+        viewModel.onAnalyse()
+
+        assertTrue(viewModel.uiState.value.estimating, "l'attente de l'estimation doit se dire")
+
+        reponse.complete(EstimationOutcome.Estimated(emptyList()))
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.estimating)
+        assertTrue(viewModel.uiState.value.analysed)
+    }
+
+    @Test
+    fun `annuler pendant l estimation remet l ecran au repos`() = runTest {
+        // « Annuler » couvre toute l'attente, estimation comprise : la phrase ne doit pas
+        // survivre sous un ecran qui n'attend plus.
+        val viewModel = estimating { awaitCancellation() }
+        viewModel.onText("un bol de riz")
+        viewModel.onAnalyse()
+
+        viewModel.onCancel()
+
+        assertFalse(viewModel.uiState.value.estimating)
+        assertFalse(viewModel.uiState.value.analysing)
+        assertNull(pending.take(), "rien n'est depose quand on renonce")
+    }
+
+    @Test
+    fun `passe dix secondes, l ecran nomme le fournisseur qui fait attendre`() = runTest {
+        // La reponse a « est-ce que ca marche ? » : oui, et c'est le prix de la gratuite
+        // (D177). Le fournisseur est nomme, et la gratuite n'est dite qu'a une offre gratuite.
+        val viewModel = waiting(settings = GEMINI)
+        viewModel.onText("un bol de riz")
+        viewModel.onAnalyse()
+
+        advanceTimeBy(SLOW_ANALYSIS_MILLIS + 1)
+
+        assertEquals(SlowAnalysis(provider = "Google Gemini", free = true), viewModel.uiState.value.slow)
+        assertTrue(viewModel.uiState.value.analysing, "la note n'interrompt rien")
+    }
+
+    @Test
+    fun `une cle payante n entend pas parler de gratuite`() = runTest {
+        val viewModel = waiting(settings = SETTINGS)
+        viewModel.onText("un bol de riz")
+        viewModel.onAnalyse()
+
+        advanceTimeBy(SLOW_ANALYSIS_MILLIS + 1)
+
+        assertEquals(SlowAnalysis(provider = "Anthropic", free = false), viewModel.uiState.value.slow)
+    }
+
+    @Test
+    fun `avant dix secondes, aucune note`() = runTest {
+        val viewModel = waiting(settings = GEMINI)
+        viewModel.onText("un bol de riz")
+        viewModel.onAnalyse()
+
+        advanceTimeBy(SLOW_ANALYSIS_MILLIS - 1)
+
+        assertNull(viewModel.uiState.value.slow)
+    }
+
+    @Test
+    fun `la note retombe avec l attente`() = runTest {
+        val viewModel = waiting(settings = GEMINI)
+        viewModel.onText("un bol de riz")
+        viewModel.onAnalyse()
+        advanceTimeBy(SLOW_ANALYSIS_MILLIS + 1)
+
+        viewModel.onCancel()
+
+        assertNull(viewModel.uiState.value.slow, "une note sous un ecran qui n'attend plus mentirait")
     }
 
     @Test
@@ -358,10 +448,24 @@ internal class AnalyseViewModelTest {
     // --- Décor ------------------------------------------------------------------
 
     private fun viewModel(handle: SavedStateHandle = SavedStateHandle()) = AnalyseViewModel(
-        analyseMeal = AnalyseMeal(recognizer, pending, stagePhoto),
+        analyseMeal = AnalyseMeal(recognizer, pending, stagePhoto, resolutionForTests()),
         consent = consent,
         settings = SETTINGS,
         savedStateHandle = handle,
+    )
+
+    /** Un écran dont le fournisseur ne répond jamais : l'attente dure tant qu'on ne l'annule pas. */
+    private fun waiting(settings: AiSettings) = AnalyseViewModel(
+        analyseMeal = AnalyseMeal({ awaitCancellation() }, pending, stagePhoto, resolutionForTests()),
+        consent = consent,
+        settings = settings,
+    )
+
+    /** Un écran dont l'étape 4 répond quand on le décide : tout libellé y part, le catalogue est vide. */
+    private fun estimating(estimate: NutritionEstimator) = AnalyseViewModel(
+        analyseMeal = AnalyseMeal(recognizer, pending, stagePhoto, resolutionForTests(estimate = estimate)),
+        consent = consent,
+        settings = SETTINGS,
     )
 
     @Test
@@ -391,6 +495,16 @@ internal class AnalyseViewModelTest {
     private companion object {
         val JPEG = byteArrayOf(1, 2, 3)
         val RIZ = RecognizedItem(label = "riz", quantity = 1.0, unit = EstimatedUnit.BOWL, confidence = 0.9f)
+
+        /** Le fournisseur gratuit : celui à qui la note parle de gratuité (D177). */
+        val GEMINI = AiSettings {
+            AiConfiguration(
+                provider = AiProvider.GEMINI,
+                apiKey = ApiKey("cle-gemini-de-test"),
+                model = "gemini-3.5-flash-lite",
+                baseUrl = "https://generativelanguage.googleapis.com/",
+            )
+        }
 
         val SETTINGS = AiSettings {
             AiConfiguration(

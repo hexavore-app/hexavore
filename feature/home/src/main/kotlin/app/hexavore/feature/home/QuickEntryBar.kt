@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.hexavore.core.designsystem.component.CameraGlyph
 import app.hexavore.core.designsystem.component.DraftTextField
+import app.hexavore.core.designsystem.component.SlowAnalysisNote
 import app.hexavore.core.designsystem.component.aiErrorMessage
 import app.hexavore.core.designsystem.theme.Radius
 import app.hexavore.core.designsystem.theme.Spacing
@@ -428,16 +429,22 @@ private fun Analysis(state: QuickEntryUiState, onCancel: () -> Unit) {
     ) {
         CircularProgressIndicator(modifier = Modifier.size(SpinnerSize))
         Text(
-            // Le meme emplacement pour les deux phrases : ce qui change est la raison
-            // d'attendre, pas le fait d'attendre (D156).
+            // Le meme emplacement pour les trois phrases : ce qui change est la raison
+            // d'attendre, pas le fait d'attendre (D156, D176).
             text = stringResource(
-                if (state.retrying) R.string.home_analysing_busy else R.string.home_analysing,
+                when {
+                    state.estimating -> R.string.home_analysing_estimating
+                    state.retrying -> R.string.home_analysing_busy
+                    else -> R.string.home_analysing
+                },
             ),
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f),
         )
         TextButton(onClick = onCancel) { Text(stringResource(R.string.home_analyse_cancel)) }
     }
+    // La meme note que l'ecran d'IA, sous la ligne d'attente (D177).
+    state.slow?.let { SlowAnalysisNote(it) }
 }
 
 /**

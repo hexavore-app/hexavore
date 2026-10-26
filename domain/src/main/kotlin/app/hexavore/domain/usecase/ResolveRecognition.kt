@@ -1,5 +1,6 @@
 package app.hexavore.domain.usecase
 
+import app.hexavore.domain.ai.EstimatedFood
 import app.hexavore.domain.ai.EstimationOutcome
 import app.hexavore.domain.ai.NutritionEstimator
 import app.hexavore.domain.ai.Recognition
@@ -42,6 +43,10 @@ import app.hexavore.domain.resolution.normaliseLabel
  * brouillon qui verse les fiches au catalogue — et une estimation n'en est pas une, ce
  * qui suffit à la tenir hors du catalogue sans règle supplémentaire.
  *
+ * **Son appelant est l'analyse**, depuis [D176][decisions], et non plus l'ouverture de
+ * l'écran de validation : l'étape 4 est un appel au fournisseur, et elle doit attendre
+ * là où l'on attend déjà le fournisseur.
+ *
  * [sources]: docs/04-sources-de-donnees.md
  * [decisions]: docs/11-decisions.md
  */
@@ -51,13 +56,21 @@ class ResolveRecognition(
     private val estimate: NutritionEstimator,
     private val languages: ContentLanguages,
 ) {
-    suspend operator fun invoke(recognition: Recognition, source: EntrySource): EntryDraft {
+    /**
+     * @param onEstimating appelé juste avant que l'étape 4 parte, **et seulement si elle
+     *   part** : l'écran qui attend dit alors ce qu'il attend ([D176][decisions]).
+     */
+    suspend operator fun invoke(
+        recognition: Recognition,
+        source: EntrySource,
+        onEstimating: suspend () -> Unit = {},
+    ): EntryDraft {
         // Lue une fois pour toute la reconnaissance, et passee aux lignes : les cinq
         // lignes d'un plat viennent du meme appel et de la meme table, donc de la meme
         // langue. La relire par ligne laisserait un plat moitie francais.
         val language = languages.current()
         val resolved = recognition.items.map { resolveLine(it, language) }
-        return create(source, resolved.completedByEstimate(language))
+        return create(source, resolved.completedByEstimate(language, onEstimating))
     }
 
     /**
@@ -146,7 +159,10 @@ class ResolveRecognition(
      *
      * [sources]: docs/04-sources-de-donnees.md
      */
-    private suspend fun List<DraftLine>.completedByEstimate(language: ContentLanguage): List<DraftLine> {
+    private suspend fun List<DraftLine>.completedByEstimate(
+        language: ContentLanguage,
+        onEstimating: suspend () -> Unit,
+    ): List<DraftLine> {
         // **Toute ligne sans énergie**, et non les seules que le catalogue a refusées.
         // Une fiche choisie par le modèle peut être vide, un verdict peut être `REVIEW`
         // sur une fiche sans valeurs : dans les deux cas l'écran affichait « ? » et
@@ -154,8 +170,7 @@ class ResolveRecognition(
         // celui que l'utilisateur voit, pas celui d'un classement interne.
         val unresolved = filter { it.values.kcal == null }
         // Une liste vide ne part jamais sur le reseau : c'est le cas courant.
-        val outcome = if (unresolved.isEmpty()) null else estimate.estimate(unresolved.map { it.name })
-        val foods = (outcome as? EstimationOutcome.Estimated)?.foods.orEmpty()
+        val foods = if (unresolved.isEmpty()) emptyList() else estimated(unresolved, onEstimating)
         if (foods.isEmpty()) return this
 
         val byLabel = foods.associateBy { normaliseLabel(it.label, language) }
@@ -169,6 +184,21 @@ class ResolveRecognition(
                 ?: rank[line]?.let { byRank?.get(it) }
             found?.let { line.estimatedFrom(it.per100g) } ?: line
         }
+    }
+
+    /**
+     * L'appel de l'étape 4, **annoncé avant de partir**.
+     *
+     * L'annonce précède l'appel parce que c'est lui qu'on va attendre : la dire après
+     * reviendrait à expliquer une attente déjà passée ([D176][decisions]). Elle n'a lieu
+     * que si l'appel part — une liste vide ne s'annonce pas plus qu'elle ne se paie.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    private suspend fun estimated(unresolved: List<DraftLine>, onEstimating: suspend () -> Unit): List<EstimatedFood> {
+        onEstimating()
+        val outcome = estimate.estimate(unresolved.map { it.name })
+        return (outcome as? EstimationOutcome.Estimated)?.foods.orEmpty()
     }
 
     /**

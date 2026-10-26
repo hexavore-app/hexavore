@@ -3,23 +3,35 @@ package app.hexavore.domain.usecase
 import app.hexavore.domain.ai.AiError
 import app.hexavore.domain.ai.BUSY_RETRY_DELAY_MILLIS
 import app.hexavore.domain.ai.FoodRecognizer
-import app.hexavore.domain.ai.PendingRecognition
+import app.hexavore.domain.ai.PendingProposal
 import app.hexavore.domain.ai.RecognitionInput
 import app.hexavore.domain.ai.RecognitionOutcome
+import app.hexavore.domain.ai.SLOW_ANALYSIS_MILLIS
 import app.hexavore.domain.diary.EntrySource
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /**
- * Soumet un repas au modèle, et dépose ce qu'il propose.
+ * Soumet un repas au modèle, résout ce qu'il propose, et dépose le brouillon.
  *
  * **Sorti de l'écran d'IA le jour où un second endroit a eu la même chose à faire**
  * ([D131][decisions]) : la barre du bas envoie une phrase sans ouvrir d'écran, et
  * recopier ces quinze lignes aurait donné deux chemins d'analyse — donc deux sources
  * possibles, deux traitements de la photo, et un jour deux comportements.
  *
- * **Trois gestes, dans cet ordre, et l'ordre compte.** La photo est rangée *avant* le
- * dépôt de la proposition : l'écran de validation lit les deux, et les inverser lui
- * ferait voir une proposition sans son image le temps d'une recomposition.
+ * **La résolution est ici, et non plus à l'ouverture de l'écran de validation**
+ * ([D176][decisions]). Elle peut demander un second appel au fournisseur — l'étape 4,
+ * qui estime ce que le catalogue ne connaît pas —, et cet appel se faisait derrière un
+ * écran vide : jusqu'à une minute de noir, d'autant plus longue que le fournisseur était
+ * lent, puisque c'était le même. Ici, il attend sous l'indicateur qui attendait déjà la
+ * reconnaissance, et le même bouton l'annule.
+ *
+ * **Quatre gestes, dans cet ordre, et l'ordre compte.** La reconnaissance, la résolution,
+ * la photo, le dépôt. La photo est rangée *avant* le dépôt : l'écran de validation lit
+ * les deux, et les inverser lui ferait voir une proposition sans son image le temps
+ * d'une recomposition. Et rien n'est rangé tant que la résolution peut encore être
+ * annulée.
  *
  * **La source se déduit de l'entrée**, elle ne se demande pas. Une photo donne
  * `PHOTO_AI`, une phrase `TEXT_AI` ; laisser l'appelant la nommer aurait permis à un
@@ -35,32 +47,86 @@ import kotlinx.coroutines.delay
  */
 class AnalyseMeal(
     private val recognizer: FoodRecognizer,
-    private val pending: PendingRecognition,
+    private val pending: PendingProposal,
     private val stagePhoto: StageDishPhoto,
+    private val resolve: ResolveRecognition,
 ) {
     /**
-     * @param onBusy appelé quand le fournisseur s'est annoncé débordé et qu'une seconde
-     *   tentative part. L'écran s'en sert pour le dire — « service saturé, nouvelle
-     *   tentative » — et c'est la seule raison pour laquelle la relance est ici plutôt
-     *   que dans un intercepteur HTTP, où elle serait invisible ([D156][decisions]).
-     *
-     *   Vide par défaut : la barre du bas analyse sans écran d'attente à renseigner.
-     * @return l'issue telle que le port la rend. Le succès a déjà été déposé quand
-     *   elle revient ; l'appelant n'a plus qu'à céder la place.
+     * @param progress ce que l'écran qui attend doit pouvoir dire : une seconde tentative
+     *   qui part ([D156][decisions]), une estimation qui commence ([D176][decisions]), une
+     *   attente qui dépasse [SLOW_ANALYSIS_MILLIS] ([D177][decisions]). Muet par défaut.
+     * @return l'issue telle que le port la rend. Le succès a déjà été résolu et déposé
+     *   quand elle revient ; l'appelant n'a plus qu'à céder la place.
      */
-    suspend operator fun invoke(input: RecognitionInput, onBusy: suspend () -> Unit = {}): RecognitionOutcome {
-        val outcome = recognizer.recognizeRetryingWhenBusy(input, onBusy)
+    suspend operator fun invoke(
+        input: RecognitionInput,
+        progress: AnalysisProgress = AnalysisProgress.Silent,
+    ): RecognitionOutcome = coroutineScope {
+        // L'attente se surveille a cote de l'analyse et s'arrete avec elle, quelle que
+        // soit son issue : une annonce qui tomberait apres coup parlerait d'une attente
+        // deja finie (D177).
+        val watch = launch {
+            delay(SLOW_ANALYSIS_MILLIS)
+            progress.slow()
+        }
+        try {
+            analyse(input, progress)
+        } finally {
+            watch.cancel()
+        }
+    }
+
+    /** Les quatre gestes, dans leur ordre. */
+    private suspend fun analyse(input: RecognitionInput, progress: AnalysisProgress): RecognitionOutcome {
+        val outcome = recognizer.recognizeRetryingWhenBusy(input, progress)
         if (outcome !is RecognitionOutcome.Recognized) return outcome
+
+        val draft = resolve(outcome.recognition, input.source(), onEstimating = progress::estimating)
 
         // Une description seule ecarte la photo qui trainait : le depot n'a qu'un
         // emplacement, et l'ecran de validation le lit sans savoir laquelle des deux
         // analyses l'a rempli. L'echec de ce rangement n'annule pas l'analyse -- elle
         // est payee, et une image manquante se corrige a l'ecran suivant.
         runCatching { stagePhoto((input as? RecognitionInput.Photo)?.jpeg) }
-        pending.offer(outcome.recognition, input.source())
+        pending.offer(draft)
 
         return outcome
     }
+}
+
+/**
+ * Ce que l'analyse annonce à l'écran qui l'attend.
+ *
+ * **Une interface plutôt qu'un rappel par étape.** L'analyse a trois choses à dire en
+ * cours de route, et trois paramètres fonctionnels côte à côte se confondent à l'appel ;
+ * un objet qui les nomme ne se trompe pas de rôle. Chaque étape est muette par défaut :
+ * la barre du bas et les tests n'implémentent que ce qu'ils affichent.
+ *
+ * **Ce qui change est la raison d'attendre, pas le fait d'attendre** ([D156][decisions]) :
+ * l'écran garde son indicateur et change sa phrase.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+interface AnalysisProgress {
+    /** Le fournisseur s'est annoncé débordé, et une seconde tentative part ([D156][decisions]). */
+    suspend fun retrying() = Unit
+
+    /**
+     * Le modèle a répondu, et l'étape 4 part : il estime ce que le catalogue ne connaît
+     * pas ([D176][decisions]). Jamais appelé quand tout a été résolu — le cas courant.
+     */
+    suspend fun estimating() = Unit
+
+    /**
+     * L'analyse dure depuis [SLOW_ANALYSIS_MILLIS], et elle continue ([D177][decisions]).
+     *
+     * **Une fois par analyse**, et jamais après elle : la surveillance s'arrête avec
+     * l'issue, quelle qu'elle soit. L'écran y nomme qui fait attendre ; il n'arrête rien.
+     */
+    suspend fun slow() = Unit
+
+    /** Rien à dire. */
+    object Silent : AnalysisProgress
 }
 
 /**
@@ -81,9 +147,9 @@ class AnalyseMeal(
  * qu'au deuxième refus, l'information utile est *reviens plus tard*, pas *patiente
  * encore*.
  *
- * **Elle s'annonce** par [onBusy] : une attente qu'on n'explique pas se lit comme une
- * lenteur de l'application, alors que la cause est chez le fournisseur et que la dire
- * est la moitié de ce que [docs/05][ia] demande d'un message d'erreur.
+ * **Elle s'annonce** par [AnalysisProgress.retrying] : une attente qu'on n'explique pas
+ * se lit comme une lenteur de l'application, alors que la cause est chez le fournisseur
+ * et que la dire est la moitié de ce que [docs/05][ia] demande d'un message d'erreur.
  *
  * ### Ce que la relance ne coûte pas
  *
@@ -96,12 +162,12 @@ class AnalyseMeal(
  */
 private suspend fun FoodRecognizer.recognizeRetryingWhenBusy(
     input: RecognitionInput,
-    onBusy: suspend () -> Unit,
+    progress: AnalysisProgress,
 ): RecognitionOutcome {
     val first = recognize(input)
     if (!first.busy()) return first
 
-    onBusy()
+    progress.retrying()
     delay(BUSY_RETRY_DELAY_MILLIS)
     return recognize(input)
 }

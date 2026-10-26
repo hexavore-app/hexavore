@@ -7,8 +7,7 @@ import app.hexavore.core.testing.InMemoryFavoriteDishes
 import app.hexavore.core.testing.InMemoryFoodCatalog
 import app.hexavore.core.testing.InMemorySelectedDay
 import app.hexavore.core.testing.SequentialIdGenerator
-import app.hexavore.domain.ai.EstimationOutcome
-import app.hexavore.domain.ai.InMemoryPendingRecognition
+import app.hexavore.domain.ai.InMemoryPendingProposal
 import app.hexavore.domain.diary.EntrySource
 import app.hexavore.domain.food.Barcode
 import app.hexavore.domain.food.CustomFoodDraft
@@ -103,15 +102,7 @@ class ScannedFoodTest {
             favorites = GetFavoriteDraft(InMemoryFavoriteDishes(), catalogue, create, ids),
             create = create,
             foods = catalogue,
-            pending = InMemoryPendingRecognition(),
-            resolve = ResolveRecognition(
-                ResolveFoodLabel(catalogue, FRANCAIS),
-                CreateDraft(clock, ids, InMemorySelectedDay(clock.today())),
-                // Aucun repli : ces cas ne parlent pas de l'etape 4, et un estimateur
-                // qui repondrait remplirait des lignes qu'ils veulent vides.
-                estimate = { EstimationOutcome.Estimated(emptyList()) },
-                languages = FRANCAIS,
-            ),
+            pending = InMemoryPendingProposal(),
         )
     }
 

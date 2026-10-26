@@ -97,12 +97,16 @@ data class HomeActions(
      */
     val onOpenSettings: () -> Unit,
     /**
-     * Ouvre les réglages **d'IA**, pas le hub.
+     * Ouvre **le guide de la clé gratuite**, posé sur les réglages d'IA ([D178][decisions]).
      *
      * Une route à part parce que la destination est à part : quelqu'un qui appuie sur
      * l'appareil photo sans avoir de clé cherche l'endroit où en mettre une, pas la
      * liste des réglages. Le déposer sur le hub lui laisserait un choix de plus à faire
-     * alors qu'il en faisait déjà un.
+     * alors qu'il en faisait déjà un ; le déposer sur la liste des fournisseurs, un mot
+     * qu'il ne connaît pas. Le guide dit quoi faire, et le retour mène là où se colle la
+     * clé.
+     *
+     * [decisions]: docs/11-decisions.md
      */
     val onConfigureAi: () -> Unit,
     /**

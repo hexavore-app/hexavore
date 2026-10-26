@@ -15,7 +15,7 @@ import app.hexavore.core.testing.RecordedReports
 import app.hexavore.core.testing.SequentialIdGenerator
 import app.hexavore.domain.ai.EstimatedUnit
 import app.hexavore.domain.ai.EstimationOutcome
-import app.hexavore.domain.ai.InMemoryPendingRecognition
+import app.hexavore.domain.ai.InMemoryPendingProposal
 import app.hexavore.domain.ai.Recognition
 import app.hexavore.domain.ai.RecognizedItem
 import app.hexavore.domain.diary.Dish
@@ -30,6 +30,8 @@ import app.hexavore.domain.food.Food
 import app.hexavore.domain.food.FoodId
 import app.hexavore.domain.food.FoodServing
 import app.hexavore.domain.food.FoodSource
+import app.hexavore.domain.goal.Goal
+import app.hexavore.domain.goal.Goals
 import app.hexavore.domain.nutrition.Macro
 import app.hexavore.domain.nutrition.Macros
 import app.hexavore.domain.nutrition.NutrientValues
@@ -59,8 +61,11 @@ import app.hexavore.domain.usecase.UpdateFavoriteDish
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -68,6 +73,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withTimeout
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -412,6 +418,29 @@ class EntryViewModelTest {
         assertEquals(objectif.daily.kcal - 1100.0, impact.remainingKcal)
     }
 
+    /**
+     * Une journée qui ne se lit pas encore ne retient pas l'écran ([D181][decisions]).
+     *
+     * Elle se lisait après le brouillon, et l'écran restait vide jusqu'à ce qu'elle
+     * réponde : une demi-seconde de noir à chaque ouverture, avec ou sans IA. Le délai
+     * est en temps virtuel : sans la correction, l'écran ne s'ouvre jamais, et le test
+     * tombe au lieu d'attendre.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    @Test
+    fun `le brouillon parait sans attendre la journee`() = runTest(dispatcher) {
+        val journeeMuette = object : Goals by goals {
+            override fun observeGoalOn(date: LocalDate): Flow<Goal?> = flow { awaitCancellation() }
+        }
+        val viewModel = viewModel(objectifs = journeeMuette)
+
+        val ouvert = withTimeout(OUVERTURE_MILLIS) { viewModel.content() }
+
+        assertEquals(1, ouvert.form.lines.size)
+        assertNull(ouvert.impact)
+    }
+
     @Test
     fun `un echec d ecriture conserve la saisie`() = runTest(dispatcher) {
         val viewModel = viewModel()
@@ -446,7 +475,7 @@ class EntryViewModelTest {
         // depose, la route ne porte qu'un drapeau, et l'ecran recoit un brouillon
         // comme il en recoit depuis la tranche 2.
         runBlocking { catalogue.save(RIZ) }
-        pending.offer(Recognition(listOf(item("riz", 1.0), item("tofu fume", 80.0))), EntrySource.TEXT_AI)
+        deposer(item("riz", 1.0), item("tofu fume", 80.0))
 
         val state = viewModel(proposal = true).content()
 
@@ -461,7 +490,7 @@ class EntryViewModelTest {
     fun `une proposition deja reprise ne se rejoue pas`() = runTest(dispatcher) {
         // Revenir sur la validation par le bouton « retour » ne doit pas ressusciter
         // un plat qu'on vient d'enregistrer, ni le dedoubler.
-        pending.offer(Recognition(listOf(item("riz", 1.0))), EntrySource.TEXT_AI)
+        deposer(item("riz", 1.0))
         viewModel(proposal = true).content()
 
         val etat = viewModel(proposal = true).uiState
@@ -596,7 +625,7 @@ class EntryViewModelTest {
     fun `une proposition intacte se perdrait, elle ne se rejoue pas`() = runTest(dispatcher) {
         // Le cas qui a fait poser la question : un glissement depuis le bord emportait
         // ce qu'un modele venait de proposer, et la proposition est deja reprise.
-        pending.offer(Recognition(listOf(item("riz", 1.0))), EntrySource.TEXT_AI)
+        deposer(item("riz", 1.0))
 
         assertTrue(viewModel(proposal = true).content().unsaved)
     }
@@ -671,7 +700,7 @@ class EntryViewModelTest {
         // Le depot des propositions se vide a la premiere lecture : sans memoire, l'ecran
         // recree disait « plus disponible », et le repas paye etait perdu.
         runBlocking { catalogue.save(RIZ) }
-        pending.offer(Recognition(listOf(item("riz", 1.0), item("tofu fume", 80.0))), EntrySource.TEXT_AI)
+        deposer(item("riz", 1.0), item("tofu fume", 80.0))
         val handle = route(proposal = true)
         val avant = viewModel(handle = handle).content()
 
@@ -823,6 +852,7 @@ class EntryViewModelTest {
          * qu'Android fait en recréant l'écran après avoir tué le processus (D166).
          */
         handle: SavedStateHandle = route(dishId, favoriteId, scannedFoodId, proposal, editingFavorite),
+        objectifs: Goals = goals,
     ) = EntryViewModel(
         savedStateHandle = handle,
         composition = DraftComposition(
@@ -832,15 +862,6 @@ class EntryViewModelTest {
                 create = create,
                 foods = catalogue,
                 pending = pending,
-                resolve = ResolveRecognition(
-                    ResolveFoodLabel(catalogue, FixedLanguage()),
-                    create,
-                    // Aucun repli : ces cas ne parlent pas de l'etape 4, et un estimateur
-                    // qui repondrait remplirait des lignes qu'ils veulent vides.
-                    estimate = { EstimationOutcome.Estimated(emptyList()) },
-                    // Le francais : les libelles des decors de ce fichier le sont.
-                    languages = FixedLanguage(),
-                ),
             ),
             addFoodLine = AddFoodLine(catalogue, create),
             observeUnitSystem = ObserveUnitSystem(profils),
@@ -849,7 +870,7 @@ class EntryViewModelTest {
             chooseDishPhoto = ChooseDishPhoto(depot),
             keptDraftPhoto = KeptDraftPhoto(depot),
         ),
-        getDaySummary = GetDaySummary(diary, goals, clock),
+        getDaySummary = GetDaySummary(diary, objectifs, clock),
         saveDraft = SaveDraft(LogDish(diary, catalogue, favoris, clock, ids), UpdateDish(diary, ids)),
         favorites = DraftFavorites(
             saveFavoriteDish = SaveFavoriteDish(favoris, ids),
@@ -894,13 +915,37 @@ class EntryViewModelTest {
 
     private val favoris = InMemoryFavoriteDishes()
 
-    /** Le dépôt des propositions, partagé entre l'écran qui dépose et celui qui reprend. */
-    private val pending = InMemoryPendingRecognition()
+    /** Le dépôt des propositions, partagé entre l'analyse qui dépose et l'écran qui reprend. */
+    private val pending = InMemoryPendingProposal()
+
+    /**
+     * Ce que l'analyse aurait déposé : la reconnaissance, **déjà résolue** ([D176][decisions]).
+     *
+     * La résolution n'est plus l'affaire de cet écran ; la rejouer ici donne au décor le
+     * brouillon que l'application lui remettrait, sans qu'il ait d'estimateur à appeler.
+     *
+     * [decisions]: docs/11-decisions.md
+     */
+    private suspend fun deposer(vararg items: RecognizedItem) {
+        val resolution = ResolveRecognition(
+            ResolveFoodLabel(catalogue, FixedLanguage()),
+            create,
+            // Aucun repli : ces cas ne parlent pas de l'etape 4, et un estimateur
+            // qui repondrait remplirait des lignes qu'ils veulent vides.
+            estimate = { EstimationOutcome.Estimated(emptyList()) },
+            // Le francais : les libelles des decors de ce fichier le sont.
+            languages = FixedLanguage(),
+        )
+        pending.offer(resolution(Recognition(items.toList()), EntrySource.TEXT_AI))
+    }
 
     private fun item(label: String, quantity: Double) =
         RecognizedItem(label = label, quantity = quantity, unit = EstimatedUnit.G, confidence = 0.9f)
 
     private companion object {
+        /** Bien plus qu'il n'en faut en temps virtuel, où rien ne s'écoule seul. */
+        const val OUVERTURE_MILLIS = 1_000L
+
         val RIZ = Food(
             id = FoodId("f-riz"),
             source = FoodSource.CIQUAL,

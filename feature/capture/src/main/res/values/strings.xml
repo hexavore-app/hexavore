@@ -33,6 +33,9 @@
     <string name="analyse_submit">Analyse</string>
     <string name="analyse_running">Analysing…</string>
     <string name="analyse_running_busy">Service overloaded, trying again…</string>
+    <!-- The plate has been read; what we are waiting for is the values of what the
+         catalogue does not know. It used to be waited for behind a black screen (D176). -->
+    <string name="analyse_running_estimating">Estimating nutrition values…</string>
     <string name="analyse_cancel">Cancel</string>
     <string name="analyse_manual">Enter this meal by hand</string>
 

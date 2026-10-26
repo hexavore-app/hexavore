@@ -79,6 +79,27 @@ data object AboutDestination
 fun NavController.navigateToSettings() = navigate(SettingsDestination)
 
 /**
+ * « Obtenir ma clé » : le guide du fournisseur mis en avant, **posé sur les réglages d'IA**
+ * ([D178][decisions]).
+ *
+ * **Deux écrans empilés, et l'ordre compte.** On lit le guide, on part sur le site du
+ * fournisseur — le guide se referme alors de lui-même ([D157][decisions]) —, et c'est
+ * sur les réglages d'IA qu'on revient, la carte du fournisseur déjà dépliée : là où se
+ * colle la clé. Le guide seul ferait revenir à l'accueil, loin du bouton « Coller la
+ * clé » ; les réglages seuls laissaient quelqu'un qui ne sait pas ce qu'est une clé
+ * d'API devant six noms de fournisseurs et un champ vide.
+ *
+ * Sans fournisseur mis en avant — aucun ne l'est que `AiProviderTest` laisse passer —,
+ * les réglages seuls : la liste dit le reste.
+ *
+ * [decisions]: docs/11-decisions.md
+ */
+fun NavController.navigateToKeyGuide() {
+    navigate(AiSettingsDestination)
+    AiProvider.entries.firstOrNull { it.recommended }?.let { navigate(AiKeyRetrievalDestination(it.name)) }
+}
+
+/**
  * Déclare les écrans de réglages dans un graphe.
  *
  * Ensemble parce qu'ils partagent une sortie et une seule : **le retour rend l'écran

@@ -8,6 +8,7 @@ import app.hexavore.domain.ai.ApiKey
 import app.hexavore.domain.ai.ProviderCredentials
 import app.hexavore.domain.food.OffAccount
 import app.hexavore.domain.notice.Notice
+import app.hexavore.domain.opening.OpeningRecord
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -63,8 +64,11 @@ class ErasablePreferencesTest {
     // l'utilisateur, donc le meme endroit a vider.
     private val reminders = StoredReminderSettings(noticeFile, dispatchers)
 
+    // Le registre des ouvertures aussi, et pour la meme raison (D179).
+    private val openings = StoredOpeningLedger(noticeFile, dispatchers)
+
     private val erasable = ErasablePreferences(
-        stores = FlowBackedStores(credentials, contribution, adjustment, notices, deep, reminders),
+        stores = FlowBackedStores(credentials, contribution, adjustment, notices, deep, reminders, openings),
         files = listOf(aiFile, adjustmentFile, contributionFile, noticeFile),
         dispatchers = dispatchers,
     )
@@ -110,6 +114,19 @@ class ErasablePreferencesTest {
         erasable.erase()
 
         assertEquals(false, consent.accepted())
+    }
+
+    @Test
+    fun `les astuces se rallument et le registre des ouvertures repart a zero`() = runTest {
+        // Une installation neuve recommence au debut : astuces comprises, et la demande
+        // d'avis attend de nouveau sa semaine (D179).
+        openings.setEnabled(false)
+        openings.write(OpeningRecord(openings = 12, ratingClosed = true))
+
+        erasable.erase()
+
+        assertEquals(true, openings.observe().first())
+        assertEquals(OpeningRecord(), openings.read())
     }
 
     @Test

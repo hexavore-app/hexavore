@@ -1,6 +1,6 @@
 # Politique de confidentialité
 
-*Dernière mise à jour : 16 octobre 2026*
+*Dernière mise à jour : 25 octobre 2026*
 
 Hexavore est une application Android de suivi alimentaire, libre et gratuite. Cette page dit quelles données l'application manipule, où elles vont, et comment les effacer.
 
@@ -27,7 +27,7 @@ Pour toute question sur cette politique : [contact@hexavore.app](mailto:contact@
 - **Votre journal** : plats, aliments, quantités, valeurs nutritionnelles, heure de saisie.
 - **Les photos de vos plats**, quand vous validez un repas scanné ou analysé, ou quand vous en ajoutez une vous-même à un plat. Elles restent sur le téléphone et ne partent nulle part. Vous pouvez retirer celle d'un plat, cesser d'en garder, ou les effacer toutes : **Réglages → Photos des plats**.
 - **Vos aliments personnels, vos favoris**, et les fiches Open Food Facts déjà consultées.
-- **Vos réglages** : clés d'API des fournisseurs d'IA, préférences d'affichage.
+- **Vos réglages** : clés d'API des fournisseurs d'IA, préférences d'affichage, et de quoi espacer les astuces et la demande d'avis qui paraissent à l'ouverture : un nombre d'ouvertures, les astuces déjà vues, ce que vous avez répondu.
 
 Ce sont des informations de santé. Elles ne quittent pas le téléphone, hors des cas décrits plus bas. La sauvegarde automatique d'Android est désactivée pour Hexavore : elles ne partent pas non plus vers votre compte Google sans que vous le sachiez.
 
