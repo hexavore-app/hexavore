@@ -52,7 +52,7 @@ Une photo de l'assiette, et l'IA fait les comptes. Gratuit, sans pub ni compte.
 ```
 Notez ce que vous mangez en quelques secondes : prenez votre assiette en photo, ou dites simplement ce que vous avez mangé, et Hexavore fait les comptes.
 
-Hexavore est gratuite, sans publicité, sans abonnement et sans compte à créer. Elle suit pour vous six repères à la fois : calories, protéines, glucides, sucres, lipides et fibres.
+Hexavore est gratuit, sans publicité, sans abonnement et sans compte à créer. Il suit pour vous six repères à la fois : calories, protéines, glucides, sucres, lipides et fibres.
 
 UNE IA GRATUITE ET ILLIMITÉE*
 
@@ -206,6 +206,26 @@ prises en `en-GB` : la semaine y commence le lundi, comme en français.
 La règle *Contenus et services de santé* de Google Play demande à toute application de santé qui n'est pas un dispositif médical **un avertissement clair dans sa description** : elle n'est pas un dispositif médical, et elle ne diagnostique, ne traite, ne guérit ni ne prévient aucune maladie. Elle demande aussi de **rappeler de consulter un professionnel de santé** pour un avis, un diagnostic ou un traitement. Les applications de suivi nutritionnel y sont nommées. Les deux phrases closent donc les deux descriptions, et ce sont, mot pour mot, celles que l'application fait lire à l'accueil et garde dans « À propos » (`ds_medical_disclaimer`) : deux textes d'une même promesse finiraient par en dire deux ([D168](../../docs/11-decisions.md)).
 
 La même règle veut qu'une application qui se sert d'un capteur de l'appareil, la caméra par exemple, le dise dans sa description : c'est la ligne « Le scan et la photo demandent un téléphone équipé d'un appareil photo ».
+
+---
+
+## Notes de version 1.1.1 (500 max)
+
+Trois textes français corrigés : Hexavore s'y accorde au masculin
+([D182](../../docs/11-decisions.md)). Rien ne change en anglais, d'où une note sans
+détail. fr-CA reprend fr-FR, en-US reprend en-GB, mot pour mot.
+
+### fr-FR et fr-CA
+
+```
+Quelques textes corrigés.
+```
+
+### en-GB et en-US
+
+```
+Minor fixes.
+```
 
 ---
 
