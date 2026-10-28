@@ -131,7 +131,7 @@
          qui ne sait pas ce qu'est une clé d'API. Le bouton ouvre le guide de la clé
          Gemini, posé sur la section d'IA : on y revient pour la coller. -->
     <string name="home_ai_title">Activez l\'IA, gratuitement</string>
-    <string name="home_ai_explanation">Hexavore est gratuite et n\'a pas de serveur : pour lire vos photos et vos phrases, elle s\'appuie sur Gemini, l\'IA de Google, avec votre propre compte Google.\n\nIl vous suffit d\'y récupérer une clé, un code personnel qui ouvre cet accès, puis de la coller ici. C\'est gratuit, sans abonnement ni carte bancaire, et cela prend deux minutes, une seule fois.</string>
+    <string name="home_ai_explanation">Hexavore est gratuit et n\'a pas de serveur : pour lire vos photos et vos phrases, il s\'appuie sur Gemini, l\'IA de Google, avec votre propre compte Google.\n\nIl vous suffit d\'y récupérer une clé, un code personnel qui ouvre cet accès, puis de la coller ici. C\'est gratuit, sans abonnement ni carte bancaire, et cela prend deux minutes, une seule fois.</string>
     <string name="home_ai_configure">Obtenir ma clé</string>
     <string name="home_ai_later">Plus tard</string>
 
@@ -262,7 +262,7 @@
     <!-- La première fois qu'on parle de clé, et la plus importante (D178) : pourquoi un
          compte, ce qu'est une clé, ce que ça coûte. -->
     <string name="tour_ai_title">Une IA gratuite, avec votre compte Google</string>
-    <string name="tour_ai_body">Hexavore n\'a ni serveur ni abonnement : pour la phrase et la photo, elle s\'appuie sur Gemini, l\'IA de Google, avec votre propre compte. Il suffit d\'y récupérer une clé, un code personnel à coller ici : c\'est gratuit, sans carte bancaire, et cela prend deux minutes, une seule fois.</string>
+    <string name="tour_ai_body">Hexavore n\'a ni serveur ni abonnement : pour la phrase et la photo, il s\'appuie sur Gemini, l\'IA de Google, avec votre propre compte. Il suffit d\'y récupérer une clé, un code personnel à coller ici : c\'est gratuit, sans carte bancaire, et cela prend deux minutes, une seule fois.</string>
     <string name="tour_degraded_title">Sans clé, il manque deux gestes</string>
     <string name="tour_degraded_body">Le champ et l\'appareil photo restent en rouge : tout le reste fonctionne, et vous pourrez poser une clé quand vous voudrez depuis les réglages. Rien n\'est perdu entre-temps.</string>
     <string name="tour_next">Suivant</string>
@@ -327,7 +327,7 @@
          contraire aux consignes de Google. Le visage triste est celui que l'auteur a
          demandé, pour dire que « ne plus demander » se respecte sans s'en réjouir. -->
     <string name="opening_rating_title">Votre avis compte beaucoup</string>
-    <string name="opening_rating_body">Hexavore est gratuite et sans publicité : une note sur le Play Store est ce qui nous aide le plus à nous faire connaître. Combien d\'étoiles lui donneriez-vous ?</string>
+    <string name="opening_rating_body">Hexavore est gratuit et sans publicité : une note sur le Play Store est ce qui nous aide le plus à nous faire connaître. Combien d\'étoiles lui donneriez-vous ?</string>
     <string name="opening_rating_hint">Touchez une étoile : la fiche d\'Hexavore s\'ouvre sur le Play Store, pour y laisser votre note.</string>
     <string name="opening_rating_already">J\'ai déjà noté</string>
     <string name="opening_rating_never">Ne plus demander 😢</string>

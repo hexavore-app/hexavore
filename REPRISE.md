@@ -1,4 +1,4 @@
-# Reprise — la 1.1.0, après D181
+# Reprise — la 1.1.1, après D182
 
 Ce fichier dit **où en est le travail et comment le reprendre**, sans rien supposer de
 la conversation qui l'a produit. Il se supprime quand ses chantiers sont faits : ce
@@ -13,8 +13,9 @@ qui doit durer vit dans `docs/`, et les décisions dans `docs/11-decisions.md`.
   La pull request #102 qui la porte a été fusionnée le même jour : `main` la contient.
 - **Le site** : hexavore-site#3 et #4 fusionnées le 25 octobre ; `hexavore.app` dit
   « Disponible sur Google Play » et mène à la fiche, en français et en anglais.
-- **La branche `feat/1-1-0-l-attente-la-cle-et-les-avis`**, une pull request vers `main`,
-  porte la 1.1.0 (`versionCode 11`), tirée des retours de l'auteur du 25 octobre :
+- **La 1.1.0** (`versionCode 11`) est fusionnée dans `main` le 26 octobre 2026
+  (hexavore#103), et l'auteur en a téléversé le bundle dans la Console le même jour. Elle
+  porte les retours de l'auteur du 25 octobre :
   - **D176** — une seule attente : l'estimation de ce que le catalogue ne connaît pas se
     fait pendant l'analyse, et l'écran de validation ne passe plus par le noir ;
   - **D177** — passé dix secondes, une note nomme l'IA qui fait attendre ;
@@ -36,7 +37,16 @@ qui doit durer vit dans `docs/`, et les décisions dans `docs/11-decisions.md`.
   sont refaites (§ 3). Le bundle signé construit sur la branche passe le contrôle
   `dexdump` du § 3 : les trois recherches ne rendent rien. **Reste** : l'œil de l'auteur
   sur un téléphone (§ 5), et le collage dans la Console (§ 3).
-- **Site** : rien en attente, § 4.
+- **La branche `fix/1-1-1-hexavore-au-masculin`**, une pull request vers `main`, porte la
+  1.1.1 (`versionCode 12`) : **D182**, Hexavore s'accorde au masculin — trois textes
+  français de l'application, la description française de la fiche, et
+  `HexavoreGenderTest` qui garde la règle. Campagne de défaite 6/6. Le code 11 était déjà
+  téléversé : la correction ne pouvait pas y entrer. Contrôle complet vert le 28 octobre
+  2026 : **2 763 cas exécutés**, aucun échec ; le bundle signé (code 12) passe le
+  `dexdump`. Un premier passage était tombé sur un `NoClassDefFoundError` passager dans
+  `HomeViewModelTest`, que le module relancé seul, puis le contrôle entier, n'ont pas
+  reproduit.
+- **Site** : hexavore-site#5 en attente, § 4.
 
 ## 2. Règles de travail sur ce dépôt (à relire avant de toucher à quoi que ce soit)
 
@@ -68,14 +78,15 @@ qui doit durer vit dans `docs/`, et les décisions dans `docs/11-decisions.md`.
   saboter la correction, vérifier qu'un cas tombe, défaire (voir § 7).
 - Aucun pronom pour l'auteur, Charly Flu, dans les textes.
 
-## 3. Publier la 1.1.0
+## 3. Publier la 1.1.0, puis la 1.1.1
 
 Dans l'ordre. Les textes à coller sont dans
 [`tooling/fiche/fiche-play-store.md`](tooling/fiche/fiche-play-store.md).
 
-1. **Fusionner la pull request** une fois la CI verte. La politique de confidentialité
-   change avec elle ([D179](docs/11-decisions.md)) : elle se republie seule sur le site à
-   la fusion. Vérifier ensuite que `hexavore.app/confidentialite` dit « 25 octobre 2026 ».
+1. ~~**Fusionner la pull request** une fois la CI verte.~~ **Fait le 26 octobre** : #103
+   fusionnée, et la politique republiée seule ([D179](docs/11-decisions.md)) — l'artefact
+   déployé dit « 25 octobre 2026 ». `hexavore.app` ne répondait pas depuis le poste de
+   travail (connexion coupée) : un coup d'œil depuis un autre réseau le confirmera.
 2. **Construire le bundle signé** depuis `main` : `gradlew.bat :app:bundleRelease`, avec
    la clé de téléversement de la machine de l'auteur. Le bundle sort non signé sans elle.
 3. **Vérifier ce que le Play Store relève, avant de téléverser** ([D170](docs/11-decisions.md)) :
@@ -92,7 +103,9 @@ Dans l'ordre. Les textes à coller sont dans
 
 4. **Fiche principale, dans les deux langues** : la brève description **et** la
    description complète sont réécrites ([D180](docs/11-decisions.md)). Les recoller toutes
-   les deux ; le nom de l'application ne change pas.
+   les deux ; le nom de l'application ne change pas. **La description française a encore
+   changé avec D182** (« Hexavore est gratuit… Il suit pour vous… ») : coller celle de
+   la branche 1.1.1. La fiche ne dépend pas du bundle, elle se corrige tout de suite.
 5. **Les captures** : les seize montages sont faits, dans `tooling/fiche/out/fr/` et
    `out/en/` (les précédents rangés dans `out/1.0.0/`). La 4 dit « Tout est modifiable »,
    la 6 montre l'écran d'analyse et porte un renvoi en pied d'image ; les six autres sont
@@ -103,12 +116,20 @@ Dans l'ordre. Les textes à coller sont dans
 7. **Le formulaire Data Safety ne change pas** : le registre des ouvertures reste sur le
    téléphone, et la fiche du Play Store ne s'ouvre que sous le doigt de l'utilisateur.
 
+**La 1.1.1**, une fois sa pull request fusionnée : bundle et `dexdump` comme aux étapes 2
+et 3, code 12. Deux chemins. Si la release 1.1.0 n'est pas encore envoyée à l'examen, y
+remplacer le bundle 11 par le 12 et garder les notes 1.1.0 : le 11 reste consommé, sans
+jamais être publié. Sinon, une release de plus, avec les **notes de version 1.1.1** de la
+fiche.
+
 ## 4. Le site
 
-Rien en attente. hexavore-site#3 et #4 ont été fusionnées le 25 octobre 2026, et la
-publication est passée : l'accueil dit « Disponible sur Google Play, pour Android 8 et
-plus », et son premier bouton mène à la fiche, en français comme en anglais. La
-politique de confidentialité s'y republiera seule à la fusion de la 1.1.0.
+hexavore-site#3 et #4 ont été fusionnées le 25 octobre 2026 : l'accueil dit
+« Disponible sur Google Play, pour Android 8 et plus », et son premier bouton mène à la
+fiche, en français comme en anglais. La politique s'est republiée seule à la fusion de
+la 1.1.0, le 26 octobre. **En attente** : hexavore-site#5, qui accorde Hexavore au
+masculin dans les titres de l'accueil, « Ce qu'il fait » et « Ce qu'il ne fait pas »
+(D182).
 
 ## 5. Vérifications à l'émulateur qui restent dues
 

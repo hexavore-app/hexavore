@@ -46,4 +46,14 @@ tasks.withType<Test>().configureEach {
     inputs.file(layout.projectDirectory.file("../../tooling/fiche/fiche-play-store.md"))
         .withPropertyName("fiche")
         .withPathSensitivity(PathSensitivity.NONE)
+    // `HexavoreGenderTest` relit tous les textes francais du depot, et la politique (D182).
+    inputs.files(
+        fileTree(rootDir) {
+            include("**/src/main/res/values-fr/strings.xml")
+            exclude("**/build/**")
+        },
+    ).withPropertyName("textesFrancais").withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.file(layout.projectDirectory.file("../../confidentialite/fr.md"))
+        .withPropertyName("politique")
+        .withPathSensitivity(PathSensitivity.NONE)
 }
