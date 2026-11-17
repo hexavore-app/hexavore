@@ -71,14 +71,14 @@
     <!-- The camera refused for good (D162): Android no longer asks, and the button did
          nothing. The sentence says where to allow it, and names the gallery, which works
          without any permission. -->
-    <string name="ds_camera_refused_title">The camera is not allowed</string>
-    <string name="ds_camera_refused_body">Android will not ask again: the camera can be allowed in Hexavore\'s settings, under permissions. Meanwhile, a photo from the gallery works too.</string>
+    <string name="ds_camera_refused_title">No camera access</string>
+    <string name="ds_camera_refused_body">Android won\'t ask again. You can allow it in Hexavore\'s settings, under Permissions. Meanwhile, a photo from your gallery works too.</string>
     <string name="ds_camera_refused_settings">Open settings</string>
     <string name="ds_camera_refused_close">Close</string>
 
     <!-- Under a whole-number field, once a decimal separator has been refused (D172): the
          keyboard offers it, and swallowing it in silence turned "8.5" into "85". -->
-    <string name="ds_whole_number_hint">Whole numbers only: the decimal separator is ignored. Round the value — 8.5 becomes 9.</string>
+    <string name="ds_whole_number_hint">Whole numbers only, no decimals. Round it: 8.5 becomes 9.</string>
 
     <!-- The body's bounds (D160), in figures and in the chosen system: "between 37 and
          245 kg" can be fixed, "invalid value" does not say which way to go. -->
@@ -89,9 +89,9 @@
          underweight threshold (D160). -->
     <string name="ds_target_not_below">To lose weight, aim below your current weight (%1$s).</string>
     <string name="ds_target_not_above">To gain weight, aim above your current weight (%1$s).</string>
-    <string name="ds_target_below_lean">For %1$s, aim for at least %2$s: below that, your BMI would drop under %3$s, the threshold for underweight.</string>
+    <string name="ds_target_below_lean">For %1$s, aim for at least %2$s: below that, your BMI would drop under %3$s, the underweight threshold.</string>
     <string name="ds_target_above_range">For %1$s, aim for at most %2$s.</string>
-    <string name="ds_target_no_room">For %1$s, the underweight threshold (BMI %3$s) is %2$s, and your weight is not above it: losing weight is not offered.</string>
+    <string name="ds_target_no_room">For %1$s, the underweight threshold (BMI %3$s) is %2$s, and you\'re not above it: no weight loss offered.</string>
     <string name="ds_value_cm">%1$s cm</string>
     <string name="ds_value_kg">%1$s kg</string>
     <string name="ds_value_pound">%1$s lb</string>
@@ -105,14 +105,14 @@
     <string name="ds_source_favorite">Favourite</string>
     <!-- The dashed outline and the wave are invisible to a screen reader: this sentence
          carries the information in their place. -->
-    <string name="ds_source_proposed_a11y">%1$s, suggested content, worth checking</string>
+    <string name="ds_source_proposed_a11y">%1$s, suggested, worth checking</string>
 
     <!-- What an AI outcome tells the user. Here rather than in a screen: docs/02 calls
          for the same messages in both capture dialogs, and the "Test" button in the
          settings asks the same question of the same port. Every sentence says what
          happened and what can be done about it, never a code. -->
-    <string name="ds_ai_error_invalid_key">Your key was refused. Check it, then test again.</string>
-    <string name="ds_ai_error_quota">This account is out of quota or credit.</string>
+    <string name="ds_ai_error_invalid_key">Your key was rejected. Check it and test again.</string>
+    <string name="ds_ai_error_quota">This account is out of quota or credits.</string>
     <!-- What the screen we come back to announces, home as well as the hub (D157). The
          sentence says what is now possible: that is the only thing this key was for. -->
     <!-- The copy calendar, shared by the entry screen and home (D157). -->
@@ -120,21 +120,21 @@
     <string name="ds_copy_explain">The original stays where it is.</string>
     <string name="ds_copy_confirm">Copy</string>
     <string name="ds_copy_cancel">Cancel</string>
-    <string name="ds_ai_key_accepted">Key validated. Photo and text analysis are available.</string>
-    <string name="ds_ai_key_accepted_text_only">Key validated. This model does not read images: only text mode will work.</string>
-    <string name="ds_ai_error_busy">The service is overloaded right now. Nothing is wrong with your key: try again in a moment.</string>
-    <string name="ds_ai_error_network">No connection. The call never left.</string>
-    <string name="ds_ai_error_timeout">The provider did not answer in time.</string>
-    <string name="ds_ai_error_vision">This model does not read images.</string>
-    <string name="ds_ai_error_not_configured">No provider is configured.</string>
-    <string name="ds_ai_error_unreadable">The provider answered something unexpected.</string>
-    <string name="ds_ai_error_server">The service is unavailable. Try again later.</string>
+    <string name="ds_ai_key_accepted">Key validated! Photos and text are good to go.</string>
+    <string name="ds_ai_key_accepted_text_only">Key validated. This model can\'t read images: only text will work.</string>
+    <string name="ds_ai_error_busy">The service is swamped. Your key is fine: try again in a moment.</string>
+    <string name="ds_ai_error_network">No connection, nothing was sent.</string>
+    <string name="ds_ai_error_timeout">The provider didn\'t answer in time.</string>
+    <string name="ds_ai_error_vision">This model can\'t read images.</string>
+    <string name="ds_ai_error_not_configured">No provider set up.</string>
+    <string name="ds_ai_error_unreadable">The provider sent back something unexpected.</string>
+    <string name="ds_ai_error_server">The service is down. Try again later.</string>
 
     <!-- The note that appears when the AI takes more than ten seconds (D177). It answers
          "is it working?" and says there is nothing to do. "The price of free" is only said
          to a free tier: a paid key is not given a lower priority. -->
-    <string name="ds_ai_slow_free">%1$s is taking longer than usual. It happens: on the free tier, your requests are not prioritised; that\'s the price of free. The analysis carries on.</string>
-    <string name="ds_ai_slow_paid">%1$s is taking longer than usual: the service is probably very busy right now. The analysis carries on.</string>
+    <string name="ds_ai_slow_free">%1$s is taking its time. It happens on the free tier: your requests aren\'t prioritised. The analysis carries on.</string>
+    <string name="ds_ai_slow_paid">%1$s is taking its time, the service must be busy. The analysis carries on.</string>
     <string name="ds_ai_slow_unnamed">The AI</string>
 
     <!-- The weekly adjustment card. Three outcomes, and nothing is ever applied without
@@ -143,7 +143,7 @@
     <!-- The pace is written signed rather than told: "you are losing 0.2 kg a week,
          against 0.5 aimed for" becomes false as soon as the two paces point in
          different directions, and then reads backwards. -->
-    <string name="ds_adjustment_body">Over the last three weeks: %1$s. The target was aiming for %2$s.</string>
+    <string name="ds_adjustment_body">Over the last three weeks: %1$s. The target was %2$s.</string>
     <string name="ds_adjustment_pace_loss">−%1$.1f kg a week</string>
     <string name="ds_adjustment_pace_gain">+%1$.1f kg a week</string>
     <!-- The same paces in pounds, for the imperial system (D162): the card spoke in
@@ -156,7 +156,7 @@
     <string name="ds_adjustment_reduce">Lower the target by %1$d kcal?</string>
     <string name="ds_adjustment_raise">Raise the target by %1$d kcal?</string>
     <string name="ds_adjustment_accept">Accept</string>
-    <string name="ds_adjustment_ignore">Ignore</string>
+    <string name="ds_adjustment_ignore">Not now</string>
     <string name="ds_adjustment_stop">Stop suggesting</string>
 
     <!-- The medical disclaimer, written once. The welcome screen has it read before the

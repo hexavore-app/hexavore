@@ -3,16 +3,16 @@
 
     <!-- 1. Welcome. The warning has to be accepted to go on: it is the only blocking
          step of the five. -->
-    <string name="onboarding_welcome_title">Welcome to Hexavore</string>
+    <string name="onboarding_welcome_title">Hi, welcome!</string>
     <!-- D56: the "Skip" is gone, and this sentence was still promising it. A target
          worked out from default values is someone else's target, shown with the
          authority of a personal figure. -->
-    <string name="onboarding_welcome_body">Six counters, worked out from your answers. Five questions, one minute.</string>
+    <string name="onboarding_welcome_body">Five questions, one minute, and we\'ll set up your six counters.</string>
     <!-- The warning itself lives in the design system (ds_medical_disclaimer): "About"
          shows it too, and the two must not drift apart (D161). -->
     <!-- The checkbox label, one line long: the paragraph above is the information, this
          is the agreement (D158). -->
-    <string name="onboarding_disclaimer_accept">I have read and understood</string>
+    <string name="onboarding_disclaimer_accept">I\'ve read and understood</string>
 
     <!-- 2. You. Nothing is prefilled: a plausible value on display would be accepted by
          inattention, and the target would be someone else's. -->
@@ -23,8 +23,8 @@
     <string name="onboarding_sex_label">Sex</string>
     <string name="onboarding_sex_male">Male</string>
     <string name="onboarding_sex_female">Female</string>
-    <string name="onboarding_sex_unspecified">I would rather not say</string>
-    <string name="onboarding_sex_unspecified_note">We will use a middle estimate, which you can adjust afterwards.</string>
+    <string name="onboarding_sex_unspecified">I\'d rather not say</string>
+    <string name="onboarding_sex_unspecified_note">We\'ll use an in-between estimate. You can tweak it later.</string>
     <!-- No unit: the design system field adds it, and it is the one that will change it
          the day onboarding speaks imperial (D160). -->
     <string name="onboarding_height">Height</string>
@@ -35,16 +35,16 @@
          qu'un cadre qui court, et les deux se reconnaissaient dans « modere ». -->
     <!-- Dit une fois, a l'endroit ou l'on commence a saisir : ce qu'on demande ici
          ne part nulle part, et personne n'a a le deviner. -->
-    <string name="onboarding_privacy">Everything you enter stays on this phone. No account, no server, nothing sent to anyone.</string>
+    <string name="onboarding_privacy">Everything you enter stays on your phone. No account, no server, nothing sent anywhere.</string>
 
     <string name="onboarding_work_title">Your working day</string>
-    <string name="onboarding_work_body">Eight hours a day, five days a week: this is the floor, and it cannot be guessed from a number of workouts.</string>
+    <string name="onboarding_work_body">What you do most of the time, on weekdays.</string>
     <string name="onboarding_work_desk">Sitting most of the day: office, driving, studying</string>
-    <string name="onboarding_work_on_feet">On your feet, no heavy loads: shop, service, teaching</string>
-    <string name="onboarding_work_physical">Sustained physical effort: building, handling, farming</string>
+    <string name="onboarding_work_on_feet">On your feet, no heavy lifting: retail, service, teaching</string>
+    <string name="onboarding_work_physical">Physical work: building, warehouse, farming</string>
 
     <string name="onboarding_sessions_title">And your sport</string>
-    <string name="onboarding_sessions_body">Sessions per week, whatever they are. Counted here once and for all, never added day by day.</string>
+    <string name="onboarding_sessions_body">How many workouts a week, any kind. Tell us once, no need to log them every day.</string>
     <string name="onboarding_sessions_max">%1$d and more</string>
 
     <!-- 4. Goal. -->
@@ -61,19 +61,19 @@
     <string name="onboarding_horizon_three">In 3 months</string>
     <string name="onboarding_horizon_six">In 6 months</string>
     <string name="onboarding_horizon_twelve">In 12 months</string>
-    <string name="onboarding_horizon_reachable">At a safe pace: %1$s</string>
+    <string name="onboarding_horizon_reachable">At a healthy pace: %1$s</string>
     <!-- The real pace, after the safety limits, not the one you hoped for. -->
-    <string name="onboarding_pace">That is about %1$.2f kg a week.</string>
+    <string name="onboarding_pace">About %1$.2f kg a week.</string>
     <!-- The estimated expenditure is already below the floor: no deficit fits, and the
          preview used to say "0.00 kg a week" without saying why (D160). -->
-    <string name="onboarding_no_deficit">Your estimated expenditure (%1$d kcal) is already below the recommended minimum of %2$d kcal: no deficit is offered, and your target stays at your expenditure. A health professional can advise you.</string>
+    <string name="onboarding_no_deficit">Your estimated burn (%1$d kcal) is already below the recommended minimum of %2$d kcal, so no deficit: your target stays at your burn. Have a chat with a health professional.</string>
 
     <!-- 5. Your targets. The application never refuses: it explains and suggests. -->
     <string name="onboarding_result_title">Your targets</string>
-    <string name="onboarding_result_unavailable">Answer at least the weight question to see your targets.</string>
-    <string name="onboarding_capped">That pace would go past the safety limits. At a safe pace, you would reach your target weight around %1$s.</string>
+    <string name="onboarding_result_unavailable">Enter at least your weight to see your targets.</string>
+    <string name="onboarding_capped">Too fast for your health. At a healthy pace, you\'d reach your target weight around %1$s.</string>
     <string name="onboarding_use_reachable_date">Use this date</string>
-    <string name="onboarding_carbs_low">At this calorie level there is little room left for carbs once protein, fat and fibre are covered. A higher target would be easier to hold.</string>
+    <string name="onboarding_carbs_low">At this calorie level there\'s little room left for carbs. A slightly higher target would be easier to stick to.</string>
 
     <string name="onboarding_goal_calories">Calories: %1$d kcal</string>
     <string name="onboarding_goal_protein">Protein: %1$d g</string>
@@ -83,28 +83,28 @@
     <string name="onboarding_goal_fat">Fat: %1$d g max</string>
 
     <!-- One sentence per counter: a figure without a reason is a figure you ignore. -->
-    <string name="onboarding_why_calories">Your estimated expenditure, adjusted to your deadline.</string>
-    <string name="onboarding_why_protein">Worked out on your target weight, to preserve lean mass.</string>
+    <string name="onboarding_why_calories">Your estimated burn, adjusted to your deadline.</string>
+    <string name="onboarding_why_protein">Based on your target weight, to keep your muscle.</string>
     <!-- The same, for maintenance (D162): it has neither deadline nor target weight, and
          its protein is worked out on the current weight. -->
-    <string name="onboarding_why_calories_maintain">Your estimated expenditure: enough to hold your weight.</string>
-    <string name="onboarding_why_protein_maintain">Worked out on your current weight, to preserve lean mass.</string>
-    <string name="onboarding_why_fiber">14 g per 1,000 kcal, never cut back in favour of carbs.</string>
-    <string name="onboarding_why_carbs">What is left of the budget, once fibre is deducted.</string>
-    <string name="onboarding_why_sugars">The WHO ceiling, applied to total sugars, so stricter.</string>
-    <string name="onboarding_why_fat">A limit not to be exceeded. The minimum your body needs is already covered.</string>
+    <string name="onboarding_why_calories_maintain">Your estimated burn: enough to hold your weight.</string>
+    <string name="onboarding_why_protein_maintain">Based on your current weight, to keep your muscle.</string>
+    <string name="onboarding_why_fiber">14 g per 1,000 kcal, never traded for carbs.</string>
+    <string name="onboarding_why_carbs">What\'s left of the budget, minus fibre.</string>
+    <string name="onboarding_why_sugars">The WHO ceiling, applied to all sugars: a bit stricter.</string>
+    <string name="onboarding_why_fat">A limit. The minimum your body needs is already covered.</string>
 
     <!-- What a dimmed button answers when tapped. It says what is missing, not that
          something is missing: "complete the form" helps nobody. -->
-    <string name="onboarding_blocked_disclaimer">Accept the warning to continue.</string>
-    <string name="onboarding_blocked_identity">Fill in your date of birth, your sex, your height and your weight.</string>
-    <string name="onboarding_blocked_age">Hexavore works out its targets for people aged %1$d to %2$d.</string>
-    <string name="onboarding_blocked_activity">Choose the level that best describes your weeks.</string>
-    <string name="onboarding_blocked_objective">Choose a goal, then a target weight and a deadline.</string>
+    <string name="onboarding_blocked_disclaimer">Tick the warning to continue.</string>
+    <string name="onboarding_blocked_identity">Your date of birth, sex, height or weight is missing.</string>
+    <string name="onboarding_blocked_age">Hexavore works out targets for ages %1$d to %2$d.</string>
+    <string name="onboarding_blocked_activity">Pick what\'s closest to your week.</string>
+    <string name="onboarding_blocked_objective">Pick a goal, a target weight and a deadline.</string>
 
     <string name="onboarding_next">Continue</string>
     <string name="onboarding_back">Back</string>
     <string name="onboarding_start">Let\'s go</string>
-    <string name="onboarding_save_failed">Saving did not go through. Your answers are kept exactly as they are.</string>
+    <string name="onboarding_save_failed">Saving failed. Your answers are still here.</string>
 
 </resources>

@@ -16,7 +16,7 @@
 
     <!-- The empty frame says what is expected of it. This is the advice docs/02 wanted
          overlaid on the camera preview; it reads better before you press. -->
-    <string name="analyse_photo_hint">Photograph the whole plate, from above if you can. Or describe your meal below.</string>
+    <string name="analyse_photo_hint">Snap the whole plate, from above if you can. Or describe your meal below.</string>
     <string name="analyse_shoot">Take a photo</string>
     <string name="analyse_pick">Choose an image</string>
     <string name="analyse_photo_remove">Remove the photo</string>
@@ -26,26 +26,26 @@
          A field asking "describe your meal" under a photo would make you type
          everything again. -->
     <string name="analyse_describe_label">What you ate</string>
-    <string name="analyse_describe_example">For example: two scrambled eggs, a slice of wholemeal bread, a glass of orange juice</string>
+    <string name="analyse_describe_example">E.g. two scrambled eggs, a slice of wholemeal bread, a glass of orange juice</string>
     <string name="analyse_note_label">Anything to add? (optional)</string>
-    <string name="analyse_note_example">For example: the plate is 24 cm across, the sauce is a light one</string>
+    <string name="analyse_note_example">E.g. 24 cm plate, light sauce</string>
 
     <string name="analyse_submit">Analyse</string>
-    <string name="analyse_running">Analysing…</string>
-    <string name="analyse_running_busy">Service overloaded, trying again…</string>
+    <string name="analyse_running">Taking a look…</string>
+    <string name="analyse_running_busy">The AI is swamped, trying again…</string>
     <!-- The plate has been read; what we are waiting for is the values of what the
          catalogue does not know. It used to be waited for behind a black screen (D176). -->
-    <string name="analyse_running_estimating">Estimating nutrition values…</string>
+    <string name="analyse_running_estimating">Working out the numbers…</string>
     <string name="analyse_cancel">Cancel</string>
     <string name="analyse_manual">Enter this meal by hand</string>
 
     <!-- Said once, before the first photo leaves, and for a photo only: someone writing
          a sentence knows exactly what they are sending. It names the provider: "your
          photo goes to Mistral" can be checked, "to your provider" cannot. -->
-    <string name="analyse_consent_title">Your photo is about to leave</string>
-    <string name="analyse_consent">Your photo goes to %1$s, with your API key. Hexavore has no server: nothing passes through us. What %1$s keeps of it, and for how long, is covered by their terms.</string>
-    <string name="analyse_consent_unnamed">Your photo goes to the AI provider you configured, with your API key. Hexavore has no server: nothing passes through us.</string>
-    <string name="analyse_consent_accept">Understood</string>
+    <string name="analyse_consent_title">Your photo is about to be sent</string>
+    <string name="analyse_consent">Your photo goes to %1$s, with your key. Hexavore has no server, nothing goes through us. What %1$s keeps, and for how long, depends on their terms.</string>
+    <string name="analyse_consent_unnamed">Your photo goes to the AI provider you picked, with your key. Hexavore has no server, nothing goes through us.</string>
+    <string name="analyse_consent_accept">OK, got it</string>
     <string name="analyse_consent_decline">Cancel</string>
 
 </resources>
