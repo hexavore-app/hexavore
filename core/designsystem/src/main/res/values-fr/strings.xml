@@ -23,7 +23,7 @@
 
     <!-- Lu par TalkBack sur un bouton grisé qui reste tapable : sans cela, il
          s'annonce comme n'importe quel bouton et l'appui semble sans effet. -->
-    <string name="ds_button_unavailable">indisponible</string>
+    <string name="ds_button_unavailable">pas dispo</string>
 
     <!-- Sélecteur de date. Une date se choisit, elle ne se tape pas : demander
          « AAAA-MM-JJ » au clavier fait porter à l'utilisateur un format que la
@@ -69,27 +69,27 @@
     <!-- La caméra refusée pour de bon (D162) : Android ne redemande plus, et le bouton
          ne faisait plus rien. La phrase dit où l'autoriser, et nomme la galerie, qui
          marche sans permission. -->
-    <string name="ds_camera_refused_title">La caméra est refusée</string>
-    <string name="ds_camera_refused_body">Android ne la redemandera plus : elle s\'autorise dans les réglages d\'Hexavore, à la rubrique des autorisations. En attendant, une photo de la galerie fait aussi l\'affaire.</string>
+    <string name="ds_camera_refused_title">Pas d\'accès à la caméra</string>
+    <string name="ds_camera_refused_body">Android ne redemandera pas. Tu peux l\'autoriser dans les réglages d\'Hexavore, rubrique Autorisations. En attendant, une photo de la galerie marche aussi.</string>
     <string name="ds_camera_refused_settings">Ouvrir les réglages</string>
     <string name="ds_camera_refused_close">Fermer</string>
 
     <!-- Sous un champ d'entiers, une fois un separateur decimal refuse (D172) : le clavier
          l'offre, et l'avaler sans rien dire changeait « 8,5 » en « 85 ». -->
-    <string name="ds_whole_number_hint">Nombres entiers seulement : la virgule est ignorée. Arrondissez — 8,5 devient 9.</string>
+    <string name="ds_whole_number_hint">Nombres entiers seulement, sans virgule. Arrondis : 8,5 devient 9.</string>
 
     <!-- Les bornes du corps (D160), en chiffres et dans le systeme choisi : « entre 37
          et 245 kg » se corrige, « valeur invalide » ne dit pas dans quel sens aller. -->
-    <string name="ds_body_height_range">Indiquez une taille entre %1$s et %2$s.</string>
-    <string name="ds_body_weight_range">Indiquez un poids entre %1$s et %2$s.</string>
-    <string name="ds_body_weight_range_for_height">Pour %1$s, indiquez un poids entre %2$s et %3$s.</string>
+    <string name="ds_body_height_range">Indique une taille entre %1$s et %2$s.</string>
+    <string name="ds_body_weight_range">Indique un poids entre %1$s et %2$s.</string>
+    <string name="ds_body_weight_range_for_height">Pour %1$s, indique un poids entre %2$s et %3$s.</string>
     <!-- Le poids vise suit le sens de l'objectif, et une perte s'arrete au seuil de la
          maigreur (D160). -->
-    <string name="ds_target_not_below">Pour perdre du poids, visez moins que votre poids actuel (%1$s).</string>
-    <string name="ds_target_not_above">Pour prendre du poids, visez plus que votre poids actuel (%1$s).</string>
-    <string name="ds_target_below_lean">Pour %1$s, visez au moins %2$s : en dessous, l\'IMC passerait sous %3$s, le seuil de la maigreur.</string>
-    <string name="ds_target_above_range">Pour %1$s, visez au plus %2$s.</string>
-    <string name="ds_target_no_room">Pour %1$s, le seuil de la maigreur (IMC %3$s) est à %2$s, et votre poids n\'est pas au-dessus : une perte de poids n\'est pas proposée.</string>
+    <string name="ds_target_not_below">Pour perdre du poids, vise moins que ton poids actuel (%1$s).</string>
+    <string name="ds_target_not_above">Pour prendre du poids, vise plus que ton poids actuel (%1$s).</string>
+    <string name="ds_target_below_lean">Pour %1$s, vise au moins %2$s : en dessous, ton IMC passerait sous %3$s, le seuil de la maigreur.</string>
+    <string name="ds_target_above_range">Pour %1$s, vise au plus %2$s.</string>
+    <string name="ds_target_no_room">Pour %1$s, le seuil de la maigreur (IMC %3$s) est à %2$s, et tu n\'es pas au-dessus : pas de perte de poids proposée.</string>
     <string name="ds_value_cm">%1$s cm</string>
     <string name="ds_value_kg">%1$s kg</string>
     <string name="ds_value_pound">%1$s lb</string>
@@ -103,14 +103,14 @@
     <string name="ds_source_favorite">Favori</string>
     <!-- Le contour en pointillés et la vague ne se voient pas au lecteur d'écran :
          c'est cette phrase qui porte l'information à leur place. -->
-    <string name="ds_source_proposed_a11y">%1$s, contenu proposé à vérifier</string>
+    <string name="ds_source_proposed_a11y">%1$s, proposé, à vérifier</string>
 
     <!-- Ce qu'une issue d'IA dit a l'utilisateur. Ici plutot que dans un ecran :
          docs/02 exige les memes messages pour les deux modales de capture, et le
          bouton « Tester » des reglages pose la meme question au meme port. Chaque
          phrase dit ce qui s'est passe et ce qu'on peut faire, jamais un code. -->
-    <string name="ds_ai_error_invalid_key">Votre clé a été refusée. Vérifiez-la, puis testez à nouveau.</string>
-    <string name="ds_ai_error_quota">Le quota ou les crédits de ce compte sont épuisés.</string>
+    <string name="ds_ai_error_invalid_key">Ta clé a été refusée. Vérifie-la, puis reteste.</string>
+    <string name="ds_ai_error_quota">Ce compte n\'a plus de quota ou de crédits.</string>
     <!-- Ce que l'ecran sur lequel on revient annonce, l'accueil comme le hub (D157). La
          phrase dit ce qui est desormais possible : c'est la seule chose qu'on attendait
          de cette cle. -->
@@ -119,30 +119,30 @@
     <string name="ds_copy_explain">L\'original reste à sa place.</string>
     <string name="ds_copy_confirm">Copier</string>
     <string name="ds_copy_cancel">Annuler</string>
-    <string name="ds_ai_key_accepted">Clé validée. Chargement photo et texte possible.</string>
-    <string name="ds_ai_key_accepted_text_only">Clé validée. Ce modèle ne lit pas les images : seul le mode texte fonctionnera.</string>
-    <string name="ds_ai_error_busy">Le service est saturé en ce moment. Votre clé n\'y est pour rien : réessayez dans un instant.</string>
-    <string name="ds_ai_error_network">Pas de connexion. L\'appel n\'est jamais parti.</string>
+    <string name="ds_ai_key_accepted">Clé validée ! Photo et texte, c\'est bon.</string>
+    <string name="ds_ai_key_accepted_text_only">Clé validée. Ce modèle ne lit pas les images : seul le texte marchera.</string>
+    <string name="ds_ai_error_busy">Le service est débordé. Ta clé n\'y est pour rien : réessaie dans un instant.</string>
+    <string name="ds_ai_error_network">Pas de connexion, rien n\'est parti.</string>
     <string name="ds_ai_error_timeout">Le fournisseur n\'a pas répondu à temps.</string>
     <string name="ds_ai_error_vision">Ce modèle ne lit pas les images.</string>
-    <string name="ds_ai_error_not_configured">Aucun fournisseur n\'est configuré.</string>
-    <string name="ds_ai_error_unreadable">Le fournisseur a répondu quelque chose d\'inattendu.</string>
-    <string name="ds_ai_error_server">Le service est indisponible. Réessayez plus tard.</string>
+    <string name="ds_ai_error_not_configured">Pas de fournisseur configuré.</string>
+    <string name="ds_ai_error_unreadable">Le fournisseur a répondu un truc inattendu.</string>
+    <string name="ds_ai_error_server">Le service est en panne. Réessaie plus tard.</string>
 
     <!-- La note qui paraît quand l'IA dépasse dix secondes (D177). Elle répond à « est-ce
          que ça marche ? » et dit qu'on n'a rien à faire. « Le prix de la gratuité » ne se
          dit qu'à une offre gratuite : une clé payante n'est pas moins prioritaire. -->
-    <string name="ds_ai_slow_free">%1$s prend plus de temps que prévu. Cela arrive : avec l\'offre gratuite, vos demandes ne passent pas en priorité, c\'est le prix de la gratuité. L\'analyse continue.</string>
-    <string name="ds_ai_slow_paid">%1$s prend plus de temps que prévu : le service est sans doute très demandé en ce moment. L\'analyse continue.</string>
+    <string name="ds_ai_slow_free">%1$s prend son temps. Ça arrive avec l\'offre gratuite : tes demandes ne passent pas en priorité. L\'analyse continue.</string>
+    <string name="ds_ai_slow_paid">%1$s prend son temps, le service doit être très demandé. L\'analyse continue.</string>
     <string name="ds_ai_slow_unnamed">L\'IA</string>
 
     <!-- La carte d'ajustement hebdomadaire. Trois issues, et rien n'est jamais
          appliqué sans accord explicite (docs/02). -->
-    <string name="ds_adjustment_title">Ajuster votre objectif ?</string>
+    <string name="ds_adjustment_title">On ajuste ton objectif ?</string>
     <!-- Le rythme est écrit signé plutôt que raconté : « vous perdez 0,2 kg par
          semaine, pour 0,5 visé » devient faux dès que les deux rythmes n'ont pas le
          même sens, et se lit alors à l'envers. -->
-    <string name="ds_adjustment_body">Sur les trois dernières semaines : %1$s. L\'objectif visait %2$s.</string>
+    <string name="ds_adjustment_body">Ces trois dernières semaines : %1$s. L\'objectif visait %2$s.</string>
     <string name="ds_adjustment_pace_loss">−%1$.1f kg par semaine</string>
     <string name="ds_adjustment_pace_gain">+%1$.1f kg par semaine</string>
     <!-- Les mêmes rythmes en livres, pour le système impérial (D162) : la carte parlait
@@ -152,10 +152,10 @@
     <string name="ds_adjustment_pace_steady">poids stable</string>
     <!-- Le sens de la correction est dit par un verbe, jamais par le signe d'un
          nombre : c'est la phrase sur laquelle on appuie « Accepter ». -->
-    <string name="ds_adjustment_reduce">Réduire l\'objectif de %1$d kcal ?</string>
-    <string name="ds_adjustment_raise">Augmenter l\'objectif de %1$d kcal ?</string>
+    <string name="ds_adjustment_reduce">Baisser l\'objectif de %1$d kcal ?</string>
+    <string name="ds_adjustment_raise">Monter l\'objectif de %1$d kcal ?</string>
     <string name="ds_adjustment_accept">Accepter</string>
-    <string name="ds_adjustment_ignore">Ignorer</string>
+    <string name="ds_adjustment_ignore">Pas maintenant</string>
     <string name="ds_adjustment_stop">Ne plus proposer</string>
 
     <!-- L'avertissement médical, écrit une fois. L'accueil le fait lire avant la
@@ -163,6 +163,6 @@
          d'une phrase qui engage le projet finiraient par dire deux choses différentes
          (D161). Ses deux phrases sont celles que Google Play exige d'une application
          de santé qui n'est pas un dispositif médical, et la fiche les reprend (D168). -->
-    <string name="ds_medical_disclaimer">Hexavore est un outil de suivi personnel. Ce n\'est pas un dispositif médical : il ne diagnostique, ne traite, ne guérit ni ne prévient aucune maladie. Pour un avis, un diagnostic ou un traitement, consultez un professionnel de santé.</string>
+    <string name="ds_medical_disclaimer">Hexavore est un outil de suivi personnel. Ce n\'est pas un dispositif médical : il ne diagnostique, ne traite, ne guérit ni ne prévient aucune maladie. Pour un avis, un diagnostic ou un traitement, consulte un professionnel de santé.</string>
 
 </resources>

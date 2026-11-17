@@ -27,10 +27,10 @@ import java.time.Instant
  *
  * Une **ouverture** est un retour sur l'accueil après [OpeningRules.ABSENCE] d'absence, ou
  * la toute première. Aucun message avant la [OpeningRules.FIRST_MESSAGE]e, **un au plus
- * par ouverture**, et au moins [OpeningRules.SPACING] ouvertures entre deux. La demande
- * d'avis passe devant l'astuce quand les deux sont dues, parce qu'elle est rare et
- * qu'elle compte davantage ; elle attend une semaine et dix plats. Rien ne paraît
- * pendant le tour guidé, ni à côté d'un rapport de plantage à proposer.
+ * par ouverture**, et au moins [OpeningRules.SPACING] ouvertures entre deux. **La demande
+ * d'avis est le premier message** : elle passe devant toute astuce tant qu'on n'y a pas
+ * répondu, sans attendre de durée ni de nombre de plats. Rien ne paraît pendant le tour
+ * guidé, ni à côté d'un rapport de plantage à proposer.
  *
  * ### Ce qui ne se fait pas
  *
@@ -62,7 +62,7 @@ class OpeningMessages(
         }
 
         val counted = before.counted(now)
-        val message = choose(counted, now)
+        val message = choose(counted)
         ledger.write(message?.let(counted::showing) ?: counted)
         return message
     }
@@ -91,20 +91,11 @@ class OpeningMessages(
      * Le message de cette ouverture, s'il en est un de dû.
      *
      * La situation n'est relue que si un message est dû : c'est rarement le cas, et elle
-     * demande quatre ports.
+     * demande trois ports.
      */
-    private suspend fun choose(record: OpeningRecord, now: Instant): OpeningMessage? {
+    private suspend fun choose(record: OpeningRecord): OpeningMessage? {
         val situation = if (record.dueForMessage()) context.current() else null
-        return situation?.takeIf { it.quiet }?.let { rating(record, it, now) ?: tip(record, it) }
-    }
-
-    private fun rating(record: OpeningRecord, situation: OpeningSituation, now: Instant): OpeningMessage? {
-        val since = record.firstOpenedAt ?: return null
-        val due = !record.ratingClosed &&
-            record.openings >= record.ratingAfter &&
-            situation.dishes >= OpeningRules.RATING_AFTER_DISHES &&
-            Duration.between(since, now) >= OpeningRules.RATING_AFTER
-        return OpeningMessage.Rating.takeIf { due }
+        return situation?.takeIf { it.quiet }?.let { record.rating() ?: tip(record, it) }
     }
 
     private suspend fun tip(record: OpeningRecord, situation: OpeningSituation): OpeningMessage? {
@@ -118,15 +109,18 @@ class OpeningMessages(
 /**
  * Est-ce une ouverture ? La toute première, ou un retour après une absence assez longue.
  *
- * Hors de la classe, comme les trois suivantes : ce sont des règles sur le registre, pas
+ * Hors de la classe, comme les suivantes : ce sont des règles sur le registre, pas
  * des gestes du cas d'usage, et le seuil de fonctions n'a pas à les compter.
  */
 private fun OpeningRecord.opensAt(now: Instant): Boolean =
     lastSeenAt == null || Duration.between(lastSeenAt, now) >= OpeningRules.ABSENCE
 
 /** Le registre d'une ouverture de plus. */
-private fun OpeningRecord.counted(now: Instant): OpeningRecord =
-    copy(openings = openings + 1, lastSeenAt = now, firstOpenedAt = firstOpenedAt ?: now)
+private fun OpeningRecord.counted(now: Instant): OpeningRecord = copy(openings = openings + 1, lastSeenAt = now)
+
+/** La demande d'avis, tant qu'elle n'est ni close ni repoussée au-delà de cette ouverture. */
+private fun OpeningRecord.rating(): OpeningMessage? =
+    OpeningMessage.Rating.takeIf { !ratingClosed && openings >= ratingAfter }
 
 /** Assez d'ouvertures depuis l'installation, et depuis le dernier message. */
 private fun OpeningRecord.dueForMessage(): Boolean = openings >= OpeningRules.FIRST_MESSAGE &&

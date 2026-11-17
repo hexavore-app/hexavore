@@ -37,11 +37,14 @@ import java.time.LocalDate
 internal class OpeningMessageViewModelTest {
     private val clock = FixedClock.atNoon(LocalDate.of(2026, 10, 25))
 
-    /** Deux ouvertures déjà comptées, la dernière il y a deux heures : la suivante peut parler. */
+    /**
+     * Deux ouvertures déjà comptées, la dernière il y a deux heures : la suivante peut parler.
+     * La demande d'avis est close, pour que ce soit une astuce.
+     */
     private val ledger = InMemoryOpeningLedger(
-        OpeningRecord(openings = 2, lastSeenAt = clock.now().minus(Duration.ofHours(2)), firstOpenedAt = clock.now()),
+        OpeningRecord(openings = 2, lastSeenAt = clock.now().minus(Duration.ofHours(2)), ratingClosed = true),
     )
-    private val situation = OpeningSituation(aiConfigured = false, tourSeen = true, crashPending = false, dishes = 0)
+    private val situation = OpeningSituation(aiConfigured = false, tourSeen = true, crashPending = false)
     private val viewModel = OpeningMessageViewModel(OpeningMessages(ledger, ledger, { situation }, clock))
 
     @BeforeEach

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:locale="fr">
 
-    <string name="weight_title">Journal de poids</string>
+    <string name="weight_title">Ton poids</string>
     <string name="weight_close">Fermer</string>
 
     <!-- Poids et masses sont toujours stockés en kilogrammes ; l'impérial est une
@@ -26,23 +26,23 @@
 
     <!-- Une seule pesée ne fait pas une courbe. Le dire évite de chercher où est passé
          le graphique (D159). -->
-    <string name="weight_curve_missing">La courbe apparaît à la deuxième pesée.</string>
+    <string name="weight_curve_missing">La courbe arrive à la deuxième pesée.</string>
 
     <!-- La légende de la courbe : deux traits sans nom se lisaient mal, et la case de la
          tendance se pose à côté de son nom (D159). -->
     <string name="weight_legend_measures">Pesées</string>
     <string name="weight_legend_trend">Tendance</string>
     <string name="weight_legend_aim">Trajectoire visée</string>
-    <string name="weight_legend_trend_hint">La tendance lisse les écarts d\'un jour à l\'autre (eau, sel) et rattrape vite après une pause.</string>
+    <string name="weight_legend_trend_hint">La tendance gomme les écarts d\'un jour à l\'autre (eau, sel) et se recale vite après une pause.</string>
 
     <!-- Une liste vide dit quoi faire, pas seulement qu'elle est vide. -->
-    <string name="weight_empty_title">Aucune pesée</string>
-    <string name="weight_empty_body">Notez votre poids quand vous voulez. Le poids brut varie de deux kilos avec l\'hydratation ; c\'est la moyenne sur sept jours qui dit où vous allez.</string>
+    <string name="weight_empty_title">Pas encore de pesée</string>
+    <string name="weight_empty_body">Pèse-toi quand tu veux. Le poids bouge de deux kilos rien qu\'avec l\'eau : c\'est la moyenne sur sept jours qui compte.</string>
 
     <!-- Un échec de lecture se dit, il ne s'affiche pas comme un journal vide : un
          journal vide est une affirmation, pas une absence de réponse. -->
-    <string name="weight_error_title">Journal illisible</string>
-    <string name="weight_error_body">La lecture n\'a pas abouti. Rien n\'a été modifié : vos pesées sont là où elles étaient.</string>
+    <string name="weight_error_title">Oups, le journal ne s\'affiche pas</string>
+    <string name="weight_error_body">Rien n\'est perdu, tes pesées sont toujours là. Réessaie.</string>
 
     <!-- Ajout d'une pesée : poids et date, c'est tout (docs/02). -->
     <string name="weight_add">Ajouter une pesée</string>

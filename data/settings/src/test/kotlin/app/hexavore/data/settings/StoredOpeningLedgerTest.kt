@@ -42,7 +42,6 @@ class StoredOpeningLedgerTest {
         val ecrit = OpeningRecord(
             openings = 9,
             lastSeenAt = Instant.parse("2026-10-25T12:00:00Z"),
-            firstOpenedAt = Instant.parse("2026-10-18T08:30:00Z"),
             lastMessageAt = 7,
             tipsShown = setOf(OpeningTip.FREE_KEY, OpeningTip.QUARTER_SOURCES),
             ratingClosed = true,
@@ -59,6 +58,16 @@ class StoredOpeningLedgerTest {
         StoredOpeningLedger(file, dispatchers).setEnabled(false)
 
         assertEquals(false, StoredOpeningLedger(file, dispatchers).observe().first())
+    }
+
+    @Test
+    fun `l ancienne date de premiere ouverture s efface a la premiere ecriture`() = runTest {
+        // Ecrite par les versions qui faisaient attendre la demande d'avis une semaine.
+        file.edit().putLong("opening.first", 0L).commit()
+
+        StoredOpeningLedger(file, dispatchers).write(OpeningRecord(openings = 1))
+
+        assertEquals(false, file.contains("opening.first"))
     }
 
     @Test

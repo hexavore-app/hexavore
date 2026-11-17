@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="progress_title">Progress</string>
+    <string name="progress_title">Your progress</string>
     <string name="progress_close">Close progress</string>
 
     <!-- Two streaks, and they do not measure the same thing: one says you are logging,
          the other says you are holding your range. -->
     <string name="progress_streak_logging">Logging streak</string>
-    <string name="progress_streak_logging_hint">Days in a row with at least one dish</string>
+    <string name="progress_streak_logging_hint">Days in a row with at least one meal logged</string>
     <string name="progress_streak_perfect">Golden streak</string>
-    <string name="progress_streak_perfect_hint">Days in a row spent inside your range</string>
+    <string name="progress_streak_perfect_hint">Days in a row inside your range</string>
 
     <plurals name="progress_days">
         <item quantity="one">%1$d day</item>
@@ -52,7 +52,7 @@
 
     <plurals name="progress_hint_streak">
         <item quantity="one">Log something for %1$d day</item>
-        <item quantity="other">Log something %1$d days running</item>
+        <item quantity="other">Log something %1$d days in a row</item>
     </plurals>
     <plurals name="progress_hint_volume">
         <item quantity="one">Log %1$d dish</item>
@@ -60,12 +60,12 @@
     </plurals>
     <plurals name="progress_hint_perfect">
         <item quantity="one">Stay inside your range for %1$d day</item>
-        <item quantity="other">Stay inside your range %1$d days running</item>
+        <item quantity="other">Stay inside your range %1$d days in a row</item>
     </plurals>
     <string name="progress_hint_first_scan">Scan a barcode</string>
-    <string name="progress_hint_first_photo">Photograph a meal</string>
+    <string name="progress_hint_first_photo">Snap a meal</string>
     <string name="progress_hint_first_text">Describe a meal in one sentence</string>
-    <string name="progress_hint_first_favorite">Save a dish as a favourite</string>
+    <string name="progress_hint_first_favorite">Favourite a meal</string>
 
     <!-- Once taken, the date replaces the description: it turns a catalogue into a
          history. -->

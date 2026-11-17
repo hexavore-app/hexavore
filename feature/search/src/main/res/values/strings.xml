@@ -6,8 +6,8 @@
     <!-- The last row of the results: the remote search, on a tap. -->
     <string name="search_ask_open_food_facts">Search Open Food Facts</string>
     <string name="search_open_food_facts_results">Open Food Facts products</string>
-    <string name="search_open_food_facts_nothing">Open Food Facts does not know this name.</string>
-    <string name="search_open_food_facts_offline">Open Food Facts did not answer.</string>
+    <string name="search_open_food_facts_nothing">Open Food Facts doesn\'t know this name.</string>
+    <string name="search_open_food_facts_offline">Open Food Facts isn\'t answering.</string>
     <string name="search_open_food_facts_retry">Try again</string>
 
     <!-- The code read by the scanner, when the form comes from a product that was not
@@ -20,7 +20,7 @@
 
     <!-- An empty list says what to do, not just that it is empty. -->
     <string name="search_first_title">Nothing yet</string>
-    <string name="search_first_body">Type two letters to search 3,484 foods, offline. Whatever you save will come back here.</string>
+    <string name="search_first_body">Type two letters to search 3,484 foods, even offline. What you save shows up here.</string>
 
     <!-- "—" and not "0 kcal": an undetermined energy is not zero. -->
     <string name="search_kcal_per_100g">%1$d kcal / 100 g</string>
@@ -51,39 +51,39 @@
 
     <!-- A filter that returns nothing must say it is the chips that emptied it,
          otherwise you think the catalogue is empty. -->
-    <string name="search_no_result_filtered">No food matches the chips you selected.</string>
+    <string name="search_no_result_filtered">Nothing with these filters.</string>
 
     <!-- Entry by hand is permanent, not a consolation prize: yesterday\'s leftovers have
          no name you would want to search for. -->
     <string name="search_manual_entry">Enter by hand</string>
     <string name="search_manual_entry_named">Enter “%1$s” by hand</string>
 
-    <string name="search_no_result">No food matches “%1$s”.</string>
+    <string name="search_no_result">Nothing found for “%1$s”.</string>
 
     <!-- What the user entered themselves is visible, and only that can be deleted. -->
     <string name="search_own_food">My food</string>
     <string name="search_delete">Delete %1$s</string>
     <string name="search_delete_title">Delete “%1$s”?</string>
-    <string name="search_delete_unused">This food has never been used. Its entry disappears from the catalogue.</string>
+    <string name="search_delete_unused">This food was never used. It leaves the catalogue.</string>
     <!-- In English "one" means exactly one, and zero falls into "other". The figure stays
          in both forms all the same: a message without it would say nothing about how
          much is at stake. -->
     <plurals name="search_delete_used">
-        <item quantity="one">This food is used in %1$d entry in your log. It is kept exactly as it is, with its values: only the catalogue entry disappears.</item>
-        <item quantity="other">This food is used in %1$d entries in your log. They are kept exactly as they are, with their values: only the catalogue entry disappears.</item>
+        <item quantity="one">This food is in %1$d meal in your log. That meal stays as is, only the food leaves the catalogue.</item>
+        <item quantity="other">This food is in %1$d meals in your log. Those meals stay as they are, only the food leaves the catalogue.</item>
     </plurals>
     <string name="search_delete_confirm">Delete</string>
     <string name="search_delete_cancel">Cancel</string>
 
-    <string name="search_error_title">Search unavailable</string>
-    <string name="search_error_body">The catalogue could not be read. Nothing was changed.</string>
+    <string name="search_error_title">Oops, search is stuck</string>
+    <string name="search_error_body">Couldn\'t read the catalogue. Nothing was changed.</string>
     <string name="search_close">Close</string>
 
     <!-- The form for a food of your own. -->
     <string name="custom_title">New food</string>
     <!-- Values are entered per 100 g, as on any entry: that is what lets the quantity
          work them out afterwards. -->
-    <string name="custom_subtitle">It will join your foods and come back in searches.</string>
+    <string name="custom_subtitle">It joins your foods and shows up in your searches.</string>
     <string name="custom_field_name">Name</string>
     <string name="custom_field_brand">Brand (optional)</string>
     <string name="custom_field_serving">Usual portion in grams (optional)</string>
@@ -93,25 +93,25 @@
     <!-- The offer to send the entry back to Open Food Facts, put at the moment it has
          just been created for a product the scanner did not find. It is the only moment
          when the question makes sense: the work has just been done. -->
-    <string name="contribute_title">Contribute to Open Food Facts</string>
-    <string name="contribute_body">This product is missing from the database. Here is what would be sent:</string>
+    <string name="contribute_title">Add to Open Food Facts</string>
+    <string name="contribute_body">This product isn\'t in the database. Here\'s what would be sent:</string>
     <string name="contribute_field_barcode">Barcode</string>
     <string name="contribute_field_name">Name</string>
     <string name="contribute_field_brand">Brand</string>
     <!-- Public and final: say it before, not after. A contribution cannot be taken back
          from the application. -->
-    <string name="contribute_warning">The upload is public and final. It can be corrected afterwards on openfoodfacts.org.</string>
+    <string name="contribute_warning">It\'s public and final. You can fix it later on openfoodfacts.org.</string>
     <string name="contribute_confirm">Send</string>
     <string name="contribute_sending">Sending…</string>
     <string name="contribute_decline">Not now</string>
 
-    <string name="contribute_sent">Sent, thank you. The next person to scan this product will find it.</string>
+    <string name="contribute_sent">Sent, thanks! The next person to scan this product will find it.</string>
     <!-- Trying again would change nothing: it is the account that needs fixing. -->
-    <string name="contribute_rejected">Account refused. Check your username and password in the settings.</string>
-    <string name="contribute_unreachable">Open Food Facts did not answer. The entry is saved here.</string>
+    <string name="contribute_rejected">Account rejected. Check your username and password in Settings.</string>
+    <string name="contribute_unreachable">Open Food Facts isn\'t answering. The food is still saved here.</string>
     <!-- The service keeps the floor: its sentence is repeated as-is, in whatever language
          it chooses. Translating it would mean knowing in advance what it refuses. -->
-    <string name="contribute_refused">Open Food Facts refused the entry: %1$s</string>
+    <string name="contribute_refused">Open Food Facts said no: %1$s</string>
     <string name="contribute_retry">Try again</string>
     <string name="contribute_close">Close</string>
 
@@ -124,15 +124,15 @@
     <string name="custom_save">Save the food</string>
     <string name="custom_cancel">Cancel</string>
     <!-- A dimmed button answers the tap; this sentence is what it answers. -->
-    <string name="custom_incomplete_hint">A food needs a name and its calories per 100 g. The five other values stay optional: a field left blank means “unknown”, not “zero”.</string>
+    <string name="custom_incomplete_hint">You need a name and the calories per 100 g. The rest is optional: a blank field means “don\'t know”, not “zero”.</string>
 
-    <string name="custom_error_title">Cannot save</string>
-    <string name="custom_error_body">The write did not go through. Your entry is kept exactly as it is.</string>
+    <string name="custom_error_title">Oops, not saved</string>
+    <string name="custom_error_body">Saving failed. Your entry is still here.</string>
     <string name="custom_error_retry">Try again</string>
 
     <!-- Favourite dishes. This list is only for choosing: removing a favourite is done
          with the star on the review screen, where you put it. -->
-    <string name="favorites_title">Your favourite dishes</string>
+    <string name="favorites_title">Your favourite meals</string>
     <string name="favorites_search">Search for a dish</string>
     <!-- The long press opens both gestures, as on a dish on the home screen. The list is
          the only place where you look at your favourites as a list, so the only place
@@ -142,8 +142,8 @@
     <string name="favorites_menu_delete">Delete</string>
     <string name="favorites_pick">replay this dish</string>
     <string name="favorites_close">Back</string>
-    <string name="favorites_empty">No favourite dishes yet. Put a dish together, then tap the star at the top of the screen to find it here.</string>
-    <string name="favorites_none_matching">No favourite has this name.</string>
-    <string name="favorites_error">Your favourites could not be read. Nothing was changed.</string>
+    <string name="favorites_empty">No favourites yet. Put a meal together, then tap the star at the top to find it here.</string>
+    <string name="favorites_none_matching">No favourite with that name.</string>
+    <string name="favorites_error">Couldn\'t read your favourites. Nothing was changed.</string>
 
 </resources>

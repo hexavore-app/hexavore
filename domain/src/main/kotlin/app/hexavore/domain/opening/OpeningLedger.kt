@@ -7,7 +7,7 @@ import java.time.Instant
  * Ce que l'application retient de ses ouvertures, pour espacer ce qu'elle y dit
  * ([D179][decisions]).
  *
- * **Rien de personnel, et rien qui sorte.** Un compte, deux instants, les astuces déjà
+ * **Rien de personnel, et rien qui sorte.** Un compte, un instant, les astuces déjà
  * vues, et ce qu'on a répondu à la demande d'avis : de quoi ne pas répéter, ni insister.
  * Le fichier est celui des pastilles et du tour — l'état de ce que l'écran a déjà dit —,
  * et un effacement complet le vide avec le reste.
@@ -26,9 +26,6 @@ interface OpeningLedger {
  * @property openings combien d'ouvertures ont été comptées ([OpeningRules.ABSENCE]).
  * @property lastSeenAt la dernière fois que l'accueil a paru ou s'est effacé : c'est
  *   d'elle que se mesure l'absence qui fait une ouverture.
- * @property firstOpenedAt la première ouverture comptée. La demande d'avis attend une
- *   semaine à partir d'elle — et, pour qui installait une version d'avant, à partir de
- *   la première ouverture qui suit la mise à jour.
  * @property lastMessageAt l'ouverture où le dernier message a paru.
  * @property tipsShown les astuces déjà montrées : chacune ne paraît qu'une fois.
  * @property ratingClosed vrai quand la demande d'avis ne reviendra plus.
@@ -37,7 +34,6 @@ interface OpeningLedger {
 data class OpeningRecord(
     val openings: Int = 0,
     val lastSeenAt: Instant? = null,
-    val firstOpenedAt: Instant? = null,
     val lastMessageAt: Int? = null,
     val tipsShown: Set<OpeningTip> = emptySet(),
     val ratingClosed: Boolean = false,
