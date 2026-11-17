@@ -57,7 +57,6 @@ internal class StoredOpeningLedger(
 private fun SharedPreferences.readRecord(): OpeningRecord = OpeningRecord(
     openings = getInt(OPENINGS, 0),
     lastSeenAt = instant(LAST_SEEN),
-    firstOpenedAt = instant(FIRST_OPENED),
     lastMessageAt = getInt(LAST_MESSAGE, NONE).takeIf { it != NONE },
     tipsShown = getStringSet(TIPS_SHOWN, emptySet()).orEmpty()
         .mapNotNull { name -> OpeningTip.entries.firstOrNull { it.name == name } }
@@ -69,7 +68,7 @@ private fun SharedPreferences.readRecord(): OpeningRecord = OpeningRecord(
 private fun SharedPreferences.Editor.writeRecord(record: OpeningRecord) {
     putInt(OPENINGS, record.openings)
     putInstant(LAST_SEEN, record.lastSeenAt)
-    putInstant(FIRST_OPENED, record.firstOpenedAt)
+    remove(FIRST_OPENED)
     putInt(LAST_MESSAGE, record.lastMessageAt ?: NONE)
     putStringSet(TIPS_SHOWN, record.tipsShown.mapTo(mutableSetOf()) { it.name })
     putBoolean(RATING_CLOSED, record.ratingClosed)
@@ -85,6 +84,8 @@ private fun SharedPreferences.Editor.putInstant(key: String, value: Instant?) {
 
 private const val OPENINGS = "opening.count"
 private const val LAST_SEEN = "opening.last_seen"
+
+/** Ancienne clé (l'attente d'une semaine avant la demande d'avis) : retirée à chaque écriture. */
 private const val FIRST_OPENED = "opening.first"
 private const val LAST_MESSAGE = "opening.last_message"
 private const val TIPS_SHOWN = "opening.tips_shown"

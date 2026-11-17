@@ -8,7 +8,6 @@ import app.hexavore.domain.opening.TipSettings
 import app.hexavore.domain.report.CrashReports
 import app.hexavore.domain.time.Clock
 import app.hexavore.domain.tour.TourSettings
-import app.hexavore.domain.usecase.ObserveProgress
 import app.hexavore.domain.usecase.OpeningMessages
 import dagger.Module
 import dagger.Provides
@@ -27,12 +26,8 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 object OpeningModule {
     @Provides
-    fun openingContext(
-        ai: AiSettings,
-        tour: TourSettings,
-        crashes: CrashReports,
-        progress: ObserveProgress,
-    ): OpeningContext = OpeningSituations(ai, tour, crashes, progress)
+    fun openingContext(ai: AiSettings, tour: TourSettings, crashes: CrashReports): OpeningContext =
+        OpeningSituations(ai, tour, crashes)
 
     @Provides
     fun openingMessages(
