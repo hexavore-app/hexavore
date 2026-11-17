@@ -3,11 +3,11 @@
 
     <!-- 1. Accueil. L'avertissement est à accepter pour continuer : c'est la seule
          étape bloquante des cinq. -->
-    <string name="onboarding_welcome_title">Bienvenue dans Hexavore</string>
+    <string name="onboarding_welcome_title">Salut, bienvenue !</string>
     <!-- D56 : le « Passer » a disparu, et cette phrase le promettait encore. Un
          objectif calculé sur des valeurs par défaut est l'objectif de quelqu'un
          d'autre, affiché avec l'autorité d'un chiffre personnel. -->
-    <string name="onboarding_welcome_body">Six compteurs, calculés à partir de vos réponses. Cinq questions, une minute.</string>
+    <string name="onboarding_welcome_body">Cinq questions, une minute, et on calcule tes six compteurs.</string>
     <!-- L'avertissement lui-même vit dans le design system (ds_medical_disclaimer) :
          « À propos » l'affiche aussi, et les deux ne doivent pas diverger (D161). -->
     <!-- Le libelle de la case, d'une ligne : le paragraphe au-dessus est l'information,
@@ -16,7 +16,7 @@
 
     <!-- 2. Vous. Rien n'est pré-rempli : une valeur plausible affichée serait acceptée
          par distraction, et l'objectif serait celui de quelqu'un d'autre. -->
-    <string name="onboarding_you_title">Vous</string>
+    <string name="onboarding_you_title">Toi</string>
     <!-- D56 : le champ ouvre un sélecteur, il ne se tape pas. Le format restait
          demandé sous un champ qui n'accepte plus aucune frappe. -->
     <string name="onboarding_birth_date">Date de naissance</string>
@@ -24,7 +24,7 @@
     <string name="onboarding_sex_male">Homme</string>
     <string name="onboarding_sex_female">Femme</string>
     <string name="onboarding_sex_unspecified">Je préfère ne pas répondre</string>
-    <string name="onboarding_sex_unspecified_note">Nous utiliserons une estimation intermédiaire, que vous pourrez ajuster ensuite.</string>
+    <string name="onboarding_sex_unspecified_note">On prendra une estimation entre les deux, tu pourras l\'ajuster ensuite.</string>
     <!-- Sans unite : le champ du design system l'ajoute, et c'est lui qui la change le
          jour ou l'onboarding parlera imperial (D160). -->
     <string name="onboarding_height">Taille</string>
@@ -34,20 +34,20 @@
          qu'un cadre qui court, et les deux se reconnaissaient dans « modere ». -->
     <!-- Dit une fois, a l'endroit ou l'on commence a saisir : ce qu'on demande ici
          ne part nulle part, et personne n'a a le deviner. -->
-    <string name="onboarding_privacy">Tout ce que vous saisissez reste sur ce téléphone. Aucun compte, aucun serveur, rien qui parte chez qui que ce soit.</string>
+    <string name="onboarding_privacy">Tout ce que tu saisis reste sur ton téléphone. Pas de compte, pas de serveur, rien n\'est envoyé.</string>
 
-    <string name="onboarding_work_title">Votre journée de travail</string>
-    <string name="onboarding_work_body">Huit heures par jour, cinq jours sur sept : c\'est le socle, et il ne se devine pas depuis un nombre de séances.</string>
-    <string name="onboarding_work_desk">Assis la majeure partie du temps : bureau, conduite, études</string>
-    <string name="onboarding_work_on_feet">Debout, sans porter de charge : vente, service, enseignement</string>
-    <string name="onboarding_work_physical">Effort physique soutenu : bâtiment, manutention, agriculture</string>
+    <string name="onboarding_work_title">Ta journée de travail</string>
+    <string name="onboarding_work_body">Ce que tu fais la plupart du temps, en semaine.</string>
+    <string name="onboarding_work_desk">Assis presque tout le temps : bureau, volant, études</string>
+    <string name="onboarding_work_on_feet">Debout, sans charges lourdes : vente, service, enseignement</string>
+    <string name="onboarding_work_physical">Physique : bâtiment, manutention, agriculture</string>
 
-    <string name="onboarding_sessions_title">Et votre sport</string>
-    <string name="onboarding_sessions_body">Des séances par semaine, quelles qu\'elles soient. Comptées ici une fois pour toutes, jamais ajoutées au jour le jour.</string>
+    <string name="onboarding_sessions_title">Et ton sport</string>
+    <string name="onboarding_sessions_body">Combien de séances par semaine, peu importe lesquelles. Tu le dis une fois, pas besoin de les noter chaque jour.</string>
     <string name="onboarding_sessions_max">%1$d et plus</string>
 
     <!-- 4. Objectif. -->
-    <string name="onboarding_objective_title">Votre objectif</string>
+    <string name="onboarding_objective_title">Ton objectif</string>
     <string name="onboarding_strategy_lose">Perdre du poids</string>
     <string name="onboarding_strategy_maintain">Maintenir</string>
     <string name="onboarding_strategy_gain">Prendre du poids</string>
@@ -60,19 +60,19 @@
     <string name="onboarding_horizon_three">Dans 3 mois</string>
     <string name="onboarding_horizon_six">Dans 6 mois</string>
     <string name="onboarding_horizon_twelve">Dans 12 mois</string>
-    <string name="onboarding_horizon_reachable">Au rythme sûr : %1$s</string>
+    <string name="onboarding_horizon_reachable">Au rythme sain : %1$s</string>
     <!-- Le rythme réel, après garde-fous, et non celui qu'on espérait. -->
-    <string name="onboarding_pace">Soit environ %1$.2f kg par semaine.</string>
+    <string name="onboarding_pace">Environ %1$.2f kg par semaine.</string>
     <!-- La depense estimee est deja sous le plancher : aucun deficit ne tient, et
          l'apercu disait « 0,00 kg par semaine » sans dire pourquoi (D160). -->
-    <string name="onboarding_no_deficit">Votre dépense estimée (%1$d kcal) est déjà sous le minimum conseillé de %2$d kcal : aucun déficit n\'est proposé, et l\'objectif reste votre dépense. Un professionnel de santé saura vous conseiller.</string>
+    <string name="onboarding_no_deficit">Ta dépense estimée (%1$d kcal) est déjà sous le minimum conseillé de %2$d kcal, donc pas de déficit : ton objectif reste ta dépense. Parles-en à un professionnel de santé.</string>
 
     <!-- 5. Vos objectifs. L'application ne refuse jamais : elle explique et propose. -->
-    <string name="onboarding_result_title">Vos objectifs</string>
-    <string name="onboarding_result_unavailable">Répondez au moins à la question du poids pour voir vos objectifs.</string>
-    <string name="onboarding_capped">Ce rythme dépasserait les bornes de sécurité. À un rythme sûr, votre poids cible serait atteint vers le %1$s.</string>
+    <string name="onboarding_result_title">Tes objectifs</string>
+    <string name="onboarding_result_unavailable">Indique au moins ton poids pour voir tes objectifs.</string>
+    <string name="onboarding_capped">Trop rapide pour ta santé. À un rythme sain, tu atteindrais ton poids cible vers le %1$s.</string>
     <string name="onboarding_use_reachable_date">Utiliser cette date</string>
-    <string name="onboarding_carbs_low">À ce niveau de calories, il reste peu de glucides une fois les protéines, les lipides et les fibres couverts. Un objectif plus haut serait plus tenable.</string>
+    <string name="onboarding_carbs_low">À ce niveau de calories, il reste peu de place pour les glucides. Un objectif un peu plus haut serait plus facile à tenir.</string>
 
     <string name="onboarding_goal_calories">Calories : %1$d kcal</string>
     <string name="onboarding_goal_protein">Protéines : %1$d g</string>
@@ -82,28 +82,28 @@
     <string name="onboarding_goal_fat">Lipides : %1$d g max</string>
 
     <!-- Une phrase par compteur : un chiffre sans raison est un chiffre qu'on ignore. -->
-    <string name="onboarding_why_calories">Votre dépense estimée, ajustée à votre échéance.</string>
-    <string name="onboarding_why_protein">Calculé sur votre poids cible, pour préserver la masse maigre.</string>
+    <string name="onboarding_why_calories">Ta dépense estimée, ajustée à ton échéance.</string>
+    <string name="onboarding_why_protein">Calculé sur ton poids cible, pour garder ton muscle.</string>
     <!-- Les mêmes, pour un maintien (D162) : il n'a ni échéance ni poids cible, et ses
          protéines se calculent sur le poids actuel. -->
-    <string name="onboarding_why_calories_maintain">Votre dépense estimée : de quoi garder votre poids.</string>
-    <string name="onboarding_why_protein_maintain">Calculé sur votre poids actuel, pour préserver la masse maigre.</string>
-    <string name="onboarding_why_fiber">14 g pour 1 000 kcal, jamais rogné au profit des glucides.</string>
-    <string name="onboarding_why_carbs">Le solde du budget, une fois les fibres déduites.</string>
-    <string name="onboarding_why_sugars">Plafond de l\'OMS, appliqué aux sucres totaux, donc plus strict.</string>
-    <string name="onboarding_why_fat">Une limite à ne pas dépasser. Le minimum dont le corps a besoin est déjà couvert.</string>
+    <string name="onboarding_why_calories_maintain">Ta dépense estimée : de quoi garder ton poids.</string>
+    <string name="onboarding_why_protein_maintain">Calculé sur ton poids actuel, pour garder ton muscle.</string>
+    <string name="onboarding_why_fiber">14 g pour 1 000 kcal, jamais sacrifiées pour les glucides.</string>
+    <string name="onboarding_why_carbs">Ce qui reste du budget, fibres déduites.</string>
+    <string name="onboarding_why_sugars">Le plafond de l\'OMS, appliqué à tous les sucres : un peu plus strict.</string>
+    <string name="onboarding_why_fat">Une limite. Le minimum dont ton corps a besoin est déjà couvert.</string>
 
     <!-- La réponse du bouton indisponible à un appui. Elle dit ce qui manque, pas
          qu'il manque quelque chose : « complétez le formulaire » n'aide personne. -->
-    <string name="onboarding_blocked_disclaimer">Acceptez l\'avertissement pour continuer.</string>
-    <string name="onboarding_blocked_identity">Renseignez votre date de naissance, votre sexe, votre taille et votre poids.</string>
-    <string name="onboarding_blocked_age">Hexavore calcule ses objectifs pour les personnes de %1$d à %2$d ans.</string>
-    <string name="onboarding_blocked_activity">Choisissez le niveau qui décrit le mieux vos semaines.</string>
-    <string name="onboarding_blocked_objective">Choisissez un objectif, puis un poids cible et une échéance.</string>
+    <string name="onboarding_blocked_disclaimer">Coche l\'avertissement pour continuer.</string>
+    <string name="onboarding_blocked_identity">Il manque ta date de naissance, ton sexe, ta taille ou ton poids.</string>
+    <string name="onboarding_blocked_age">Hexavore calcule les objectifs de %1$d à %2$d ans.</string>
+    <string name="onboarding_blocked_activity">Choisis ce qui ressemble le plus à tes semaines.</string>
+    <string name="onboarding_blocked_objective">Choisis un objectif, un poids cible et une échéance.</string>
 
     <string name="onboarding_next">Continuer</string>
     <string name="onboarding_back">Retour</string>
     <string name="onboarding_start">C\'est parti</string>
-    <string name="onboarding_save_failed">L\'enregistrement n\'a pas abouti. Vos réponses sont conservées telles quelles.</string>
+    <string name="onboarding_save_failed">L\'enregistrement a raté. Tes réponses sont toujours là.</string>
 
 </resources>

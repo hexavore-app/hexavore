@@ -5,21 +5,21 @@
     <string name="scan_close">Close</string>
     <string name="scan_torch_on">Turn the light on</string>
     <string name="scan_torch_off">Turn the light off</string>
-    <string name="scan_hint">Frame the product barcode</string>
+    <string name="scan_hint">Point at the barcode</string>
     <string name="scan_looking">Searching…</string>
 
     <string name="scan_unknown_title">Unknown product</string>
-    <string name="scan_unknown_body">Open Food Facts does not know the code %1$s. You can create this food: it will keep its barcode and be recognised the next time you scan it.</string>
+    <string name="scan_unknown_body">Open Food Facts doesn\'t know the code %1$s. You can create the food: it keeps its barcode and gets recognised next time.</string>
 
     <string name="scan_offline_title">No connection</string>
-    <string name="scan_offline_body">The code %1$s was read, but Open Food Facts could not be reached. Create the food by hand: the code stays attached to it.</string>
+    <string name="scan_offline_body">Got code %1$s, but Open Food Facts can\'t be reached. Create the food by hand, the code stays with it.</string>
 
     <string name="scan_create">Create this food</string>
     <string name="scan_search_by_name">Search by name</string>
     <string name="scan_retry">Scan again</string>
 
     <string name="scan_permission_title">Hexavore needs the camera</string>
-    <string name="scan_permission_body">Scanning reads the barcode on the phone: no image leaves it. The one that carried the reading stays with the dish if you confirm it, and can be removed in a single gesture. The three other ways of adding a food remain available.</string>
+    <string name="scan_permission_body">The barcode is read on your phone, no image is sent. You can keep the photo with the meal or remove it. And the three other ways to add food are still there.</string>
     <string name="scan_permission_grant">Allow the camera</string>
     <string name="scan_permission_settings">Open settings</string>
 

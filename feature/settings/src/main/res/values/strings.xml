@@ -9,30 +9,30 @@
 
     <!-- D04 made visible: correcting a target changes none of them, it opens a new one.
          Without this sentence, the user would think they were repainting their month. -->
-    <string name="profile_history_note">Correcting your targets opens a new version. Days already noted stay judged against the target that was running that day.</string>
+    <string name="profile_history_note">If you change your targets, days already logged keep the ones that applied that day.</string>
 
     <string name="profile_you_title">You</string>
     <string name="profile_birth_date">Date of birth</string>
     <string name="profile_sex_label">Sex</string>
     <string name="profile_sex_male">Male</string>
     <string name="profile_sex_female">Female</string>
-    <string name="profile_sex_unspecified">I would rather not say</string>
-    <string name="profile_sex_unspecified_note">We use a middle estimate, the average of the two variants of the formula.</string>
+    <string name="profile_sex_unspecified">I\'d rather not say</string>
+    <string name="profile_sex_unspecified_note">We use an in-between estimate.</string>
     <!-- No unit: the field adds it, in the chosen system. With one, the label read
          "Height (cm) (cm)", and "Height (cm) (feet)" in imperial. -->
     <string name="profile_height">Height</string>
     <string name="profile_weight">Current weight</string>
     <!-- A weight reading is a dated fact: opening this screen does not create one. -->
-    <string name="profile_weight_note">Correcting this weight records a reading dated today. Leaving it as it is invents none.</string>
+    <string name="profile_weight_note">Correcting this weight adds a weigh-in dated today. Leave it and nothing\'s added.</string>
 
     <!-- Deux questions la ou il n'y en avait qu'une (D137). -->
-    <string name="profile_privacy">Everything on this screen stays on this phone. No account, no server, nothing sent to anyone.</string>
+    <string name="profile_privacy">Everything here stays on your phone. No account, no server, nothing sent anywhere.</string>
     <string name="profile_work_title">Your working day</string>
-    <string name="profile_work_body">Eight hours a day, five days a week: this is the floor. Sport adds to it, and is counted here once and for all rather than day by day.</string>
+    <string name="profile_work_body">What you do most of the time, on weekdays. Workouts go just below, once and for all.</string>
     <string name="profile_work_desk">Sitting most of the day: office, driving, studying</string>
-    <string name="profile_work_on_feet">On your feet, no heavy loads: shop, service, teaching</string>
-    <string name="profile_work_physical">Sustained physical effort: building, handling, farming</string>
-    <string name="profile_sessions_title">Sport sessions per week</string>
+    <string name="profile_work_on_feet">On your feet, no heavy lifting: retail, service, teaching</string>
+    <string name="profile_work_physical">Physical work: building, warehouse, farming</string>
+    <string name="profile_sessions_title">Workouts per week</string>
     <string name="profile_sessions_none">None</string>
     <string name="profile_sessions_max">%1$d and more</string>
     <plurals name="profile_sessions">
@@ -51,29 +51,29 @@
          not necessarily match one of the chips, and it is shown as it is rather than
          rounded to whichever one looks closest. -->
     <string name="profile_horizon_label">By when?</string>
-    <string name="profile_horizon_current">Deadline currently set: %1$s</string>
+    <string name="profile_horizon_current">Current deadline: %1$s</string>
     <string name="profile_horizon_three">In 3 months</string>
     <string name="profile_horizon_six">In 6 months</string>
     <string name="profile_horizon_twelve">In 12 months</string>
-    <string name="profile_horizon_reachable">At a safe pace: %1$s</string>
-    <string name="profile_pace">That is about %1$.2f kg a week.</string>
+    <string name="profile_horizon_reachable">At a healthy pace: %1$s</string>
+    <string name="profile_pace">About %1$.2f kg a week.</string>
     <!-- The same pace in pounds, for imperial (D162). -->
-    <string name="profile_pace_pounds">That is about %1$.2f lb a week.</string>
+    <string name="profile_pace_pounds">About %1$.2f lb a week.</string>
     <!-- The estimated expenditure is already below the floor: no deficit fits (D160). -->
-    <string name="profile_no_deficit">Your estimated expenditure (%1$d kcal) is already below the recommended minimum of %2$d kcal: no deficit is offered, and your target stays at your expenditure. A health professional can advise you.</string>
-    <string name="profile_capped">That pace would go past the safety limits. At a safe pace, you would reach your target weight around %1$s.</string>
-    <string name="profile_carbs_low">At this calorie level there is little room left for carbs once protein, fat and fibre are covered. A higher target would be easier to hold.</string>
+    <string name="profile_no_deficit">Your estimated burn (%1$d kcal) is already below the recommended minimum of %2$d kcal, so no deficit: your target stays at your burn. Have a chat with a health professional.</string>
+    <string name="profile_capped">Too fast for your health. At a healthy pace, you\'d reach your target weight around %1$s.</string>
+    <string name="profile_carbs_low">At this calorie level there\'s little room left for carbs. A slightly higher target would be easier to stick to.</string>
 
     <!-- The mode. A target is either worked out or entered by hand, with nothing in
          between: that is what decides whether a profile correction is allowed to move
          the six. -->
     <string name="profile_counters_title">Your six counters</string>
     <string name="profile_mode_switch">Enter them myself</string>
-    <string name="profile_mode_calculated">Worked out from your profile, your target weight and your deadline. Correcting any of the three moves them.</string>
-    <string name="profile_mode_manual">You set them. No profile correction will work them out again.</string>
+    <string name="profile_mode_calculated">Based on your profile, target weight and deadline. Change any of them and these move.</string>
+    <string name="profile_mode_manual">You set them. They won\'t move if you change your profile.</string>
     <!-- The target weight and deadline stay recorded, but they no longer drive anything:
          saying so is better than letting two fields suggest otherwise. -->
-    <string name="profile_manual_horizon_note">With counters entered by hand, your target weight and deadline no longer enter their calculation. They stay recorded as the course you are steering.</string>
+    <string name="profile_manual_horizon_note">In manual mode, your target weight and deadline don\'t affect the counters anymore. We keep them as your goal.</string>
     <string name="profile_counters_unavailable">Fill in the fields above to see your six counters.</string>
     <string name="profile_counter_line">%1$s: %2$d %3$s</string>
     <string name="profile_counter_field">%1$s (%2$s)</string>
@@ -108,7 +108,7 @@
          centimetres moves a daily target: that is not something to discover on the home
          screen. -->
     <string name="profile_confirm_title">Your targets are changing</string>
-    <string name="profile_confirm_body">These counters will replace yours from today. Days already noted keep the ones that were running that day.</string>
+    <string name="profile_confirm_body">These counters replace yours from today. Days already logged keep the old ones.</string>
     <string name="profile_confirm_line">%1$s: %2$d → %3$d %4$s</string>
     <string name="profile_confirm_line_new">%1$s: %2$d %3$s</string>
     <string name="profile_confirm_accept">Save</string>
@@ -116,21 +116,21 @@
 
     <!-- What a dimmed button answers when tapped. It says what is missing, not that
          something is missing: "complete the form" helps nobody. -->
-    <string name="profile_blocked_identity">Fill in your date of birth, your sex, your height and your weight.</string>
-    <string name="profile_blocked_age">Hexavore works out its targets for people aged %1$d to %2$d. Choose another date of birth.</string>
-    <string name="profile_blocked_activity">Choose the level that best describes your weeks.</string>
-    <string name="profile_blocked_strategy">Choose a goal: lose, maintain or gain weight.</string>
-    <string name="profile_blocked_horizon">Fill in a target weight and a deadline.</string>
-    <string name="profile_blocked_macro">One of your six counters is empty. Fill it in, or go back to worked-out counters.</string>
+    <string name="profile_blocked_identity">Your date of birth, sex, height or weight is missing.</string>
+    <string name="profile_blocked_age">Hexavore works out targets for ages %1$d to %2$d. Pick another date of birth.</string>
+    <string name="profile_blocked_activity">Pick what\'s closest to your week.</string>
+    <string name="profile_blocked_strategy">Pick a goal: lose, maintain or gain weight.</string>
+    <string name="profile_blocked_horizon">Add a target weight and a deadline.</string>
+    <string name="profile_blocked_macro">One of your counters is empty. Fill it in, or switch back to auto.</string>
 
     <string name="profile_save">Save</string>
     <string name="profile_saving">Saving…</string>
-    <string name="profile_save_failed">Saving did not go through. Your corrections are kept exactly as they are.</string>
+    <string name="profile_save_failed">Saving failed. Your changes are still here.</string>
 
     <!-- A failed read is said out loud, it does not show up as an empty profile: an empty
          form, saved, would overwrite the one in the database. -->
-    <string name="profile_unreadable_title">Profile unreadable</string>
-    <string name="profile_unreadable_body">The read did not go through. Nothing was changed: your profile and your target are where they were.</string>
+    <string name="profile_unreadable_title">Oops, can\'t load your profile</string>
+    <string name="profile_unreadable_body">Nothing\'s lost, your profile and target are still there. Try again.</string>
 
     <!-- The hub, born with its second section (D59). -->
     <!-- The cross of the two screens that were silent to the screen reader. -->
@@ -138,18 +138,18 @@
     <string name="ai_close">Close</string>
     <string name="settings_title">Settings</string>
     <string name="settings_profile_title">Profile and targets</string>
-    <string name="settings_profile_subtitle">Your measurements, your goal and your six counters.</string>
-    <string name="settings_ai_title">Artificial intelligence</string>
-    <string name="settings_ai_subtitle">Your keys, your models, and a way to try them out.</string>
+    <string name="settings_profile_subtitle">Your measurements, goal and counters</string>
+    <string name="settings_ai_title">AI</string>
+    <string name="settings_ai_subtitle">Your keys, your models, and a button to test them</string>
     <string name="settings_contribution_title">Open Food Facts</string>
-    <string name="settings_contribution_subtitle">The account to send your entries back under.</string>
+    <string name="settings_contribution_subtitle">Your account for sharing products.</string>
 
     <!-- The contribution account. It is the user\'s, never the application\'s: the
          password of the latter would live in a published APK. -->
     <string name="contribution_title">Open Food Facts</string>
     <string name="contribution_close">Close</string>
     <string name="contribution_account_title">Your account</string>
-    <string name="contribution_account_body">Without an account, no contribution is offered. The identifier is your username on openfoodfacts.org, not your email address.</string>
+    <string name="contribution_account_body">No account, no sharing. Use your openfoodfacts.org username, not your email.</string>
     <string name="contribution_user_id">Username</string>
     <string name="contribution_password">Password</string>
     <string name="contribution_save">Save</string>
@@ -158,24 +158,24 @@
     <!-- The sandbox: the same API on throwaway data. It serves to check that an upload
          goes through without leaving a faulty entry in a public database. -->
     <string name="contribution_sandbox_title">Test server</string>
-    <string name="contribution_sandbox_body">Sends to the trial instance rather than to the real database. Nothing that goes there is public.</string>
+    <string name="contribution_sandbox_body">Sends to the test server instead of the real database. Nothing there is public.</string>
 
     <!-- The providers screen. -->
-    <string name="ai_title">Artificial intelligence</string>
+    <string name="ai_title">AI</string>
     <!-- Ce que personne ne lit dans un paragraphe : c'est gratuit. La reponse qui
          decide si quelqu'un configure une cle ou referme l'ecran (D138). -->
     <string name="ai_free_title">%1$s is free</string>
     <!-- In everyday words (D178): "tier" and "everyday use" did not say that a day's meals
          fit in it with room to spare. -->
-    <string name="ai_free_body">An account is all it takes, and the free tier easily covers a day\'s meals: no subscription, no card. The key, a personal code to paste here, takes two minutes to get, once.</string>
+    <string name="ai_free_body">An account is all you need, and the free tier easily covers a day of meals. No subscription, no card. The key (a personal code to paste here) takes two minutes to get, once.</string>
     <!-- What a key is, before saying where it stays (D178). -->
-    <string name="ai_intro">A key is a personal code that links Hexavore to your account with an AI provider. It stays on this phone, encrypted by its keystore, and calls go straight to the provider: Hexavore has no server.</string>
+    <string name="ai_intro">A key is a personal code linking Hexavore to your account with an AI provider. It stays encrypted on your phone, and requests go straight to the provider: Hexavore has no server.</string>
 
     <!-- The usage counter. The date of the reading accompanies the amount: docs/05 wants
          the price table dated and flagged as indicative, because an out-of-date estimate
          presented as exact would be worse than no estimate at all. -->
-    <string name="ai_usage_billing">Hexavore estimates no cost. Only your provider\'s invoice is authoritative.</string>
-    <string name="ai_usage_title">What your analyses have used</string>
+    <string name="ai_usage_billing">Hexavore doesn\'t estimate costs. Only your provider\'s bill counts.</string>
+    <string name="ai_usage_title">What your analyses used</string>
     <plurals name="ai_usage_line">
         <item quantity="one">%1$s · %2$s · %3$d call, %4$d tokens</item>
         <item quantity="other">%1$s · %2$s · %3$d calls, %4$d tokens</item>
@@ -209,7 +209,7 @@
          dots: the gesture testers miss on their way back from the browser. A button
          reduces it to one tap (D157). -->
     <string name="ai_key_paste">Paste the key</string>
-    <string name="ai_key_paste_empty">Nothing to paste: copy the key on the site first, then come back here.</string>
+    <string name="ai_key_paste_empty">Nothing to paste. Copy the key on the site first, then come back.</string>
 
     <!-- ===== Getting a key =========================================================
          A screen, not a discreet link: it announces that you are leaving the app, says
@@ -218,17 +218,17 @@
          year. -->
     <string name="ai_get_title">Get a key</string>
     <string name="ai_get_close">Close</string>
-    <string name="ai_get_warning_title">You are about to leave Hexavore</string>
-    <string name="ai_get_warning_body">The key is created at %1$s, on their site. Nobody can do it for you: it takes an account in your name, and it is %1$s who hands you the key.</string>
-    <string name="ai_get_warning_once">Allow two minutes — and it is done only once.</string>
-    <string name="ai_get_steps_title">What you will have to do</string>
-    <string name="ai_get_step_open">Tap the button at the bottom of this screen: the %1$s site opens in your browser.</string>
-    <string name="ai_get_step_account_free">Sign in, or create an account if you do not have one. No bank card is asked for.</string>
-    <string name="ai_get_step_account">Sign in, or create an account if you do not have one.</string>
-    <string name="ai_get_step_create">Look for the button that creates an API key — often labelled “Create API key”.</string>
-    <string name="ai_get_step_paste">Copy the key, come back to Hexavore, and tap “Paste the key”.</string>
-    <string name="ai_get_step_copy_once">Copy it before leaving the page: some providers show it only once.</string>
-    <string name="ai_get_privacy">The key will stay on this phone, encrypted by its keystore. Calls will go straight to %1$s: Hexavore has no server and sees nothing go by.</string>
+    <string name="ai_get_warning_title">You\'re about to leave Hexavore</string>
+    <string name="ai_get_warning_body">The key is created on the %1$s site. Nobody can do it for you: you need an account in your name, and %1$s gives you the key.</string>
+    <string name="ai_get_warning_once">Two minutes, and only once.</string>
+    <string name="ai_get_steps_title">What you\'ll do</string>
+    <string name="ai_get_step_open">Tap the button below: the %1$s site opens in your browser.</string>
+    <string name="ai_get_step_account_free">Sign in, or create an account. No card needed.</string>
+    <string name="ai_get_step_account">Sign in, or create an account.</string>
+    <string name="ai_get_step_create">Look for the button that creates a key, usually “Create API key”.</string>
+    <string name="ai_get_step_paste">Copy the key, come back to Hexavore and tap “Paste the key”.</string>
+    <string name="ai_get_step_copy_once">Copy it before leaving the page: some providers only show it once.</string>
+    <string name="ai_get_privacy">The key stays encrypted on your phone. Requests go straight to %1$s: Hexavore has no server and sees nothing.</string>
     <string name="ai_get_open">Open the %1$s site</string>
     <string name="ai_get_back">Go back</string>
 
@@ -239,43 +239,43 @@
          The project\'s guarantee of reversibility: an open format, an export that works,
          and an erase that keeps its promise (docs/09). -->
     <string name="settings_backup_title">Backup</string>
-    <string name="settings_backup_subtitle">Export your data, restore it, or erase everything</string>
+    <string name="settings_backup_subtitle">Export, restore or erase everything</string>
 
     <string name="backup_title">Backup</string>
     <string name="backup_close">Close</string>
     <string name="backup_cancel">Cancel</string>
 
     <string name="backup_export_title">Export my data</string>
-    <string name="backup_export_body">A file containing everything: the log and its photos, the targets, the weight readings, the catalogue and the favourite dishes. You choose where to write it. Neither API keys nor passwords are in it.</string>
+    <string name="backup_export_body">One file with everything: your log and its photos, targets, weigh-ins, catalogue and favourites. You pick where it goes. No keys or passwords inside.</string>
     <string name="backup_export_action">Choose a location</string>
     <string name="backup_exported">Exported, %1$d kB</string>
     <!-- Past the megabyte: an archive carrying photos is counted in MB, and "214,072 kB"
          does not read. -->
     <string name="backup_exported_large">Exported, %1$.1f MB</string>
-    <string name="backup_export_failed">The file could not be written</string>
+    <string name="backup_export_failed">Couldn\'t write the file</string>
 
     <string name="backup_import_title">Restore a backup</string>
-    <string name="backup_import_body">Replaces everything on this device with the contents of the file. A copy of what exists is kept just beforehand.</string>
+    <string name="backup_import_body">Replaces everything on this phone with what\'s in the file. We keep a copy just before, just in case.</string>
     <string name="backup_import_action">Choose a file</string>
     <string name="backup_restore_confirm_title">Replace all your data?</string>
-    <string name="backup_restore_confirm_body">The contents of the file will replace everything on this device. The two will not be merged. A copy of the current state is kept just beforehand, so you can go back from this screen if you picked the wrong file.</string>
+    <string name="backup_restore_confirm_body">The file replaces everything on this phone, no merging. We keep a copy just before: if you picked the wrong file, you can go back from this screen.</string>
     <string name="backup_restore_confirm_accept">Choose a file</string>
     <!-- Plurals: a backup holding a single food read "1 foods noted" (D162). -->
     <plurals name="backup_restored">
         <item quantity="one">Restored, %1$d food noted</item>
         <item quantity="other">Restored, %1$d foods noted</item>
     </plurals>
-    <string name="backup_too_recent">This file comes from a more recent version (format %1$d). Nothing was changed: update the application.</string>
-    <string name="backup_unreadable">File unreadable. Nothing was changed.</string>
-    <string name="backup_restore_failed">The restore failed. A copy of your data from before is on the device.</string>
+    <string name="backup_too_recent">This file is from a newer version (format %1$d). Nothing changed: update the app.</string>
+    <string name="backup_unreadable">Can\'t read this file. Nothing changed.</string>
+    <string name="backup_restore_failed">The restore failed. A copy of your previous data is on the phone.</string>
 
     <!-- Going back to the safety copy (D162): the restore dialog promised it, and no
          screen offered it. The card only shows after a restore, which leaves the copy. -->
     <string name="backup_undo_title">Go back</string>
-    <string name="backup_undo_body">Puts the log back as it was before the restore of %1$s. Photos only come back if the app has not been restarted since.</string>
+    <string name="backup_undo_body">Puts your log back as it was before the %1$s restore. Photos only come back if the app hasn\'t been restarted since.</string>
     <string name="backup_undo_action">Go back</string>
-    <string name="backup_undo_confirm_title">Go back to the earlier state?</string>
-    <string name="backup_undo_confirm_body">The current log will be replaced by the one from before the last restore. It becomes the safety copy in turn: going back can be undone the same way.</string>
+    <string name="backup_undo_confirm_title">Go back to before?</string>
+    <string name="backup_undo_confirm_body">Your current log gets replaced by the one from before the last restore. It then becomes the backup copy, so you can undo this the same way.</string>
     <plurals name="backup_undone">
         <item quantity="one">Back to the earlier state, %1$d food noted</item>
         <item quantity="other">Back to the earlier state, %1$d foods noted</item>
@@ -284,16 +284,16 @@
     <string name="backup_erase_title">Erase all my data</string>
     <!-- The copy kept before a restore is named (D162): it survived the erase, and the
          whole log stayed on the phone. -->
-    <string name="backup_erase_body">Deletes the log, the photos, the profile, the targets, the weight readings, the API keys and the accounts, as well as the copy kept before the last restore. Files you have already exported are untouched.</string>
+    <string name="backup_erase_body">Deletes your log, photos, profile, targets, weigh-ins, keys and accounts, plus the copy kept before the last restore. Files you already exported stay put.</string>
     <string name="backup_erase_action">Erase everything</string>
-    <string name="backup_erase_confirm_title">Erase everything, with no way back?</string>
-    <string name="backup_erase_confirm_body">This action cannot be undone. To confirm, type %1$s below.</string>
+    <string name="backup_erase_confirm_title">Erase everything for good?</string>
+    <string name="backup_erase_confirm_body">There\'s no undo. To confirm, type %1$s below.</string>
     <string name="backup_erase_confirm_accept">Erase everything</string>
     <!-- The word to type, and it is translated on purpose: a lock that asks you to read
          only locks in a language you read. The comparison is made against this resource,
          so it follows the translation on its own. -->
     <string name="backup_erase_word">DELETE</string>
-    <string name="backup_erased">All your data has been erased</string>
+    <string name="backup_erased">Everything\'s been erased</string>
 
     <!-- ===== Appearance ===========================================================
          The section docs/02 announced and that opened nothing. It opens the theme, the
@@ -302,13 +302,13 @@
          A section of their own rather than a checkbox in Appearance: what it decides is
          not what you see but what gets written to disk. -->
     <string name="settings_photos_title">Dish photos</string>
-    <string name="settings_photos_subtitle">Whether to keep them, and what they take up</string>
+    <string name="settings_photos_subtitle">Keep them or not, and the space they take</string>
     <string name="photos_title">Dish photos</string>
     <string name="photos_close">Close</string>
     <string name="photos_keeping_title">Keep photos</string>
-    <string name="photos_keeping_body">When you confirm a scanned or analysed dish, its image stays on this phone and is shown with it. It goes nowhere.</string>
-    <string name="photos_storage_title">What they take up</string>
-    <string name="photos_storage_empty">No photos for now.</string>
+    <string name="photos_keeping_body">When you confirm a scanned or analysed meal, its photo stays on your phone with it. It goes nowhere.</string>
+    <string name="photos_storage_title">Space used</string>
+    <string name="photos_storage_empty">No photos yet.</string>
     <plurals name="photos_storage_count">
         <item quantity="one">%1$d photo, %2$.1f MB</item>
         <item quantity="other">%1$d photos, %2$.1f MB</item>
@@ -316,14 +316,14 @@
     <string name="photos_erase_action">Delete all photos</string>
     <string name="photos_erase_title">Delete the photos?</string>
     <plurals name="photos_erase_body">
-        <item quantity="one">%1$d image will be erased. Your dishes and their values stay intact.</item>
-        <item quantity="other">%1$d images will be erased. Your dishes and their values stay intact.</item>
+        <item quantity="one">%1$d photo will be erased. Your meals and their values stay put.</item>
+        <item quantity="other">%1$d photos will be erased. Your meals and their values stay put.</item>
     </plurals>
     <string name="photos_erase_confirm">Delete</string>
     <string name="photos_erase_cancel">Cancel</string>
 
     <string name="settings_appearance_title">Appearance</string>
-    <string name="settings_appearance_subtitle">The language, the theme, the units, and how dishes are shown</string>
+    <string name="settings_appearance_subtitle">Language, theme, units and how meals are shown</string>
 
     <string name="appearance_title">Appearance</string>
     <string name="appearance_close">Close</string>
@@ -337,7 +337,7 @@
          looking — so "Français" says more than "French" ever could. -->
     <string name="appearance_language_en">English</string>
     <string name="appearance_language_fr">Français</string>
-    <string name="appearance_language_note">“Follow the system” takes the languages set on your phone, in their order, and uses the first one Hexavore speaks. English otherwise. Food names follow: the ANSES table publishes its 3,484 labels in both languages.</string>
+    <string name="appearance_language_note">“Follow the system” uses the first language on your phone that Hexavore speaks, otherwise English. Food names follow: the ANSES table comes in both languages.</string>
 
     <string name="appearance_theme_title">Theme</string>
     <string name="appearance_theme_light">Light</string>
@@ -346,87 +346,87 @@
     <string name="appearance_units_title">Units</string>
     <!-- The dish display style. Two styles rather than a density scale: what tells them
          apart is what you read, not a line height. -->
-    <string name="appearance_dishes_title">How dishes are shown</string>
+    <string name="appearance_dishes_title">How meals are shown</string>
     <string name="appearance_dishes_simple">Simple</string>
     <string name="appearance_dishes_detailed">Detailed</string>
-    <string name="appearance_dishes_note">Simple gives the dish title, its time, its calories and what it contributes. Detailed adds the list of its foods.</string>
+    <string name="appearance_dishes_note">Simple: the meal\'s title, time, calories and nutrients. Detailed: the list of foods too.</string>
 
     <string name="appearance_units_metric">Metric (g, ml, kg, cm)</string>
     <string name="appearance_units_imperial">Imperial (oz, fl oz, lb, feet and inches)</string>
-    <string name="appearance_units_note">This setting changes what is shown and what you type. Your data does not move: a dish noted in grams keeps its grams.</string>
-    <string name="appearance_theme_note">“Follow the system” takes Android\'s setting and switches with it.</string>
+    <string name="appearance_units_note">Changes what you see and type. Your data doesn\'t move: a meal logged in grams stays in grams.</string>
+    <string name="appearance_theme_note">“Follow the system” follows Android\'s setting.</string>
 
     <!-- ===== Notices ==============================================================
          No system notifications: these are coloured dots you see when you open the
          application. Each one designates a situation, never a stacked message. -->
     <string name="settings_notices_title">Notifications</string>
-    <string name="settings_notices_subtitle">The dots that flag what there is to do</string>
+    <string name="settings_notices_subtitle">The dots that flag something for you</string>
 
     <string name="notices_title">Notifications</string>
     <string name="notices_close">Close</string>
     <!-- The dots, and the dots alone (D162): the screen also holds the reminders, which
          ring and need a permission, and the sentence seemed to speak of them. -->
-    <string name="notices_intro">The dots are coloured marks inside the application, nothing more: no sound, nothing on the lock screen, no permission. Each one goes out when the situation it flags has ended. Only the reminders, further down, ring outside the application.</string>
+    <string name="notices_intro">Dots are just coloured marks in the app: no sound, nothing on the lock screen, no permission. Each one goes away once the issue is sorted. Only the reminders, further down, ring outside the app.</string>
     <string name="settings_section_flagged">Something to sort out here</string>
     <string name="notices_active_now">On right now</string>
 
-    <string name="notices_ai_absent_title">No AI configured</string>
+    <string name="notices_ai_absent_title">No AI set up</string>
     <!-- The bar is no longer dimmed without a key: it turns red and says what is missing (D162). -->
-    <string name="notices_ai_absent_body">On the profile icon, as long as no API key is in use. Without one, the analysis bar turns red and says what is missing.</string>
+    <string name="notices_ai_absent_body">On the profile icon, as long as there\'s no key. Without one, the analysis bar turns red and says what\'s missing.</string>
 
-    <string name="notices_ai_rejected_title">API key refused</string>
-    <string name="notices_ai_rejected_body">On the profile icon, when the last analysis call was refused. Without it, analysis stops working without anything saying so.</string>
+    <string name="notices_ai_rejected_title">AI key rejected</string>
+    <string name="notices_ai_rejected_body">On the profile icon, when the last analysis was rejected. Otherwise analysis would stop working without a word.</string>
 
-    <string name="notices_weight_title">No weight reading for a week</string>
+    <string name="notices_weight_title">No weigh-in for a week</string>
     <!-- The trend no longer falls silent since D159: it is the adjustment that lacks ground (D162). -->
-    <string name="notices_weight_body">On the weight log icon. Without regular readings, the weekly adjustment has nothing to rely on, and can suggest nothing.</string>
+    <string name="notices_weight_body">On the weight icon. Without regular weigh-ins, the weekly adjustment has nothing to go on.</string>
 
-    <string name="notices_yesterday_title">Yesterday has nothing noted</string>
-    <string name="notices_yesterday_body">On yesterday\'s dot in the calendar. Touching that day lets you note the meal you forgot.</string>
+    <string name="notices_yesterday_title">Nothing logged yesterday</string>
+    <string name="notices_yesterday_body">On yesterday\'s dot in the calendar. Tap that day to add the meal you forgot.</string>
     <!-- The way back from "Don't show tips again" (D179). -->
     <string name="notices_tips_title">Tips when the app opens</string>
-    <string name="notices_tips_body">Now and then, as you open the app, a gesture nobody guesses. Each one only once, and never more than one at a time.</string>
+    <string name="notices_tips_body">Now and then, when you open the app, a tip you might not guess. Each one once, never two at a time.</string>
 
     <!-- Deep analysis: the model queries the catalogue before concluding, instead of
          letting a similarity score choose in its place. -->
     <string name="ai_deep_title">Deep analysis</string>
-    <string name="ai_deep_body">The model queries the catalogue and picks the entry for each food itself. It is always on where the provider can call tools: without it, foods the catalogue does not match come back with no values at all.</string>
-    <string name="ai_deep_unavailable">The active provider cannot call tools. Foods it does not match will be estimated instead, and flagged as estimates.</string>
+    <string name="ai_deep_body">The model digs through the catalogue and picks each food itself. Always on when the provider can use tools: without it, foods that aren\'t found would come back with no values.</string>
+    <string name="ai_deep_unavailable">This provider can\'t use tools. Foods it doesn\'t find will be estimated, and marked as estimates.</string>
 
     <!-- Les rappels : la seconde moitie de cet ecran. Ils sonnent dehors, la ou les
          pastilles se voient en ouvrant l'application. -->
     <string name="reminders_title">Reminders</string>
-    <string name="reminders_intro">These ones do ring, outside the application. Each stays quiet when it has nothing to say: the lunch reminder skips a day whose lunch is already logged.</string>
-    <string name="reminders_blocked">Android is blocking notifications for Hexavore. Reminders are set, but nothing will ring.</string>
+    <string name="reminders_intro">These do ring, outside the app. Each stays quiet if there\'s nothing to say: no lunch reminder if lunch is already logged.</string>
+    <string name="reminders_blocked">Android is blocking Hexavore\'s notifications. Reminders are set, but nothing will ring.</string>
     <string name="reminders_allow">Allow notifications</string>
     <string name="reminders_breakfast_title">Breakfast</string>
     <string name="reminders_lunch_title">Lunch</string>
     <string name="reminders_dinner_title">Dinner</string>
     <string name="reminders_streak_title">Streak at stake</string>
     <string name="reminders_meal_body">Quiet once this meal is logged.</string>
-    <string name="reminders_streak_body">In the evening, when nothing is logged and a streak is running.</string>
+    <string name="reminders_streak_body">In the evening, if nothing\'s logged and you have a streak going.</string>
     <string name="settings_favorites_title">Favourites</string>
-    <string name="settings_favorites_subtitle">The meals you saved, and a way to fix them.</string>
+    <string name="settings_favorites_subtitle">Your saved meals, and a way to edit them</string>
     <string name="settings_favorites_edit">Edit this favourite</string>
-    <string name="settings_favorites_empty">No favourites yet. Tap the star on a meal to save it; it comes back under the + button.</string>
+    <string name="settings_favorites_empty">No favourites yet. Tap the star on a meal to save it, it\'ll show up under the + button.</string>
     <string name="settings_contact_title">Contact</string>
-    <string name="settings_contact_subtitle">The code, the site, where to write, and where to rate us.</string>
-    <string name="settings_contact_intro">Hexavore is open source. A bug, an idea, a word: all three reach us.</string>
+    <string name="settings_contact_subtitle">The code, the site, write to us, rate us</string>
+    <string name="settings_contact_intro">Hexavore is open source. A bug, an idea, a quick hello: it all reaches us.</string>
     <string name="settings_contact_site">The site</string>
-    <string name="settings_contact_github">The code, and the issues</string>
+    <string name="settings_contact_github">The code and issues</string>
     <string name="settings_contact_mail">Write to us</string>
     <!-- The rating request from the opening, always within reach (D179). -->
     <string name="settings_contact_rate">Rate Hexavore on the Play Store</string>
     <!-- When nothing on the phone can open a card's address, in Contact as in About
          (D162). It points to the address, written on the card for that reason. -->
-    <string name="settings_link_unavailable">No app on this phone can open this link. The address is written on the card, so you can copy it.</string>
+    <string name="settings_link_unavailable">No app on this phone can open this link. The address is on the card, so you can copy it.</string>
 
     <!-- ===== About ================================================================
          What the app is, and what it owes to others (D161): the privacy policy that
          Google Play wants reachable from inside the app, the medical warning, where the
          nutrition data comes from, and the licences of what the APK carries. -->
     <string name="settings_about_title">About</string>
-    <string name="settings_about_subtitle">The version, privacy, where the data comes from, and the licences.</string>
+    <string name="settings_about_subtitle">Version, privacy, data sources and licences</string>
     <string name="about_close">Close</string>
     <!-- Proper nouns: the same in every language. -->
     <string name="about_app_name" translatable="false">Hexavore</string>
