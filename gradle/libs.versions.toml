@@ -31,7 +31,7 @@ jvmToolchain = "17"
 
 # --- Identite de l'application ------------------------------------------------
 # applicationId verrouille a la premiere publication Play : docs/10-qualite-et-livraison.md.
-versionName = "1.1.1"
+versionName = "1.2.0"
 # Un code televerse ne se reprend jamais, meme sur une release supprimee : la Console
 # refuse tout bundle qui ne monte pas. Le 1 et le 2 sont donc partis pour de bon -- le
 # premier par erreur, le second avec le contenu de la 0.6.0.
@@ -77,7 +77,9 @@ versionName = "1.1.1"
 # 12 accorde Hexavore au masculin, comme l'auteur l'a tranche (D182), et le nom passe a
 # 1.1.1 : trois textes corriges, rien de neuf. Le 11 etait deja televerse quand la faute
 # a ete vue, et un code televerse ne se remplace pas.
-versionCode = "12"
+#
+# 13 : la demande de note passe en premier, et l'application tutoie (1.2.0).
+versionCode = "13"
 
 # --- Bibliotheques ------------------------------------------------------------
 androidxCore = "1.15.0"

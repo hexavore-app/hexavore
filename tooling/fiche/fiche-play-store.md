@@ -209,7 +209,7 @@ La même règle veut qu'une application qui se sert d'un capteur de l'appareil, 
 
 ---
 
-## Notes de version : le ton (500 max, numéro fixé à la sortie)
+## Notes de version 1.2.0 (500 max)
 
 fr-CA reprend fr-FR, en-US reprend en-GB, mot pour mot.
 
