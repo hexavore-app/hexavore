@@ -21,6 +21,21 @@ dependencies {
     testRuntimeOnly(libs.junit.platform.launcher)
 }
 
+// --- Couverture --------------------------------------------------------------
+//
+// Un plancher, pas un objectif : il suit ce qui est atteint, un peu en dessous. Le
+// relever quand la couverture monte ; ne jamais le baisser pour faire passer un build.
+
+kover {
+    reports {
+        variant("hexavore") {
+            verify {
+                rule { minBound(95) }
+            }
+        }
+    }
+}
+
 // --- Purete du domaine -------------------------------------------------------
 //
 // Sans plugin Android, un import android.* echoue deja a la compilation, mais le
@@ -98,4 +113,5 @@ tasks.withType<KotlinCompile>().configureEach {
 
 tasks.named("check") {
     dependsOn(verifyDomainPurity)
+    dependsOn("koverVerifyHexavore")
 }
