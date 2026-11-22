@@ -6,7 +6,7 @@ Pyramide classique, mais avec un déséquilibre assumé : l'essentiel de l'effor
 
 | Niveau | Portée | Outillage | Objectif |
 |---|---|---|---|
-| Unitaire JVM | `:domain`, correspondances, parseurs | JUnit 5, Turbine, MockK | **couverture ≥ 90 %** sur `:domain` |
+| Unitaire JVM | `:domain`, correspondances, parseurs | JUnit 5 | **plancher de 95 %** des lignes sur `:domain`, 42 % sur l'ensemble (Kover, dans `check`) |
 | Base de données | DAO, migrations | Room testing, Robolectric | toutes les migrations, toutes les requêtes |
 | Composant UI | Composants du design system | Compose UI test | états et accessibilité |
 | Image de référence | Écrans complets | Roborazzi | non-régression visuelle |
@@ -88,7 +88,7 @@ Ce n'est pas une élégance. Quatre défauts livrés avaient la même forme — 
 
 ### Deux moteurs de test, et lequel s'applique où
 
-**JUnit 5 partout, sauf dans les modules qui ont besoin de Robolectric** : `:core:database`, `:data:food`, `:data:profile`, `:data:diary`. Robolectric est un lanceur JUnit 4 ; ces modules déclarent donc `junit4` et le moteur `junit-vintage`, qui rassemble les deux sous `./gradlew check` ([D35](11-decisions.md#d35--le-test-de-migration-tourne-sur-la-jvm-pas-sur-un-appareil---validée), [D53](11-decisions.md#d53--la-recherche-est-un-flux-et-le-faux-est-tenu-par-un-contrat---validée)).
+**JUnit 5 partout, sauf dans les modules qui ont besoin de Robolectric** : ceux dont un adaptateur touche un `Context` (base, préférences, rappels, rapports). Robolectric est un lanceur JUnit 4 ; ces modules déclarent donc `junit4` et le moteur `junit-vintage`, qui rassemble les deux sous `./gradlew check` ([D35](11-decisions.md#d35--le-test-de-migration-tourne-sur-la-jvm-pas-sur-un-appareil---validée), [D53](11-decisions.md#d53--la-recherche-est-un-flux-et-le-faux-est-tenu-par-un-contrat---validée)).
 
 **Les assertions JUnit 4 prennent le message en premier argument, JUnit 5 en dernier.** C'est la faute la plus fréquente en passant d'un module à l'autre, et elle est silencieuse : `assertEquals(attendu, obtenu)` compile des deux côtés, seul le message part au mauvais endroit — jusqu'au jour où un `assertEquals("message", a, b)` compare le message à autre chose.
 
@@ -282,7 +282,7 @@ GitHub Actions, et **un seul workflow de vérification** : [`ci.yml`](../.github
 
 ```
 ktlint → detekt → Android Lint → tests unitaires JVM → tests Room (Robolectric)
-       → tests des règles detekt maison → assembleDebug
+       → tests des règles detekt maison → planchers de couverture → assembleDebug
 ```
 
 C'est ce que fait `./gradlew check assembleDebug`. **C'est tout ce que la chaîne fait**, et elle fait la même chose sur `main` que sur une pull request.
@@ -293,7 +293,8 @@ Ce qui reste donc à la main :
 |---|---|
 | Tests instrumentés | `./gradlew :app:bornesGroupDebugAndroidTest`, sur la machine de développement |
 | Build release signé, bundle Play Store, notes de version | à la main, voir plus haut |
-| Rapport de couverture, tests d'image | nulle part : ils n'existent pas |
+| Rapport de couverture | `./gradlew :koverHtmlReportHexavore`, en local ; les planchers, eux, tournent dans `check` |
+| Tests d'image | nulle part : ils n'existent pas |
 
 ### Cette section a décrit pendant des mois une chaîne qui n'existait pas
 

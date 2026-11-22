@@ -111,7 +111,6 @@ fun Project.coverageVariant(source: String) {
     }
 }
 
-
 // Le rapport commun : `./gradlew :koverHtmlReportHexavore`. Ni les faux de
 // `:core:testing` ni l'outil d'import CIQUAL n'entrent dans un APK.
 dependencies {
@@ -146,6 +145,13 @@ kover {
                 annotatedBy("androidx.compose.ui.tooling.preview.Preview")
             }
         }
+        // Le plancher de l'ensemble, un peu sous ce qui est atteint ; celui du domaine
+        // est dans son propre script. Le relever quand la couverture monte.
+        variant("hexavore") {
+            verify {
+                rule { minBound(42) }
+            }
+        }
     }
 }
 
@@ -154,6 +160,7 @@ kover {
 // et un plugin de convention non verifie est une regle de build qu'on croit
 // appliquee.
 tasks.named("check") {
+    dependsOn(":koverVerifyHexavore")
     dependsOn(gradle.includedBuild("build-logic").task(":detekt-rules:check"))
     dependsOn(gradle.includedBuild("build-logic").task(":convention:check"))
 }
