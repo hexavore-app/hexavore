@@ -59,11 +59,14 @@ class ShouldRemind(
      * **Lue sur les jours clos**, et non sur aujourd'hui : c'est justement parce
      * qu'aujourd'hui est vide que ce rappel existe. Une fenêtre courte suffit — il
      * s'agit de savoir s'il y a quelque chose à perdre, pas de compter jusqu'où.
+     *
+     * Comptée depuis aujourd'hui, comme celle que l'accueil affiche : une veille vide
+     * l'a déjà cassée, et un plat noté ce soir n'en garderait rien.
      */
     private suspend fun hasStreak(today: LocalDate): Boolean {
         val from = today.minusDays(STREAK_LOOKBACK)
         val logged = diary.observeRange(from, today.minusDays(1)).first().map { it.date }.toSet()
-        return loggingStreak(logged, today = today.minusDays(1)) > 0
+        return loggingStreak(logged, today = today) > 0
     }
 
     private companion object {
