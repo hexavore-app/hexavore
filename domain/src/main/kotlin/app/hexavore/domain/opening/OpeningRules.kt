@@ -40,17 +40,6 @@ object OpeningRules {
      */
     const val SPACING: Int = 4
 
-    /** La demande d'avis attend une semaine d'usage… */
-    val RATING_AFTER: Duration = Duration.ofDays(7)
-
-    /**
-     * … et dix plats notés.
-     *
-     * On ne demande pas son avis à qui n'a pas encore eu le temps de s'en faire un : les
-     * avis les plus utiles — à lire comme à recevoir — viennent de ceux qui s'en servent.
-     */
-    const val RATING_AFTER_DISHES: Int = 10
-
-    /** « Plus tard » repousse la demande d'avis d'autant d'ouvertures : une semaine ou deux. */
-    const val RATING_SNOOZE: Int = 20
+    /** « Plus tard » repousse la demande d'avis d'autant d'ouvertures : trois jours environ. */
+    const val RATING_SNOOZE: Int = 10
 }

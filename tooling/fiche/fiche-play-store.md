@@ -44,61 +44,61 @@ Règles sur les métadonnées autorisent : il décrit, il ne vante pas.
 ### Brève description (80 max)
 
 ```
-Une photo de l'assiette, et l'IA fait les comptes. Gratuit, sans pub ni compte.
+Ton assiette en photo, et l'IA fait les comptes. Gratuit, sans pub ni compte.
 ```
 
 ### Description complète (4000 max)
 
 ```
-Notez ce que vous mangez en quelques secondes : prenez votre assiette en photo, ou dites simplement ce que vous avez mangé, et Hexavore fait les comptes.
+Note ce que tu manges en quelques secondes : prends ton assiette en photo, ou dis simplement ce que tu as mangé, et Hexavore fait les comptes.
 
-Hexavore est gratuit, sans publicité, sans abonnement et sans compte à créer. Il suit pour vous six repères à la fois : calories, protéines, glucides, sucres, lipides et fibres.
+Hexavore est gratuit, sans pub, sans abonnement et sans compte à créer. Il suit six repères à la fois : calories, protéines, glucides, sucres, lipides et fibres.
 
 UNE IA GRATUITE ET ILLIMITÉE*
 
-Photographiez l'assiette, ou écrivez « deux œufs, une tartine et un jus d'orange » : l'IA reconnaît les aliments, estime les quantités, et vous n'avez plus qu'à vérifier. Elle passe par Gemini, l'IA de Google, avec votre propre compte Google : une clé à récupérer une seule fois, en deux minutes, sans carte bancaire. L'application vous guide pas à pas.
+Prends l'assiette en photo, ou écris « deux œufs, une tartine et un jus d'orange » : l'IA reconnaît les aliments, estime les quantités, et tu n'as plus qu'à vérifier. Elle passe par Gemini, l'IA de Google, avec ton propre compte Google : une clé à récupérer une seule fois, en deux minutes, sans carte bancaire. L'appli te guide pas à pas.
 
-*Avec une clé Google Gemini gratuite, dans la limite quotidienne fixée par Google, bien au-delà de ce que demandent vos repas.
+*Avec une clé Google Gemini gratuite, dans la limite quotidienne fixée par Google, bien au-delà de ce que demandent tes repas.
 
-Vous préférez Claude, l'IA d'Anthropic ? Elle fonctionne aussi, avec votre propre clé.
+Tu préfères Claude, l'IA d'Anthropic ? Ça marche aussi, avec ta propre clé.
 
 QUATRE FAÇONS DE NOTER UN REPAS
 
 Une photo de l'assiette, analysée par l'IA.
-Une phrase, comme vous la diriez à quelqu'un.
-Un code-barres : la fiche du produit vient d'Open Food Facts.
+Une phrase, comme tu la dirais à quelqu'un.
+Un code-barres : le produit vient d'Open Food Facts.
 Une recherche parmi 3 484 aliments, même sans connexion.
 
-Le scan et la photo demandent un téléphone équipé d'un appareil photo.
+Le scan et la photo demandent un téléphone avec un appareil photo.
 
-TOUT EST MODIFIABLE
+TOUT SE CORRIGE
 
-Chaque proposition se vérifie avant d'être enregistrée : un aliment, une quantité ou une valeur se corrige d'un geste, et ce que l'IA a estimé est signalé. Un repas oublié se rattrape sur n'importe quel jour passé.
+Tu vérifies chaque proposition avant de l'enregistrer : un aliment, une quantité ou une valeur se corrige d'un geste, et ce que l'IA a estimé est signalé. Un repas oublié ? Ajoute-le sur n'importe quel jour passé.
 
-VOTRE JOURNÉE D'UN COUP D'ŒIL
+TA JOURNÉE D'UN COUP D'ŒIL
 
-L'hexagone se remplit à mesure que vous mangez : un quartier par repère, et ce qu'il vous reste pour la journée. Touchez un quartier pour voir quels aliments l'ont rempli.
+L'hexagone se remplit au fil de tes repas : un quartier par repère, et ce qu'il te reste pour la journée. Touche un quartier pour voir quels aliments l'ont rempli.
 
-DES OBJECTIFS À VOTRE MESURE
+DES OBJECTIFS À TA MESURE
 
-Âge, taille, poids, activité, poids visé et échéance : Hexavore calcule vos six objectifs quotidiens, que vous ajustez quand vous voulez. Chaque semaine, votre poids réel est comparé à la trajectoire visée, et l'application vous propose un ajustement ; c'est vous qui décidez.
+Âge, taille, poids, activité, poids visé et échéance : Hexavore calcule tes six objectifs du jour, que tu ajustes quand tu veux. Chaque semaine, ton poids réel est comparé à la trajectoire visée, et l'appli te propose un ajustement. C'est toi qui décides.
 
-Les favoris rejouent un plat habituel sans tout ressaisir, le calendrier montre vos journées réussies, et le journal de poids trace votre vraie tendance.
+Les favoris remettent un plat habituel sans tout retaper, le calendrier montre tes bonnes journées, et le journal de poids trace ta vraie tendance.
 
-VOS DONNÉES RESTENT CHEZ VOUS
+TES DONNÉES RESTENT CHEZ TOI
 
-Pas de compte, pas de serveur, pas de publicité, pas de pistage. Tout reste sur votre téléphone : vous l'exportez dans un fichier quand vous voulez, et vous effacez tout d'un geste. Quand vous utilisez l'IA, la demande part directement de votre téléphone chez le fournisseur choisi, sans passer par nous.
+Pas de compte, pas de serveur, pas de pub, pas de pistage. Tout reste sur ton téléphone : tu l'exportes dans un fichier quand tu veux, et tu effaces tout d'un geste. Quand tu utilises l'IA, la demande part directement de ton téléphone chez le fournisseur choisi, sans passer par nous.
 
-Sans clé, le scan, la recherche et tout le reste fonctionnent ; seules la photo et la phrase demandent l'IA.
+Sans clé, le scan, la recherche et tout le reste marchent. Seules la photo et la phrase demandent l'IA.
 
-LIBRE, ET SOURCÉE
+LIBRE, ET SOURCÉ
 
-Le code est public, sous licence GPL-3.0. Hors estimations de l'IA, signalées comme telles, les valeurs nutritionnelles viennent de deux sources ouvertes, créditées dans l'application :
+Le code est public, sous licence GPL-3.0. Hors estimations de l'IA, signalées comme telles, les valeurs nutritionnelles viennent de deux sources ouvertes, créditées dans l'appli :
 
 Table CIQUAL 2025 de l'ANSES, sous Licence Ouverte Etalab 2.0
 Open Food Facts, par ses contributeurs, sous licence ODbL 1.0
 
-Hexavore est un outil de suivi personnel. Ce n'est pas un dispositif médical : il ne diagnostique, ne traite, ne guérit ni ne prévient aucune maladie. Pour un avis, un diagnostic ou un traitement, consultez un professionnel de santé.
+Hexavore est un outil de suivi personnel. Ce n'est pas un dispositif médical : il ne diagnostique, ne traite, ne guérit ni ne prévient aucune maladie. Pour un avis, un diagnostic ou un traitement, consulte un professionnel de santé.
 ```
 
 ---
@@ -122,48 +122,48 @@ Snap your plate and the AI does the counting. Free, no ads, no account.
 ```
 Log what you eat in seconds: snap your plate, or just say what you had, and Hexavore does the counting.
 
-Hexavore is free, with no ads, no subscription and no account to create. It tracks six markers at once for you: calories, protein, carbs, sugars, fat and fibre.
+Hexavore is free, with no ads, no subscription and no account to create. It tracks six things at once: calories, protein, carbs, sugars, fat and fibre.
 
 A FREE, UNLIMITED AI*
 
-Photograph the plate, or type "two eggs, a slice of toast and an orange juice": the AI recognises the foods, estimates the amounts, and all you have to do is check. It works through Gemini, Google's AI, with your own Google account: a key to fetch once, in two minutes, with no card. The app guides you step by step.
+Snap the plate, or type “two eggs, a slice of toast and an orange juice”: the AI spots the foods, estimates the amounts, and you just check. It runs on Gemini, Google's AI, with your own Google account: grab a key once, in two minutes, no card needed. The app walks you through it.
 
-*With a free Google Gemini key, within the daily limit set by Google, well beyond what your meals need.
+*With a free Google Gemini key, within the daily limit set by Google, way beyond what your meals need.
 
-Prefer Claude, Anthropic's AI? It works too, with your own key.
+Prefer Claude, Anthropic's AI? That works too, with your own key.
 
 FOUR WAYS TO LOG A MEAL
 
-A photo of the plate, analysed by the AI.
-A sentence, the way you would say it to someone.
+A photo of your plate, analysed by the AI.
+A sentence, the way you'd say it to a friend.
 A barcode: the product comes from Open Food Facts.
-A search among 3,484 foods, even with no connection.
+A search across 3,484 foods, even offline.
 
 Scanning and photos need a phone with a camera.
 
-EVERYTHING IS EDITABLE
+FIX ANYTHING
 
-Every suggestion is checked before it is saved: a food, an amount or a value is corrected in one gesture, and whatever the AI estimated is marked as such. A forgotten meal can be added to any past day.
+You check every suggestion before saving: fix a food, an amount or a value in one tap, and anything the AI estimated is flagged. Forgot a meal? Add it to any past day.
 
 YOUR DAY AT A GLANCE
 
-The hexagon fills up as you eat: one quarter per marker, and what you have left for the day. Touch a quarter to see which foods filled it.
+The hexagon fills up as you eat: one section per nutrient, and what you have left for the day. Tap a section to see which foods filled it.
 
 TARGETS THAT FIT YOU
 
-Age, height, weight, activity, target weight and horizon: Hexavore calculates your six daily targets, which you can adjust whenever you like. Each week your real weight is compared with the intended trajectory, and the app suggests an adjustment; you decide.
+Age, height, weight, activity, target weight and deadline: Hexavore works out your six daily targets, and you can tweak them anytime. Each week, your real weight is compared with your target path and the app suggests an adjustment. You decide.
 
-Favourites replay a usual meal without typing it all again, the calendar shows your successful days, and the weight log draws your real trend.
+Favourites bring back a usual meal without retyping it, the calendar shows your good days, and the weight log draws your real trend.
 
 YOUR DATA STAYS WITH YOU
 
-No account, no server, no ads, no tracking. Everything stays on your phone: export it to a file whenever you want, and erase everything in one gesture. When you use the AI, the request goes straight from your phone to the provider you chose, without going through us.
+No account, no server, no ads, no tracking. Everything stays on your phone: export it to a file whenever you like, and erase it all in one tap. When you use the AI, the request goes straight from your phone to the provider you picked, never through us.
 
-Without a key, scanning, search and everything else still work; only photos and sentences need the AI.
+Without a key, scanning, search and everything else still work. Only photos and sentences need the AI.
 
-FREE SOFTWARE, WITH SOURCES
+OPEN SOURCE, WITH SOURCES
 
-The code is public, under the GPL-3.0 licence. Apart from AI estimates, which are marked as such, the nutrition values come from two open sources, credited inside the app:
+The code is public, under the GPL-3.0 licence. Apart from AI estimates, which are flagged, the nutrition values come from two open sources, credited in the app:
 
 CIQUAL 2025 table by ANSES, under Licence Ouverte Etalab 2.0
 Open Food Facts, by its contributors, under the ODbL 1.0 licence
@@ -206,6 +206,24 @@ prises en `en-GB` : la semaine y commence le lundi, comme en français.
 La règle *Contenus et services de santé* de Google Play demande à toute application de santé qui n'est pas un dispositif médical **un avertissement clair dans sa description** : elle n'est pas un dispositif médical, et elle ne diagnostique, ne traite, ne guérit ni ne prévient aucune maladie. Elle demande aussi de **rappeler de consulter un professionnel de santé** pour un avis, un diagnostic ou un traitement. Les applications de suivi nutritionnel y sont nommées. Les deux phrases closent donc les deux descriptions, et ce sont, mot pour mot, celles que l'application fait lire à l'accueil et garde dans « À propos » (`ds_medical_disclaimer`) : deux textes d'une même promesse finiraient par en dire deux ([D168](../../docs/11-decisions.md)).
 
 La même règle veut qu'une application qui se sert d'un capteur de l'appareil, la caméra par exemple, le dise dans sa description : c'est la ligne « Le scan et la photo demandent un téléphone équipé d'un appareil photo ».
+
+---
+
+## Notes de version 1.2.0 (500 max)
+
+fr-CA reprend fr-FR, en-US reprend en-GB, mot pour mot.
+
+### fr-FR et fr-CA
+
+```
+Hexavore te tutoie maintenant ! Tous les textes ont été raccourcis et rendus plus simples.
+```
+
+### en-GB et en-US
+
+```
+Shorter, friendlier wording all over the app.
+```
 
 ---
 
@@ -353,5 +371,5 @@ No account, no login, no subscription. Every screen opens without credentials.
 
 Two optional features, the photo analysis and the sentence analysis, call an AI provider with the user's own API key (Google Gemini, Anthropic, OpenAI, Mistral, DeepSeek, or any OpenAI-compatible service). No key is provided: the app has no server, and the request goes straight from the phone to the provider the user chose.
 
-To try them, a free Google Gemini key can be created in about two minutes at aistudio.google.com, without a card. Paste it in Settings > Artificial intelligence. Without a key, those two buttons explain how to add one, and everything else works: barcode scan, offline food search, the journal, targets, weight log, progress, favourites, export and erase.
+To try them, a free Google Gemini key can be created in about two minutes at aistudio.google.com, without a card. Paste it in Settings > AI. Without a key, those two buttons explain how to add one, and everything else works: barcode scan, offline food search, the journal, targets, weight log, progress, favourites, export and erase.
 ```

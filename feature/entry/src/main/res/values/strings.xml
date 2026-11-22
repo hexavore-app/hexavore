@@ -7,7 +7,7 @@
     <!-- The day aimed at, shown only when it is not today. Now that a forgotten meal
          can be caught up, a draft can aim at a past day — and it is here, just before
          the write, that this has to be said. -->
-    <string name="entry_other_day">Will be noted on %1$s</string>
+    <string name="entry_other_day">Goes on %1$s</string>
 
     <string name="entry_title_new">New entry</string>
     <string name="entry_title_edit">Edit the dish</string>
@@ -21,10 +21,10 @@
     <!-- What a line suggested by a model says about itself. Two distinct uncertainties:
          what the model understood, and the fact that the quantity comes from a fallback
          rather than from a measured portion (docs/04). -->
-    <string name="entry_suggestion">Suggested by AI · %1$d %% confidence</string>
+    <string name="entry_suggestion">Suggested by AI · %1$d %% sure</string>
     <!-- Under 75 %, the threshold where the catalogue also stops filling a line on its
          own (D162): the sentence says it, on top of the colour. -->
-    <string name="entry_suggestion_unsure">Suggested by AI · low confidence, %1$d %%: check it</string>
+    <string name="entry_suggestion_unsure">Suggested by AI · not very sure (%1$d %%), check it</string>
     <string name="entry_suggestion_quantity">estimated quantity</string>
     <!-- The badge docs/04 requires on the step 4 fallback: these figures come from no
          database, and saying so is what makes them usable. -->
@@ -52,7 +52,7 @@
     <!-- Fibre was not filled in: it contributed nothing to the calculation, which is
          therefore an undercount. An undercount that announces itself unblocks the line;
          the same value in silence would be one more invented figure. -->
-    <string name="entry_energy_without_fiber">Fibre not filled in, so not counted</string>
+    <string name="entry_energy_without_fiber">Without fibre (not filled in)</string>
 
     <string name="entry_add_line">Add a food</string>
     <string name="entry_remove_line">Remove</string>
@@ -70,10 +70,10 @@
          reader. The name is repeated so that "Remove" designates something. -->
     <string name="entry_remove_line_a11y">Remove the line %1$s</string>
 
-    <string name="entry_total_label">Entry total</string>
+    <string name="entry_total_label">Total</string>
     <string name="entry_kcal">%1$d kcal</string>
-    <string name="entry_remaining">You will have %1$d kcal left today</string>
-    <string name="entry_over">You will go %1$d kcal over today</string>
+    <string name="entry_remaining">You\'ll have %1$d kcal left today</string>
+    <string name="entry_over">You\'ll be %1$d kcal over today</string>
 
     <string name="entry_save">Save</string>
     <string name="entry_save_favorite">Save the favourite</string>
@@ -89,9 +89,9 @@
     <string name="entry_favorite_on">in your favourites</string>
     <string name="entry_favorite_off">not in your favourites</string>
     <string name="entry_favorite_title">Save as a favourite</string>
-    <string name="entry_favorite_body">You will find it under this name, ready to replay. Editing a line takes it out.</string>
+    <string name="entry_favorite_body">You\'ll find it under this name. Edit a line and it leaves your favourites.</string>
     <string name="entry_favorite_name">Dish name</string>
-    <string name="entry_favorite_name_taken">A favourite dish already has this name.</string>
+    <string name="entry_favorite_name_taken">That name\'s already taken.</string>
     <string name="entry_favorite_confirm">Save</string>
     <string name="entry_favorite_cancel">Cancel</string>
     <!-- The counterpart of Save. It closes without asking: the system back gesture,
@@ -102,9 +102,9 @@
     <!-- A dimmed button answers the tap; this sentence is what it answers. -->
     <!-- What is missing, named, and for which food. "A field is empty" helps nobody in
          front of twenty-four fields: the screen points at the first one and goes there. -->
-    <string name="entry_missing_name">This food is missing its name</string>
-    <string name="entry_missing_quantity">The quantity is missing</string>
-    <string name="entry_missing_calories">The calories are missing</string>
+    <string name="entry_missing_name">Name missing</string>
+    <string name="entry_missing_quantity">Quantity missing</string>
+    <string name="entry_missing_calories">Calories missing</string>
 
     <string name="entry_close">Close</string>
 
@@ -118,11 +118,11 @@
     <string name="entry_photo_pick">Choose from the gallery</string>
     <string name="entry_photo_remove">Delete the photo</string>
 
-    <string name="entry_unavailable_title">Dish unreachable</string>
-    <string name="entry_unavailable_body">This dish could not be reopened. It may have been deleted from another screen.</string>
+    <string name="entry_unavailable_title">Meal not found</string>
+    <string name="entry_unavailable_body">Couldn\'t reopen this meal. It may have been deleted somewhere else.</string>
 
-    <string name="entry_error_title">Cannot save</string>
-    <string name="entry_error_body">The write did not go through. Your entry is kept exactly as it is.</string>
+    <string name="entry_error_title">Oops, not saved</string>
+    <string name="entry_error_body">Saving failed. Your entry is still here.</string>
     <string name="entry_error_retry">Try again</string>
 
     <string name="entry_report">Report a wrong or offensive suggestion</string>
@@ -132,20 +132,20 @@
     <string name="entry_copied_to">Copied to %1$s</string>
     <string name="entry_delete">Delete this meal</string>
     <string name="entry_delete_title">Delete this meal?</string>
-    <string name="entry_delete_body">It leaves the day and its counters. This cannot be undone.</string>
+    <string name="entry_delete_body">It leaves your day and your counters. No undo.</string>
     <string name="entry_delete_confirm">Delete</string>
     <string name="entry_delete_cancel">Keep it</string>
     <string name="entry_report_explain_title">Wrong or offensive suggestion?</string>
-    <string name="entry_report_explain_body">An email opens, already filled in: what the AI was asked, what it answered, and the photo. Nothing leaves this phone until you send it.</string>
+    <string name="entry_report_explain_body">An email opens, already filled in: what we asked the AI, its answer and the photo. Nothing leaves your phone until you hit send.</string>
     <string name="entry_report_explain_confirm">Write the report</string>
     <string name="entry_report_explain_cancel">Cancel</string>
-    <string name="entry_report_no_mail_app">No email app on this phone, so nothing could be sent.</string>
+    <string name="entry_report_no_mail_app">No email app on this phone, so nothing was sent.</string>
 
     <!-- The system back gesture, on a draft that would lose something (D161). One
          question, two answers, nothing after: "once, without insisting". The title names
          what goes, the editing, not the meal: a meal reopened and changed stays logged. -->
     <string name="entry_discard_title">Leave without saving?</string>
-    <string name="entry_discard_body">Anything not saved will be lost.</string>
+    <string name="entry_discard_body">Anything you haven\'t saved will be lost.</string>
     <string name="entry_discard_confirm">Leave</string>
     <string name="entry_discard_cancel">Keep editing</string>
 </resources>

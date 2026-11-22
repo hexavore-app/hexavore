@@ -24,30 +24,30 @@
     <string name="home_ring_a11y">Calories, %1$d of %2$d, %3$d %%</string>
 
     <!-- An empty list says what to do, not just that it is empty. -->
-    <string name="home_empty_title">Nothing noted today</string>
-    <string name="home_empty_body">The six counters will fill up with your first entry.</string>
+    <string name="home_empty_title">Nothing logged yet</string>
+    <string name="home_empty_body">Log your first meal and the counters fill up.</string>
     <!-- The same emptiness, on a past day (D162): it is said in the past, and what can be
          done there is catch up on a forgotten meal, not fill counters. -->
-    <string name="home_empty_past_title">Nothing noted that day</string>
-    <string name="home_empty_past_body">A forgotten meal can still be logged here: it will be filed under this date.</string>
+    <string name="home_empty_past_title">Nothing that day</string>
+    <string name="home_empty_past_body">Forgot a meal? You can still add it here.</string>
 
     <!-- A failed read is said out loud, it does not show up as an empty day: an empty
          day is a claim, not an absence of answer. -->
-    <string name="home_error_title">Log unreadable</string>
-    <string name="home_error_body">The read did not go through. Nothing was changed: your dishes are where they were.</string>
+    <string name="home_error_title">Oops, can\'t load your log</string>
+    <string name="home_error_body">Nothing\'s lost, your meals are still there. Try again.</string>
     <string name="home_error_retry">Try again</string>
 
     <!-- As long as no target has been set. An invitation, not six empty gauges: a gauge
          at zero would suggest a target exists and is not being met. -->
     <string name="home_no_goal_title">No target yet</string>
-    <string name="home_no_goal_body">Five questions are enough to work out your six targets. In the meantime, your totals are noted without being compared to anything.</string>
+    <string name="home_no_goal_body">Five quick questions and we\'ll work out your targets. Your totals are still logged meanwhile.</string>
     <string name="home_no_goal_action">Set my target</string>
 
     <!-- A day before the first target, while one is running today (D161). An explanation,
          no button: the invitation above restarted the onboarding for someone who had
          just answered it and came back to log a meal from before installing. -->
     <string name="home_before_goal_title">Before your target</string>
-    <string name="home_before_goal_body">This day comes before your first target: its totals are noted, without being compared to anything.</string>
+    <string name="home_before_goal_body">This day is from before your first target: totals only, nothing to compare.</string>
 
     <!-- An icon on its own: it is the least used door on this screen, and nothing should
          compete with the day\'s title for the first line of the eye. -->
@@ -93,11 +93,11 @@
     <!-- The three other ways to add, under the "+". Each one carries its name and a
          line that says what it opens: a glyph alone is recognised, never understood. -->
     <string name="home_open_favorites">Favourites</string>
-    <string name="home_open_favorites_hint">Replay a dish you saved</string>
+    <string name="home_open_favorites_hint">Add a meal you saved</string>
     <string name="home_scan">Scan</string>
-    <string name="home_scan_hint">A barcode, and the product sheet with it</string>
+    <string name="home_scan_hint">Scan a barcode, get the product</string>
     <string name="home_add_by_hand">Add by hand</string>
-    <string name="home_add_by_hand_hint">Search the catalogue, or create the food yourself</string>
+    <string name="home_add_by_hand_hint">Search the catalogue or create your own food</string>
     <string name="home_more_ways">Other ways to add</string>
 
     <!-- The bottom bar. Writing what you ate is the most frequent gesture of the
@@ -107,12 +107,12 @@
          (D178). "Set up" spoke to someone who already knows what there is to set up. -->
     <string name="home_describe_locked">Turn on the free AI to describe your meals</string>
     <string name="home_send_description">Analyse this meal</string>
-    <string name="home_shoot">Photograph the meal</string>
-    <string name="home_analysing">Analysing…</string>
-    <string name="home_analysing_busy">Service overloaded, trying again…</string>
+    <string name="home_shoot">Snap the meal</string>
+    <string name="home_analysing">Taking a look…</string>
+    <string name="home_analysing_busy">The AI is swamped, trying again…</string>
     <!-- The same sentence as the AI screen: the estimate used to be waited for behind a
          black screen (D176). -->
-    <string name="home_analysing_estimating">Estimating nutrition values…</string>
+    <string name="home_analysing_estimating">Working out the numbers…</string>
     <string name="home_analyse_cancel">Cancel</string>
     <!-- A provider that is down must never stop you from logging a meal. -->
     <string name="home_analyse_manual">Add by hand</string>
@@ -120,15 +120,15 @@
     <!-- Without a key, the field and the camera stay visible and explain when tapped:
          hidden, they are never learned; inert, they teach nothing either (D73). The
          dimming is invisible to a screen reader, hence this sentence. -->
-    <string name="home_analyse_unavailable">unavailable, no AI key</string>
+    <string name="home_analyse_unavailable">needs an AI key</string>
 
     <!-- What is missing, what it costs, and where to go, in everyday words (D178): why the
          AI goes through your own account, what a key is, and that it is free. The old
          sentence spoke of providers and billing to someone who does not know what an API
          key is. The button opens the Gemini key guide, laid over the AI section: that is
          where you come back to paste it. -->
-    <string name="home_ai_title">Turn on the AI, for free</string>
-    <string name="home_ai_explanation">Hexavore is free and has no server: to read your photos and sentences, it relies on Gemini, Google\'s AI, through your own Google account.\n\nAll you need is a key from it, a personal code that opens that access, which you then paste here. It is free, with no subscription and no card, and it takes two minutes, once.</string>
+    <string name="home_ai_title">Turn on the AI, it\'s free</string>
+    <string name="home_ai_explanation">Hexavore has no server. To read your photos and sentences, it uses Gemini, Google\'s AI, with your own Google account.\n\nGrab a key (a personal code), paste it here, done. Free, no subscription, no card. Two minutes, once.</string>
     <string name="home_ai_configure">Get my key</string>
     <string name="home_ai_later">Later</string>
 
@@ -136,9 +136,9 @@
          favourite with no name could not be found, and an empty field would make you
          give up. -->
     <string name="home_favorite_title">Save as a favourite</string>
-    <string name="home_favorite_body">You will find it under this name, ready to replay. Editing a line takes it out.</string>
+    <string name="home_favorite_body">You\'ll find it under this name. Edit a line and it leaves your favourites.</string>
     <string name="home_favorite_name">Dish name</string>
-    <string name="home_favorite_name_taken">A favourite dish already has this name.</string>
+    <string name="home_favorite_name_taken">That name\'s already taken.</string>
     <string name="home_favorite_confirm">Save</string>
     <string name="home_favorite_cancel">Cancel</string>
 
@@ -149,8 +149,8 @@
          French, where "one" covers zero too. The plural form therefore reads correctly
          for 0 as well, and the figure stays in both. -->
     <plurals name="home_dish_delete_body">
-        <item quantity="one">%1$d line will be taken out of your day. You can undo it straight after.</item>
-        <item quantity="other">%1$d lines will be taken out of your day. You can undo it straight after.</item>
+        <item quantity="one">%1$d line goes from your day. You can undo right after.</item>
+        <item quantity="other">%1$d lines go from your day. You can undo right after.</item>
     </plurals>
     <string name="home_dish_delete_confirm">Delete</string>
     <string name="home_dish_delete_cancel">Cancel</string>
@@ -203,10 +203,10 @@
          Each one designates a situation, never a message: it goes out when the situation
          ends, and none of them can be dismissed. The label says what there is to do,
          never "notification" — "1 notification" asks you to go and look. -->
-    <string name="notice_ai_absent">No artificial intelligence configured</string>
-    <string name="notice_ai_rejected">Your API key was refused</string>
-    <string name="notice_weight_stale">No weight reading for a week</string>
-    <string name="notice_yesterday_empty">Yesterday has nothing noted</string>
+    <string name="notice_ai_absent">No AI set up</string>
+    <string name="notice_ai_rejected">Your AI key was rejected</string>
+    <string name="notice_weight_stale">No weigh-in for a week</string>
+    <string name="notice_yesterday_empty">Nothing logged yesterday</string>
 
     <!-- La progression, en trois choses sur une ligne. L'ecran qui la deplie est a un
          tap : l'accueil repond deja a une question, et deux en pleine page rendraient
@@ -221,7 +221,7 @@
 
     <!-- Ce qui passe a l'ecran quand un palier tombe. Rien a fermer : l'animation
          passe, et on continue a noter dessous. -->
-    <string name="home_celebration_title">Milestone reached</string>
+    <string name="home_celebration_title">Well done!</string>
     <!-- Plurals, not strings: the first golden milestone falls at one day, and read
          "1 golden days in a row" (D162). -->
     <plurals name="home_badge_streak">
@@ -243,91 +243,91 @@
     <!-- Au lancement qui suit un plantage : sur le moment, la pile se deroule et
          une boite ouverte depuis un gestionnaire d'exception ne marche qu'une fois
          sur deux (D138). -->
-    <string name="crash_title">Hexavore closed on its own</string>
-    <string name="crash_body">A technical trace was kept. It holds none of your meals, your weight or your key: class names and line numbers. You can read it before sending it.</string>
+    <string name="crash_title">Hexavore crashed</string>
+    <string name="crash_body">Sorry about that! We kept a technical trace: class names and line numbers, nothing about your meals, weight or key. You can read it before sending.</string>
     <string name="crash_send">Send the report</string>
     <string name="crash_decline">No thanks</string>
-    <string name="crash_subject">Hexavore closed on its own</string>
+    <string name="crash_subject">Hexavore crashed</string>
     <string name="crash_intro">Here is the trace of the last crash.</string>
     <!-- Le tour guide du premier lancement (D141). -->
     <string name="tour_day_title">Your day, at a glance</string>
-    <string name="tour_day_body">The hexagon fills as you log, and the six counters say what is left. These meals are an example: they go when the tour ends.</string>
+    <string name="tour_day_body">The hexagon fills up as you log, and the counters show what\'s left. These meals are just examples, they go when the tour ends.</string>
     <string name="tour_describe_title">Say it in your own words</string>
-    <string name="tour_describe_body">« Porridge with milk and a banana ». The AI reads the sentence, finds the foods and weighs them. You check, you correct, you save.</string>
-    <string name="tour_photo_title">Or photograph the plate</string>
-    <string name="tour_photo_body">One shot, and you can add a word if the picture is ambiguous. What you write wins over what is seen.</string>
-    <string name="tour_more_title">And when you prefer to be exact</string>
-    <string name="tour_more_body">A barcode, the catalogue of 3,484 foods offline, or a dish you saved. These three never need a key.</string>
+    <string name="tour_describe_body">“Porridge with milk and a banana”. The AI finds the foods and the amounts. You check, fix if needed, save.</string>
+    <string name="tour_photo_title">Or snap your plate</string>
+    <string name="tour_photo_body">One photo, plus a word if the picture doesn\'t say it all. What you write beats what the AI sees.</string>
+    <string name="tour_more_title">And when you want it exact</string>
+    <string name="tour_more_body">A barcode, the 3,484 foods in the catalogue (offline), or a saved meal. No key needed for these three.</string>
     <!-- The first time a key is mentioned, and the one that matters most (D178): why an
          account, what a key is, what it costs. -->
     <string name="tour_ai_title">A free AI, with your Google account</string>
-    <string name="tour_ai_body">Hexavore has no server and no subscription: for sentences and photos, it relies on Gemini, Google\'s AI, through your own account. All it takes is a key from it, a personal code to paste here: it is free, no card needed, and it takes two minutes, once.</string>
-    <string name="tour_degraded_title">Without a key, two gestures are missing</string>
-    <string name="tour_degraded_body">The field and the camera stay red: everything else works, and you can set a key up whenever you like from Settings. Nothing is lost in the meantime.</string>
+    <string name="tour_ai_body">Hexavore has no server and no subscription. For sentences and photos, it uses Gemini, Google\'s AI, with your account. Grab a key (a personal code) and paste it here. Free, no card, two minutes, once.</string>
+    <string name="tour_degraded_title">Without a key, two options are off</string>
+    <string name="tour_degraded_body">The text field and the camera stay red, but everything else works. Add a key whenever you like in Settings.</string>
     <string name="tour_next">Next</string>
     <string name="tour_skip">Skip</string>
     <string name="tour_done">Got it</string>
     <string name="tour_later">Later</string>
     <string name="tour_configure">Get my key</string>
     <string name="tour_calories_title">Calories: the top triangle</string>
-    <string name="tour_calories_body">The top of the hexagon, and the big number right below it: the energy you have left for the day. The triangle grows as you eat, and spills past the outline if you go over.</string>
+    <string name="tour_calories_body">The top of the hexagon, and the big number below: what you have left for the day. The triangle grows as you eat and spills over if you go past.</string>
     <string name="tour_protein_title">Protein: right of the top</string>
-    <string name="tour_protein_body">What builds and repairs muscle. A target to reach, not a ceiling: this is a triangle you want filled to the edge.</string>
+    <string name="tour_protein_body">What builds muscle. This one\'s a target, not a ceiling: fill it to the edge.</string>
     <string name="tour_carbs_title">Carbs: the bottom triangle</string>
-    <string name="tour_carbs_body">The main fuel: bread, pasta, rice, fruit. It is a ceiling, so a triangle past the outline is a warning, not an achievement.</string>
+    <string name="tour_carbs_body">The fuel: bread, pasta, rice, fruit. It\'s a ceiling: spilling over is a warning, not a win.</string>
     <string name="tour_sugars_title">Sugars: lower left</string>
-    <string name="tour_sugars_body">The share of carbs that is sugar, added or natural. A ceiling of its own, because the same 50 g do not weigh the same in fruit and in a soda.</string>
+    <string name="tour_sugars_body">The part of carbs that\'s sugar, added or natural. Its own ceiling: 50 g in fruit isn\'t 50 g in a soda.</string>
     <string name="tour_fat_title">Fat: upper left</string>
-    <string name="tour_fat_body">Oil, butter, cheese, nuts. Twice the energy of the other two for the same weight, which is why it is a ceiling.</string>
+    <string name="tour_fat_body">Oil, butter, cheese, nuts. Twice the calories for the same weight, hence the ceiling.</string>
     <string name="tour_fiber_title">Fibre: lower right</string>
-    <string name="tour_fiber_body">Vegetables, pulses, whole grains. The triangle almost nobody fills, and a target like protein.</string>
+    <string name="tour_fiber_body">Veg, pulses, whole grains. A target, like protein, and the triangle hardly anyone fills.</string>
     <string name="tour_calendar_title">Seven days in a row</string>
-    <string name="tour_calendar_body">Each dot carries its day\'s progress. Tap one to log a meal you forgot: the entry lands on that day, not today.</string>
+    <string name="tour_calendar_body">Each dot shows how that day went. Tap one to catch up on a forgotten meal.</string>
     <string name="tour_settings_title">Everything else is here</string>
-    <string name="tour_settings_body">Your profile and targets, the AI key, backup, photos, reminders and the theme. Nothing leaves this phone.</string>
+    <string name="tour_settings_body">Your profile, targets, AI key, backup, photos, reminders, theme. Nothing leaves your phone.</string>
     <string name="calendar_day_perfect_a11y">The %1$d, a golden day</string>
 
     <!-- ===== When the app opens (D179) ================================================
          A tip, or the request for a rating, every few openings. Each tip tells a gesture
          nobody guesses, in one sentence, and appears only once. -->
     <string name="opening_tip_done">Got it</string>
-    <string name="opening_tip_stop">Don\'t show tips again</string>
+    <string name="opening_tip_stop">No more tips</string>
     <string name="opening_tip_get_key">Get my key</string>
     <string name="opening_later">Later</string>
 
-    <string name="opening_tip_free_key_title">A free AI is waiting for you</string>
-    <string name="opening_tip_free_key_body">Describe a meal in a sentence, or photograph the plate: with a free Gemini key, the AI does the counting for you. Two minutes, once.</string>
-    <string name="opening_tip_quarter_title">Touch the hexagon</string>
-    <string name="opening_tip_quarter_body">Each quarter says which foods filled it: touch one to see where your protein, or your sugars, come from.</string>
+    <string name="opening_tip_free_key_title">A free AI is waiting</string>
+    <string name="opening_tip_free_key_body">Describe your meal in a sentence or snap your plate, and the AI does the counting. You just need a free Gemini key: two minutes, once.</string>
+    <string name="opening_tip_quarter_title">Tap the hexagon</string>
+    <string name="opening_tip_quarter_body">Each section shows what filled it. Tap one to see where your protein or sugar comes from.</string>
     <string name="opening_tip_photo_note_title">A word under the photo</string>
-    <string name="opening_tip_photo_note_body">Under a photo, one detail makes the analysis more accurate: "the plate is 24 cm across", "the sauce is a light one".</string>
-    <string name="opening_tip_dish_menu_title">A long press on a meal</string>
-    <string name="opening_tip_dish_menu_body">It opens its menu: copy it to another day, make it a favourite, or delete it.</string>
+    <string name="opening_tip_photo_note_body">Add a detail under the photo for a better guess: “24 cm plate”, “light sauce”.</string>
+    <string name="opening_tip_dish_menu_title">Long-press a meal</string>
+    <string name="opening_tip_dish_menu_body">You can copy it to another day, favourite it or delete it.</string>
     <string name="opening_tip_favourites_title">Your usual meals</string>
-    <string name="opening_tip_favourites_body">Make a meal a favourite, with its star or a long press: it then replays from the "+", without typing anything again.</string>
+    <string name="opening_tip_favourites_body">Favourite a meal (the star, or a long press) and find it under “+”, no retyping.</string>
     <string name="opening_tip_catch_up_title">Forgot a meal?</string>
-    <string name="opening_tip_catch_up_body">Touch a day in the calendar: whatever you log next goes on that day.</string>
-    <string name="opening_tip_swipe_title">Change day with a swipe</string>
-    <string name="opening_tip_swipe_body">Swipe the home screen sideways to go to the day before, or back to the day after.</string>
-    <string name="opening_tip_estimates_title">What the AI estimates shows</string>
-    <string name="opening_tip_estimates_body">When no database knows a food, the AI estimates its values, and the line says so: a glance before saving is enough.</string>
-    <string name="opening_tip_accents_title">Accents are optional</string>
-    <string name="opening_tip_accents_body">Search ignores them on both sides, so you never need to type one.</string>
+    <string name="opening_tip_catch_up_body">Tap a day in the calendar: what you log next goes on that day.</string>
+    <string name="opening_tip_swipe_title">Swipe between days</string>
+    <string name="opening_tip_swipe_body">Swipe the home screen sideways to move from one day to the next.</string>
+    <string name="opening_tip_estimates_title">The AI tells you when it guesses</string>
+    <string name="opening_tip_estimates_body">When no database knows a food, the AI estimates it and the line says so. A quick look before saving and you\'re good.</string>
+    <string name="opening_tip_accents_title">No need for accents</string>
+    <string name="opening_tip_accents_body">Search ignores them: “creme brulee” finds “crème brûlée”.</string>
     <string name="opening_tip_barcode_title">Scanned once, found anywhere</string>
-    <string name="opening_tip_barcode_body">A scanned product stays in your catalogue, even with no connection: next time, you find it by typing its name.</string>
+    <string name="opening_tip_barcode_body">A scanned product stays in your catalogue, even offline. Next time, just type its name.</string>
     <string name="opening_tip_weigh_in_title">One weigh-in a week</string>
-    <string name="opening_tip_weigh_in_body">Log your weight at least once a week: the trend takes shape, and if you are aiming for a weight, Hexavore suggests adjusting your target.</string>
-    <string name="opening_tip_reminders_title">A reminder, if you like</string>
-    <string name="opening_tip_reminders_body">Hexavore can let you know when a meal has not been logged: in Settings, under Notifications.</string>
-    <string name="opening_tip_backup_title">Your data, in a file</string>
-    <string name="opening_tip_backup_body">In Settings, under Backup: everything exports to a file you keep wherever you like, and restores on another phone.</string>
+    <string name="opening_tip_weigh_in_body">Log your weight once a week: the trend shows up, and if you\'re aiming for a weight, Hexavore suggests adjusting your target.</string>
+    <string name="opening_tip_reminders_title">Want a reminder?</string>
+    <string name="opening_tip_reminders_body">Hexavore can nudge you when you forget to log a meal. Turn it on in Settings, under Notifications.</string>
+    <string name="opening_tip_backup_title">Your data in a file</string>
+    <string name="opening_tip_backup_body">In Settings, under Backup: export everything to a file and restore it on another phone.</string>
 
     <!-- The rating request. Every star leads to the store page: sorting ratings would go
          against Google's guidelines. The sad face is the one the author asked for, to say
          that "don't ask again" is respected without being welcomed. -->
-    <string name="opening_rating_title">Your opinion means a lot</string>
-    <string name="opening_rating_body">Hexavore is free and ad-free: a rating on the Play Store is what helps us most to get known. How many stars would you give it?</string>
-    <string name="opening_rating_hint">Tap a star: Hexavore\'s page opens on the Play Store, where you can leave your rating.</string>
+    <string name="opening_rating_title">Enjoying Hexavore?</string>
+    <string name="opening_rating_body">Hexavore is free and ad-free. A Play Store rating helps us more than anything. How many stars?</string>
+    <string name="opening_rating_hint">Tap a star and the Play Store page opens so you can leave your rating.</string>
     <string name="opening_rating_already">I\'ve already rated it</string>
     <string name="opening_rating_never">Don\'t ask again 😢</string>
     <plurals name="opening_rating_star">

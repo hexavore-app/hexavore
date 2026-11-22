@@ -24,31 +24,31 @@
     <string name="home_ring_a11y">Calories, %1$d sur %2$d, %3$d %%</string>
 
     <!-- Une liste vide dit quoi faire, pas seulement qu'elle est vide. -->
-    <string name="home_empty_title">Rien de noté aujourd\'hui</string>
-    <string name="home_empty_body">Les six compteurs se rempliront à la première saisie.</string>
+    <string name="home_empty_title">Rien pour l\'instant</string>
+    <string name="home_empty_body">Note ton premier repas, les compteurs suivent.</string>
     <!-- Le même vide, sur un jour passé (D162) : il se dit au passé, et ce qu'on peut y
          faire est rattraper un oubli, pas remplir des compteurs. -->
-    <string name="home_empty_past_title">Rien de noté ce jour-là</string>
-    <string name="home_empty_past_body">Un repas oublié peut encore y être noté : il sera rangé à cette date.</string>
+    <string name="home_empty_past_title">Rien ce jour-là</string>
+    <string name="home_empty_past_body">Un repas oublié ? Tu peux encore l\'ajouter ici.</string>
 
     <!-- Un échec de lecture se dit, il ne s'affiche pas comme une journée vide :
          une journée vide est une affirmation, pas une absence de réponse. -->
-    <string name="home_error_title">Journal illisible</string>
-    <string name="home_error_body">La lecture n\'a pas abouti. Rien n\'a été modifié : vos plats sont là où ils étaient.</string>
+    <string name="home_error_title">Oups, le journal ne s\'affiche pas</string>
+    <string name="home_error_body">Rien n\'est perdu, tes plats sont toujours là. Réessaie.</string>
     <string name="home_error_retry">Réessayer</string>
 
     <!-- Tant qu'aucun objectif n'a été posé. Une invitation, pas six jauges vides :
          une jauge à zéro laisserait croire qu'un objectif existe et n'est pas atteint. -->
     <string name="home_no_goal_title">Pas encore d\'objectif</string>
-    <string name="home_no_goal_body">Cinq questions suffisent à calculer vos six objectifs. En attendant, vos totaux sont notés sans être comparés à rien.</string>
+    <string name="home_no_goal_body">Cinq questions et on calcule tes objectifs. En attendant, tes totaux sont quand même notés.</string>
     <string name="home_no_goal_action">Définir mon objectif</string>
 
     <!-- Une journée antérieure au premier objectif, quand un objectif court aujourd'hui
          (D161). Une explication, sans bouton : l'invitation ci-dessus relançait
          l'onboarding chez quelqu'un qui venait d'y répondre et revenait noter un repas
          d'avant son installation. -->
-    <string name="home_before_goal_title">Avant votre objectif</string>
-    <string name="home_before_goal_body">Cette journée précède votre premier objectif : ses totaux sont notés, sans être comparés à rien.</string>
+    <string name="home_before_goal_title">Avant ton objectif</string>
+    <string name="home_before_goal_body">Ce jour date d\'avant ton premier objectif : les totaux sont là, sans comparaison.</string>
 
     <!-- Une icône seule : c'est la porte la moins fréquentée de l'écran, et rien ne
          doit disputer au titre du jour la première ligne du regard. -->
@@ -95,27 +95,27 @@
          ligne qui dit ce qu'elle ouvre : un glyphe seul se reconnaît, jamais ne
          s'explique. -->
     <string name="home_open_favorites">Favoris</string>
-    <string name="home_open_favorites_hint">Rejouer un plat enregistré</string>
+    <string name="home_open_favorites_hint">Ajoute un plat que tu as gardé</string>
     <string name="home_scan">Scanner</string>
-    <string name="home_scan_hint">Un code-barres, et la fiche du produit avec</string>
+    <string name="home_scan_hint">Un code-barres et hop, le produit est là</string>
     <string name="home_add_by_hand">Ajouter à la main</string>
-    <string name="home_add_by_hand_hint">Chercher dans le catalogue, ou créer la fiche soi-même</string>
+    <string name="home_add_by_hand_hint">Cherche dans le catalogue ou crée ton aliment</string>
     <string name="home_more_ways">Autres façons d\'ajouter</string>
 
     <!-- La barre du bas. Écrire ce qu'on a mangé est le geste le plus fréquent de
          l'application : c'est donc la barre elle-même, et non un bouton qui ouvre un
          écran. -->
-    <string name="home_describe_label">Qu\'avez-vous mangé ?</string>
+    <string name="home_describe_label">Tu as mangé quoi ?</string>
     <!-- Ce qui manque, dit comme une invitation : l'IA est gratuite, il reste à
          l'activer (D178). « Configurez » parlait à qui sait déjà ce qu'on configure. -->
-    <string name="home_describe_locked">Activez l\'IA gratuite pour décrire vos repas</string>
+    <string name="home_describe_locked">Active l\'IA gratuite pour décrire tes repas</string>
     <string name="home_send_description">Analyser ce repas</string>
-    <string name="home_shoot">Photographier le repas</string>
-    <string name="home_analysing">Analyse en cours…</string>
-    <string name="home_analysing_busy">Service saturé, nouvelle tentative…</string>
+    <string name="home_shoot">Prendre le repas en photo</string>
+    <string name="home_analysing">On regarde ça…</string>
+    <string name="home_analysing_busy">L\'IA est débordée, on réessaie…</string>
     <!-- La même phrase que l'écran d'IA : l'estimation s'attendait derrière un écran
          noir (D176). -->
-    <string name="home_analysing_estimating">Estimation des valeurs nutritionnelles…</string>
+    <string name="home_analysing_estimating">On calcule les valeurs…</string>
     <string name="home_analyse_cancel">Annuler</string>
     <!-- Un fournisseur en panne ne doit jamais empêcher de noter son repas. -->
     <string name="home_analyse_manual">Ajouter à la main</string>
@@ -123,24 +123,24 @@
     <!-- Sans cle, le champ et l'appareil photo restent visibles et expliquent a l'appui :
          caches, ils ne s'apprennent jamais ; inertes, ils n'apprennent rien non plus
          (D73). Le grise ne se voit pas au lecteur d'ecran, d'ou cette phrase. -->
-    <string name="home_analyse_unavailable">indisponible, aucune clé d\'IA</string>
+    <string name="home_analyse_unavailable">pas dispo sans clé d\'IA</string>
 
     <!-- Ce qui manque, ce que ça coûte, et où aller, en mots de tous les jours (D178) :
          pourquoi l'IA passe par son propre compte, ce qu'est une clé, et que c'est
          gratuit. L'ancienne phrase parlait de fournisseur et de facturation à quelqu'un
          qui ne sait pas ce qu'est une clé d'API. Le bouton ouvre le guide de la clé
          Gemini, posé sur la section d'IA : on y revient pour la coller. -->
-    <string name="home_ai_title">Activez l\'IA, gratuitement</string>
-    <string name="home_ai_explanation">Hexavore est gratuit et n\'a pas de serveur : pour lire vos photos et vos phrases, il s\'appuie sur Gemini, l\'IA de Google, avec votre propre compte Google.\n\nIl vous suffit d\'y récupérer une clé, un code personnel qui ouvre cet accès, puis de la coller ici. C\'est gratuit, sans abonnement ni carte bancaire, et cela prend deux minutes, une seule fois.</string>
+    <string name="home_ai_title">Active l\'IA, c\'est gratuit</string>
+    <string name="home_ai_explanation">Hexavore n\'a pas de serveur. Pour lire tes photos et tes phrases, il passe par Gemini, l\'IA de Google, avec ton compte Google.\n\nTu récupères une clé (un code perso), tu la colles ici, et c\'est bon. Gratuit, sans abonnement ni carte bancaire. Deux minutes, une seule fois.</string>
     <string name="home_ai_configure">Obtenir ma clé</string>
     <string name="home_ai_later">Plus tard</string>
 
     <!-- Le nom est proposé depuis les aliments du plat, puis librement réécrit : un
          favori sans nom serait introuvable, et un champ vide ferait renoncer. -->
     <string name="home_favorite_title">Enregistrer comme favori</string>
-    <string name="home_favorite_body">Vous le retrouverez sous ce nom, prêt à rejouer. Modifier une ligne l\'en retirera.</string>
+    <string name="home_favorite_body">Tu le retrouveras sous ce nom. Si tu modifies une ligne, il sort des favoris.</string>
     <string name="home_favorite_name">Nom du plat</string>
-    <string name="home_favorite_name_taken">Un plat en favori porte déjà ce nom.</string>
+    <string name="home_favorite_name_taken">Ce nom est déjà pris.</string>
     <string name="home_favorite_confirm">Enregistrer</string>
     <string name="home_favorite_cancel">Annuler</string>
 
@@ -150,8 +150,8 @@
     <!-- Le nombre figure dans les deux formes : en français, « one » couvre aussi
          zéro, et un message sans son chiffre y deviendrait faux. -->
     <plurals name="home_dish_delete_body">
-        <item quantity="one">%1$d ligne sera retirée de votre journée. Vous pourrez annuler juste après.</item>
-        <item quantity="other">%1$d lignes seront retirées de votre journée. Vous pourrez annuler juste après.</item>
+        <item quantity="one">%1$d ligne en moins dans ta journée. Tu pourras annuler juste après.</item>
+        <item quantity="other">%1$d lignes en moins dans ta journée. Tu pourras annuler juste après.</item>
     </plurals>
     <string name="home_dish_delete_confirm">Supprimer</string>
     <string name="home_dish_delete_cancel">Annuler</string>
@@ -204,10 +204,10 @@
          Chacune designe une situation, jamais un message : elle s'eteint quand la
          situation cesse, et aucune ne se rejette. Le libelle dit ce qu'il y a a faire,
          jamais « notification » - « 1 notification » demande d'aller voir. -->
-    <string name="notice_ai_absent">Aucune intelligence artificielle configurée</string>
-    <string name="notice_ai_rejected">Votre clé d\'API a été refusée</string>
-    <string name="notice_weight_stale">Aucune pesée depuis une semaine</string>
-    <string name="notice_yesterday_empty">Hier n\'a rien de noté</string>
+    <string name="notice_ai_absent">Pas d\'IA configurée</string>
+    <string name="notice_ai_rejected">Ta clé d\'IA a été refusée</string>
+    <string name="notice_weight_stale">Pas de pesée depuis une semaine</string>
+    <string name="notice_yesterday_empty">Rien de noté hier</string>
 
     <!-- La progression, en trois choses sur une ligne. L’ecran qui la deplie est a un
          tap : l’accueil repond deja a une question, et deux en pleine page rendraient
@@ -217,12 +217,12 @@
         <item quantity="other">%1$d jours</item>
     </plurals>
     <string name="home_level">Niveau %1$d</string>
-    <string name="home_open_progress">Votre progression</string>
-    <string name="home_level_a11y">Niveau %1$d, %2$s de suite. Ouvrir votre progression.</string>
+    <string name="home_open_progress">Ta progression</string>
+    <string name="home_level_a11y">Niveau %1$d, %2$s de suite. Ouvrir ta progression.</string>
 
     <!-- Ce qui passe a l’ecran quand un palier tombe. Rien a fermer : l’animation
          passe, et on continue a noter dessous. -->
-    <string name="home_celebration_title">Palier atteint</string>
+    <string name="home_celebration_title">Bravo !</string>
     <!-- Des pluriels et non des chaînes : le premier palier doré tombe à un jour, et
          s'annonçait « 1 journées dorées d'affilée » (D162). -->
     <plurals name="home_badge_streak">
@@ -244,91 +244,91 @@
     <!-- Au lancement qui suit un plantage : sur le moment, la pile se deroule et
          une boite ouverte depuis un gestionnaire d'exception ne marche qu'une fois
          sur deux (D138). -->
-    <string name="crash_title">Hexavore s\'est fermé seul</string>
-    <string name="crash_body">Une trace technique a été gardée. Elle ne contient ni vos repas, ni votre poids, ni votre clé : des noms de classes et des numéros de ligne. Vous pourrez la relire avant de l\'envoyer.</string>
+    <string name="crash_title">Hexavore a planté</string>
+    <string name="crash_body">Désolé ! On a gardé une trace technique : des noms de classes et des numéros de ligne, rien sur tes repas, ton poids ou ta clé. Tu pourras la relire avant de l\'envoyer.</string>
     <string name="crash_send">Envoyer le rapport</string>
     <string name="crash_decline">Non merci</string>
-    <string name="crash_subject">Hexavore s\'est fermé seul</string>
+    <string name="crash_subject">Hexavore a planté</string>
     <string name="crash_intro">Voici la trace du dernier plantage.</string>
     <!-- Le tour guide du premier lancement (D141). -->
-    <string name="tour_day_title">Votre journée d\'un coup d\'œil</string>
-    <string name="tour_day_body">L\'hexagone se remplit à mesure que vous notez, et les six compteurs disent ce qu\'il reste. Ces repas sont un exemple : ils disparaîtront à la fin du tour.</string>
-    <string name="tour_describe_title">Dites-le avec vos mots</string>
-    <string name="tour_describe_body">« Porridge au lait avec une banane ». L\'IA lit la phrase, trouve les aliments et les pèse. Vous vérifiez, vous corrigez, vous enregistrez.</string>
-    <string name="tour_photo_title">Ou photographiez l\'assiette</string>
-    <string name="tour_photo_body">Une prise, et vous pouvez ajouter un mot si l\'image est ambiguë. Ce que vous écrivez l\'emporte sur ce qui est vu.</string>
-    <string name="tour_more_title">Et quand vous préférez être exact</string>
-    <string name="tour_more_body">Un code-barres, le catalogue de 3 484 aliments hors ligne, ou un plat que vous avez gardé. Ces trois-là ne demandent jamais de clé.</string>
+    <string name="tour_day_title">Ta journée d\'un coup d\'œil</string>
+    <string name="tour_day_body">L\'hexagone se remplit au fil de tes repas, et les compteurs te disent ce qu\'il reste. Ces repas sont des exemples, ils partent à la fin de la visite.</string>
+    <string name="tour_describe_title">Dis-le avec tes mots</string>
+    <string name="tour_describe_body">« Porridge au lait avec une banane ». L\'IA trouve les aliments et les quantités. Tu vérifies, tu corriges si besoin, tu enregistres.</string>
+    <string name="tour_photo_title">Ou prends l\'assiette en photo</string>
+    <string name="tour_photo_body">Une photo, et un mot si l\'image ne dit pas tout. Ce que tu écris passe avant ce que l\'IA voit.</string>
+    <string name="tour_more_title">Et pour être précis</string>
+    <string name="tour_more_body">Un code-barres, les 3 484 aliments du catalogue (hors ligne), ou un plat déjà gardé. Pas besoin de clé pour ces trois-là.</string>
     <!-- La première fois qu'on parle de clé, et la plus importante (D178) : pourquoi un
          compte, ce qu'est une clé, ce que ça coûte. -->
-    <string name="tour_ai_title">Une IA gratuite, avec votre compte Google</string>
-    <string name="tour_ai_body">Hexavore n\'a ni serveur ni abonnement : pour la phrase et la photo, il s\'appuie sur Gemini, l\'IA de Google, avec votre propre compte. Il suffit d\'y récupérer une clé, un code personnel à coller ici : c\'est gratuit, sans carte bancaire, et cela prend deux minutes, une seule fois.</string>
-    <string name="tour_degraded_title">Sans clé, il manque deux gestes</string>
-    <string name="tour_degraded_body">Le champ et l\'appareil photo restent en rouge : tout le reste fonctionne, et vous pourrez poser une clé quand vous voudrez depuis les réglages. Rien n\'est perdu entre-temps.</string>
+    <string name="tour_ai_title">Une IA gratuite, avec ton compte Google</string>
+    <string name="tour_ai_body">Hexavore n\'a ni serveur ni abonnement. Pour les phrases et les photos, il passe par Gemini, l\'IA de Google, avec ton compte. Tu récupères une clé (un code perso) et tu la colles ici. Gratuit, sans carte bancaire, deux minutes, une seule fois.</string>
+    <string name="tour_degraded_title">Sans clé, deux options en moins</string>
+    <string name="tour_degraded_body">Le champ et l\'appareil photo restent en rouge, mais tout le reste marche. Tu pourras ajouter une clé quand tu veux dans les réglages.</string>
     <string name="tour_next">Suivant</string>
     <string name="tour_skip">Passer</string>
     <string name="tour_done">J\'ai compris</string>
     <string name="tour_later">Plus tard</string>
     <string name="tour_configure">Obtenir ma clé</string>
     <string name="tour_calories_title">Calories : le triangle du haut</string>
-    <string name="tour_calories_body">Le sommet de l\'hexagone, et le grand chiffre juste en dessous : ce qu\'il vous reste d\'énergie pour la journée. Le triangle grandit à mesure que vous mangez, et déborde du contour si vous dépassez.</string>
+    <string name="tour_calories_body">Le haut de l\'hexagone, et le grand chiffre juste en dessous : ce qu\'il te reste pour la journée. Le triangle grandit quand tu manges, et déborde si tu dépasses.</string>
     <string name="tour_protein_title">Protéines : à droite du sommet</string>
-    <string name="tour_protein_body">Ce qui construit et répare le muscle. Un objectif à atteindre, pas un plafond : ce triangle-là, on cherche à le remplir jusqu\'au bord.</string>
+    <string name="tour_protein_body">Ce qui construit le muscle. Ici, c\'est un objectif, pas un plafond : remplis-le jusqu\'au bord.</string>
     <string name="tour_carbs_title">Glucides : le triangle du bas</string>
-    <string name="tour_carbs_body">Le carburant principal : pain, pâtes, riz, fruits. C\'est un plafond, donc un triangle qui dépasse le contour est un signal, pas une réussite.</string>
+    <string name="tour_carbs_body">Le carburant : pain, pâtes, riz, fruits. C\'est un plafond : s\'il déborde, c\'est un signal, pas une victoire.</string>
     <string name="tour_sugars_title">Sucres : en bas à gauche</string>
-    <string name="tour_sugars_body">La part des glucides qui est du sucre, ajouté ou naturel. Un plafond à part, parce que les mêmes 50 g ne pèsent pas pareil dans un fruit et dans un soda.</string>
+    <string name="tour_sugars_body">La part des glucides qui est du sucre, ajouté ou pas. Un plafond à part : 50 g dans un fruit, ce n\'est pas 50 g dans un soda.</string>
     <string name="tour_fat_title">Lipides : en haut à gauche</string>
-    <string name="tour_fat_body">Huile, beurre, fromage, oléagineux. Deux fois plus d\'énergie que les deux autres à poids égal, et c\'est pourquoi c\'est un plafond.</string>
+    <string name="tour_fat_body">Huile, beurre, fromage, noix. Deux fois plus caloriques à poids égal, d\'où le plafond.</string>
     <string name="tour_fiber_title">Fibres : en bas à droite</string>
-    <string name="tour_fiber_body">Légumes, légumineuses, céréales complètes. Le triangle que presque personne ne remplit, et un objectif comme les protéines.</string>
+    <string name="tour_fiber_body">Légumes, légumineuses, céréales complètes. Un objectif, comme les protéines, et le triangle que presque personne ne remplit.</string>
     <string name="tour_calendar_title">Sept jours d\'affilée</string>
-    <string name="tour_calendar_body">Chaque pastille porte l\'avancement de son jour. Touchez-en une pour rattraper un repas oublié : la saisie ira sur ce jour-là.</string>
+    <string name="tour_calendar_body">Chaque pastille montre où en est son jour. Touche-en une pour rattraper un repas oublié.</string>
     <string name="tour_settings_title">Tout le reste est ici</string>
-    <string name="tour_settings_body">Votre profil et vos objectifs, la clé d\'IA, la sauvegarde, les photos, les rappels et le thème. Rien ne quitte ce téléphone.</string>
+    <string name="tour_settings_body">Ton profil, tes objectifs, la clé d\'IA, la sauvegarde, les photos, les rappels, le thème. Rien ne quitte ton téléphone.</string>
     <string name="calendar_day_perfect_a11y">Le %1$d, journée dorée</string>
 
     <!-- ===== À l'ouverture (D179) ===================================================
          Une astuce, ou la demande d'avis, toutes les quelques ouvertures. Chaque astuce
          dit un geste qu'on ne devine pas, en une phrase, et ne paraît qu'une fois. -->
-    <string name="opening_tip_done">J\'ai compris</string>
-    <string name="opening_tip_stop">Ne plus afficher d\'astuces</string>
+    <string name="opening_tip_done">Compris !</string>
+    <string name="opening_tip_stop">Plus d\'astuces</string>
     <string name="opening_tip_get_key">Obtenir ma clé</string>
     <string name="opening_later">Plus tard</string>
 
-    <string name="opening_tip_free_key_title">Une IA gratuite vous attend</string>
-    <string name="opening_tip_free_key_body">Décrivez un repas en une phrase, ou photographiez l\'assiette : avec une clé Gemini gratuite, l\'IA fait les comptes à votre place. Deux minutes, une seule fois.</string>
-    <string name="opening_tip_quarter_title">Touchez l\'hexagone</string>
-    <string name="opening_tip_quarter_body">Chaque quartier dit quels aliments l\'ont rempli : touchez-en un pour voir d\'où viennent vos protéines, ou vos sucres.</string>
+    <string name="opening_tip_free_key_title">Une IA gratuite t\'attend</string>
+    <string name="opening_tip_free_key_body">Décris ton repas en une phrase ou prends ton assiette en photo, et l\'IA compte pour toi. Il te faut juste une clé Gemini gratuite : deux minutes, une fois.</string>
+    <string name="opening_tip_quarter_title">Touche l\'hexagone</string>
+    <string name="opening_tip_quarter_body">Chaque quartier montre ce qui l\'a rempli. Touche-en un pour voir d\'où viennent tes protéines ou tes sucres.</string>
     <string name="opening_tip_photo_note_title">Un mot sous la photo</string>
-    <string name="opening_tip_photo_note_body">Sous une photo, une précision rend l\'analyse plus juste : « l\'assiette fait 24 cm », « la sauce est allégée ».</string>
-    <string name="opening_tip_dish_menu_title">Un appui long sur un plat</string>
-    <string name="opening_tip_dish_menu_body">Il ouvre son menu : le copier sur un autre jour, le mettre en favori, ou le supprimer.</string>
-    <string name="opening_tip_favourites_title">Vos plats habituels</string>
-    <string name="opening_tip_favourites_body">Mettez un plat en favori, par son étoile ou par l\'appui long : il se rejoue ensuite depuis le « + », sans rien ressaisir.</string>
+    <string name="opening_tip_photo_note_body">Ajoute une précision sous la photo, l\'analyse sera plus juste : « assiette de 24 cm », « sauce allégée ».</string>
+    <string name="opening_tip_dish_menu_title">Appuie longtemps sur un plat</string>
+    <string name="opening_tip_dish_menu_body">Tu peux le copier sur un autre jour, le mettre en favori ou le supprimer.</string>
+    <string name="opening_tip_favourites_title">Tes plats habituels</string>
+    <string name="opening_tip_favourites_body">Mets un plat en favori (l\'étoile, ou l\'appui long) et retrouve-le dans le « + », sans tout retaper.</string>
     <string name="opening_tip_catch_up_title">Un repas oublié ?</string>
-    <string name="opening_tip_catch_up_body">Touchez un jour du calendrier : ce que vous noterez ira sur ce jour-là.</string>
-    <string name="opening_tip_swipe_title">Changer de jour d\'un geste</string>
-    <string name="opening_tip_swipe_body">Balayez l\'accueil de côté pour passer au jour d\'avant, ou revenir à celui d\'après.</string>
-    <string name="opening_tip_estimates_title">Ce que l\'IA estime se voit</string>
-    <string name="opening_tip_estimates_body">Quand aucune base ne connaît un aliment, l\'IA estime ses valeurs, et la ligne le signale : un coup d\'œil avant d\'enregistrer suffit.</string>
+    <string name="opening_tip_catch_up_body">Touche un jour dans le calendrier : ce que tu notes ira sur ce jour-là.</string>
+    <string name="opening_tip_swipe_title">Change de jour d\'un geste</string>
+    <string name="opening_tip_swipe_body">Glisse l\'accueil sur le côté pour passer d\'un jour à l\'autre.</string>
+    <string name="opening_tip_estimates_title">L\'IA te dit quand elle devine</string>
+    <string name="opening_tip_estimates_body">Quand aucune base ne connaît un aliment, l\'IA estime ses valeurs et la ligne le signale. Un coup d\'œil avant d\'enregistrer, et c\'est bon.</string>
     <string name="opening_tip_accents_title">Pas besoin d\'accents</string>
-    <string name="opening_tip_accents_body">La recherche les ignore : « creme brulee » trouve « crème brûlée ».</string>
+    <string name="opening_tip_accents_body">Pas besoin de les taper : « creme brulee » trouve « crème brûlée ».</string>
     <string name="opening_tip_barcode_title">Scanné une fois, retrouvé partout</string>
-    <string name="opening_tip_barcode_body">Un produit scanné reste dans votre catalogue, même sans connexion : la fois suivante, il se retrouve en tapant son nom.</string>
+    <string name="opening_tip_barcode_body">Un produit scanné reste dans ton catalogue, même hors connexion. La prochaine fois, tape juste son nom.</string>
     <string name="opening_tip_weigh_in_title">Une pesée par semaine</string>
-    <string name="opening_tip_weigh_in_body">Notez votre poids au moins une fois par semaine : la tendance se dessine, et si vous visez un poids, Hexavore vous propose d\'ajuster l\'objectif.</string>
-    <string name="opening_tip_reminders_title">Un rappel, si vous voulez</string>
-    <string name="opening_tip_reminders_body">Hexavore peut vous prévenir quand un repas n\'est pas noté : dans les réglages, rubrique Notifications.</string>
-    <string name="opening_tip_backup_title">Vos données, dans un fichier</string>
-    <string name="opening_tip_backup_body">Dans les réglages, rubrique Sauvegarde : tout s\'exporte dans un fichier que vous rangez où vous voulez, et se restaure sur un autre téléphone.</string>
+    <string name="opening_tip_weigh_in_body">Note ton poids une fois par semaine : la tendance se dessine, et si tu vises un poids, Hexavore te propose d\'ajuster ton objectif.</string>
+    <string name="opening_tip_reminders_title">Un petit rappel ?</string>
+    <string name="opening_tip_reminders_body">Hexavore peut te prévenir quand tu oublies de noter un repas. Active-le dans les réglages, rubrique Notifications.</string>
+    <string name="opening_tip_backup_title">Tes données dans un fichier</string>
+    <string name="opening_tip_backup_body">Dans les réglages, rubrique Sauvegarde : tu exportes tout dans un fichier, et tu le restaures sur un autre téléphone.</string>
 
     <!-- La demande d'avis. Toutes les étoiles mènent à la fiche : trier les notes serait
          contraire aux consignes de Google. Le visage triste est celui que l'auteur a
          demandé, pour dire que « ne plus demander » se respecte sans s'en réjouir. -->
-    <string name="opening_rating_title">Votre avis compte beaucoup</string>
-    <string name="opening_rating_body">Hexavore est gratuit et sans publicité : une note sur le Play Store est ce qui nous aide le plus à nous faire connaître. Combien d\'étoiles lui donneriez-vous ?</string>
-    <string name="opening_rating_hint">Touchez une étoile : la fiche d\'Hexavore s\'ouvre sur le Play Store, pour y laisser votre note.</string>
+    <string name="opening_rating_title">Tu aimes Hexavore ?</string>
+    <string name="opening_rating_body">Hexavore est gratuit et sans pub. Une note sur le Play Store, c\'est ce qui nous aide le plus. Tu lui mets combien ?</string>
+    <string name="opening_rating_hint">Touche une étoile, la fiche Play Store s\'ouvre pour que tu laisses ta note.</string>
     <string name="opening_rating_already">J\'ai déjà noté</string>
     <string name="opening_rating_never">Ne plus demander 😢</string>
     <plurals name="opening_rating_star">

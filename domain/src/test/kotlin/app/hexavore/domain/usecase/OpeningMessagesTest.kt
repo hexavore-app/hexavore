@@ -12,6 +12,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.Duration
 import java.time.LocalDate
@@ -29,7 +30,7 @@ import java.time.LocalDate
 internal class OpeningMessagesTest {
     private val clock = FixedClock.atNoon(LocalDate.of(2026, 10, 25))
     private val ledger = InMemoryOpeningLedger()
-    private var situation = OpeningSituation(aiConfigured = false, tourSeen = true, crashPending = false, dishes = 0)
+    private var situation = OpeningSituation(aiConfigured = false, tourSeen = true, crashPending = false)
     private val messages = OpeningMessages(ledger, ledger, { situation }, clock)
 
     @Test
@@ -60,15 +61,32 @@ internal class OpeningMessagesTest {
     }
 
     @Test
-    fun `rien avant la troisieme ouverture, et une astuce a la troisieme`() = runTest {
+    fun `rien avant la troisieme ouverture, et la demande d avis a la troisieme`() = runTest {
+        // Le jour meme de l'installation, sans un plat note : rien ne la fait attendre.
         assertNull(ouvrir())
         assertNull(ouvrir())
 
-        assertEquals(OpeningMessage.Tip(OpeningTip.FREE_KEY), ouvrir())
+        assertEquals(OpeningMessage.Rating, ouvrir())
+    }
+
+    @Test
+    fun `apres la demande d avis, les astuces`() = runTest {
+        troisiemeOuverture()
+        messages.answer(OpeningAnswer.LATER)
+
+        assertEquals(OpeningMessage.Tip(OpeningTip.FREE_KEY), List(OpeningRules.SPACING) { ouvrir() }.last())
+    }
+
+    @Test
+    fun `une demande d avis close laisse la premiere place a l astuce`() = runTest {
+        avisDejaDonne()
+
+        assertEquals(OpeningMessage.Tip(OpeningTip.FREE_KEY), troisiemeOuverture())
     }
 
     @Test
     fun `avec une cle, l astuce de la cle gratuite passe son tour`() = runTest {
+        avisDejaDonne()
         situation = situation.copy(aiConfigured = true)
 
         assertEquals(OpeningMessage.Tip(OpeningTip.QUARTER_SOURCES), troisiemeOuverture())
@@ -76,6 +94,7 @@ internal class OpeningMessagesTest {
 
     @Test
     fun `un message au plus toutes les quatre ouvertures`() = runTest {
+        avisDejaDonne()
         troisiemeOuverture()
 
         val suivantes = List(OpeningRules.SPACING) { ouvrir() }
@@ -86,6 +105,7 @@ internal class OpeningMessagesTest {
 
     @Test
     fun `une astuce ne parait qu une fois, et elles finissent`() = runTest {
+        avisDejaDonne()
         val vues = List(OpeningRules.FIRST_MESSAGE + OpeningRules.SPACING * OpeningTip.entries.size) { ouvrir() }
             .filterIsInstance<OpeningMessage.Tip>()
             .map { it.tip }
@@ -96,6 +116,7 @@ internal class OpeningMessagesTest {
 
     @Test
     fun `ne plus afficher d astuces les eteint, jusqu aux reglages`() = runTest {
+        avisDejaDonne()
         troisiemeOuverture()
 
         messages.answer(OpeningAnswer.NO_MORE_TIPS)
@@ -120,40 +141,16 @@ internal class OpeningMessagesTest {
     }
 
     @Test
-    fun `la demande d avis attend une semaine`() = runTest {
-        situation = situation.copy(dishes = 50)
-
-        // Trois ouvertures dans la journee : dix plats, mais pas une semaine.
-        assertEquals(OpeningMessage.Tip(OpeningTip.FREE_KEY), troisiemeOuverture())
-    }
-
-    @Test
-    fun `une semaine et dix plats, et la demande d avis passe devant l astuce`() = runTest {
-        situation = situation.copy(dishes = OpeningRules.RATING_AFTER_DISHES)
-        ouvrir()
-        clock.instant = clock.instant.plus(OpeningRules.RATING_AFTER)
-
-        assertEquals(OpeningMessage.Rating, deuxOuverturesPlusTard())
-    }
-
-    @Test
-    fun `neuf plats ne suffisent pas`() = runTest {
-        situation = situation.copy(dishes = OpeningRules.RATING_AFTER_DISHES - 1)
-        ouvrir()
-        clock.instant = clock.instant.plus(OpeningRules.RATING_AFTER)
-
-        assertEquals(OpeningMessage.Tip(OpeningTip.FREE_KEY), deuxOuverturesPlusTard())
-    }
-
-    @Test
-    fun `plus tard repousse la demande de vingt ouvertures`() = runTest {
+    fun `plus tard repousse la demande de dix ouvertures`() = runTest {
         demandeAvisDue()
         messages.answer(OpeningAnswer.LATER)
 
-        val ensuite = List(OpeningRules.RATING_SNOOZE) { ouvrir() }
+        // Elle revient au premier message du a partir de la dixieme ouverture suivante.
+        val ensuite = List(OpeningRules.RATING_SNOOZE + OpeningRules.SPACING) { ouvrir() }
+        val retour = ensuite.indexOf(OpeningMessage.Rating) + 1
 
-        assertFalse(OpeningMessage.Rating in ensuite.dropLast(1), "la demande revient trop tot")
-        assertEquals(OpeningMessage.Rating, ensuite.last())
+        assertTrue(retour > 0, "la demande ne revient jamais")
+        assertTrue(retour >= OpeningRules.RATING_SNOOZE, "la demande revient trop tot : $retour")
     }
 
     @Test
@@ -188,20 +185,16 @@ internal class OpeningMessagesTest {
         return ouvrir()
     }
 
-    /** Les deux ouvertures qui mènent à la troisième, celle qui peut parler. */
-    private suspend fun deuxOuverturesPlusTard(): OpeningMessage? {
-        ouvrir()
-        return ouvrir()
+    /** La demande d'avis a déjà eu sa réponse : la première place revient aux astuces. */
+    private fun avisDejaDonne() {
+        ledger.record = ledger.record.copy(ratingClosed = true)
     }
 
     /**
-     * Une semaine d'usage, assez de plats, et les ouvertures **jusqu'à celle qui demande un
-     * avis**, pas une de plus : la suite du cas compte à partir d'elle.
+     * Les ouvertures **jusqu'à celle qui demande un avis**, pas une de plus : la suite du
+     * cas compte à partir d'elle.
      */
     private suspend fun demandeAvisDue() {
-        situation = situation.copy(dishes = OpeningRules.RATING_AFTER_DISHES)
-        if (ledger.record.firstOpenedAt == null) ouvrir()
-        clock.instant = clock.instant.plus(OpeningRules.RATING_AFTER)
         repeat(OpeningRules.FIRST_MESSAGE + OpeningRules.SPACING) {
             if (ouvrir() == OpeningMessage.Rating) return
         }

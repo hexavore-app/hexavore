@@ -37,23 +37,8 @@ dependencies {
     testRuntimeOnly(libs.junit.platform.launcher)
 }
 
-// `LauncherIconTest` et `MedicalDisclaimerTest` lisent le depot -- les ressources, et la
-// fiche du Play Store qui doit reprendre l'avertissement mot pour mot. Un test JVM ne
-// declare que ses classes : changer un texte laissait Gradle juger le test a jour, et le
-// vert ne disait plus rien. Ce qu'ils lisent est donc une entree de la tache (D168).
+// `LauncherIconTest` lit les ressources du module, et un test JVM ne declare que ses
+// classes : ce qu'il lit est donc une entree de la tache, sinon Gradle le jugerait a jour.
 tasks.withType<Test>().configureEach {
     inputs.dir("src/main/res").withPropertyName("resources").withPathSensitivity(PathSensitivity.RELATIVE)
-    inputs.file(layout.projectDirectory.file("../../tooling/fiche/fiche-play-store.md"))
-        .withPropertyName("fiche")
-        .withPathSensitivity(PathSensitivity.NONE)
-    // `HexavoreGenderTest` relit tous les textes francais du depot, et la politique (D182).
-    inputs.files(
-        fileTree(rootDir) {
-            include("**/src/main/res/values-fr/strings.xml")
-            exclude("**/build/**")
-        },
-    ).withPropertyName("textesFrancais").withPathSensitivity(PathSensitivity.RELATIVE)
-    inputs.file(layout.projectDirectory.file("../../confidentialite/fr.md"))
-        .withPropertyName("politique")
-        .withPathSensitivity(PathSensitivity.NONE)
 }

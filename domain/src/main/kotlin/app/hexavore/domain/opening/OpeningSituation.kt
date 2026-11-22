@@ -3,7 +3,6 @@ package app.hexavore.domain.opening
 import app.hexavore.domain.ai.AiSettings
 import app.hexavore.domain.report.CrashReports
 import app.hexavore.domain.tour.TourSettings
-import app.hexavore.domain.usecase.ObserveProgress
 import kotlinx.coroutines.flow.first
 
 /**
@@ -14,14 +13,8 @@ import kotlinx.coroutines.flow.first
  * @property tourSeen le tour guidé a eu lieu. Avant lui, rien : c'est lui qui parle.
  * @property crashPending un rapport de plantage attend d'être proposé. Il passe en
  *   premier, seul : deux boîtes l'une sur l'autre en feraient refermer une sans la lire.
- * @property dishes les plats notés, tels que la progression les compte.
  */
-data class OpeningSituation(
-    val aiConfigured: Boolean,
-    val tourSeen: Boolean,
-    val crashPending: Boolean,
-    val dishes: Int,
-) {
+data class OpeningSituation(val aiConfigured: Boolean, val tourSeen: Boolean, val crashPending: Boolean) {
     /** Rien d'autre ne parle à cette ouverture : un message peut paraître. */
     val quiet: Boolean get() = tourSeen && !crashPending
 }
@@ -44,12 +37,10 @@ class OpeningSituations(
     private val ai: AiSettings,
     private val tour: TourSettings,
     private val crashes: CrashReports,
-    private val progress: ObserveProgress,
 ) : OpeningContext {
     override suspend fun current(): OpeningSituation = OpeningSituation(
         aiConfigured = runCatching { ai.current() != null }.getOrDefault(false),
         tourSeen = runCatching { tour.observeSeen().first() }.getOrDefault(false),
         crashPending = runCatching { crashes.pending() != null }.getOrDefault(false),
-        dishes = runCatching { progress().first().tally.dishes }.getOrDefault(0),
     )
 }

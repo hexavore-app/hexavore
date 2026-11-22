@@ -9,29 +9,29 @@
 
     <!-- D04 rendu visible : corriger un objectif n'en modifie aucun, il en ouvre un
          nouveau. Sans cette phrase, l'utilisateur croirait repeindre son mois. -->
-    <string name="profile_history_note">Corriger vos objectifs ouvre une nouvelle version. Les journées déjà notées restent jugées sur l\'objectif qui courait ce jour-là.</string>
+    <string name="profile_history_note">Si tu changes tes objectifs, les jours déjà notés gardent ceux qui valaient ce jour-là.</string>
 
-    <string name="profile_you_title">Vous</string>
+    <string name="profile_you_title">Toi</string>
     <string name="profile_birth_date">Date de naissance</string>
     <string name="profile_sex_label">Sexe</string>
     <string name="profile_sex_male">Homme</string>
     <string name="profile_sex_female">Femme</string>
     <string name="profile_sex_unspecified">Je préfère ne pas répondre</string>
-    <string name="profile_sex_unspecified_note">Nous utilisons une estimation intermédiaire, moyenne des deux variantes de la formule.</string>
+    <string name="profile_sex_unspecified_note">On prend une estimation entre les deux.</string>
     <!-- Sans unite : le champ l'ajoute lui-meme, dans le systeme choisi. Avec, le
          libelle disait « Taille (cm) (cm) », et « Taille (cm) (pieds) » en imperial. -->
     <string name="profile_height">Taille</string>
     <string name="profile_weight">Poids actuel</string>
     <!-- Une pesée est un fait daté : ouvrir cet écran n'en crée pas une. -->
-    <string name="profile_weight_note">Corriger ce poids enregistre une pesée datée d\'aujourd\'hui. Le laisser tel quel n\'en invente aucune.</string>
+    <string name="profile_weight_note">Si tu corriges ce poids, ça ajoute une pesée datée d\'aujourd\'hui. Sinon, rien n\'est ajouté.</string>
 
     <!-- Deux questions la ou il n'y en avait qu'une (D137). -->
-    <string name="profile_privacy">Tout ce que porte cet écran reste sur ce téléphone. Aucun compte, aucun serveur, rien qui parte chez qui que ce soit.</string>
-    <string name="profile_work_title">Votre journée de travail</string>
-    <string name="profile_work_body">Huit heures par jour, cinq jours sur sept : c\'est le socle. Le sport s\'y ajoute, et se compte ici une fois pour toutes plutôt qu\'au jour le jour.</string>
-    <string name="profile_work_desk">Assis la majeure partie du temps : bureau, conduite, études</string>
-    <string name="profile_work_on_feet">Debout, sans porter de charge : vente, service, enseignement</string>
-    <string name="profile_work_physical">Effort physique soutenu : bâtiment, manutention, agriculture</string>
+    <string name="profile_privacy">Tout ce qui est ici reste sur ton téléphone. Pas de compte, pas de serveur, rien n\'est envoyé.</string>
+    <string name="profile_work_title">Ta journée de travail</string>
+    <string name="profile_work_body">Ce que tu fais la plupart du temps, en semaine. Le sport s\'ajoute juste en dessous, une fois pour toutes.</string>
+    <string name="profile_work_desk">Assis presque tout le temps : bureau, volant, études</string>
+    <string name="profile_work_on_feet">Debout, sans charges lourdes : vente, service, enseignement</string>
+    <string name="profile_work_physical">Physique : bâtiment, manutention, agriculture</string>
     <string name="profile_sessions_title">Séances de sport par semaine</string>
     <string name="profile_sessions_none">Aucune</string>
     <string name="profile_sessions_max">%1$d et plus</string>
@@ -41,7 +41,7 @@
     </plurals>
     <string name="profile_label_sessions">Sport</string>
 
-    <string name="profile_objective_title">Votre objectif</string>
+    <string name="profile_objective_title">Ton objectif</string>
     <string name="profile_strategy_lose">Perdre du poids</string>
     <string name="profile_strategy_maintain">Maintenir</string>
     <string name="profile_strategy_gain">Prendre du poids</string>
@@ -51,29 +51,29 @@
          correspond donc pas forcément à l'une des pastilles, et elle s'affiche telle
          quelle plutôt que d'être arrondie à celle qui lui ressemble le plus. -->
     <string name="profile_horizon_label">D\'ici quand ?</string>
-    <string name="profile_horizon_current">Échéance en cours : %1$s</string>
+    <string name="profile_horizon_current">Échéance actuelle : %1$s</string>
     <string name="profile_horizon_three">Dans 3 mois</string>
     <string name="profile_horizon_six">Dans 6 mois</string>
     <string name="profile_horizon_twelve">Dans 12 mois</string>
-    <string name="profile_horizon_reachable">Au rythme sûr : %1$s</string>
-    <string name="profile_pace">Soit environ %1$.2f kg par semaine.</string>
+    <string name="profile_horizon_reachable">Au rythme sain : %1$s</string>
+    <string name="profile_pace">Environ %1$.2f kg par semaine.</string>
     <!-- Le même rythme en livres, pour l'impérial (D162). -->
-    <string name="profile_pace_pounds">Soit environ %1$.2f lb par semaine.</string>
+    <string name="profile_pace_pounds">Environ %1$.2f lb par semaine.</string>
     <!-- La depense estimee est deja sous le plancher : aucun deficit ne tient (D160). -->
-    <string name="profile_no_deficit">Votre dépense estimée (%1$d kcal) est déjà sous le minimum conseillé de %2$d kcal : aucun déficit n\'est proposé, et l\'objectif reste votre dépense. Un professionnel de santé saura vous conseiller.</string>
-    <string name="profile_capped">Ce rythme dépasserait les bornes de sécurité. À un rythme sûr, votre poids cible serait atteint vers le %1$s.</string>
-    <string name="profile_carbs_low">À ce niveau de calories, il reste peu de glucides une fois les protéines, les lipides et les fibres couverts. Un objectif plus haut serait plus tenable.</string>
+    <string name="profile_no_deficit">Ta dépense estimée (%1$d kcal) est déjà sous le minimum conseillé de %2$d kcal, donc pas de déficit : ton objectif reste ta dépense. Parles-en à un professionnel de santé.</string>
+    <string name="profile_capped">Trop rapide pour ta santé. À un rythme sain, tu atteindrais ton poids cible vers le %1$s.</string>
+    <string name="profile_carbs_low">À ce niveau de calories, il reste peu de place pour les glucides. Un objectif un peu plus haut serait plus facile à tenir.</string>
 
     <!-- Le mode. Un objectif est calculé OU saisi à la main, sans entre-deux : c'est
          ce qui décide si une correction de profil a le droit de déplacer les six. -->
-    <string name="profile_counters_title">Vos six compteurs</string>
+    <string name="profile_counters_title">Tes six compteurs</string>
     <string name="profile_mode_switch">Les saisir moi-même</string>
-    <string name="profile_mode_calculated">Calculés à partir de votre profil, de votre poids cible et de votre échéance. Corriger l\'un des trois les déplace.</string>
-    <string name="profile_mode_manual">Vous les fixez. Aucune correction de profil ne les recalculera.</string>
+    <string name="profile_mode_calculated">Calculés d\'après ton profil, ton poids cible et ton échéance. Si tu changes l\'un des trois, ils bougent.</string>
+    <string name="profile_mode_manual">C\'est toi qui les fixes. Ils ne bougeront plus si tu modifies ton profil.</string>
     <!-- Le poids cible et l'échéance restent enregistrés, mais ils ne pilotent plus
          rien : le dire vaut mieux que de laisser deux champs faire croire le contraire. -->
-    <string name="profile_manual_horizon_note">En saisie manuelle, votre poids cible et votre échéance n\'entrent plus dans le calcul de vos compteurs. Ils restent enregistrés comme le cap que vous visez.</string>
-    <string name="profile_counters_unavailable">Complétez les champs ci-dessus pour voir vos six compteurs.</string>
+    <string name="profile_manual_horizon_note">En mode manuel, ton poids cible et ton échéance ne comptent plus dans le calcul. On les garde comme cap.</string>
+    <string name="profile_counters_unavailable">Remplis les champs au-dessus pour voir tes six compteurs.</string>
     <string name="profile_counter_line">%1$s : %2$d %3$s</string>
     <string name="profile_counter_field">%1$s (%2$s)</string>
 
@@ -101,12 +101,12 @@
     <string name="profile_value_kg">%1$s kg</string>
     <string name="profile_value_pound">%1$s lb</string>
     <string name="profile_value_feet_inches">%1$d pi %2$d po</string>
-    <string name="profile_value_unknown">non renseigné</string>
+    <string name="profile_value_unknown">pas rempli</string>
 
     <!-- Ce qui change, montré avant d'écrire. Corriger sa taille de deux centimètres
          déplace un objectif quotidien : ça ne se découvre pas sur l'accueil. -->
-    <string name="profile_confirm_title">Vos objectifs changent</string>
-    <string name="profile_confirm_body">Ces compteurs remplaceront les vôtres à partir d\'aujourd\'hui. Les journées déjà notées gardent ceux qui couraient ce jour-là.</string>
+    <string name="profile_confirm_title">Tes objectifs changent</string>
+    <string name="profile_confirm_body">Ces compteurs remplacent les tiens à partir d\'aujourd\'hui. Les jours déjà notés gardent les anciens.</string>
     <string name="profile_confirm_line">%1$s : %2$d → %3$d %4$s</string>
     <string name="profile_confirm_line_new">%1$s : %2$d %3$s</string>
     <string name="profile_confirm_accept">Enregistrer</string>
@@ -114,21 +114,21 @@
 
     <!-- La réponse du bouton indisponible à un appui. Elle dit ce qui manque, pas
          qu'il manque quelque chose : « complétez le formulaire » n'aide personne. -->
-    <string name="profile_blocked_identity">Renseignez votre date de naissance, votre sexe, votre taille et votre poids.</string>
-    <string name="profile_blocked_age">Hexavore calcule ses objectifs pour les personnes de %1$d à %2$d ans. Choisissez une autre date de naissance.</string>
-    <string name="profile_blocked_activity">Choisissez le niveau qui décrit le mieux vos semaines.</string>
-    <string name="profile_blocked_strategy">Choisissez un objectif : perdre, maintenir ou prendre du poids.</string>
-    <string name="profile_blocked_horizon">Renseignez un poids cible et une échéance.</string>
-    <string name="profile_blocked_macro">Un de vos six compteurs est vide. Renseignez-le, ou revenez aux compteurs calculés.</string>
+    <string name="profile_blocked_identity">Il manque ta date de naissance, ton sexe, ta taille ou ton poids.</string>
+    <string name="profile_blocked_age">Hexavore calcule les objectifs de %1$d à %2$d ans. Choisis une autre date de naissance.</string>
+    <string name="profile_blocked_activity">Choisis ce qui ressemble le plus à tes semaines.</string>
+    <string name="profile_blocked_strategy">Choisis un objectif : perdre, maintenir ou prendre du poids.</string>
+    <string name="profile_blocked_horizon">Il manque un poids cible et une échéance.</string>
+    <string name="profile_blocked_macro">Un de tes compteurs est vide. Remplis-le, ou repasse en calcul auto.</string>
 
     <string name="profile_save">Enregistrer</string>
     <string name="profile_saving">Enregistrement…</string>
-    <string name="profile_save_failed">L\'enregistrement n\'a pas abouti. Vos corrections sont conservées telles quelles.</string>
+    <string name="profile_save_failed">L\'enregistrement a raté. Tes modifications sont toujours là.</string>
 
     <!-- Un échec de lecture se dit, il ne s'affiche pas comme un profil vide : un
          formulaire vide enregistré écraserait celui qui est en base. -->
-    <string name="profile_unreadable_title">Profil illisible</string>
-    <string name="profile_unreadable_body">La lecture n\'a pas abouti. Rien n\'a été modifié : votre profil et votre objectif sont là où ils étaient.</string>
+    <string name="profile_unreadable_title">Oups, le profil ne s\'affiche pas</string>
+    <string name="profile_unreadable_body">Rien n\'est perdu, ton profil et ton objectif sont toujours là. Réessaie.</string>
 
     <!-- Le hub, qui naît avec sa deuxième section (D59). -->
     <!-- La croix des deux ecrans dont elle etait muette au lecteur d’ecran. -->
@@ -136,18 +136,18 @@
     <string name="ai_close">Fermer</string>
     <string name="settings_title">Réglages</string>
     <string name="settings_profile_title">Profil et objectifs</string>
-    <string name="settings_profile_subtitle">Vos mesures, votre objectif et vos six compteurs.</string>
-    <string name="settings_ai_title">Intelligence artificielle</string>
-    <string name="settings_ai_subtitle">Vos clés, vos modèles, et de quoi les éprouver.</string>
+    <string name="settings_profile_subtitle">Tes mesures, ton objectif et tes compteurs</string>
+    <string name="settings_ai_title">IA</string>
+    <string name="settings_ai_subtitle">Tes clés, tes modèles, et un bouton pour les tester</string>
     <string name="settings_contribution_title">Open Food Facts</string>
-    <string name="settings_contribution_subtitle">Le compte sous lequel reverser vos fiches.</string>
+    <string name="settings_contribution_subtitle">Ton compte pour partager tes produits.</string>
 
     <!-- Le compte de contribution. C'est celui de l'utilisateur, jamais un compte de
          l'application : le mot de passe de ce dernier vivrait dans un APK publié. -->
     <string name="contribution_title">Open Food Facts</string>
     <string name="contribution_close">Fermer</string>
-    <string name="contribution_account_title">Votre compte</string>
-    <string name="contribution_account_body">Sans compte, aucune contribution n\'est proposée. L\'identifiant est votre nom d\'utilisateur sur openfoodfacts.org, pas votre adresse électronique.</string>
+    <string name="contribution_account_title">Ton compte</string>
+    <string name="contribution_account_body">Sans compte, pas de partage. L\'identifiant, c\'est ton nom d\'utilisateur sur openfoodfacts.org, pas ton adresse mail.</string>
     <string name="contribution_user_id">Identifiant</string>
     <string name="contribution_password">Mot de passe</string>
     <string name="contribution_save">Enregistrer</string>
@@ -156,24 +156,24 @@
     <!-- Le bac à sable : la même API sur des données jetables. Il sert à vérifier
          qu'un envoi aboutit sans laisser de fiche fautive dans une base publique. -->
     <string name="contribution_sandbox_title">Serveur de test</string>
-    <string name="contribution_sandbox_body">Envoie vers l\'instance d\'essai plutôt que vers la vraie base. Rien de ce qui part n\'y est public.</string>
+    <string name="contribution_sandbox_body">Envoie vers le serveur d\'essai au lieu de la vraie base. Rien n\'y est public.</string>
 
     <!-- L'écran des fournisseurs. -->
-    <string name="ai_title">Intelligence artificielle</string>
+    <string name="ai_title">IA</string>
     <!-- Ce que personne ne lit dans un paragraphe : c'est gratuit. La reponse qui
          decide si quelqu'un configure une cle ou referme l'ecran (D138). -->
     <string name="ai_free_title">%1$s est gratuit</string>
     <!-- En mots de tous les jours (D178) : « palier » et « usage courant » ne disaient pas
          que les repas d'une journée y tiennent largement. -->
-    <string name="ai_free_body">Un compte suffit, et l\'offre gratuite couvre largement les repas d\'une journée : ni abonnement, ni carte bancaire. La clé, un code personnel à coller ici, se récupère en deux minutes, une seule fois.</string>
+    <string name="ai_free_body">Un compte suffit, et l\'offre gratuite couvre largement tes repas de la journée. Pas d\'abonnement, pas de carte bancaire. La clé (un code perso à coller ici) se récupère en deux minutes, une seule fois.</string>
     <!-- Ce qu'est une clé, avant de dire où elle reste (D178). -->
-    <string name="ai_intro">Une clé est un code personnel qui relie Hexavore à votre compte chez un fournisseur d\'IA. Elle reste sur ce téléphone, chiffrée par son trousseau, et les appels partent directement chez lui : Hexavore n\'a pas de serveur.</string>
+    <string name="ai_intro">Une clé, c\'est un code perso qui relie Hexavore à ton compte chez un fournisseur d\'IA. Elle reste chiffrée sur ton téléphone, et les demandes partent directement chez le fournisseur : Hexavore n\'a pas de serveur.</string>
 
     <!-- Le compteur d'usage. La date du releve accompagne le montant : docs/05 veut
          que la table de tarifs soit datee et signalee comme indicative, parce qu'une
          estimation perimee presentee comme exacte serait pire que pas d'estimation. -->
-    <string name="ai_usage_billing">Hexavore n\'estime aucun coût. Seule la facture de votre fournisseur fait foi.</string>
-    <string name="ai_usage_title">Ce que vos analyses ont consommé</string>
+    <string name="ai_usage_billing">Hexavore n\'estime aucun coût. Seule la facture de ton fournisseur compte.</string>
+    <string name="ai_usage_title">Ce que tes analyses ont consommé</string>
     <plurals name="ai_usage_line">
         <item quantity="one">%1$s · %2$s · %3$d appel, %4$d jetons</item>
         <item quantity="other">%1$s · %2$s · %3$d appels, %4$d jetons</item>
@@ -208,7 +208,7 @@
          masque par des points : le geste que les testeurs ratent au retour du
          navigateur. Un bouton le reduit a un appui (D157). -->
     <string name="ai_key_paste">Coller la clé</string>
-    <string name="ai_key_paste_empty">Rien à coller : copiez d\'abord la clé sur le site, puis revenez ici.</string>
+    <string name="ai_key_paste_empty">Rien à coller. Copie d\'abord la clé sur le site, puis reviens ici.</string>
 
     <!-- ===== Récupérer une clé =====================================================
          Un ecran, et non un lien discret : il annonce la sortie de l'application, dit
@@ -217,17 +217,17 @@
          precis : les consoles changent de forme plusieurs fois par an. -->
     <string name="ai_get_title">Récupérer une clé</string>
     <string name="ai_get_close">Fermer</string>
-    <string name="ai_get_warning_title">Vous allez sortir d\'Hexavore</string>
-    <string name="ai_get_warning_body">La clé se crée chez %1$s, sur son site. Personne ne peut le faire à votre place : il faut un compte à votre nom, et c\'est %1$s qui vous remet la clé.</string>
-    <string name="ai_get_warning_once">Comptez deux minutes — et c\'est à faire une seule fois.</string>
-    <string name="ai_get_steps_title">Ce que vous aurez à faire</string>
-    <string name="ai_get_step_open">Appuyez sur le bouton en bas de cet écran : le site de %1$s s\'ouvre dans votre navigateur.</string>
-    <string name="ai_get_step_account_free">Connectez-vous, ou créez un compte si vous n\'en avez pas. Aucune carte bancaire n\'est demandée.</string>
-    <string name="ai_get_step_account">Connectez-vous, ou créez un compte si vous n\'en avez pas.</string>
-    <string name="ai_get_step_create">Cherchez le bouton qui crée une clé d\'API — il est souvent en anglais : « Create API key ».</string>
-    <string name="ai_get_step_paste">Copiez la clé, revenez dans Hexavore, et appuyez sur « Coller la clé ».</string>
-    <string name="ai_get_step_copy_once">Copiez-la avant de quitter la page : certains fournisseurs ne l\'affichent qu\'une seule fois.</string>
-    <string name="ai_get_privacy">La clé restera sur ce téléphone, chiffrée par son trousseau. Les appels partiront en direct chez %1$s : Hexavore n\'a pas de serveur et ne voit rien passer.</string>
+    <string name="ai_get_warning_title">Tu vas sortir d\'Hexavore</string>
+    <string name="ai_get_warning_body">La clé se crée sur le site de %1$s. Personne ne peut le faire pour toi : il faut un compte à ton nom, et c\'est %1$s qui te donne la clé.</string>
+    <string name="ai_get_warning_once">Deux minutes, et une seule fois.</string>
+    <string name="ai_get_steps_title">Ce que tu vas faire</string>
+    <string name="ai_get_step_open">Appuie sur le bouton en bas : le site de %1$s s\'ouvre dans ton navigateur.</string>
+    <string name="ai_get_step_account_free">Connecte-toi, ou crée un compte. Pas besoin de carte bancaire.</string>
+    <string name="ai_get_step_account">Connecte-toi, ou crée un compte.</string>
+    <string name="ai_get_step_create">Cherche le bouton pour créer une clé, souvent en anglais : « Create API key ».</string>
+    <string name="ai_get_step_paste">Copie la clé, reviens dans Hexavore et appuie sur « Coller la clé ».</string>
+    <string name="ai_get_step_copy_once">Copie-la avant de quitter la page : certains fournisseurs ne l\'affichent qu\'une fois.</string>
+    <string name="ai_get_privacy">La clé reste chiffrée sur ton téléphone. Les demandes partent directement chez %1$s : Hexavore n\'a pas de serveur et ne voit rien passer.</string>
     <string name="ai_get_open">Ouvrir le site de %1$s</string>
     <string name="ai_get_back">Revenir</string>
 
@@ -238,44 +238,44 @@
          La garantie de reversibilite du projet : un format ouvert, un export qui
          fonctionne, et un effacement qui tient sa promesse (docs/09). -->
     <string name="settings_backup_title">Sauvegarde</string>
-    <string name="settings_backup_subtitle">Exporter vos données, les restaurer, ou tout effacer</string>
+    <string name="settings_backup_subtitle">Exporter, restaurer ou tout effacer</string>
 
     <string name="backup_title">Sauvegarde</string>
     <string name="backup_close">Fermer</string>
     <string name="backup_cancel">Annuler</string>
 
     <string name="backup_export_title">Exporter mes données</string>
-    <string name="backup_export_body">Un fichier qui contient tout : le journal et ses photos, les objectifs, les pesées, le catalogue et les plats favoris. Vous choisissez où l\'écrire. Ni clé d\'API ni mot de passe n\'y figurent.</string>
+    <string name="backup_export_body">Un fichier avec tout : le journal et ses photos, les objectifs, les pesées, le catalogue et les favoris. Tu choisis où le ranger. Aucune clé ni mot de passe dedans.</string>
     <string name="backup_export_action">Choisir un emplacement</string>
     <string name="backup_exported">Exporté, %1$d Ko</string>
     <!-- Au-dela du megaoctet : une archive qui porte des photos se compte en Mo,
          et « 214 072 Ko » ne se lit pas. -->
     <string name="backup_exported_large">Exporté, %1$.1f Mo</string>
-    <string name="backup_export_failed">Le fichier n\'a pas pu être écrit</string>
+    <string name="backup_export_failed">Impossible d\'écrire le fichier</string>
 
     <string name="backup_import_title">Restaurer une sauvegarde</string>
-    <string name="backup_import_body">Remplace tout ce qui est sur cet appareil par le contenu du fichier. Une copie de ce qui existe est conservée juste avant.</string>
+    <string name="backup_import_body">Remplace tout ce qu\'il y a sur ce téléphone par le contenu du fichier. On garde une copie juste avant, au cas où.</string>
     <string name="backup_import_action">Choisir un fichier</string>
-    <string name="backup_restore_confirm_title">Remplacer toutes vos données ?</string>
-    <string name="backup_restore_confirm_body">Le contenu du fichier remplacera tout ce qui est sur cet appareil. Les deux ne seront pas fusionnés. Une copie de l\'état actuel est gardée juste avant, pour que vous puissiez revenir en arrière depuis cet écran si vous vous êtes trompé de fichier.</string>
+    <string name="backup_restore_confirm_title">Remplacer toutes tes données ?</string>
+    <string name="backup_restore_confirm_body">Le fichier remplace tout ce qu\'il y a sur ce téléphone, sans fusionner. On garde une copie juste avant : si tu t\'es trompé de fichier, tu pourras revenir en arrière depuis cet écran.</string>
     <string name="backup_restore_confirm_accept">Choisir un fichier</string>
     <!-- Un pluriel : une sauvegarde d'un seul aliment s'annonçait « 1 aliments notés » (D162). -->
     <plurals name="backup_restored">
         <item quantity="one">Restauré, %1$d aliment noté</item>
         <item quantity="other">Restauré, %1$d aliments notés</item>
     </plurals>
-    <string name="backup_too_recent">Ce fichier vient d\'une version plus récente (format %1$d). Rien n\'a été modifié : mettez l\'application à jour.</string>
-    <string name="backup_unreadable">Fichier illisible. Rien n\'a été modifié.</string>
-    <string name="backup_restore_failed">La restauration a échoué. Une copie de vos données d\'avant est sur l\'appareil.</string>
+    <string name="backup_too_recent">Ce fichier vient d\'une version plus récente (format %1$d). Rien n\'a changé : mets l\'appli à jour.</string>
+    <string name="backup_unreadable">Fichier illisible. Rien n\'a changé.</string>
+    <string name="backup_restore_failed">La restauration a raté. Une copie de tes données d\'avant est sur le téléphone.</string>
 
     <!-- Le retour sur la copie de sécurité (D162) : la boîte de restauration le
          promettait, et aucun écran ne l'offrait. La carte ne paraît qu'après une
          restauration, qui laisse la copie. -->
     <string name="backup_undo_title">Revenir en arrière</string>
-    <string name="backup_undo_body">Remet le journal tel qu\'il était avant la restauration du %1$s. Les photos ne reviennent que si l\'application n\'a pas été relancée depuis.</string>
+    <string name="backup_undo_body">Remet le journal comme avant la restauration du %1$s. Les photos ne reviennent que si l\'appli n\'a pas été relancée depuis.</string>
     <string name="backup_undo_action">Revenir en arrière</string>
-    <string name="backup_undo_confirm_title">Revenir à l\'état d\'avant ?</string>
-    <string name="backup_undo_confirm_body">Le journal présent sera remplacé par celui d\'avant la dernière restauration. Il deviendra à son tour la copie de sécurité : ce retour en arrière se défait de la même façon.</string>
+    <string name="backup_undo_confirm_title">Revenir à avant ?</string>
+    <string name="backup_undo_confirm_body">Le journal actuel sera remplacé par celui d\'avant la dernière restauration. Il devient à son tour la copie de secours : tu peux annuler de la même façon.</string>
     <plurals name="backup_undone">
         <item quantity="one">Retour en arrière fait, %1$d aliment noté</item>
         <item quantity="other">Retour en arrière fait, %1$d aliments notés</item>
@@ -284,16 +284,16 @@
     <string name="backup_erase_title">Effacer toutes mes données</string>
     <!-- La copie d'avant restauration est nommée (D162) : elle survivait à l'effacement,
          et le journal entier restait sur le téléphone. -->
-    <string name="backup_erase_body">Supprime le journal, les photos, le profil, les objectifs, les pesées, les clés d\'API et les comptes, ainsi que la copie gardée avant la dernière restauration. Les fichiers déjà exportés ne sont pas touchés.</string>
+    <string name="backup_erase_body">Supprime le journal, les photos, le profil, les objectifs, les pesées, les clés et les comptes, plus la copie gardée avant la dernière restauration. Les fichiers déjà exportés ne bougent pas.</string>
     <string name="backup_erase_action">Tout effacer</string>
-    <string name="backup_erase_confirm_title">Tout effacer, sans retour possible ?</string>
-    <string name="backup_erase_confirm_body">Cette action ne peut pas être annulée. Pour confirmer, écrivez %1$s ci-dessous.</string>
+    <string name="backup_erase_confirm_title">Tout effacer pour de bon ?</string>
+    <string name="backup_erase_confirm_body">Pas de retour possible. Pour confirmer, écris %1$s ci-dessous.</string>
     <string name="backup_erase_confirm_accept">Tout effacer</string>
     <!-- Le mot a taper, et il se traduit expres : un verrou qui demande de lire ne
          verrouille que dans une langue qu'on lit. La comparaison porte sur cette
          ressource, donc elle suit la traduction toute seule. -->
     <string name="backup_erase_word">SUPPRIMER</string>
-    <string name="backup_erased">Toutes vos données ont été effacées</string>
+    <string name="backup_erased">Tout a été effacé</string>
 
     <!-- ===== Apparence ===========================================================
          La section que docs/02 annoncait et qui n ouvrait rien. Elle ouvre le theme, les
@@ -303,13 +303,13 @@
          Apparence : ce qu'elle decide n'est pas ce qu'on voit mais ce qui
          s'ecrit sur le disque. -->
     <string name="settings_photos_title">Photos des plats</string>
-    <string name="settings_photos_subtitle">Les garder ou non, et ce qu\'elles occupent</string>
+    <string name="settings_photos_subtitle">Les garder ou pas, et la place qu\'elles prennent</string>
     <string name="photos_title">Photos des plats</string>
     <string name="photos_close">Fermer</string>
     <string name="photos_keeping_title">Garder les photos</string>
-    <string name="photos_keeping_body">Quand vous validez un plat scanné ou analysé, son image reste sur ce téléphone et s\'affiche avec lui. Elle ne part nulle part.</string>
-    <string name="photos_storage_title">Ce qu\'elles occupent</string>
-    <string name="photos_storage_empty">Aucune photo pour l\'instant.</string>
+    <string name="photos_keeping_body">Quand tu valides un plat scanné ou analysé, sa photo reste sur ton téléphone avec lui. Elle ne part nulle part.</string>
+    <string name="photos_storage_title">La place qu\'elles prennent</string>
+    <string name="photos_storage_empty">Pas encore de photo.</string>
     <plurals name="photos_storage_count">
         <item quantity="one">%1$d photo, %2$.1f Mo</item>
         <item quantity="other">%1$d photos, %2$.1f Mo</item>
@@ -317,14 +317,14 @@
     <string name="photos_erase_action">Supprimer toutes les photos</string>
     <string name="photos_erase_title">Supprimer les photos ?</string>
     <plurals name="photos_erase_body">
-        <item quantity="one">%1$d image sera effacée. Vos plats et leurs valeurs restent intacts.</item>
-        <item quantity="other">%1$d images seront effacées. Vos plats et leurs valeurs restent intacts.</item>
+        <item quantity="one">%1$d photo sera effacée. Tes plats et leurs valeurs ne bougent pas.</item>
+        <item quantity="other">%1$d photos seront effacées. Tes plats et leurs valeurs ne bougent pas.</item>
     </plurals>
     <string name="photos_erase_confirm">Supprimer</string>
     <string name="photos_erase_cancel">Annuler</string>
 
     <string name="settings_appearance_title">Apparence</string>
-    <string name="settings_appearance_subtitle">La langue, le thème, les unités, et l\'affichage des plats</string>
+    <string name="settings_appearance_subtitle">Langue, thème, unités et affichage des plats</string>
 
     <string name="appearance_title">Apparence</string>
     <string name="appearance_close">Fermer</string>
@@ -338,7 +338,7 @@
          cherche : « English » en dit donc plus que « Anglais » ne le ferait jamais. -->
     <string name="appearance_language_en">English</string>
     <string name="appearance_language_fr">Français</string>
-    <string name="appearance_language_note">« Suivre le système » prend les langues réglées sur votre téléphone, dans leur ordre, et retient la première que parle Hexavore. L\'anglais sinon. Les noms d\'aliments suivent : la table de l\'ANSES publie ses 3 484 libellés dans les deux langues.</string>
+    <string name="appearance_language_note">« Suivre le système » prend la première langue de ton téléphone que parle Hexavore, sinon l\'anglais. Les noms d\'aliments suivent : la table de l\'ANSES existe dans les deux langues.</string>
 
     <string name="appearance_theme_title">Thème</string>
     <string name="appearance_theme_light">Clair</string>
@@ -350,78 +350,78 @@
     <string name="appearance_dishes_title">Affichage des plats</string>
     <string name="appearance_dishes_simple">Simplifié</string>
     <string name="appearance_dishes_detailed">Détaillé</string>
-    <string name="appearance_dishes_note">Le simplifié donne le titre du plat, son heure, ses calories et ses apports. Le détaillé y ajoute la liste de ses aliments.</string>
+    <string name="appearance_dishes_note">Simplifié : le titre du plat, l\'heure, les calories et les apports. Détaillé : en plus, la liste des aliments.</string>
 
     <string name="appearance_units_metric">Métrique (g, ml, kg, cm)</string>
     <string name="appearance_units_imperial">Impérial (oz, fl oz, lb, pieds et pouces)</string>
-    <string name="appearance_units_note">Ce réglage change l\'affichage et la saisie. Vos données ne bougent pas : un plat noté en grammes garde ses grammes.</string>
-    <string name="appearance_theme_note">« Suivre le système » reprend le réglage d\'Android et bascule avec lui.</string>
+    <string name="appearance_units_note">Change l\'affichage et la saisie. Tes données ne bougent pas : un plat noté en grammes reste en grammes.</string>
+    <string name="appearance_theme_note">« Suivre le système » suit le réglage d\'Android.</string>
 
     <!-- ===== Pastilles ============================================================
          Aucune notification systeme : ce sont des points colorés qu'on voit en ouvrant
          l'application. Chacune designe une situation, jamais un message empile. -->
     <string name="settings_notices_title">Notifications</string>
-    <string name="settings_notices_subtitle">Les pastilles qui signalent ce qu\'il y a à faire</string>
+    <string name="settings_notices_subtitle">Les pastilles qui te signalent quelque chose</string>
 
     <string name="notices_title">Notifications</string>
     <string name="notices_close">Fermer</string>
     <!-- Les pastilles, et elles seules (D162) : l'écran porte aussi les rappels, qui
          sonnent et demandent une permission, et la phrase semblait parler d'eux. -->
-    <string name="notices_intro">Les pastilles sont des points colorés dans l\'application, rien de plus : aucune sonnerie, rien sur l\'écran de verrouillage, aucune permission. Chacune s\'éteint quand la situation qu\'elle signale a cessé. Seuls les rappels, plus bas, sonnent hors de l\'application.</string>
-    <string name="settings_section_flagged">Quelque chose à régler ici</string>
+    <string name="notices_intro">Les pastilles sont juste des points de couleur dans l\'appli : pas de son, rien sur l\'écran verrouillé, aucune permission. Chacune s\'éteint quand le souci est réglé. Seuls les rappels, plus bas, sonnent en dehors de l\'appli.</string>
+    <string name="settings_section_flagged">Un truc à régler ici</string>
     <string name="notices_active_now">Allumée en ce moment</string>
 
-    <string name="notices_ai_absent_title">Aucune IA configurée</string>
+    <string name="notices_ai_absent_title">Pas d\'IA configurée</string>
     <!-- La barre n'est plus grisée sans clé : elle passe au rouge et dit ce qui manque (D162). -->
-    <string name="notices_ai_absent_body">Sur l\'icône du profil, tant qu\'aucune clé d\'API ne sert. Sans elle, la barre d\'analyse s\'affiche en rouge et dit ce qui manque.</string>
+    <string name="notices_ai_absent_body">Sur l\'icône du profil, tant qu\'il n\'y a pas de clé. Sans elle, la barre d\'analyse passe en rouge et dit ce qui manque.</string>
 
-    <string name="notices_ai_rejected_title">Clé d\'API refusée</string>
-    <string name="notices_ai_rejected_body">Sur l\'icône du profil, quand le dernier appel d\'analyse a été refusé. Sans elle, l\'analyse cesse de fonctionner sans que rien ne le dise.</string>
+    <string name="notices_ai_rejected_title">Clé d\'IA refusée</string>
+    <string name="notices_ai_rejected_body">Sur l\'icône du profil, quand la dernière analyse a été refusée. Sinon, l\'analyse arrêterait de marcher sans prévenir.</string>
 
     <string name="notices_weight_title">Pas de pesée depuis une semaine</string>
     <!-- La tendance ne se tait plus depuis D159 : c'est l'adaptation qui manque d'appui (D162). -->
-    <string name="notices_weight_body">Sur l\'icône du journal de poids. Sans pesées régulières, l\'adaptation hebdomadaire n\'a rien sur quoi s\'appuyer, et ne peut rien proposer.</string>
+    <string name="notices_weight_body">Sur l\'icône du poids. Sans pesées régulières, l\'ajustement de la semaine n\'a rien sur quoi s\'appuyer.</string>
 
-    <string name="notices_yesterday_title">Hier n\'a rien de noté</string>
-    <string name="notices_yesterday_body">Sur la pastille d\'hier dans le calendrier. Toucher cette journée permet d\'y noter le repas oublié.</string>
+    <string name="notices_yesterday_title">Rien de noté hier</string>
+    <string name="notices_yesterday_body">Sur la pastille d\'hier dans le calendrier. Touche ce jour pour ajouter le repas oublié.</string>
     <!-- Le chemin du retour de « Ne plus afficher d'astuces » (D179). -->
     <string name="notices_tips_title">Astuces à l\'ouverture</string>
-    <string name="notices_tips_body">De temps en temps, en ouvrant l\'application, un geste qu\'on ne devine pas. Chacune une seule fois, et jamais plus d\'une à la fois.</string>
+    <string name="notices_tips_body">De temps en temps, à l\'ouverture, une astuce qu\'on ne devine pas. Chacune une seule fois, jamais deux d\'un coup.</string>
 
     <!-- L\'analyse approfondie : le modele interroge le catalogue avant de conclure,
          au lieu de laisser un score de ressemblance choisir a sa place. -->
     <string name="ai_deep_title">Analyse approfondie</string>
-    <string name="ai_deep_body">Le modèle interroge le catalogue et choisit lui-même la fiche de chaque aliment. Elle est toujours active dès que le fournisseur sait appeler des outils : sans elle, les aliments que le catalogue ne rejoint pas reviennent sans aucune valeur.</string>
-    <string name="ai_deep_unavailable">Le fournisseur actif ne sait pas appeler d\'outils. Les aliments qu\'il ne rejoint pas seront estimés, et signalés comme tels.</string>
+    <string name="ai_deep_body">Le modèle fouille le catalogue et choisit lui-même chaque aliment. Toujours actif si le fournisseur sait utiliser des outils : sans ça, les aliments introuvables reviendraient sans valeurs.</string>
+    <string name="ai_deep_unavailable">Ce fournisseur ne sait pas utiliser d\'outils. Les aliments qu\'il ne trouve pas seront estimés, et signalés comme tels.</string>
 
     <!-- Les rappels : la seconde moitie de cet ecran. Ils sonnent dehors, la ou les
          pastilles se voient en ouvrant l'application. -->
     <string name="reminders_title">Rappels</string>
-    <string name="reminders_intro">Ceux-là sonnent vraiment, hors de l\'application. Chacun se tait quand il n\'a rien à dire : le rappel du déjeuner saute une journée dont le déjeuner est déjà noté.</string>
+    <string name="reminders_intro">Eux sonnent vraiment, hors de l\'appli. Chacun se tait s\'il n\'a rien à dire : pas de rappel du déjeuner si tu l\'as déjà noté.</string>
     <string name="reminders_blocked">Android bloque les notifications d\'Hexavore. Les rappels sont réglés, mais rien ne sonnera.</string>
     <string name="reminders_allow">Autoriser les notifications</string>
     <string name="reminders_breakfast_title">Petit-déjeuner</string>
     <string name="reminders_lunch_title">Déjeuner</string>
     <string name="reminders_dinner_title">Dîner</string>
     <string name="reminders_streak_title">Série en jeu</string>
-    <string name="reminders_meal_body">Muet dès que ce repas est noté.</string>
-    <string name="reminders_streak_body">Le soir, quand rien n\'est noté et qu\'une série court.</string>
+    <string name="reminders_meal_body">Se tait dès que ce repas est noté.</string>
+    <string name="reminders_streak_body">Le soir, si rien n\'est noté et que tu as une série en cours.</string>
     <string name="settings_favorites_title">Favoris</string>
-    <string name="settings_favorites_subtitle">Les plats enregistrés, et de quoi les corriger.</string>
+    <string name="settings_favorites_subtitle">Tes plats enregistrés, et de quoi les modifier</string>
     <string name="settings_favorites_edit">Modifier ce favori</string>
-    <string name="settings_favorites_empty">Aucun favori. Touchez l\'étoile sur un plat pour l\'enregistrer ; il reviendra sous le bouton +.</string>
+    <string name="settings_favorites_empty">Pas encore de favori. Touche l\'étoile sur un plat pour le garder, il reviendra sous le bouton +.</string>
     <string name="settings_contact_title">Contact</string>
-    <string name="settings_contact_subtitle">Le code, le site, où écrire, et où nous noter.</string>
-    <string name="settings_contact_intro">Hexavore est un logiciel libre. Un défaut, une idée, un mot : les trois nous arrivent.</string>
+    <string name="settings_contact_subtitle">Le code, le site, nous écrire, nous noter</string>
+    <string name="settings_contact_intro">Hexavore est un logiciel libre. Un bug, une idée, un petit mot : tout nous arrive.</string>
     <string name="settings_contact_site">Le site</string>
-    <string name="settings_contact_github">Le code, et les tickets</string>
+    <string name="settings_contact_github">Le code et les tickets</string>
     <string name="settings_contact_mail">Nous écrire</string>
     <!-- La demande d'avis de l'ouverture, toujours à portée (D179). -->
     <string name="settings_contact_rate">Noter Hexavore sur le Play Store</string>
     <!-- Quand rien sur le téléphone ne sait ouvrir l'adresse d'une carte, de Contact
          comme d'À propos (D162). Elle renvoie à l'adresse, écrite sur la carte pour
          cette raison. -->
-    <string name="settings_link_unavailable">Aucune application de ce téléphone ne sait ouvrir ce lien. L\'adresse est écrite sur la carte : vous pouvez la recopier.</string>
+    <string name="settings_link_unavailable">Aucune appli de ce téléphone ne sait ouvrir ce lien. L\'adresse est sur la carte, tu peux la recopier.</string>
 
     <!-- ===== À propos =============================================================
          Ce qu'est l'application, et ce qu'elle doit à d'autres (D161) : la politique de
@@ -430,12 +430,12 @@
          licences de ce que l'APK embarque. Les noms propres ne se traduisent pas et
          ne figurent que dans values/. -->
     <string name="settings_about_title">À propos</string>
-    <string name="settings_about_subtitle">La version, la confidentialité, la source des données, et les licences.</string>
+    <string name="settings_about_subtitle">La version, la confidentialité, les sources et les licences</string>
     <string name="about_close">Fermer</string>
     <string name="about_version">Version %1$s</string>
-    <string name="about_tagline">Le suivi alimentaire libre : sans compte, sans serveur, sans publicité.</string>
+    <string name="about_tagline">Le suivi alimentaire libre : sans compte, sans serveur, sans pub.</string>
     <string name="about_privacy_title">Politique de confidentialité</string>
-    <string name="about_privacy_body">Ce que l\'application garde, ce qui quitte votre téléphone, et comment tout effacer.</string>
+    <string name="about_privacy_body">Ce que l\'appli garde, ce qui quitte ton téléphone, et comment tout effacer.</string>
     <!-- La politique dans la langue qu'on lit : le site publie les deux. -->
     <string name="about_privacy_url">https://hexavore.app/confidentialite/</string>
     <string name="about_sources_title">D\'où viennent les valeurs nutritionnelles</string>

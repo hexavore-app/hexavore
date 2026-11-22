@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:locale="fr">
 
-    <string name="progress_title">Progression</string>
+    <string name="progress_title">Ta progression</string>
     <string name="progress_close">Fermer la progression</string>
 
     <!-- Deux séries, et elles ne mesurent pas la même chose : l\'une dit qu\'on note,
          l\'autre qu\'on tient sa fourchette. -->
-    <string name="progress_streak_logging">Série de saisie</string>
-    <string name="progress_streak_logging_hint">Jours d\'affilée avec au moins un plat</string>
+    <string name="progress_streak_logging">Série</string>
+    <string name="progress_streak_logging_hint">Jours d\'affilée avec au moins un plat noté</string>
     <string name="progress_streak_perfect">Série dorée</string>
-    <string name="progress_streak_perfect_hint">Jours d\'affilée passés dans votre fourchette</string>
+    <string name="progress_streak_perfect_hint">Jours d\'affilée dans ta fourchette</string>
 
     <plurals name="progress_days">
         <item quantity="one">%1$d jour</item>
@@ -19,8 +19,8 @@
     <string name="progress_level">Niveau %1$d</string>
     <!-- Un pluriel sur le premier nombre : au premier point, « 1 points sur 100 » (D162). -->
     <plurals name="progress_level_points">
-        <item quantity="one">%1$d point sur %2$d avant le niveau suivant</item>
-        <item quantity="other">%1$d points sur %2$d avant le niveau suivant</item>
+        <item quantity="one">%1$d point sur %2$d vers le niveau suivant</item>
+        <item quantity="other">%1$d points sur %2$d vers le niveau suivant</item>
     </plurals>
 
     <!-- Tous les paliers sont affichés, pris ou non : un palier caché ne donne envie de
@@ -51,21 +51,21 @@
     <string name="progress_name_first_favorite">Premier favori</string>
 
     <plurals name="progress_hint_streak">
-        <item quantity="one">Notez quelque chose pendant %1$d jour</item>
-        <item quantity="other">Notez quelque chose %1$d jours de suite</item>
+        <item quantity="one">Note quelque chose pendant %1$d jour</item>
+        <item quantity="other">Note quelque chose %1$d jours de suite</item>
     </plurals>
     <plurals name="progress_hint_volume">
-        <item quantity="one">Notez %1$d plat</item>
-        <item quantity="other">Notez %1$d plats</item>
+        <item quantity="one">Note %1$d plat</item>
+        <item quantity="other">Note %1$d plats</item>
     </plurals>
     <plurals name="progress_hint_perfect">
-        <item quantity="one">Restez dans votre fourchette sur %1$d journée</item>
-        <item quantity="other">Restez dans votre fourchette %1$d jours de suite</item>
+        <item quantity="one">Reste dans ta fourchette %1$d jour</item>
+        <item quantity="other">Reste dans ta fourchette %1$d jours de suite</item>
     </plurals>
-    <string name="progress_hint_first_scan">Scannez un code-barres</string>
-    <string name="progress_hint_first_photo">Photographiez un repas</string>
-    <string name="progress_hint_first_text">Décrivez un repas en une phrase</string>
-    <string name="progress_hint_first_favorite">Enregistrez un plat en favori</string>
+    <string name="progress_hint_first_scan">Scanne un code-barres</string>
+    <string name="progress_hint_first_photo">Prends un repas en photo</string>
+    <string name="progress_hint_first_text">Décris un repas en une phrase</string>
+    <string name="progress_hint_first_favorite">Mets un plat en favori</string>
 
     <!-- Une fois pris, la date remplace la description : elle fait de cette liste une
          histoire plutôt qu\'un catalogue. -->

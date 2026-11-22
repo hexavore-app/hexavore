@@ -16,26 +16,26 @@
 
     <!-- Le cadre vide dit ce qu'on attend de lui. C'est le conseil que docs/02 voulait
          en surimpression de l'apercu camera ; il se lit mieux avant d'appuyer. -->
-    <string name="analyse_photo_hint">Photographiez l\'assiette entière, vue de dessus si possible. Ou décrivez votre repas en dessous.</string>
+    <string name="analyse_photo_hint">Prends toute l\'assiette, vue du dessus si possible. Ou décris ton repas juste en dessous.</string>
     <string name="analyse_shoot">Prendre une photo</string>
     <string name="analyse_pick">Choisir une image</string>
     <string name="analyse_photo_remove">Retirer la photo</string>
-    <string name="analyse_photo_a11y">La photo de votre repas</string>
+    <string name="analyse_photo_a11y">La photo de ton repas</string>
 
     <!-- Le meme champ, deux roles : sans photo il decrit, avec photo il precise. Un
          champ qui demanderait « decrivez votre repas » sous une photo ferait tout
          retaper. -->
-    <string name="analyse_describe_label">Ce que vous avez mangé</string>
-    <string name="analyse_describe_example">Par exemple : deux œufs brouillés, une tranche de pain complet, un verre de jus d\'orange</string>
-    <string name="analyse_note_label">Un détail à préciser ? (facultatif)</string>
-    <string name="analyse_note_example">Par exemple : l\'assiette fait 24 cm, la sauce est allégée</string>
+    <string name="analyse_describe_label">Ce que tu as mangé</string>
+    <string name="analyse_describe_example">Ex. : deux œufs brouillés, une tranche de pain complet, un verre de jus d\'orange</string>
+    <string name="analyse_note_label">Une précision ? (facultatif)</string>
+    <string name="analyse_note_example">Ex. : assiette de 24 cm, sauce allégée</string>
 
     <string name="analyse_submit">Analyser</string>
-    <string name="analyse_running">Analyse en cours…</string>
-    <string name="analyse_running_busy">Service saturé, nouvelle tentative…</string>
+    <string name="analyse_running">On regarde ça…</string>
+    <string name="analyse_running_busy">L\'IA est débordée, on réessaie…</string>
     <!-- L'assiette est lue ; ce sont les valeurs de ce que le catalogue ne connaît pas
          qu'on attend. Elle s'attendait derrière un écran noir (D176). -->
-    <string name="analyse_running_estimating">Estimation des valeurs nutritionnelles…</string>
+    <string name="analyse_running_estimating">On calcule les valeurs…</string>
     <string name="analyse_cancel">Annuler</string>
     <string name="analyse_manual">Saisir ce repas à la main</string>
 
@@ -43,10 +43,10 @@
          celui qui ecrit une phrase sait exactement ce qu'il envoie. Il nomme le
          fournisseur : « votre photo part chez Mistral » se verifie, « chez votre
          fournisseur » non. -->
-    <string name="analyse_consent_title">Votre photo va partir</string>
-    <string name="analyse_consent">Votre photo part chez %1$s, avec votre clé API. Hexavore n\'a aucun serveur : rien ne passe par nous. Ce que %1$s en garde, et pour combien de temps, relève de ses conditions.</string>
-    <string name="analyse_consent_unnamed">Votre photo part chez le fournisseur d\'IA que vous avez configuré, avec votre clé API. Hexavore n\'a aucun serveur : rien ne passe par nous.</string>
-    <string name="analyse_consent_accept">J\'ai compris</string>
+    <string name="analyse_consent_title">Ta photo va être envoyée</string>
+    <string name="analyse_consent">Ta photo part chez %1$s, avec ta clé. Hexavore n\'a pas de serveur, rien ne passe par nous. Ce que %1$s en garde, et combien de temps, dépend de ses conditions.</string>
+    <string name="analyse_consent_unnamed">Ta photo part chez le fournisseur d\'IA que tu as choisi, avec ta clé. Hexavore n\'a pas de serveur, rien ne passe par nous.</string>
+    <string name="analyse_consent_accept">OK, compris</string>
     <string name="analyse_consent_decline">Annuler</string>
 
 </resources>
