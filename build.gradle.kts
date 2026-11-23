@@ -1,5 +1,6 @@
 import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.extensions.DetektExtension
+import kotlinx.kover.gradle.plugin.dsl.KoverProjectExtension
 import org.jlleitschuh.gradle.ktlint.KtlintExtension
 
 plugins {
@@ -22,6 +23,7 @@ plugins {
     alias(libs.plugins.hilt) apply false
     alias(libs.plugins.detekt)
     alias(libs.plugins.ktlint)
+    alias(libs.plugins.kover)
 }
 
 // L'analyse statique reste posee par cross-configuration, et c'est un choix.
@@ -32,6 +34,13 @@ plugins {
 subprojects {
     apply(plugin = rootProject.libs.plugins.detekt.get().pluginId)
     apply(plugin = rootProject.libs.plugins.ktlint.get().pluginId)
+    apply(plugin = rootProject.libs.plugins.kover.get().pluginId)
+
+    // La couverture ne mesure que les tests JVM, et du debug seulement : le release
+    // rejoue les memes tests sur le meme code.
+    pluginManager.withPlugin("org.jetbrains.kotlin.jvm") { coverageVariant("jvm") }
+    pluginManager.withPlugin("com.android.library") { coverageVariant("debug") }
+    pluginManager.withPlugin("com.android.application") { coverageVariant("debug") }
 
     extensions.configure<DetektExtension> {
         buildUponDefaultConfig = true
@@ -95,11 +104,63 @@ fun Project.moduleDetektConfig(): ConfigurableFileCollection {
     return rootProject.files(listOfNotNull(overlay))
 }
 
+/** La variante de couverture `hexavore`, nourrie par une seule source de tests. */
+fun Project.coverageVariant(source: String) {
+    extensions.configure<KoverProjectExtension> {
+        currentProject { createVariant("hexavore") { add(source) } }
+    }
+}
+
+// Le rapport commun : `./gradlew :koverHtmlReportHexavore`. Ni les faux de
+// `:core:testing` ni l'outil d'import CIQUAL n'entrent dans un APK.
+dependencies {
+    subprojects
+        .filter { it.buildFile.exists() && it.path !in setOf(":core:testing", ":tooling:ciqual-import") }
+        .forEach { kover(project(it.path)) }
+}
+
+kover {
+    currentProject { createVariant("hexavore") {} }
+    reports {
+        filters {
+            excludes {
+                androidGeneratedClasses()
+                // Le code que Hilt, Room et Compose ecrivent a notre place, le cablage
+                // Hilt (verifie a la compilation), et la galerie, qui n'existe qu'en debug.
+                classes(
+                    "app.hexavore.di.*",
+                    "app.hexavore.*.di.*",
+                    "app.hexavore.gallery.*",
+                    "*_Factory",
+                    "*_Factory\$*",
+                    "*_MembersInjector",
+                    "*_HiltModules*",
+                    "*Hilt_*",
+                    "hilt_aggregated_deps.*",
+                    "dagger.*",
+                    "*_Impl",
+                    "*_Impl\$*",
+                    "*ComposableSingletons*",
+                )
+                annotatedBy("androidx.compose.ui.tooling.preview.Preview")
+            }
+        }
+        // Le plancher de l'ensemble, un peu sous ce qui est atteint ; celui du domaine
+        // est dans son propre script. Le relever quand la couverture monte.
+        variant("hexavore") {
+            verify {
+                rule { minBound(42) }
+            }
+        }
+    }
+}
+
 // build-logic est un build inclus : sans ces liens explicites, sa verification ne
 // tournerait jamais. Une regle detekt non testee est une regle qu'on croit active,
 // et un plugin de convention non verifie est une regle de build qu'on croit
 // appliquee.
 tasks.named("check") {
+    dependsOn(":koverVerifyHexavore")
     dependsOn(gradle.includedBuild("build-logic").task(":detekt-rules:check"))
     dependsOn(gradle.includedBuild("build-logic").task(":convention:check"))
 }

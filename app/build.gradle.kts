@@ -261,6 +261,11 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     // Le tour de l'application, joue sur un appareil ou un emulateur.
+    testImplementation(projects.core.testing)
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testRuntimeOnly(libs.junit.platform.launcher)
+
     androidTestImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.ext.junit)

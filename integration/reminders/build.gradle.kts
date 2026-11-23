@@ -5,6 +5,9 @@ plugins {
 
 android {
     namespace = "app.hexavore.integration.reminders"
+
+    // Les textes et le canal du module, pour Robolectric.
+    testOptions { unitTests.isIncludeAndroidResources = true }
 }
 
 dependencies {
@@ -21,7 +24,12 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
 
     testImplementation(projects.core.testing)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.androidx.work.testing)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.junit4)
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.kotlinx.coroutines.test)
+    testRuntimeOnly(libs.junit.vintage.engine)
     testRuntimeOnly(libs.junit.platform.launcher)
 }

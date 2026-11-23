@@ -16,6 +16,9 @@ android {
     defaultConfig {
         buildConfigField("String", "VERSION_LABEL", "\"${libs.versions.versionName.get()}\"")
     }
+
+    // Le fournisseur de fichiers du manifeste, et ses chemins, pour Robolectric.
+    testOptions { unitTests.isIncludeAndroidResources = true }
 }
 
 dependencies {
@@ -24,6 +27,12 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.core)
 
+    testImplementation(projects.core.testing)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.junit4)
     testImplementation(libs.junit.jupiter)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testRuntimeOnly(libs.junit.vintage.engine)
     testRuntimeOnly(libs.junit.platform.launcher)
 }
